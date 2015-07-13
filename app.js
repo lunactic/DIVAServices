@@ -1,3 +1,4 @@
+
 /// <reference path="typings/node/node.d.ts"/>
 /// <reference path="typings/express/express.d.ts" />
 
@@ -7,9 +8,11 @@ var favicon = require('serve-favicon');
 var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
+var getHandler = require('./routes/getHandler');
+var postHandler = require('./routes/postHandler');
 
-var mainHandler = require('./routes/mainHandler');
-
+var getRequestHandler = getHandler.prototype;
+var postRequestHandler = postHandler.prototype;
 var app = express();
 
 // view engine setup
@@ -24,7 +27,15 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
-app.use('/*', mainHandler);
+app.use(function(req,res, next){
+  
+  if(req.method === 'GET'){
+    getRequestHandler.handleRequest(req,res,next);
+  }
+  else if (req.method === 'POST') {
+   postRequestHandler.handleRequest(req,res,next); 
+  }
+});
 
 // error handlers
 
