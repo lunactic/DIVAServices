@@ -15,7 +15,7 @@ if not process.env.NODE_ENV? or process.env.NODE_ENV not in ['dev', 'test', 'pro
   process.exit 0
 
 nconf = require 'nconf'
-nconf.add 'server', type: 'file', file: './conf/server' + process.env.NODE_ENV + '.json'
+nconf.add 'server', type: 'file', file: './conf/server.' + process.env.NODE_ENV + '.json'
 
 express       = require 'express'
 favicon       = require 'serve-favicon'
@@ -51,8 +51,8 @@ server.startServer = (port, path, callback) ->
   #app.use logger('dev')
 
   #setup body parser
-  app.use bodyParser.json()
-  app.use bodyParser.urlencoded(extended: true)
+  app.use bodyParser.json(limit: '50mb')
+  app.use bodyParser.urlencoded(extended: true, limit: '50mb')
 
 
   #setup routes

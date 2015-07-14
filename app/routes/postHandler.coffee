@@ -1,12 +1,11 @@
+do ->
+  'use strict'
+
 fs          = require 'fs'
 imageHelper = require '../helper/imageHelper'
+executableHelper = require '../helper/executableHelper'
 
 class PostHandler
-
-  getParamValue = (parameter, inputParameters) ->
-    if inputParameters.hasOwnProperty(parameter)
-      return inputParameters[parameter]
-    return
 
   ### Handle Incoming GET Requests ###
   handleRequest: (req, res, next) ->
@@ -15,23 +14,22 @@ class PostHandler
       item.path == req.originalUrl
     )
     if typeof arrayFound != 'undefined'
-      #extract image
       imgHelper = new imageHelper()
-      imgHelper.saveImage req.body.image
+      exHelper = new executableHelper()
+
+      #extract image
+      imagePath = imgHelper.saveImage req.body.image
       #perform parameter matching
-      console.log req.body
       neededParameters = arrayFound[0].parameters
       inputParameters = req.body.inputs
-      executablePath = arrayFound[0].executablePath
-      #loop through all needed parameters
-      for parameter of neededParameters
-        #find matching input parameter
-        value = getParamValue(parameter, inputParameters)
-        if typeof value != 'undefined'
-          executablePath += ' ' + value
-      console.log executablePath
+      #fill executable path with parameter values
+      command = exHelper.buildExecutablePath req, imagePath, arrayFound[0].executablePath, inputParameters, neededParameters
+
+      response = exHelper.executeCommand command
+      #console.log executablePath
       res.sendStatus 200
-    next()
+      res.body = response
+    next
     return
 
 module.exports = PostHandler
