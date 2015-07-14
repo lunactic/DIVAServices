@@ -1,0 +1,24 @@
+{
+  "logger": {
+    "appenders": [
+      {
+        "type": "file",
+        "filename": "logs/server.log",
+        "maxLogSize": 2048000,
+        "backups": 5
+      },
+      {
+        "type": "console"
+      }
+    ],
+    "level": "DEBUG"
+  },
+  },
+  "server": {
+    "timeout": 600000,
+    "maxFileSize": 20971520
+  },
+  "images": {
+    "storeResponse": false
+  }
+}

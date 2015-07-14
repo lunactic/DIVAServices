@@ -1,0 +1,15 @@
+{
+  "name": "DivaServices",
+  "version": "0.0.0",
+  "main": "public/javascripts/app.js",
+  "appPath": "app",
+  "authors": [
+    "Marcel Würsch <marcel.wuersch@unifr.ch>"
+  ],
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components"
+  ]
+}
