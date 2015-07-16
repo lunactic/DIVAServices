@@ -3,9 +3,12 @@ childProcess = require 'child_process'
 class ExecutableHelper
   constructor: () ->
 
-  buildExecutablePath: (req, imagePath, executablePath, inputParameters, neededParameters) ->
+  buildExecutablePath: (req, imagePath, executablePath, inputParameters, neededParameters, programType) ->
+    #get exectuable type
+    execType = getExecutionType programType
+    params = ""
     for parameter of neededParameters
-      #find matching input parameter
+      #build parameters
       imagePattern =  /// ^ #begin of line
         ([\w.-]*)         #zero or more letters, numbers, _ . or -
         ([iI]mage)         #followed by image or Image
@@ -13,22 +16,33 @@ class ExecutableHelper
         $ ///i            #end of line and ignore case
       if parameter.match imagePattern
         console.log imagePath
-        executablePath+= ' ' + imagePath
+        params += " " + imagePath
+        console.log params
       else
         value = getParamValue(parameter, inputParameters)
         if typeof value != 'undefined'
-          executablePath += ' ' + value
-    return executablePath
+          params += " " + value
+          console.log params
+    return execType + ' ' + executablePath + ' ' + params
 
-  executeCommand: (command) ->
+  executeCommand: (command, callback) ->
     exec = childProcess.exec
-    child = exec('java -jar ' + command, (error, stdout, stderr) ->
-      console.log 'stdout: ' + stdout
-      console.log 'stderr: ' + stderr
-      if error != null
-        console.log 'exec error: ' + error
-      return stdout
+    # (error, stdout, stderr) is a so called "callback" and thus "exec" is an asynchronous function
+    # in this case, you must always put the wrapping function in an asynchronous manner too! (see line
+    # 23)
+    child = exec(command, (error, stdout, stderr) ->
+      if error?
+        callback error
+      else
+        callback null, stdout
     )
+
+  getExecutionType = (programType) ->
+    switch programType
+      when 'java'
+        return 'java -jar'
+      else
+        return ''
 
   getParamValue = (parameter, inputParameters) ->
     if inputParameters.hasOwnProperty(parameter)

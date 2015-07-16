@@ -25,6 +25,8 @@ sysPath       = require 'path'
 http          = require 'http'
 getHandler    = require './app/routes/getHandler'
 postHandler   = require './app/routes/postHandler'
+router        = require './app/routes/router'
+
 
 getRequestHandler = new getHandler()
 postRequestHandler = new postHandler()
@@ -44,7 +46,7 @@ server.startServer = (port, path, callback) ->
   app.server.timeout = nconf.get 'server:timeout'
 
   # Route all static files to http paths
-  app.use '', express.static sysPath.resolve path
+  #app.use '', express.static sysPath.resolve path
 
   # uncomment after placing your favicon in /public
   #app.use(favicon(__dirname + '/public/favicon.ico'));
@@ -56,12 +58,6 @@ server.startServer = (port, path, callback) ->
 
 
   #setup routes
-  app.use (req, res, next) ->
-    if req.method == 'GET'
-      getRequestHandler.handleRequest req, res, next
-    else if req.method == 'POST'
-      postRequestHandler.handleRequest req, res, next
-    return
-
+  app.use router
   #start server on port specified in configuration file
   app.server.listen port, callback
