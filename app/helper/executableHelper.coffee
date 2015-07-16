@@ -8,10 +8,12 @@ class ExecutableHelper
   params: []
   data: []
 
-  buildExecutablePath: (req, imagePath, executablePath, inputParameters, neededParameters, programType) ->
-    console.log imagePath
+  buildExecutablePath: (req, executablePath, inputParameters, neededParameters, programType) ->
     #get exectuable type
     execType = getExecutionType programType
+    return execType + ' ' + executablePath + ' ' + this.data.join(' ') + ' ' + this.params.join(' ')
+
+  matchParams: (imagePath, inputParameters, neededParameters) ->
     for parameter of neededParameters
       #build parameters
       imagePattern =  /// ^ #begin of line
@@ -25,7 +27,7 @@ class ExecutableHelper
         value = getParamValue(parameter, inputParameters)
         if typeof value != 'undefined'
           this.params.push value
-    return execType + ' ' + executablePath + ' ' + this.data.join(' ') + ' ' + this.params.join(' ')
+    return
 
   executeCommand: (command, callback) ->
     exec = childProcess.exec
