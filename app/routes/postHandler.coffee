@@ -1,10 +1,7 @@
-do ->
-  'use strict'
-
-fs          = require 'fs'
-imageHelper = require '../helper/imageHelper'
-executableHelper = require '../helper/executableHelper'
-
+fs                = require 'fs'
+imageHelper       = require '../helper/imageHelper'
+executableHelper  = require '../helper/executableHelper'
+ioHelper          = require '../helper/ioHelper'
 class PostHandler
 
   ### Handle Incoming GET Requests ###
@@ -16,6 +13,7 @@ class PostHandler
     if typeof arrayFound != 'undefined'
       imgHelper = new imageHelper()
       exHelper = new executableHelper()
+      ioHelper = new ioHelper()
 
       #extract image
       imagePath = imgHelper.saveImage req.body.image
@@ -29,11 +27,12 @@ class PostHandler
       #executeCommand is an asynchronous function
       response = exHelper.executeCommand command, (err, result) ->
         if err?
-          console.log 'Command execution failed. Error: ' + err
+          #console.log 'Command execution failed. Error: ' + err
           res.sendStatus 500
           res.body = err
         else
-          console.log 'Command execution successful. Return message: ' + result
+          #save result
+          ioHelper.saveResult imgHelper.imgFolder, req.originalUrl, exHelper.params, result
           res.json JSON.parse(result)
 
 module.exports = PostHandler

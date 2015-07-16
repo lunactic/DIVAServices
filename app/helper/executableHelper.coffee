@@ -2,11 +2,14 @@ childProcess = require 'child_process'
 
 class ExecutableHelper
   constructor: () ->
+    this.params = []
+    this.data = []
 
   buildExecutablePath: (req, imagePath, executablePath, inputParameters, neededParameters, programType) ->
     #get exectuable type
     execType = getExecutionType programType
-    params = []
+    params: []
+    data: []
     for parameter of neededParameters
       #build parameters
       imagePattern =  /// ^ #begin of line
@@ -15,12 +18,12 @@ class ExecutableHelper
         ([\w.-]*)         #then zero or more letters, numbers, _ . or -
         $ ///i            #end of line and ignore case
       if parameter.match imagePattern
-        params.push imagePath
+        this.data.push imagePath
       else
         value = getParamValue(parameter, inputParameters)
         if typeof value != 'undefined'
-          params.push value
-    return execType + ' ' + executablePath + ' ' + params.join(' ')
+          this.params.push value
+    return execType + ' ' + executablePath + ' ' + this.data.join(' ') + ' ' + this.params.join(' ')
 
   executeCommand: (command, callback) ->
     exec = childProcess.exec
