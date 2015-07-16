@@ -6,7 +6,7 @@ class ExecutableHelper
   buildExecutablePath: (req, imagePath, executablePath, inputParameters, neededParameters, programType) ->
     #get exectuable type
     execType = getExecutionType programType
-    params = ""
+    params = []
     for parameter of neededParameters
       #build parameters
       imagePattern =  /// ^ #begin of line
@@ -15,15 +15,12 @@ class ExecutableHelper
         ([\w.-]*)         #then zero or more letters, numbers, _ . or -
         $ ///i            #end of line and ignore case
       if parameter.match imagePattern
-        console.log imagePath
-        params += " " + imagePath
-        console.log params
+        params.push imagePath
       else
         value = getParamValue(parameter, inputParameters)
         if typeof value != 'undefined'
-          params += " " + value
-          console.log params
-    return execType + ' ' + executablePath + ' ' + params
+          params.push value
+    return execType + ' ' + executablePath + ' ' + params.join(' ')
 
   executeCommand: (command, callback) ->
     exec = childProcess.exec
