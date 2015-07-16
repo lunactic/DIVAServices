@@ -11,15 +11,16 @@ class IoHelper
 
     fs.stat path + filename, (err, stat) ->
       #check if file exists
-      console.log err
+      #console.log err
       if !err?
         fs.readFile path + filename, 'utf8', (err, data) ->
           if err?
             callback err
           else
-            console.log 'found data'
             callback null, data
-        return
+      else
+        console.log 'result not found'
+        callback null, null
 
 
 

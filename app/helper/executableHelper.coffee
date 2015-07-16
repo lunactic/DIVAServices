@@ -34,6 +34,7 @@ class ExecutableHelper
     # (error, stdout, stderr) is a so called "callback" and thus "exec" is an asynchronous function
     # in this case, you must always put the wrapping function in an asynchronous manner too! (see line
     # 23)
+    console.log 'executing command: ' + command
     child = exec(command, (error, stdout, stderr) ->
       if error?
         callback error

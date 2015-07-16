@@ -44,7 +44,7 @@ brunchSettings.config =
           level: "ignore"
         indentation:
           value: 2
-          level: "error"
+          level: "ignore"
     jaded:
       staticPatterns: /^app\/(.+)\.jade$/
       jade:

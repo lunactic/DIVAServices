@@ -1,4 +1,5 @@
 fs                = require 'fs'
+async             = require 'async'
 imageHelper       = require '../helper/imageHelper'
 executableHelper  = require '../helper/executableHelper'
 ioHelper          = require '../helper/ioHelper'
@@ -15,38 +16,44 @@ class PostHandler
       exHelper = new executableHelper()
       ioHelp = new ioHelper()
       #extract image
-      imgHelper.saveImage req.body.image, (error, imagePath) ->
-        console.log "imagePath: " + imagePath
-
-        neededParameters = arrayFound[0].parameters
-        inputParameters = req.body.inputs
-        programType = arrayFound[0].programType
+      async.waterfall [
+        #save image
+        (callback) ->
+          imgHelper.saveImage req.body.image, callback
+          return
         #perform parameter matching
-        exHelper.matchParams imagePath, inputParameters,neededParameters
+        (imagePath, callback) ->
+          @neededParameters = arrayFound[0].parameters
+          @inputParameters = req.body.inputs
+          @programType = arrayFound[0].programType
+          result = exHelper.matchParams imagePath, inputParameters,neededParameters
+          callback null
+          return
 
         #try to load results from disk
-        retVal = null
-        ioHelp.loadResult imgHelper.imgFolder, req.originalUrl, exHelper.params, (err, data) ->
-          if err?
-            console.log 'error: ' + err
+        (callback) ->
+          ioHelp.loadResult imgHelper.imgFolder, req.originalUrl, exHelper.params, callback
+          return
+        #execute method if not loaded
+        (data, callback) ->
+          if(data?)
+            callback null, data
           else
-            console.log 'return data from disk'
-            retVal = JSON.parse(data)
-            return
-      
-        #fill executable path with parameter values
-        command = exHelper.buildExecutablePath req, arrayFound[0].executablePath, inputParameters, neededParameters, programType
-
-        #executeCommand is an asynchronous function
-        response = exHelper.executeCommand command, (err, result) ->
+            #fill executable path with parameter values
+            command = exHelper.buildExecutablePath req, arrayFound[0].executablePath, @inputParameters, @neededParameters, @programType
+            exHelper.executeCommand command, callback
+          return
+        ], (err, results) ->
           if err?
             console.log 'Command execution failed. Error: ' + err
             res.sendStatus 500
             res.body = err
           else
             console.log 'return data after computing'
+            console.log results
             #save result
-            ioHelp.saveResult imgHelper.imgFolder, req.originalUrl, exHelper.params, result
-            res.json JSON.parse(result)
-          return
+            ioHelp.saveResult imgHelper.imgFolder, req.originalUrl, exHelper.params, results
+            #return result
+            res.json JSON.parse(results)
+        return
 module.exports = PostHandler
