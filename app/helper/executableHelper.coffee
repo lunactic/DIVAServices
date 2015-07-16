@@ -5,11 +5,13 @@ class ExecutableHelper
     this.params = []
     this.data = []
 
+  params: []
+  data: []
+
   buildExecutablePath: (req, imagePath, executablePath, inputParameters, neededParameters, programType) ->
+    console.log imagePath
     #get exectuable type
     execType = getExecutionType programType
-    params: []
-    data: []
     for parameter of neededParameters
       #build parameters
       imagePattern =  /// ^ #begin of line

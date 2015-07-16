@@ -4,11 +4,6 @@ class IoHelper
   constructor: () ->
 
   saveResult: (path, algorithm, params, result) ->
-    console.log 'path: ' + path
-    console.log 'algorithm: ' + algorithm
-    console.log 'params: ' + params
-    console.log 'filename: ' + filename
-
     #replace / with _
     algorithm = algorithm.replace(/\//g, '_')
     #join params with _
