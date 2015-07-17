@@ -1,7 +1,6 @@
 nconf = require 'nconf'
 md5   = require 'MD5'
 fs    = require 'fs'
-nconf.add 'server', type: 'file', file: './conf/server.' + process.env.NODE_ENV + '.json'
 
 class ImageHelper
   constructor: () ->
@@ -10,7 +9,7 @@ class ImageHelper
 
   saveImage: (image, callback) ->
     #code for saving an image
-    imagePath = nconf.get 'paths:imagePath'
+    imagePath = nconf.get 'paths:imageRootPath'
     base64Data = image.replace /^data:image\/png;base64,/, ""
     md5String = md5 base64Data
     fs.mkdir imagePath + '/' + md5String, (err) ->

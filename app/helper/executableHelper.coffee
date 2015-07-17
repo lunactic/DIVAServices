@@ -1,5 +1,7 @@
 childProcess  = require 'child_process'
+nconf         = require 'nconf'
 logger        = require '../logging/logger'
+paramHelper   = require './parameterHelper'
 class ExecutableHelper
   constructor: () ->
     this.params = []
@@ -16,13 +18,9 @@ class ExecutableHelper
   matchParams: (imagePath, inputParameters, neededParameters) ->
     for parameter of neededParameters
       #build parameters
-      imagePattern =  /// ^ #begin of line
-        ([\w.-]*)         #zero or more letters, numbers, _ . or -
-        ([iI]mage)         #followed by image or Image
-        ([\w.-]*)         #then zero or more letters, numbers, _ . or -
-        $ ///i            #end of line and ignore case
-      if parameter.match imagePattern
-        this.data.push imagePath
+      if checkReservedParameters parameter
+        logger.log 'info', 'RESERVED PARAMETER: ' + parameter
+        paramHelper.getReservedParamValue parameter, imagePath
       else
         value = getParamValue(parameter, inputParameters)
         if typeof value != 'undefined'
@@ -55,5 +53,9 @@ class ExecutableHelper
       return inputParameters[parameter]
     return
 
+  checkReservedParameters = (parameter) ->
+    reservedParameters = nconf.get('reservedWords')
+    logger.log 'info', 'reservedWords: ' + reservedParameters
+    return parameter in reservedParameters
 
 module.exports = ExecutableHelper
