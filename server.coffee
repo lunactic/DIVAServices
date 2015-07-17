@@ -13,6 +13,7 @@ bodyParser    = require 'body-parser'
 sysPath       = require 'path'
 http          = require 'http'
 router        = require './app/routes/router'
+logger        = require './app/logging/logger'
 
 
 #setup express framework
@@ -29,5 +30,5 @@ app.use router
 server = http.createServer app
 #server.timeout = 12000
 
-server.listen 8080, ->
-  console.log 'Server listening on port ' + nconf.get 'server:port'
+server.listen nconf.get('server:port'), ->
+  logger.log 'info', 'Server listening on port ' + nconf.get 'server:port'

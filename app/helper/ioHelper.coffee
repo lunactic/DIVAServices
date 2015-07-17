@@ -1,5 +1,5 @@
-fs = require 'fs'
-
+fs      = require 'fs'
+logger  = require '../logging/logger'
 class IoHelper
   constructor: () ->
 
@@ -37,7 +37,7 @@ class IoHelper
         return
       else if err.code == 'ENOENT'
         fs.writeFile path + filename, result, 'utf8', (err) ->
-          console.log err
+          logger.log 'error', err
           return
     return
 

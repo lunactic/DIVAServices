@@ -22,6 +22,8 @@
     "storeResponse": false
   },
   "paths": {
-    "imagePath": "/data/images"
+    "imagePath": "/data/images",
+    "matlabPath": "/usr/local/bin/matlab",
+    "matlabScriptsPath": "/data/matlab"
   }
 }

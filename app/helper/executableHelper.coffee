@@ -1,5 +1,5 @@
-childProcess = require 'child_process'
-
+childProcess  = require 'child_process'
+logger        = require '../logging/logger'
 class ExecutableHelper
   constructor: () ->
     this.params = []
@@ -34,7 +34,7 @@ class ExecutableHelper
     # (error, stdout, stderr) is a so called "callback" and thus "exec" is an asynchronous function
     # in this case, you must always put the wrapping function in an asynchronous manner too! (see line
     # 23)
-    console.log 'executing command: ' + command
+    logger.log 'info', 'executing command: ' + command
     child = exec(command, { maxBuffer: 1024 * 48828 }, (error, stdout, stderr) ->
       if error?
         callback error

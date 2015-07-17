@@ -55,7 +55,6 @@ class PostHandler
           callback null, data
         #finall callback, handling of the result and returning it
         ], (err, results) ->
-          console.log 'callback called'
           cb err, results
         return
 module.exports = PostHandler
