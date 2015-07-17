@@ -28,6 +28,7 @@ class PostHandler
           return
         #perform parameter matching
         (imagePath, callback) ->
+          @imagePath = imagePath
           @neededParameters = arrayFound[0].parameters
           @inputParameters = req.body.inputs
           @programType = arrayFound[0].programType
@@ -48,6 +49,10 @@ class PostHandler
             command = exHelper.buildExecutablePath req, arrayFound[0].executablePath, @inputParameters, @neededParameters, @programType
             exHelper.executeCommand command, callback
           return
+        #save the response
+        (data, callback) ->
+          ioHelp.saveResult imgHelper.imgFolder, req.originalUrl, exHelper.params, data
+          callback null, data
         #finall callback, handling of the result and returning it
         ], (err, results) ->
           console.log 'callback called'
