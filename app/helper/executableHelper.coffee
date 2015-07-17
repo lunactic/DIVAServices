@@ -35,10 +35,11 @@ class ExecutableHelper
     # in this case, you must always put the wrapping function in an asynchronous manner too! (see line
     # 23)
     console.log 'executing command: ' + command
-    child = exec(command, (error, stdout, stderr) ->
+    child = exec(command, { maxBuffer: 1024 * 48828 }, (error, stdout, stderr) ->
       if error?
         callback error
       else
+        #console.log 'task finished. Result: ' + stdout
         callback null, stdout
     )
 

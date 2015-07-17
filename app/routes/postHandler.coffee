@@ -6,7 +6,7 @@ ioHelper          = require '../helper/ioHelper'
 class PostHandler
 
   ### Handle Incoming GET Requests ###
-  handleRequest: (req, res) ->
+  handleRequest: (req, res, cb) ->
     fileContent = JSON.parse(fs.readFileSync('/data/json/services.json', 'utf8'))
     arrayFound = fileContent.services.filter((item) ->
       item.path == req.originalUrl
@@ -15,7 +15,12 @@ class PostHandler
       imgHelper = new imageHelper()
       exHelper = new executableHelper()
       ioHelp = new ioHelper()
-      #extract image
+
+      ###
+        perform all the steps using an async waterfall
+        Each part will be executed and the response is passed on to the next
+        function.
+      ###
       async.waterfall [
         #save image
         (callback) ->
@@ -43,17 +48,9 @@ class PostHandler
             command = exHelper.buildExecutablePath req, arrayFound[0].executablePath, @inputParameters, @neededParameters, @programType
             exHelper.executeCommand command, callback
           return
+        #finall callback, handling of the result and returning it
         ], (err, results) ->
-          if err?
-            console.log 'Command execution failed. Error: ' + err
-            res.sendStatus 500
-            res.body = err
-          else
-            console.log 'return data after computing'
-            console.log results
-            #save result
-            ioHelp.saveResult imgHelper.imgFolder, req.originalUrl, exHelper.params, results
-            #return result
-            res.json JSON.parse(results)
+          console.log 'callback called'
+          cb err, results
         return
 module.exports = PostHandler

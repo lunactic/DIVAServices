@@ -1,63 +1,33 @@
 # Server
 # ======
 #
-# **Server** is the main entry point for running the DIVAServices Spotlight application. DIVAServices Spotlight
-# is running on an [nodeJS](https://nodejs.org/) plattform and uses the [Express](http://expressjs.com/)
-# framework.
-#
 # Copyright &copy; Marcel Würsch, GPL v3.0 Licensed.
-
-
-# Set the `NODE_ENV` environment variable to `dev`, `test`, or `prod` depending on whether you are
-# in development mode, in testing mode, or in production mode
-if not process.env.NODE_ENV? or process.env.NODE_ENV not in ['dev', 'test', 'prod']
-  console.log 'please set NODE_ENV to [dev, test, prod]. going to exit'
-  process.exit 0
 
 nconf = require 'nconf'
 nconf.add 'server', type: 'file', file: './conf/server.' + process.env.NODE_ENV + '.json'
 
 express       = require 'express'
-favicon       = require 'serve-favicon'
+#favicon       = require 'serve-favicon'
 cookieParser  = require 'cookie-parser'
 bodyParser    = require 'body-parser'
 sysPath       = require 'path'
 http          = require 'http'
-getHandler    = require './app/routes/getHandler'
-postHandler   = require './app/routes/postHandler'
 router        = require './app/routes/router'
 
 
-getRequestHandler = new getHandler()
-postRequestHandler = new postHandler()
+#setup express framework
+app = express()
 
-#expose 'server'
-server = exports = module.exports = {}
+#setup body parser
+app.use bodyParser.json(limit: '50mb')
+app.use bodyParser.urlencoded(extended: true, limit: '50mb')
 
-#Export 'startServer' function which is used by [Brunch]{http://brunch.io}
-server.startServer = (port, path, callback) ->
-  #setup express framework
-  app = express()
+#setup routes
+app.use router
 
-  #Wrap 'express' with 'httpServer' for 'socket.io'
-  app.server = http.createServer app
+#start server on port specified in configuration file
+server = http.createServer app
+#server.timeout = 12000
 
-  #Set server timeout to value specified in configuration file
-  app.server.timeout = nconf.get 'server:timeout'
-
-  # Route all static files to http paths
-  #app.use '', express.static sysPath.resolve path
-
-  # uncomment after placing your favicon in /public
-  #app.use(favicon(__dirname + '/public/favicon.ico'));
-  #app.use logger('dev')
-
-  #setup body parser
-  app.use bodyParser.json(limit: '50mb')
-  app.use bodyParser.urlencoded(extended: true, limit: '50mb')
-
-
-  #setup routes
-  app.use router
-  #start server on port specified in configuration file
-  app.server.listen port, callback
+server.listen 8080, ->
+  console.log 'Server listening on port ' + nconf.get 'server:port'

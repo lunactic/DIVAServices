@@ -6,12 +6,12 @@ class GetHandler
   constructor: () ->
 
   ### Handle Incoming GET Requests ###
-  handleRequest: (req, res) ->
+  handleRequest: (req, res, callback) ->
     fs.readFile '/data/json' + req.originalUrl + '/info.json', 'utf8', (err, data) ->
       if err
-        next err
+        callback err
       else
-        res.json JSON.parse(data)
+        callback null, data
       return
     return
 

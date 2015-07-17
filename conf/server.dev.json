@@ -15,6 +15,7 @@
   },
   "server": {
     "timeout": 600000,
+    "port": 8080,
     "maxFileSize": 20971520
   },
   "images": {
