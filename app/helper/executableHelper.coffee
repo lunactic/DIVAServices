@@ -15,16 +15,19 @@ class ExecutableHelper
     execType = getExecutionType programType
     return execType + ' ' + executablePath + ' ' + this.data.join(' ') + ' ' + this.params.join(' ')
 
-  matchParams: (imagePath, inputParameters, neededParameters) ->
+  matchParams: (imagePath, inputParameters, inputHighlighter, neededParameters, callback) ->
     for parameter of neededParameters
       #build parameters
       if checkReservedParameters parameter
-        logger.log 'info', 'RESERVED PARAMETER: ' + parameter
-        paramHelper.getReservedParamValue parameter, imagePath
+        #check if highlighter
+        if parameter is 'highlighter'
+          this.params.push(paramHelper.getHighlighterParamValues(neededParameters[parameter], inputHighlighter))
+        else
+          this.data.push(paramHelper.getReservedParamValue(parameter, imagePath))
       else
         value = getParamValue(parameter, inputParameters)
         if typeof value != 'undefined'
-          this.params.push value
+          this.params.push(value)
     return
 
   executeCommand: (command, callback) ->
@@ -55,7 +58,6 @@ class ExecutableHelper
 
   checkReservedParameters = (parameter) ->
     reservedParameters = nconf.get('reservedWords')
-    logger.log 'info', 'reservedWords: ' + reservedParameters
     return parameter in reservedParameters
 
 module.exports = ExecutableHelper

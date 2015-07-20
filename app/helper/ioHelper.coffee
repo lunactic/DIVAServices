@@ -6,7 +6,7 @@ class IoHelper
   loadResult: (path, algorithm, params, callback) ->
     algorithm = algorithm.replace(/\//g, '_')
     #join params with _
-    params = params.join('_')
+    params = params.join('_').replace RegExp(' ', 'g'), '_'
     filename = algorithm + '_' + params + '.json'
 
     fs.stat path + filename, (err, stat) ->
@@ -28,7 +28,7 @@ class IoHelper
     #replace / with _
     algorithm = algorithm.replace(/\//g, '_')
     #join params with _
-    params = params.join('_')
+    params = params.join('_').replace RegExp(' ', 'g'), '_'
     filename = algorithm + '_' + params + '.json'
 
     fs.stat path + filename, (err, stat) ->

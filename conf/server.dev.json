@@ -30,6 +30,7 @@
     "image",
     "matlabPath",
     "matlabScriptsPath",
-    "inputFileExtension"
+    "inputFileExtension",
+    "highlighter"
   ]
 }

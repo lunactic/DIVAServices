@@ -31,8 +31,10 @@ class PostHandler
           @imagePath = imagePath
           @neededParameters = arrayFound[0].parameters
           @inputParameters = req.body.inputs
+          @inputHighlighters = req.body.highlighter
           @programType = arrayFound[0].programType
-          result = exHelper.matchParams imagePath, inputParameters,neededParameters
+          console.log 'Request body: ' + JSON.stringify(@inputHighlighters)
+          exHelper.matchParams @imagePath, @inputParameters, @inputHighlighters,@neededParameters, callback
           callback null
           return
 
