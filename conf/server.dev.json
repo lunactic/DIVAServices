@@ -31,6 +31,7 @@
     "matlabPath",
     "matlabScriptsPath",
     "inputFileExtension",
+    "outputFolder",
     "highlighter"
   ]
 }
