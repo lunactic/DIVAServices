@@ -14,8 +14,6 @@ exports.getReservedParamValue = (parameter, imagePath) ->
       return imagePath
 
 exports.getHighlighterParamValues = (neededHighlighter, inputHighlighter, callback) ->
-  console.log 'neededHighlighter: ' + neededHighlighter
-  console.log 'inputHighlighter: ' + JSON.stringify(inputHighlighter)
   if(neededHighlighter is not inputHighlighter['type'])
     error = []
     error.code = 500

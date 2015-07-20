@@ -33,7 +33,6 @@ class PostHandler
           @inputParameters = req.body.inputs
           @inputHighlighters = req.body.highlighter
           @programType = arrayFound[0].programType
-          console.log 'Request body: ' + JSON.stringify(@inputHighlighters)
           exHelper.matchParams @imagePath, @inputParameters, @inputHighlighters,@neededParameters, callback
           callback null
           return
@@ -53,7 +52,7 @@ class PostHandler
           return
         #save the response
         (data, callback) ->
-          ioHelp.saveResult imgHelper.imgFolder, req.originalUrl, exHelper.params, data
+          ioHelp.saveResult imgHelper.imgFolder, req.originalUrl, exHelper.params, data, callback
           callback null, data
         #finall callback, handling of the result and returning it
         ], (err, results) ->

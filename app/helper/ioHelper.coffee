@@ -24,7 +24,7 @@ class IoHelper
 
 
 
-  saveResult: (path, algorithm, params, result) ->
+  saveResult: (path, algorithm, params, result, callback) ->
     #replace / with _
     algorithm = algorithm.replace(/\//g, '_')
     #join params with _
@@ -36,8 +36,12 @@ class IoHelper
       if !err?
         return
       else if err.code == 'ENOENT'
-        fs.writeFile path + filename, result, 'utf8', (err) ->
-          logger.log 'error', err
+        fs.writeFile path + filename, result,  (err) ->
+          if err?
+            error = []
+            error.status = 500
+            error.statusText = 'Could not save result file'
+            callback error
           return
     return
 
