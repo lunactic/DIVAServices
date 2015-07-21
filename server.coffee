@@ -1,7 +1,15 @@
 # Server
 # ======
-#
+# **Server** is the main entry point for running the DIVAServices Spotlight application. DIVAServices Spotlight
+# is running on an [nodeJS](https://nodejs.org/) plattform and uses the [Express](http://expressjs.com/)
+# framework.
 # Copyright &copy; Marcel Würsch, GPL v3.0 Licensed.
+
+
+if not process.env.NODE_ENV? or process.env.NODE_ENV not in ['dev', 'test', 'prod']
+  console.log 'please set NODE_ENV to [dev, test, prod]. going to exit'
+  process.exit 0
+
 
 nconf = require 'nconf'
 nconf.add 'server', type: 'file', file: './conf/server.' + process.env.NODE_ENV + '.json'

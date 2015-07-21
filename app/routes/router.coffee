@@ -2,27 +2,27 @@
 # =======
 #
 # **Router** uses the [Express > Router](http://expressjs.com/api.html#router) middleware
-# for handling all routing from DIVAServices Spotlight.
+# for handling all routing from DIVAServices.
 #
-# Copyright &copy; Michael Bärtschi, MIT Licensed.
+# Copyright &copy; Marcel Würsch, GPL v3.0 licensed.
 
 # Require Express Router
 router      = require('express').Router()
-getHandler  = require('./getHandler')
-postHandler = require('./postHandler')
+GetHandler  = require('./getHandler')
+PostHandler = require('./postHandler')
 logger      = require('../logging/logger')
 
 
-getHandle = new getHandler()
-postHandle = new postHandler()
+getHandler = new GetHandler()
+postHandler = new PostHandler()
 # Pass Express Router to all routing modules
 router.get '*', (req, res, next) ->
   logger.log 'info', 'GET ' + req.originalUrl
-  getHandle.handleRequest req, res, (err, response) ->
+  getHandler.handleRequest req, res, (err, response) ->
     sendResponse res, err, response, next
 router.post '*', (req, res, next) ->
   logger.log 'info', 'POST ' + req.originalUrl
-  postHandle.handleRequest req, res, (err, response) ->
+  postHandler.handleRequest req, res, (err, response) ->
     sendResponse res, err, response, next
 
 sendResponse = (res, err, response, next) ->

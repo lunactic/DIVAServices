@@ -1,8 +1,24 @@
+# IoHelper
+# =======
+#
+# **IoHelper** provides helper methods for handling with files
+#
+# Copyright &copy; Marcel Würsch, GPL v3.0 licensed.
+
+# Module dependecies
 fs      = require 'fs'
 logger  = require '../logging/logger'
-class IoHelper
-  constructor: () ->
 
+# expose IoHelper
+ioHelper = exports = module.exports = class IoHelper
+
+  # ---
+  # **loadResult**</br>
+  # Loads existing results from the disk</br>
+  # `params`
+  #   *path* path to the image folder, where results are stored
+  #   *algorithm* the executed algorithm
+  #   *params* the used parameter values
   loadResult: (path, algorithm, params, callback) ->
     algorithm = algorithm.replace(/\//g, '_')
     #join params with _
@@ -22,8 +38,14 @@ class IoHelper
         console.log 'result not found'
         callback null, null
 
-
-
+  # ---
+  # **saveResult**</br>
+  # Saves the results of a method execution to the disk</br>
+  # `params`
+  #   *path*  path to the image folder, where results are stored
+  #   *algorithm* the executed algorithm
+  #   *params*  the used parameter values
+  #   *result*  the execution result
   saveResult: (path, algorithm, params, result, callback) ->
     #replace / with _
     algorithm = algorithm.replace(/\//g, '_')
@@ -44,5 +66,3 @@ class IoHelper
             callback error
           return
     return
-
-module.exports = IoHelper

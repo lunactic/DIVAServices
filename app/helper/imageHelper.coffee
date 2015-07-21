@@ -1,17 +1,43 @@
+# ImageHelper
+# =======
+#
+# **ImageHelper** provides helper methods for handling images
+#
+# Copyright &copy; Marcel Würsch, GPL v3.0 licensed.
+
+# Module dependencies
 nconf = require 'nconf'
-md5   = require 'MD5'
+md5   = require 'md5'
 fs    = require 'fs'
 
-class ImageHelper
+# expose imageHelper
+imageHelper = exports = module.exports = class ImageHelper
+
+  # ---
+  # **constructor**</br>
+  # initialize image folder
   constructor: () ->
     imgFolder = ''
+
+  # ---
+  # **imgFolder**</br>
+  # The folder of the current image
   imgFolder: ''
 
+  # ---
+  # **saveImage**</br>
+  # saves an image to the disk
+  # the path to the image will be: server.NODE_ENV.json["paths"]["imageRootPath"]/md5Hash/input.EXTENSION
+  #   where:
+  #     *md5Hash* is the md5Hash of the received image
+  #     *EXTENSION* is the image extension</br>
+  # `params`
+  #   *image* the received base64 encoded image
   saveImage: (image, callback) ->
     #code for saving an image
-    imagePath = nconf.get 'paths:imageRootPath'
-    base64Data = image.replace /^data:image\/png;base64,/, ""
-    md5String = md5 base64Data
+    imagePath = nconf.get('paths:imageRootPath')
+    base64Data = image.replace(/^data:image\/png;base64,/, "")
+    md5String = md5(base64Data)
     fs.mkdir imagePath + '/' + md5String, (err) ->
       #we don't care if the folder exists
       return
@@ -25,5 +51,3 @@ class ImageHelper
         callback null, imagePath + '/' + md5String + '/input.png'
       else
         callback err
-
-module.exports = ImageHelper

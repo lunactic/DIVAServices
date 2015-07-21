@@ -24,7 +24,8 @@
   "paths": {
     "imageRootPath": "/data/images",
     "matlabPath": "/usr/local/bin/matlab",
-    "matlabScriptsPath": "/data/matlab"
+    "matlabScriptsPath": "/data/matlab",
+    "jsonPath":"/data/json"
   },
   "reservedWords" :[
     "image",
