@@ -11,6 +11,7 @@ nconf         = require 'nconf'
 logger        = require '../logging/logger'
 ParameterHelper   = require './parameterHelper'
 
+# Expose executableHelper
 executableHelper = exports = module.exports = class ExecutableHelper
 
   # ---

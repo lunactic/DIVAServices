@@ -15,17 +15,27 @@ logger      = require('../logging/logger')
 
 getHandler = new GetHandler()
 postHandler = new PostHandler()
-# Pass Express Router to all routing modules
+
+# Set up the routing for GET requests
 router.get '*', (req, res, next) ->
   logger.log 'info', 'GET ' + req.originalUrl
-  getHandler.handleRequest req, res, (err, response) ->
-    sendResponse res, err, response, next
+  getHandler.handleRequest req, (err, response) ->
+    sendResponse res, err, responses
+
+# Set up the routing for POST requests
 router.post '*', (req, res, next) ->
   logger.log 'info', 'POST ' + req.originalUrl
-  postHandler.handleRequest req, res, (err, response) ->
-    sendResponse res, err, response, next
+  postHandler.handleRequest req, (err, response) ->
+    sendResponse res, err, response
 
-sendResponse = (res, err, response, next) ->
+# ---
+# **sendResponse**</br>
+# Send response back to the caller </br>
+# `params`
+#   *res* response object from the express framework
+#   *err* possible error message. If set a HTTP 500 will be returned
+#   *response* the JSON response. If set a HTTP 200 will be returned
+sendResponse = (res, err, response) ->
   if err?
     logger.log 'error', err
     res.status err.status or 500
@@ -35,6 +45,6 @@ sendResponse = (res, err, response, next) ->
     res.status 200
     res.json JSON.parse response
     logger.log 'info', 'RESPONSE 200'
-  next()
+
 # Expose router
 module.exports = router

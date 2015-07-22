@@ -14,10 +14,12 @@ nconf = require 'nconf'
 #Expose getHandler
 getHandler = exports = module.exports = class GetHandler
 
-  constructor: () ->
-
-  # Handle Incoming GET Requests
-  handleRequest: (req, res, callback) ->
+  # ---
+  # **handleRequest**</br>
+  # Handle incoming GET requests</br>
+  # `params`
+  #   *req* the incoming request
+  handleRequest: (req, callback) ->
     fs.readFile nconf.get('paths:jsonPath') + req.originalUrl + '/info.json', 'utf8', (err, data) ->
       if err
         callback err

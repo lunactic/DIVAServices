@@ -26,8 +26,12 @@ IoHelper          = require '../helper/ioHelper'
 #Expose postHandler
 postHandler = exports = module.exports = class PostHandler
 
-  ### Handle Incoming GET Requests ###
-  handleRequest: (req, res, cb) ->
+  # ---
+  # **handleRequest**</br>
+  # Handle incoming POST requests</br>
+  # `params`
+  #   *req* the incoming request
+  handleRequest: (req, cb) ->
     fileContent = JSON.parse(fs.readFileSync('/data/json/services.json', 'utf8'))
     arrayFound = fileContent.services.filter((item) ->
       item.path == req.originalUrl
