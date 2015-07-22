@@ -31,7 +31,7 @@ ioHelper = exports = module.exports = class IoHelper
       if !err?
         fs.readFile path + filename, 'utf8', (err, data) ->
           if err?
-            callback err
+            callback err, null
           else
             callback null, data
       else
@@ -56,13 +56,15 @@ ioHelper = exports = module.exports = class IoHelper
     fs.stat path + filename, (err, stat) ->
       #check if file exists
       if !err?
-        return
+        callback null, result
       else if err.code == 'ENOENT'
         fs.writeFile path + filename, result,  (err) ->
           if err?
             error = []
             error.status = 500
             error.statusText = 'Could not save result file'
-            callback error
+            callback error, null
+          else
+            callback null, result
           return
     return

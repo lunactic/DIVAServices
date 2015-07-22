@@ -20,7 +20,7 @@ postHandler = new PostHandler()
 router.get '*', (req, res, next) ->
   logger.log 'info', 'GET ' + req.originalUrl
   getHandler.handleRequest req, (err, response) ->
-    sendResponse res, err, responses
+    sendResponse res, err, response
 
 # Set up the routing for POST requests
 router.post '*', (req, res, next) ->

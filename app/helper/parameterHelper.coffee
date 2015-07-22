@@ -52,7 +52,6 @@ parameterHelper = exports = module.exports = class ParameterHelper
 
     switch neededHighlighter
       when 'rectangle'
-        console.log inputHighlighter.segments
         merged = []
         merged = merged.concat.apply(merged,inputHighlighter.segments)
         merged = merged.map(Math.round)

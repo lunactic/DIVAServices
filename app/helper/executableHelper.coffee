@@ -48,7 +48,6 @@ executableHelper = exports = module.exports = class ExecutableHelper
   #   *neededParameters*  The needed parameteres
   matchParams: (imagePath, inputParameters, inputHighlighter, neededParameters, callback) ->
     parameterHelper = new ParameterHelper()
-    console.log 'parameterHelper: ' + parameterHelper['getReservedParamValue']
     for parameter of neededParameters
       #build parameters
       if checkReservedParameters parameter
@@ -77,7 +76,7 @@ executableHelper = exports = module.exports = class ExecutableHelper
     logger.log 'info', 'executing command: ' + command
     child = exec(command, { maxBuffer: 1024 * 48828 }, (error, stdout, stderr) ->
       if error?
-        callback error
+        callback error, null
       else
         #console.log 'task finished. Result: ' + stdout
         callback null, stdout

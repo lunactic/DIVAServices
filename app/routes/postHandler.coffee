@@ -74,10 +74,10 @@ postHandler = exports = module.exports = class PostHandler
             command = executableHelper.buildCommand(arrayFound[0].executablePath, @inputParameters, @neededParameters, @programType)
             executableHelper.executeCommand(command, callback)
           return
-        #save the response
-          ioHelper.saveResult(imageHelper.imgFolder, req.originalUrl, executableHelper.params, data, callback)
         (data, callback) ->
-          callback null, data
+          #save the response
+          ioHelper.saveResult(imageHelper.imgFolder, req.originalUrl, executableHelper.params, data, callback)
+          return
         #finall callback, handling of the result and returning it
         ], (err, results) ->
           cb err, results
