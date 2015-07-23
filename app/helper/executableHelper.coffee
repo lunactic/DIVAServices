@@ -17,7 +17,7 @@ executableHelper = exports = module.exports = class ExecutableHelper
   # ---
   # **constructor**</br>
   # initialize params and data arrays
-  constructor: () ->
+  constructor: ->
     this.params = []
     this.data = []
 
@@ -46,7 +46,7 @@ executableHelper = exports = module.exports = class ExecutableHelper
   #   *inputParameters* The received parameters and its values
   #   *inputHighlighter* The received input highlighter
   #   *neededParameters*  The needed parameteres
-  matchParams: (imagePath, inputParameters, inputHighlighter, neededParameters, callback) ->
+  matchParams: (imagePath, inputParameters, inputHighlighter, neededParameters) ->
     parameterHelper = new ParameterHelper()
     for parameter of neededParameters
       #build parameters
@@ -57,8 +57,12 @@ executableHelper = exports = module.exports = class ExecutableHelper
         else
           this.data.push(parameterHelper.getReservedParamValue(parameter, imagePath))
       else
-        value = getParamValue(parameter, inputParameters)
-        if typeof value != 'undefined'
+        #check if a commandline option needs to be added
+        if neededParameters[parameter] != ''
+          value = neededParameters[parameter] + ' ' + parameterHelper.getParamValue(parameter, inputParameters)
+        else
+          value = parameterHelper.getParamValue(parameter, inputParameters)
+        if value?
           this.params.push(value)
     return
 
@@ -94,16 +98,6 @@ executableHelper = exports = module.exports = class ExecutableHelper
       else
         return ''
 
-  # ---
-  # **getParamValue**</br>
-  # Gets the value of an input parameter</br>
-  # `params`
-  #   *parameter* the parameter to get the value for
-  #   *inputParameters* the list of input parameters with all its values
-  getParamValue = (parameter, inputParameters) ->
-    if inputParameters.hasOwnProperty(parameter)
-      return inputParameters[parameter]
-    return
 
   # ---
   # **checkReservedParameters**</br>

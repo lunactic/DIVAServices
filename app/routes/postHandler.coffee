@@ -57,7 +57,7 @@ postHandler = exports = module.exports = class PostHandler
           @inputParameters = req.body.inputs
           @inputHighlighters = req.body.highlighter
           @programType = arrayFound[0].programType
-          executableHelper.matchParams(@imagePath, @inputParameters, @inputHighlighters,@neededParameters, callback)
+          executableHelper.matchParams(@imagePath, @inputParameters, @inputHighlighters,@neededParameters)
           callback null
           return
 

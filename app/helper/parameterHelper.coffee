@@ -11,6 +11,18 @@ path    = require 'path'
 # expose parameterHelper
 parameterHelper = exports = module.exports = class ParameterHelper
 
+
+  # ---
+  # **getParamValue**</br>
+  # Gets the value of an input parameter</br>
+  # `params`
+  #   *parameter* the parameter to get the value for
+  #   *inputParameters* the list of input parameters with all its values
+  getParamValue: (parameter, inputParameters) ->
+    if inputParameters.hasOwnProperty(parameter)
+      return inputParameters[parameter]
+    return
+
   # ---
   # **getReservedParamValue**</br>
   # Gets the value of a reserved parameter as defined in conf/server.NODE_ENV.json</br>

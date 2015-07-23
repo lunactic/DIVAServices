@@ -1,8 +1,8 @@
 {
   "name": "DivaServices",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "private": true,
-  "main":"server.js",
+  "main":"server.coffee",
   "author": "Marcel Würsch",
   "license": "GPLv3",
   "repository": {
@@ -10,7 +10,7 @@
     "url":"git@github.com:lunactic/DIVAServices_Node.git"
   },
   "enginges":{
-    "node":"0.10.x",
+    "node":"0.12.x",
     "npm":"2.1.x"
   },
   "scripts": {},
