@@ -37,7 +37,6 @@ router.post '*', (req, res, next) ->
 #   *response* the JSON response. If set a HTTP 200 will be returned
 sendResponse = (res, err, response) ->
   if err?
-    logger.log 'error', err
     res.status err.status or 500
     res.json err.statusText
     logger.log 'error', err.statusText

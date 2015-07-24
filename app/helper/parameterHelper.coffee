@@ -29,7 +29,7 @@ parameterHelper = exports = module.exports = class ParameterHelper
   # `params`
   #   *parameter* reserved parameter
   #   *imagePath* path to the input image
-  getReservedParamValue: (parameter, imagePath) ->
+  getReservedParamValue: (parameter, imagePath, req) ->
     switch parameter
       when 'matlabPath'
         return nconf.get('paths:matlabPath')
@@ -39,8 +39,12 @@ parameterHelper = exports = module.exports = class ParameterHelper
         return path.extname(imagePath).slice(1)
       when 'image'
         return imagePath
+      when 'imageRootPath'
+        return nconf.get('paths:imageRootPath')
       when 'outputFolder'
         return path.dirname(imagePath)
+      when 'host'
+        return req.get('host')
 
   # ---
   # **getHighlighterParamValues**</br>

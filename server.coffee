@@ -31,6 +31,9 @@ app = express()
 app.use bodyParser.json(limit: '50mb')
 app.use bodyParser.urlencoded(extended: true, limit: '50mb')
 
+#setup static file handler
+app.use '/static', express.static('/data/images')
+
 #setup routes
 app.use router
 

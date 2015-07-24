@@ -42,11 +42,12 @@ executableHelper = exports = module.exports = class ExecutableHelper
   # **matchParams**</br>
   # Matches the received parameter values to the needed parameters</br>
   # `params`
-  #   *imagePath* path to the input image
   #   *inputParameters* The received parameters and its values
   #   *inputHighlighter* The received input highlighter
   #   *neededParameters*  The needed parameteres
-  matchParams: (imagePath, inputParameters, inputHighlighter, neededParameters) ->
+  #   *imagePath* path to the input image
+  #   *req* incoming request
+  matchParams: (inputParameters, inputHighlighter, neededParameters,imagePath, req) ->
     parameterHelper = new ParameterHelper()
     for parameter of neededParameters
       #build parameters
@@ -57,11 +58,7 @@ executableHelper = exports = module.exports = class ExecutableHelper
         else
           this.data.push(parameterHelper.getReservedParamValue(parameter, imagePath))
       else
-        #check if a commandline option needs to be added
-        if neededParameters[parameter] != ''
-          value = neededParameters[parameter] + ' ' + parameterHelper.getParamValue(parameter, inputParameters)
-        else
-          value = parameterHelper.getParamValue(parameter, inputParameters)
+        value = parameterHelper.getParamValue(parameter, inputParameters)
         if value?
           this.params.push(value)
     return
@@ -79,8 +76,11 @@ executableHelper = exports = module.exports = class ExecutableHelper
     # 23)
     logger.log 'info', 'executing command: ' + command
     child = exec(command, { maxBuffer: 1024 * 48828 }, (error, stdout, stderr) ->
-      if error?
-        callback error, null
+      if stderr.length > 0
+        err =
+          statusText: stderr
+          status: 500
+        callback err, null
       else
         #console.log 'task finished. Result: ' + stdout
         callback null, stdout
@@ -95,6 +95,8 @@ executableHelper = exports = module.exports = class ExecutableHelper
     switch programType
       when 'java'
         return 'java -jar'
+      when 'coffeescript'
+        return 'coffee'
       else
         return ''
 

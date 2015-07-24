@@ -30,7 +30,9 @@
   "reservedWords" :[
     "image",
     "matlabPath",
+    "imageRootPath",
     "matlabScriptsPath",
+    "host",
     "inputFileExtension",
     "outputFolder",
     "highlighter"
