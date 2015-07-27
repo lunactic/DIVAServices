@@ -56,7 +56,7 @@ executableHelper = exports = module.exports = class ExecutableHelper
         if parameter is 'highlighter'
           this.params.push(parameterHelper.getHighlighterParamValues(neededParameters[parameter], inputHighlighter))
         else
-          this.data.push(parameterHelper.getReservedParamValue(parameter, imagePath))
+          this.data.push(parameterHelper.getReservedParamValue(parameter, imagePath, req))
       else
         value = parameterHelper.getParamValue(parameter, inputParameters)
         if value?

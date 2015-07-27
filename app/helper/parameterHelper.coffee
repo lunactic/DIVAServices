@@ -45,6 +45,8 @@ parameterHelper = exports = module.exports = class ParameterHelper
         return path.dirname(imagePath)
       when 'host'
         return req.get('host')
+      when 'ocropyLanguageModelsPath'
+        return nconf.get('paths:ocropyLanguageModelsPath')
 
   # ---
   # **getHighlighterParamValues**</br>

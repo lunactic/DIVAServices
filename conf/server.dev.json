@@ -25,7 +25,8 @@
     "imageRootPath": "/data/images",
     "matlabPath": "/usr/local/bin/matlab",
     "matlabScriptsPath": "/data/matlab",
-    "jsonPath":"/data/json"
+    "jsonPath":"/data/json",
+    "ocropyLanguageModelsPath": "/data/ocropyLanguageModels"
   },
   "reservedWords" :[
     "image",
@@ -35,6 +36,7 @@
     "host",
     "inputFileExtension",
     "outputFolder",
-    "highlighter"
+    "highlighter",
+    "ocropyLanguageModelsPath"
   ]
 }
