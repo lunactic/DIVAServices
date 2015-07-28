@@ -22,6 +22,7 @@ async             = require 'async'
 ImageHelper       = require '../helper/imageHelper'
 ExecutableHelper  = require '../helper/executableHelper'
 IoHelper          = require '../helper/ioHelper'
+Statistics        = require '../statistics/statistics'
 
 #Expose postHandler
 postHandler = exports = module.exports = class PostHandler
@@ -40,6 +41,7 @@ postHandler = exports = module.exports = class PostHandler
       imageHelper = new ImageHelper()
       executableHelper = new ExecutableHelper()
       ioHelper = new IoHelper()
+      statistics = new Statistics()
       ###
         perform all the steps using an async waterfall
         Each part will be executed and the response is passed on to the next
@@ -68,15 +70,20 @@ postHandler = exports = module.exports = class PostHandler
         #execute method if not loaded
         (data, callback) ->
           if(data?)
-            callback null, data
+            callback null, data, true
           else
+            statistics.startRecording()
             #fill executable path with parameter values
             command = executableHelper.buildCommand(arrayFound[0].executablePath, @inputParameters, @neededParameters, @programType)
             executableHelper.executeCommand(command, callback)
           return
-        (data, callback) ->
+        (data, fromDisk, callback) ->
+          if(fromDisk)
+            callback null, data
           #save the response
-          ioHelper.saveResult(imageHelper.imgFolder, req.originalUrl, executableHelper.params, data, callback)
+          else
+            console.log 'exeucted command in ' + statistics.endRecording() + ' seconds'
+            ioHelper.saveResult(imageHelper.imgFolder, req.originalUrl, executableHelper.params, data, callback)
           return
         #finall callback, handling of the result and returning it
         ], (err, results) ->

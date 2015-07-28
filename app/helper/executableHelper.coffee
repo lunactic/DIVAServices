@@ -6,11 +6,10 @@
 # Copyright &copy; Marcel Würsch, GPL v3.0 licensed.
 
 # Module dependencies
-childProcess  = require 'child_process'
-nconf         = require 'nconf'
-logger        = require '../logging/logger'
+childProcess      = require 'child_process'
+nconf             = require 'nconf'
+logger            = require '../logging/logger'
 ParameterHelper   = require './parameterHelper'
-
 # Expose executableHelper
 executableHelper = exports = module.exports = class ExecutableHelper
 
@@ -80,10 +79,10 @@ executableHelper = exports = module.exports = class ExecutableHelper
         err =
           statusText: stderr
           status: 500
-        callback err, null
+        callback err, null, false
       else
         #console.log 'task finished. Result: ' + stdout
-        callback null, stdout
+        callback null, stdout, false
     )
 
   # ---
