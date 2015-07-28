@@ -1,18 +1,29 @@
-#/ <reference path="../typings/node/node.d.ts"/>
-#/ <reference path="../typings/express/express.d.ts" />
-fs = require('fs')
+# GetHandler
+# =======
+#
+# **GetHandler** is responsible for handling all incoming GET requests.
+# It responds with the JSON informatio as defined in
+# ```server.XXX.json['paths']['jsonPath']/req.originalUrl/info.json``` file
+# This means a GET request to /segmentation/textline/hist will return the JSON information in the file
+# /data/json/segmentation/textline/hist/info.json.
+#
+# Copyright &copy; Marcel Würsch, GPL v3.0 licensed.
+fs    = require 'fs'
+nconf = require 'nconf'
 
-class GetHandler
-  constructor: () ->
+#Expose getHandler
+getHandler = exports = module.exports = class GetHandler
 
-  ### Handle Incoming GET Requests ###
-  handleRequest: (req, res) ->
-    fs.readFile '/data/json' + req.originalUrl + '/info.json', 'utf8', (err, data) ->
+  # ---
+  # **handleRequest**</br>
+  # Handle incoming GET requests</br>
+  # `params`
+  #   *req* the incoming request
+  handleRequest: (req, callback) ->
+    fs.readFile nconf.get('paths:jsonPath') + req.originalUrl + '/info.json', 'utf8', (err, data) ->
       if err
-        next err
+        callback err
       else
-        res.json JSON.parse(data)
+        callback null, data
       return
     return
-
-module.exports = GetHandler

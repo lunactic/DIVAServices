@@ -11,7 +11,7 @@
         "type": "console"
       }
     ],
-    "level": "DEBUG"
+    "level": "INFO"
   },
   "server": {
     "timeout": 600000,
