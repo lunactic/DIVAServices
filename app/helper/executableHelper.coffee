@@ -68,7 +68,7 @@ executableHelper = exports = module.exports = class ExecutableHelper
   # Returns the data as received from the stdout.</br>
   # `params`
   #   *command* the command to execute
-  executeCommand: (command, callback) ->
+  executeCommand: (command, statIdentifier, callback) ->
     exec = childProcess.exec
     # (error, stdout, stderr) is a so called "callback" and thus "exec" is an asynchronous function
     # in this case, you must always put the wrapping function in an asynchronous manner too! (see line
@@ -79,10 +79,10 @@ executableHelper = exports = module.exports = class ExecutableHelper
         err =
           statusText: stderr
           status: 500
-        callback err, null, false
+        callback err, null, statIdentifier, false
       else
         #console.log 'task finished. Result: ' + stdout
-        callback null, stdout, false
+        callback null, stdout, statIdentifier, false
     )
 
   # ---
