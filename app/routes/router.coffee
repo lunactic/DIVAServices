@@ -8,10 +8,9 @@
 
 # Require Express Router
 router      = require('express').Router()
-GetHandler  = require('./getHandler')
-PostHandler = require('./postHandler')
-logger      = require('../logging/logger')
-
+GetHandler  = require './getHandler'
+PostHandler = require './postHandler'
+logger      = require '../logging/logger'
 
 getHandler = new GetHandler()
 postHandler = new PostHandler()
@@ -42,7 +41,7 @@ sendResponse = (res, err, response) ->
     logger.log 'error', err.statusText
   else
     res.status 200
-    res.json JSON.parse response
+    res.json response
     logger.log 'info', 'RESPONSE 200'
 
 # Expose router

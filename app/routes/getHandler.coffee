@@ -8,9 +8,9 @@
 # /data/json/segmentation/textline/hist/info.json.
 #
 # Copyright &copy; Marcel Würsch, GPL v3.0 licensed.
-fs    = require 'fs'
-nconf = require 'nconf'
-
+fs          = require 'fs'
+nconf       = require 'nconf'
+Statistics  = require '../statistics/statistics'
 #Expose getHandler
 getHandler = exports = module.exports = class GetHandler
 
@@ -24,6 +24,8 @@ getHandler = exports = module.exports = class GetHandler
       if err
         callback err
       else
+        data = JSON.parse data
+        data['info']['expectedRuntime'] = Statistics.getMeanExecutionTime req.originalUrl
         callback null, data
       return
     return

@@ -45,9 +45,13 @@ statistics = exports = module.exports = class Statistics
     console.log JSON.stringify(@currentStatistics)
     return @endTime[0]
 
+  @getMeanExecutionTime: (reqPath) ->
+    if(@currentStatistics[reqPath]?)
+      return @currentStatistics[reqPath].runtime
+    else
+      return 'No runtime information available'
+
   @loadStatistics: () ->
-    console.log 'load stats'
-    console.log '@currentStatistics: ' + JSON.stringify(@currentStatistics)
     if(Object.keys(@currentStatistics).length is 0)
       try
         @currentStatistics = JSON.parse(fs.readFileSync(nconf.get('paths:statisticsFile'),'utf-8'))
@@ -59,8 +63,6 @@ statistics = exports = module.exports = class Statistics
         console.info 'No statistics file found'
 
   @saveStatistics: (callback) ->
-    console.log 'saving statistics'
-    console.log JSON.stringify(@currentStatistics)
     fs.writeFile nconf.get('paths:statisticsFile'), JSON.stringify(@currentStatistics), (err) ->
       if(err?)
         callback err

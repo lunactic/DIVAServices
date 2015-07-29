@@ -86,5 +86,5 @@ postHandler = exports = module.exports = class PostHandler
           return
         #finall callback, handling of the result and returning it
         ], (err, results) ->
-          cb err, results
+          cb err, JSON.parse results
         return
