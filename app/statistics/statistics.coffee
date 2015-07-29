@@ -22,14 +22,18 @@ statistics = exports = module.exports = class Statistics
   constructor ->
     startTime = 0
 
+  @isRunning :(reqPath) ->
+    find = (i for i in currentExecutions when i.path is reqPath)[0]
+    return find != null
+
   @startRecording: (reqPath) ->
     @startTime = process.hrtime()
     rand = Math.random()
     @currentExecutions[rand] =
       startTime: @startTime
       path: reqPath
-
     return rand
+
   @endRecording: (rand, reqPath) ->
     @endTime = process.hrtime(@currentExecutions[rand].startTime)
     delete @currentExecutions[rand]
@@ -50,7 +54,6 @@ statistics = exports = module.exports = class Statistics
       return @currentStatistics[reqPath].runtime
     else
       return 'No runtime information available'
-
   @loadStatistics: () ->
     if(Object.keys(@currentStatistics).length is 0)
       try

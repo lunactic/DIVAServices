@@ -49,6 +49,7 @@ postHandler = exports = module.exports = class PostHandler
       async.waterfall [
         #save image
         (callback) ->
+          logger.info 'Method: ' + req.originalUrl + 'is running: ' + Statistics.isRunning(req.originalUrl)
           imageHelper.saveImage(req.body.image, callback)
           return
         #perform parameter matching
