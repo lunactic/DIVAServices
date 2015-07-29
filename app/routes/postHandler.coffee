@@ -23,7 +23,7 @@ ImageHelper       = require '../helper/imageHelper'
 ExecutableHelper  = require '../helper/executableHelper'
 IoHelper          = require '../helper/ioHelper'
 Statistics        = require '../statistics/statistics'
-
+logger            = require '../logging/logger'
 #Expose postHandler
 postHandler = exports = module.exports = class PostHandler
 
@@ -41,15 +41,27 @@ postHandler = exports = module.exports = class PostHandler
       imageHelper = new ImageHelper()
       executableHelper = new ExecutableHelper()
       ioHelper = new IoHelper()
+
       ###
         perform all the steps using an async waterfall
         Each part will be executed and the response is passed on to the next
         function.
       ###
       async.waterfall [
-        #save image
+        # check if current method is already in execution
+        # and can not handle multiple executions
         (callback) ->
-          logger.info 'Method: ' + req.originalUrl + 'is running: ' + Statistics.isRunning(req.originalUrl)
+          console.log 'allowParallel: ' + arrayFound[0].allowParallel
+          console.log 'isRunning: ' +  Statistics.isRunning(req.originalUrl)
+          if(!arrayFound[0].allowParallel and Statistics.isRunning(req.originalUrl))
+            error =
+              statusText: 'This method can not be run in parallel'
+              status: 500
+            callback error
+          else
+            callback null
+        # save image
+        (callback) ->
           imageHelper.saveImage(req.body.image, callback)
           return
         #perform parameter matching
@@ -72,7 +84,7 @@ postHandler = exports = module.exports = class PostHandler
           if(data?)
             callback null, data, -1, true
           else
-            statIdentifier = Statistics.startRecording()
+            statIdentifier = Statistics.startRecording(req.originalUrl)
             #fill executable path with parameter values
             command = executableHelper.buildCommand(arrayFound[0].executablePath, @inputParameters, @neededParameters, @programType)
             executableHelper.executeCommand(command, statIdentifier, callback)
@@ -87,5 +99,8 @@ postHandler = exports = module.exports = class PostHandler
           return
         #finall callback, handling of the result and returning it
         ], (err, results) ->
-          cb err, JSON.parse results
+          if(err?)
+            cb err,
+          else
+            cb err, JSON.parse results
         return

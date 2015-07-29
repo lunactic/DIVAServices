@@ -60,9 +60,9 @@ ioHelper = exports = module.exports = class IoHelper
       else if err.code == 'ENOENT'
         fs.writeFile path + filename, result,  (err) ->
           if err?
-            error = []
-            error.status = 500
-            error.statusText = 'Could not save result file'
+            error =
+              status: 500
+              statusText: 'Could not save result file'
             callback error, null
           else
             callback null, result

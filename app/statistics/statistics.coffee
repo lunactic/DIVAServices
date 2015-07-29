@@ -15,7 +15,7 @@ logger      = require '../logging/logger'
 
 statistics = exports = module.exports = class Statistics
 
-  @currentExecutions = {}
+  @currentExecutions = []
   @currentStatistics = {}
   @startTime = 0
 
@@ -23,19 +23,23 @@ statistics = exports = module.exports = class Statistics
     startTime = 0
 
   @isRunning :(reqPath) ->
-    find = (i for i in currentExecutions when i.path is reqPath)[0]
-    return find != null
+    executionInfo = @currentExecutions.filter (x) -> x.path == reqPath
+    return executionInfo.length > 0
 
   @startRecording: (reqPath) ->
+    logger.log 'info', 'reqPath: ' + reqPath
     @startTime = process.hrtime()
     rand = Math.random()
-    @currentExecutions[rand] =
+    @currentExecutions.push({
+      rand : rand
       startTime: @startTime
       path: reqPath
+    })
     return rand
 
   @endRecording: (rand, reqPath) ->
-    @endTime = process.hrtime(@currentExecutions[rand].startTime)
+    executionInfo = @currentExecutions.filter (x) -> x.rand == rand
+    @endTime = process.hrtime(executionInfo[0].startTime)
     delete @currentExecutions[rand]
     if(@currentStatistics[reqPath]?)
       @currentStatistics[reqPath] =
@@ -45,8 +49,6 @@ statistics = exports = module.exports = class Statistics
       @currentStatistics[reqPath] =
         runtime: @endTime[0]
         executions: 1
-
-    console.log JSON.stringify(@currentStatistics)
     return @endTime[0]
 
   @getMeanExecutionTime: (reqPath) ->
@@ -58,13 +60,9 @@ statistics = exports = module.exports = class Statistics
     if(Object.keys(@currentStatistics).length is 0)
       try
         @currentStatistics = JSON.parse(fs.readFileSync(nconf.get('paths:statisticsFile'),'utf-8'))
-        console.log 'loaded stats'
-        console.log JSON.stringify(@currentStatistics)
       catch error
-        #
-        hould only happen at first startup
-        console.info 'No statistics file found'
-
+        #Should only happen at first startup
+        logger.log 'error', 'No statistics file found'
   @saveStatistics: (callback) ->
     fs.writeFile nconf.get('paths:statisticsFile'), JSON.stringify(@currentStatistics), (err) ->
       if(err?)
