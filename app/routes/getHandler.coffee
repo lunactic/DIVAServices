@@ -20,13 +20,19 @@ getHandler = exports = module.exports = class GetHandler
   # `params`
   #   *req* the incoming request
   handleRequest: (req, callback) ->
-    fs.readFile nconf.get('paths:jsonPath') + req.originalUrl + '/info.json', 'utf8', (err, data) ->
-      if err
-        callback err
-      else
-        data = JSON.parse data
-        if(data['info']?)
-          data['info']['expectedRuntime'] = Statistics.getMeanExecutionTime req.originalUrl
-        callback null, data
+    #check if incoming get request has a query param
+    if(Object.keys(req.query).length != 0)
+      
       return
-    return
+    #else load info file
+    else
+      fs.readFile nconf.get('paths:jsonPath') + req.originalUrl + '/info.json', 'utf8', (err, data) ->
+        if err
+          callback err
+        else
+          data = JSON.parse data
+          if(data['info']?)
+            data['info']['expectedRuntime'] = Statistics.getMeanExecutionTime req.originalUrl
+          callback null, data
+        return
+      return
