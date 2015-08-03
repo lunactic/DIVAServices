@@ -49,6 +49,36 @@ parameterHelper = exports = module.exports = class ParameterHelper
         return nconf.get('paths:ocropyLanguageModelsPath')
 
   # ---
+  # **matchParams**</br>
+  # Matches the received parameter values to the needed parameters</br>
+  # `params`
+  #   *inputParameters* The received parameters and its values
+  #   *inputHighlighter* The received input highlighter
+  #   *neededParameters*  The needed parameteres
+  #   *imagePath* path to the input image
+  #   *req* incoming request
+  matchParams: (inputParameters, inputHighlighter, neededParameters,imagePath, req) ->
+    params = []
+    data = []
+    for parameter of neededParameters
+      #build parameters
+      if checkReservedParameters parameter
+        #check if highlighter
+        if parameter is 'highlighter'
+          params.push(this.getHighlighterParamValues(neededParameters[parameter], inputHighlighter))
+        else
+          data.push(this.getReservedParamValue(parameter, imagePath, req))
+      else
+        value = this.getParamValue(parameter, inputParameters)
+        if value?
+          params.push(value)
+    result =
+      params: params
+      data: data
+    return result
+
+
+  # ---
   # **getHighlighterParamValues**</br>
   # Gets Parameter values for highlighters.
   # The values will be as follow:
@@ -85,3 +115,12 @@ parameterHelper = exports = module.exports = class ParameterHelper
         merged = merged.concat.apply(merged, inputHighlighter.segments)
         merged = merged.map(Math.round)
         return merged.join(' ')
+
+  # ---
+  # **checkReservedParameters**</br>
+  # Checks if a parameter is in the list of reserverd words as defined in server.NODE_ENV.json</br>
+  # `params`
+  #   *parameter* the parameter to check
+  checkReservedParameters = (parameter) ->
+    reservedParameters = nconf.get('reservedWords')
+    return parameter in reservedParameters

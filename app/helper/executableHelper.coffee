@@ -9,7 +9,6 @@
 childProcess      = require 'child_process'
 nconf             = require 'nconf'
 logger            = require '../logging/logger'
-ParameterHelper   = require './parameterHelper'
 # Expose executableHelper
 executableHelper = exports = module.exports = class ExecutableHelper
 
@@ -17,11 +16,6 @@ executableHelper = exports = module.exports = class ExecutableHelper
   # **constructor**</br>
   # initialize params and data arrays
   constructor: ->
-    this.params = []
-    this.data = []
-
-  params: []
-  data: []
 
   # ---
   # **buildCommand**</br>
@@ -31,36 +25,11 @@ executableHelper = exports = module.exports = class ExecutableHelper
   #   *inputParameters* The received parameters and its values
   #   *neededParameters*  The list of needed parameters
   #   *programType* The program type
-  buildCommand: (executablePath, inputParameters, neededParameters, programType) ->
+  buildCommand: (executablePath, programType, data, params) ->
     # get exectuable type
     execType = getExecutionType programType
     # return the command line call
-    return execType + ' ' + executablePath + ' ' + this.data.join(' ') + ' ' + this.params.join(' ')
-
-  # ---
-  # **matchParams**</br>
-  # Matches the received parameter values to the needed parameters</br>
-  # `params`
-  #   *inputParameters* The received parameters and its values
-  #   *inputHighlighter* The received input highlighter
-  #   *neededParameters*  The needed parameteres
-  #   *imagePath* path to the input image
-  #   *req* incoming request
-  matchParams: (inputParameters, inputHighlighter, neededParameters,imagePath, req) ->
-    parameterHelper = new ParameterHelper()
-    for parameter of neededParameters
-      #build parameters
-      if checkReservedParameters parameter
-        #check if highlighter
-        if parameter is 'highlighter'
-          this.params.push(parameterHelper.getHighlighterParamValues(neededParameters[parameter], inputHighlighter))
-        else
-          this.data.push(parameterHelper.getReservedParamValue(parameter, imagePath, req))
-      else
-        value = parameterHelper.getParamValue(parameter, inputParameters)
-        if value?
-          this.params.push(value)
-    return
+    return execType + ' ' + executablePath + ' ' + data.join(' ') + ' ' + params.join(' ')
 
   # ---
   # **executeCommand**</br>
@@ -98,13 +67,3 @@ executableHelper = exports = module.exports = class ExecutableHelper
         return 'coffee'
       else
         return ''
-
-
-  # ---
-  # **checkReservedParameters**</br>
-  # Checks if a parameter is in the list of reserverd words as defined in server.NODE_ENV.json</br>
-  # `params`
-  #   *parameter* the parameter to check
-  checkReservedParameters = (parameter) ->
-    reservedParameters = nconf.get('reservedWords')
-    return parameter in reservedParameters

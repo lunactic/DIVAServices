@@ -22,6 +22,7 @@ async             = require 'async'
 ImageHelper       = require '../helper/imageHelper'
 ExecutableHelper  = require '../helper/executableHelper'
 IoHelper          = require '../helper/ioHelper'
+ParameterHelper   = require '../helper/parameterHelper'
 Statistics        = require '../statistics/statistics'
 logger            = require '../logging/logger'
 #Expose postHandler
@@ -41,6 +42,7 @@ postHandler = exports = module.exports = class PostHandler
       imageHelper = new ImageHelper()
       executableHelper = new ExecutableHelper()
       ioHelper = new IoHelper()
+      parameterHelper = new ParameterHelper()
 
       ###
         perform all the steps using an async waterfall
@@ -51,8 +53,6 @@ postHandler = exports = module.exports = class PostHandler
         # check if current method is already in execution
         # and can not handle multiple executions
         (callback) ->
-          console.log 'allowParallel: ' + arrayFound[0].allowParallel
-          console.log 'isRunning: ' +  Statistics.isRunning(req.originalUrl)
           if(!arrayFound[0].allowParallel and Statistics.isRunning(req.originalUrl))
             error =
               statusText: 'This method can not be run in parallel'
@@ -71,13 +71,14 @@ postHandler = exports = module.exports = class PostHandler
           @inputParameters = req.body.inputs
           @inputHighlighters = req.body.highlighter
           @programType = arrayFound[0].programType
-          executableHelper.matchParams(@inputParameters, @inputHighlighters,@neededParameters,@imagePath, req)
+          @parameters = parameterHelper.matchParams(@inputParameters, @inputHighlighters,@neededParameters,@imagePath, req)
           callback null
+
           return
 
         #try to load results from disk
         (callback) ->
-          ioHelper.loadResult(imageHelper.imgFolder, req.originalUrl, executableHelper.params, callback)
+          ioHelper.loadResult(imageHelper.imgFolder, req.originalUrl, @parameters.params, callback)
           return
         #execute method if not loaded
         (data, callback) ->
@@ -86,7 +87,7 @@ postHandler = exports = module.exports = class PostHandler
           else
             statIdentifier = Statistics.startRecording(req.originalUrl)
             #fill executable path with parameter values
-            command = executableHelper.buildCommand(arrayFound[0].executablePath, @inputParameters, @neededParameters, @programType)
+            command = executableHelper.buildCommand(arrayFound[0].executablePath, @programType, @parameters.data, @parameters.params)
             executableHelper.executeCommand(command, statIdentifier, callback)
           return
         (data, statIdentifier, fromDisk, callback) ->
@@ -95,7 +96,7 @@ postHandler = exports = module.exports = class PostHandler
           #save the response
           else
             console.log 'exeucted command in ' + Statistics.endRecording(statIdentifier, req.originalUrl) + ' seconds'
-            ioHelper.saveResult(imageHelper.imgFolder, req.originalUrl, executableHelper.params, data, callback)
+            ioHelper.saveResult(imageHelper.imgFolder, req.originalUrl, @parameters.params, data, callback)
           return
         #finall callback, handling of the result and returning it
         ], (err, results) ->
