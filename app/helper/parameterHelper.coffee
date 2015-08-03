@@ -92,16 +92,19 @@ parameterHelper = exports = module.exports = class ParameterHelper
   #   *neededHighlighter* required highlighter as defined by the method
   #   *inputHighlighter*  received highlighter with its value from the request
   getHighlighterParamValues: (neededHighlighter, inputHighlighter, callback) ->
-    if(neededHighlighter is not inputHighlighter['type'])
-      error = []
-      error.code = 500
-      error.statusText = 'inputHighlighter does not match the requested highlighter from this method.'
-      callback error
-
+    # TODO: Is this actually needed?
+    #if(neededHighlighter is not inputHighlighter['type'])
+    #  error = []
+    #  error.code = 500
+    #  error.statusText = 'inputHighlighter does not match the requested highlighter from this method.'
+    #  callback error
+    console.log 'neededHighlighter: ' + neededHighlighter
+    console.log 'inputHighlighter: ' + inputHighlighter
+    console.log 'typeof' + typeof(inputHighlighter)
     switch neededHighlighter
       when 'rectangle'
         merged = []
-        merged = merged.concat.apply(merged,inputHighlighter.segments)
+        merged = merged.concat.apply(merged,inputHighlighter)
         merged = merged.map(Math.round)
         return merged.join(' ')
       when 'circle'
@@ -112,7 +115,7 @@ parameterHelper = exports = module.exports = class ParameterHelper
         return position[0] + ' ' + position[1] + ' ' + radius
       when 'polygon'
         merged = []
-        merged = merged.concat.apply(merged, inputHighlighter.segments)
+        merged = merged.concat.apply(merged, inputHighlighter)
         merged = merged.map(Math.round)
         return merged.join(' ')
 

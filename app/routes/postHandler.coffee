@@ -17,14 +17,15 @@
 # Copyright &copy; Marcel Würsch, GPL v3.0 licensed.
 
 # module requirements
-fs                = require 'fs'
-async             = require 'async'
-ImageHelper       = require '../helper/imageHelper'
-ExecutableHelper  = require '../helper/executableHelper'
-IoHelper          = require '../helper/ioHelper'
-ParameterHelper   = require '../helper/parameterHelper'
-Statistics        = require '../statistics/statistics'
-logger            = require '../logging/logger'
+fs                  = require 'fs'
+async               = require 'async'
+ImageHelper         = require '../helper/imageHelper'
+ExecutableHelper    = require '../helper/executableHelper'
+IoHelper            = require '../helper/ioHelper'
+ParameterHelper     = require '../helper/parameterHelper'
+ServicesInfoHelper  = require '../helper/servicesInfoHelper'
+Statistics          = require '../statistics/statistics'
+logger              = require '../logging/logger'
 #Expose postHandler
 postHandler = exports = module.exports = class PostHandler
 
@@ -34,11 +35,8 @@ postHandler = exports = module.exports = class PostHandler
   # `params`
   #   *req* the incoming request
   handleRequest: (req, cb) ->
-    fileContent = JSON.parse(fs.readFileSync('/data/json/services.json', 'utf8'))
-    arrayFound = fileContent.services.filter((item) ->
-      item.path == req.originalUrl
-    )
-    if typeof arrayFound != 'undefined'
+    serviceInfo = ServicesInfoHelper.getServiceInfo(req.originalUrl)
+    if typeof serviceInfo != 'undefined'
       imageHelper = new ImageHelper()
       executableHelper = new ExecutableHelper()
       ioHelper = new IoHelper()
@@ -53,7 +51,7 @@ postHandler = exports = module.exports = class PostHandler
         # check if current method is already in execution
         # and can not handle multiple executions
         (callback) ->
-          if(!arrayFound[0].allowParallel and Statistics.isRunning(req.originalUrl))
+          if(!serviceInfo.allowParallel and Statistics.isRunning(req.originalUrl))
             error =
               statusText: 'This method can not be run in parallel'
               status: 500
@@ -67,11 +65,12 @@ postHandler = exports = module.exports = class PostHandler
         #perform parameter matching
         (imagePath, callback) ->
           @imagePath = imagePath
-          @neededParameters = arrayFound[0].parameters
+          @neededParameters = serviceInfo.parameters
           @inputParameters = req.body.inputs
           @inputHighlighters = req.body.highlighter
-          @programType = arrayFound[0].programType
-          @parameters = parameterHelper.matchParams(@inputParameters, @inputHighlighters,@neededParameters,@imagePath, req)
+          console.log 'highlighter' + JSON.stringify(@inputHighlighters)
+          @programType = serviceInfo.programType
+          @parameters = parameterHelper.matchParams(@inputParameters, @inputHighlighters.segments,@neededParameters,@imagePath, req)
           callback null
 
           return
@@ -87,7 +86,7 @@ postHandler = exports = module.exports = class PostHandler
           else
             statIdentifier = Statistics.startRecording(req.originalUrl)
             #fill executable path with parameter values
-            command = executableHelper.buildCommand(arrayFound[0].executablePath, @programType, @parameters.data, @parameters.params)
+            command = executableHelper.buildCommand(serviceInfo.executablePath, @programType, @parameters.data, @parameters.params)
             executableHelper.executeCommand(command, statIdentifier, callback)
           return
         (data, statIdentifier, fromDisk, callback) ->

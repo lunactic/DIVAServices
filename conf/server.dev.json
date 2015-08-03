@@ -27,7 +27,8 @@
     "matlabScriptsPath": "/data/matlab",
     "jsonPath":"/data/json",
     "ocropyLanguageModelsPath": "/data/ocropyLanguageModels",
-    "statisticsFile":"/data/statistics.json"
+    "statisticsFile":"/data/statistics.json",
+    "servicesInfoFile":"/data/json/services.json"
   },
   "reservedWords" :[
     "image",

@@ -14,14 +14,14 @@ if not process.env.NODE_ENV? or process.env.NODE_ENV not in ['dev', 'test', 'pro
 nconf = require 'nconf'
 nconf.add 'server', type: 'file', file: './conf/server.' + process.env.NODE_ENV + '.json'
 
-express       = require 'express'
-#favicon       = require 'serve-favicon'
-cookieParser  = require 'cookie-parser'
 bodyParser    = require 'body-parser'
-sysPath       = require 'path'
+cookieParser  = require 'cookie-parser'
+express       = require 'express'
+favicon       = require 'serve-favicon'
 http          = require 'http'
-router        = require './app/routes/router'
 logger        = require './app/logging/logger'
+router        = require './app/routes/router'
+sysPath       = require 'path'
 Statistics    = require './app/statistics/statistics'
 
 #setup express framework
@@ -40,6 +40,9 @@ app.use bodyParser.urlencoded(extended: true, limit: '50mb')
 
 #setup static file handler
 app.use '/static', express.static('/data/images')
+
+#favicon
+app.use favicon(__dirname + '/images/favicon/favicon.ico')
 
 #setup routes
 app.use router
