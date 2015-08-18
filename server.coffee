@@ -108,7 +108,7 @@ app.post '/segmentation/textline/gabor', (req, res) ->
         logger.log 'error', err.statusText
       else
         res.status 200
-        res.json results
+        res.json JSON.parse results
         logger.log 'info', 'RESPONSE 200'
 
 
