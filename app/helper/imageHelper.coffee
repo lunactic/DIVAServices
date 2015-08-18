@@ -59,14 +59,15 @@ imageHelper = exports = module.exports = class ImageHelper
       request(url).pipe(fs.createWriteStream(imagePath + '/temp.png')).on 'close', (cb) ->
         base64 = fs.readFileSync imagePath + '/temp.png', 'base64'
         md5String = md5(base64)
+        this.imgFolder = imagePath + '/' + md5String + '/'
         fs.mkdir imagePath + '/' + md5String, (err) ->
           #we don't care if the folder exists
           return
         source = fs.createReadStream imagePath + '/temp.png'
         dest = fs.createWriteStream imagePath + '/' + md5String + '/input.png'
-        this.imgFolder = imagePath + '/' + md5String + '/'
         source.pipe(dest)
 	      source.on 'end', () ->
+          console.log 'this.imgFolder: ' + this.imgFolder 
           callback null, imagePath + '/' + md5String + '/input.png'
           return
         source.on 'error', (err) ->

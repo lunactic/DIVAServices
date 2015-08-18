@@ -55,6 +55,7 @@ app.post '/segmentation/textline/gabor', (req, res) ->
       return
     #perform parameter matching
     (imagePath, callback) ->
+      console.log 'imgHelper.imgFolder: ' + imageHelper.imgFolder
       @params = []
       @imagePath = imagePath
       @top = req.body.top
@@ -88,7 +89,7 @@ app.post '/segmentation/textline/gabor', (req, res) ->
         callback null, data
       #save the response
       else
-        console.log 'save results to: ' + imageHelper.imgFolder
+        console.log 'save results to: ' + @imageHelper.imgFolder
         ioHelper.saveResult(imageHelper.imgFolder, req.originalUrl, @params, data, callback)
       return
     #finall callback, handling of the result and returning it
