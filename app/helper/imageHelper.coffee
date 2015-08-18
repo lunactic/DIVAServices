@@ -53,6 +53,7 @@ imageHelper = exports = module.exports = class ImageHelper
         callback err
 
   saveImageUrl: (url, callback ) ->
+    console.log 'saving file from url: ' + url
     request.head url, (err, res, body) ->
       imagePath = nconf.get('paths:imageRootPath')
       request(url).pipe(fs.createWriteStream(imagePath + '/temp.png')).on 'close', (cb) ->
