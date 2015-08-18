@@ -57,20 +57,20 @@ app.post '/segmentation/textline/gabor', (req, res) ->
   imageHelper = new ImageHelper()
   executableHelper = new ExecutableHelper()
   ioHelper = new IoHelper()
-  if('merge' in req.originalUrl)
-    command = 'java -jar /data/executables/gabortextlinesegmentation/gabortextlinesegmentation.jar merge ' + req.body.mergePolygon1 + ' ' req.body.mergePolygon2
+  if(req.originalUrl.indexOf('merge') > -1)
+    command = 'java -jar /data/executables/gabortextlinesegmentation/gabortextlinesegmentation.jar merge ' + req.body.mergePolygon1 + ' ' + req.body.mergePolygon2
     executableHelper.executeCommand command, null, (data, statIdentifier, fromDisk, callback) ->
       res.status 200
       res.json JSON.parse data
       logger.log 'info', 'RESPONSE 200'
-  else if ('split' in req.originalUrl)
-    command = 'java -jar /data/executables/gabortextlinesegmentation/gabortextlinesegmentation.jar split ' + req.body.splitPolygon + ' ' req.body.xSplit + ' ' + req.body.ySplit
+  else if (req.originalUrl.indexOf('split') > -1)
+    command = 'java -jar /data/executables/gabortextlinesegmentation/gabortextlinesegmentation.jar split ' + req.body.splitPolygon + ' ' + req.body.xSplit + ' ' + req.body.ySplit
     executableHelper.executeCommand command, null, (data, statIdentifier, fromDisk, callback) ->
       res.status 200
       res.json JSON.parse data
       logger.log 'info', 'RESPONSE 200'
-  else if ('erase' in req.originalUrl)
-    command = 'java -jar /data/executables/gabortextlinesegmentation/gabortextlinesegmentation.jar delete ' + req.body.erasePolygon + ' ' req.body.xErase + ' ' + req.body.yErase
+  else if (req.originalUrl.indexOf('erase') > -1)
+    command = 'java -jar /data/executables/gabortextlinesegmentation/gabortextlinesegmentation.jar delete ' + req.body.erasePolygon + ' ' + req.body.xErase + ' ' + req.body.yErase
     executableHelper.executeCommand command, null, (data, statIdentifier, fromDisk, callback) ->
       res.status 200
       res.json JSON.parse data
