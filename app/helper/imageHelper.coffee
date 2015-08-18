@@ -72,5 +72,5 @@ imageHelper = exports = module.exports = class ImageHelper
         source.on 'error', (err) ->
           callback err
           return
-    setImageFolder = (imgFolder) ->
-      this.imgFolder = imgFolder
+  setImageFolder = (imgFolder) ->
+    this.imgFolder = imgFolder
