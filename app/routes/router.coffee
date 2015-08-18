@@ -8,10 +8,9 @@
 
 # Require Express Router
 router      = require('express').Router()
-GetHandler  = require('./getHandler')
-PostHandler = require('./postHandler')
-logger      = require('../logging/logger')
-
+GetHandler  = require './getHandler'
+PostHandler = require './postHandler'
+logger      = require '../logging/logger'
 
 getHandler = new GetHandler()
 postHandler = new PostHandler()
@@ -37,12 +36,13 @@ router.post '*', (req, res, next) ->
 #   *response* the JSON response. If set a HTTP 200 will be returned
 sendResponse = (res, err, response) ->
   if err?
+    logger.log 'error', JSON.stringify(err)
     res.status err.status or 500
     res.json err.statusText
     logger.log 'error', err.statusText
   else
     res.status 200
-    res.json JSON.parse response
+    res.json response
     logger.log 'info', 'RESPONSE 200'
 
 # Expose router

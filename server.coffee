@@ -22,10 +22,17 @@ sysPath       = require 'path'
 http          = require 'http'
 router        = require './app/routes/router'
 logger        = require './app/logging/logger'
-
+Statistics    = require './app/statistics/statistics'
 
 #setup express framework
 app = express()
+
+#shutdown handler
+process.on 'SIGTERM', () ->
+  logger.log 'info', 'RECEIVED SIGTERM'
+  Statistics.saveStatistics () ->
+    process.exit(0)
+
 
 #setup body parser
 app.use bodyParser.json(limit: '50mb')
@@ -42,4 +49,5 @@ server = http.createServer app
 #server.timeout = 12000
 
 server.listen nconf.get('server:port'), ->
+  Statistics.loadStatistics()
   logger.log 'info', 'Server listening on port ' + nconf.get 'server:port'
