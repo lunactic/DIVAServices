@@ -24,7 +24,9 @@ http          = require 'http'
 router        = require './app/routes/router'
 logger        = require './app/logging/logger'
 Statistics    = require './app/statistics/statistics'
-
+ImageHelper   = require './app/helper/imageHelper'
+ExecutableHelper = require './app/helper/executableHelper'
+IoHelper      = require './app/helper/ioHelper'
 #setup express framework
 app = express()
 
@@ -43,7 +45,7 @@ app.use bodyParser.urlencoded(extended: true, limit: '50mb')
 app.use '/static', express.static('/data/images')
 
 #handle gabor post request seperately
-app.post 'segmentation/textline/gabor', (req, res) ->
+app.post '/segmentation/textline/gabor', (req, res) ->
   async.waterfall [
     imageHelper = new ImageHelper()
     executableHelper = new ExecutableHelper()
@@ -53,6 +55,7 @@ app.post 'segmentation/textline/gabor', (req, res) ->
     else if('split' in req.originalUrl)
     else
       (callback) ->
+        console.log 'body' + JSON.stringify(req.body)
         imageHelper.saveImage(req.body.url, callback)
         return
       #perform parameter matching
