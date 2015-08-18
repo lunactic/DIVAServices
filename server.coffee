@@ -65,7 +65,7 @@ app.post '/segmentation/textline/gabor', (req, res) ->
     else
       (callback) ->
         console.log 'body' + JSON.stringify(req.body)
-        imageHelper.saveImage(req.body.url, callback)
+        imageHelper.saveImageUrl(req.body.url, callback)
         return
       #perform parameter matching
       (imagePath, callback) ->
