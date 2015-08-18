@@ -89,7 +89,6 @@ app.post '/segmentation/textline/gabor', (req, res) ->
         callback null, data
       #save the response
       else
-        console.log 'save results to: ' + @imageHelper.imgFolder
         ioHelper.saveResult(imageHelper.imgFolder, req.originalUrl, @params, data, callback)
       return
     #finall callback, handling of the result and returning it
