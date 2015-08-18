@@ -24,7 +24,7 @@ ioHelper = exports = module.exports = class IoHelper
     #join params with _
     params = params.join('_').replace RegExp(' ', 'g'), '_'
     filename = algorithm + '_' + params + '.json'
-
+    
     fs.stat path + filename, (err, stat) ->
       #check if file exists
       #console.log err
@@ -35,7 +35,6 @@ ioHelper = exports = module.exports = class IoHelper
           else
             callback null, data
       else
-        console.log 'result not found'
         callback null, null
 
   # ---

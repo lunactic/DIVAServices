@@ -29,7 +29,7 @@ parameterHelper = exports = module.exports = class ParameterHelper
   # `params`
   #   *parameter* reserved parameter
   #   *imagePath* path to the input image
-  getReservedParamValue: (parameter, imagePath, req) ->
+  getReservedParamValue: (parameter, neededParameters, imagePath, req) ->
     switch parameter
       when 'matlabPath'
         return nconf.get('paths:matlabPath')
@@ -47,6 +47,8 @@ parameterHelper = exports = module.exports = class ParameterHelper
         return req.get('host')
       when 'ocropyLanguageModelsPath'
         return nconf.get('paths:ocropyLanguageModelsPath')
+      when 'startUp'
+        return neededParameters['startUp']
 
   # ---
   # **matchParams**</br>
@@ -67,7 +69,7 @@ parameterHelper = exports = module.exports = class ParameterHelper
         if parameter is 'highlighter'
           params.push(this.getHighlighterParamValues(neededParameters[parameter], inputHighlighter))
         else
-          data.push(this.getReservedParamValue(parameter, imagePath, req))
+          data.push(this.getReservedParamValue(parameter, neededParameters, imagePath, req))
       else
         value = this.getParamValue(parameter, inputParameters)
         if value?
@@ -98,9 +100,9 @@ parameterHelper = exports = module.exports = class ParameterHelper
     #  error.code = 500
     #  error.statusText = 'inputHighlighter does not match the requested highlighter from this method.'
     #  callback error
-    console.log 'neededHighlighter: ' + neededHighlighter
-    console.log 'inputHighlighter: ' + inputHighlighter
-    console.log 'typeof' + typeof(inputHighlighter)
+    #console.log 'neededHighlighter: ' + neededHighlighter
+    #console.log 'inputHighlighter: ' + inputHighlighter
+    #console.log 'typeof' + typeof(inputHighlighter)
     switch neededHighlighter
       when 'rectangle'
         merged = []

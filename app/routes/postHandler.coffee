@@ -68,13 +68,10 @@ postHandler = exports = module.exports = class PostHandler
           @neededParameters = serviceInfo.parameters
           @inputParameters = req.body.inputs
           @inputHighlighters = req.body.highlighter
-          console.log 'highlighter' + JSON.stringify(@inputHighlighters)
           @programType = serviceInfo.programType
           @parameters = parameterHelper.matchParams(@inputParameters, @inputHighlighters.segments,@neededParameters,@imagePath, req)
           callback null
-
           return
-
         #try to load results from disk
         (callback) ->
           ioHelper.loadResult(imageHelper.imgFolder, req.originalUrl, @parameters.params, callback)

@@ -39,6 +39,7 @@
     "inputFileExtension",
     "outputFolder",
     "highlighter",
-    "ocropyLanguageModelsPath"
+    "ocropyLanguageModelsPath",
+    "startUp"
   ]
 }

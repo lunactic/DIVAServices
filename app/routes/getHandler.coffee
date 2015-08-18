@@ -13,6 +13,7 @@ nconf              = require 'nconf'
 path               = require 'path'
 Statistics         = require '../statistics/statistics'
 ParameterHelper    = require '../helper/parameterHelper'
+IoHelper           = require '../helper/ioHelper'
 ServicesInfoHelper = require '../helper/servicesInfoHelper'
 
 #Expose getHandler
@@ -26,14 +27,7 @@ getHandler = exports = module.exports = class GetHandler
   handleRequest: (req, callback) ->
     #check if incoming get request has a query param
     if(Object.keys(req.query).length != 0)
-      parameterHelper = new ParameterHelper()
-      serviceInfo = ServicesInfoHelper.getServiceInfo(req.path)
-      queryParams = req.query
-      neededParameters = serviceInfo.parameters
-      #perform parameter matching
-      paramMatching = parameterHelper.matchParams(queryParams, JSON.parse(queryParams.highlighter), neededParameters, queryParams.md5, req)
-      buildResultFilePath(paramMatching, req, callback)
-      return
+      getWithQuery(req, callback)
     #else load info file
     else
       fs.readFile nconf.get('paths:jsonPath') + req.originalUrl + '/info.json', 'utf8', (err, data) ->
@@ -41,15 +35,32 @@ getHandler = exports = module.exports = class GetHandler
           callback err
         else
           data = JSON.parse data
+          #add statistics information if available
           if(data['info']?)
             data['info']['expectedRuntime'] = Statistics.getMeanExecutionTime req.originalUrl
           callback null, data
         return
       return
 
+  getWithQuery = (req, callback) ->
+    parameterHelper = new ParameterHelper()
+    ioHelper = new IoHelper()
+    serviceInfo = ServicesInfoHelper.getServiceInfo(req.path)
+    queryParams = req.query
+    neededParameters = serviceInfo.parameters
+    #perform parameter matching
+    highlighter = {}
+    if queryParams.highlighter?
+      highlighter = JSON.parse(queryParams.highlighter)
+
+    paramMatching = parameterHelper.matchParams(queryParams, highlighter, neededParameters, queryParams.md5, req)
+    imgFolder = nconf.get('paths:imageRootPath') + path.sep + paramMatching.data[0]
+    ioHelper.loadResult(imgFolder, req.path, paramMatching.params, callback)
+    #buildResultFilePath(paramMatching, req, callback)
+    return
+
   buildResultFilePath = (paramMatching, req, callback) ->
     #replace / with _
-    console.log 'paramMatching: ' + JSON.stringify paramMatching
     algorithm = req.path.replace(/\//g, '_')
     params = paramMatching.params.join('_').replace RegExp(' ', 'g'), '_'
     filename = algorithm + '_' + params + '.json'
