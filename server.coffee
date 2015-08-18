@@ -51,7 +51,6 @@ app.post '/segmentation/textline/gabor', (req, res) ->
   ioHelper = new IoHelper()
   async.waterfall [
     (callback) ->
-      console.log 'body' + JSON.stringify(req.body)
       imageHelper.saveImageUrl(req.body.url, callback)
       return
     #perform parameter matching
@@ -81,7 +80,7 @@ app.post '/segmentation/textline/gabor', (req, res) ->
       else
         #fill executable path with parameter values
         #command = executableHelper.buildCommand(arrayFound[0].executablePath, @inputParameters, @neededParameters, @programType)
-        command = 'java -jar /data/executables/gabortextlinesegmentation/gabortextlinesegmentation.jar create' + @imagePath + ' input ' + nconf.get('paths:matlabScriptsPath') + ' ' + nconf.get('paths:matlabPath') + ' ' + @top + ' ' + @bottom + ' ' + @left + ' ' + @right + ' ' + @linkingRectWidth + ' ' + @linkingRectHeight
+        command = 'java -jar /data/executables/gabortextlinesegmentation/gabortextlinesegmentation.jar create ' + @imagePath + ' input ' + nconf.get('paths:matlabScriptsPath') + ' ' + nconf.get('paths:matlabPath') + ' ' + @top + ' ' + @bottom + ' ' + @left + ' ' + @right + ' ' + @linkingRectWidth + ' ' + @linkingRectHeight
         executableHelper.executeCommand(command, null, callback)
       return
     (data, statIdentifier, fromDisk, callback) ->
@@ -89,6 +88,7 @@ app.post '/segmentation/textline/gabor', (req, res) ->
         callback null, data
       #save the response
       else
+        console.log 'save results to: ' + imageHelper.imgFolder
         ioHelper.saveResult(imageHelper.imgFolder, req.originalUrl, @params, data, callback)
       return
     #finall callback, handling of the result and returning it

@@ -64,9 +64,9 @@ imageHelper = exports = module.exports = class ImageHelper
           return
         source = fs.createReadStream imagePath + '/temp.png'
         dest = fs.createWriteStream imagePath + '/' + md5String + '/input.png'
-        source.pipe dest
-        source.on 'end', () ->
-          this.imgFolder = imagePath + '/' + md5String + '/'
+        this.imgFolder = imagePath + '/' + md5String + '/'
+        source.pipe(dest)
+  	source.on 'end', () ->
           callback null, imagePath + '/' + md5String + '/input.png'
           return
         source.on 'error', (err) ->
