@@ -46,13 +46,22 @@ app.use '/static', express.static('/data/images')
 
 #handle gabor post request seperately
 app.post '/segmentation/textline/gabor', (req, res) ->
+  imageHelper = new ImageHelper()
+  executableHelper = new ExecutableHelper()
+  ioHelper = new IoHelper()
   async.waterfall [
-    imageHelper = new ImageHelper()
-    executableHelper = new ExecutableHelper()
-    ioHelper = new IoHelper()
     if('merge' in req.originalUrl)
+      (callback) ->
+        callback null
+        return
     else if ('erase' in req.originalUrl)
+      (callback) ->
+        callback null
+        return
     else if('split' in req.originalUrl)
+      (callback) ->
+        callback null
+        return
     else
       (callback) ->
         console.log 'body' + JSON.stringify(req.body)
