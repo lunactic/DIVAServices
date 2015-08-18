@@ -14,6 +14,7 @@ if not process.env.NODE_ENV? or process.env.NODE_ENV not in ['dev', 'test', 'pro
 nconf = require 'nconf'
 nconf.add 'server', type: 'file', file: './conf/server.' + process.env.NODE_ENV + '.json'
 
+async             = require 'async'
 express       = require 'express'
 #favicon       = require 'serve-favicon'
 cookieParser  = require 'cookie-parser'
@@ -40,6 +41,77 @@ app.use bodyParser.urlencoded(extended: true, limit: '50mb')
 
 #setup static file handler
 app.use '/static', express.static('/data/images')
+
+#handle gabor post request seperately
+app.post 'segmentation/textline/gabor', (req, res) ->
+  async.waterfall [
+    imageHelper = new ImageHelper()
+    executableHelper = new ExecutableHelper()
+    ioHelper = new IoHelper()
+    if('merge' in req.originalUrl)
+    else if ('erase' in req.originalUrl)
+    else if('split' in req.originalUrl)
+    else
+      (callback) ->
+        imageHelper.saveImage(req.body.url, callback)
+        return
+      #perform parameter matching
+      (imagePath, callback) ->
+        @params = []
+        @imagePath = imagePath
+        @top = req.body.top
+        @bottom = req.body.bottom
+        @left = req.body.left
+        @right = req.body.right
+        @linkingRectWidth = req.body.linkingRectWidth
+        @linkingRectHeight = req.body.linkingRectHeight
+        @params.push @top
+        @params.push @bottom
+        @params.push @left
+        @params.push @right
+        @params.push @linkingRectWidth
+        @params.push @linkingRectHeight
+        callback null
+        return
+      (callback) ->
+        ioHelper.loadResult(imageHelper.imgFolder, req.originalUrl, @params, callback)
+        return
+      (data, callback) ->
+        if(data?)
+          callback null, data, -1, true
+        else
+          #fill executable path with parameter values
+          #command = executableHelper.buildCommand(arrayFound[0].executablePath, @inputParameters, @neededParameters, @programType)
+          command = 'java -jar /data/executables/gabortextlinesegmentation/gabortextlinesegmentation.jar create' + @imagePath + ' input ' + nconf.get('paths:matlabScriptsPath') + ' ' + nconf.get('paths:matlabPath') + ' ' + @top + ' ' + @bottom + ' ' + @left + ' ' + @right + ' ' + @linkingRectWidth + ' ' + @linkingRectHeight
+          executableHelper.executeCommand(command, null, callback)
+        return
+      (data, statIdentifier, fromDisk, callback) ->
+        if(fromDisk)
+          callback null, data
+        #save the response
+        else
+          ioHelper.saveResult(imageHelper.imgFolder, req.originalUrl, @params, data, callback)
+        return
+      #finall callback, handling of the result and returning it
+      ], (err, results) ->
+        if err?
+          logger.log 'error', JSON.stringify(err)
+          res.status err.status or 500
+          res.json err.statusText
+          logger.log 'error', err.statusText
+        else
+          res.status 200
+          res.json response
+          logger.log 'info', 'RESPONSE 200'
+
+#add headers
+app.use (req,res,next) ->
+  res.setHeader 'Access-Control-Allow-Origin', 'http://diuf.unifr.ch'
+  res.setHeader 'Access-Control-Allow-Methods', 'GET,POST,OPTIONS'
+  res.setHeader 'Access-Control-Allow-Headers', 'X-Requested-With,content-type'
+  res.setHeader 'Access-Control-Allow-Credentials', false
+  next()
+
 
 #setup routes
 app.use router
