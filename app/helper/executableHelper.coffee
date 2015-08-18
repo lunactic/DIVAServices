@@ -82,6 +82,7 @@ executableHelper = exports = module.exports = class ExecutableHelper
         callback err, null, statIdentifier, false
       else
         #console.log 'task finished. Result: ' + stdout
+        console.log 'result: ' + stdout
         callback null, stdout, statIdentifier, false
     )
 
