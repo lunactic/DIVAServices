@@ -36,6 +36,14 @@ process.on 'SIGTERM', () ->
   Statistics.saveStatistics () ->
     process.exit(0)
 
+#add headers
+app.use (req,res,next) ->
+  res.setHeader 'Access-Control-Allow-Origin', '*'
+  res.setHeader 'Access-Control-Allow-Methods', 'GET,POST,OPTIONS'
+  res.setHeader 'Access-Control-Allow-Headers', 'X-Requested-With,content-type'
+  res.setHeader 'Access-Control-Allow-Credentials', false
+  next()
+
 
 #setup body parser
 app.use bodyParser.json(limit: '50mb')
@@ -102,14 +110,6 @@ app.post '/segmentation/textline/gabor', (req, res) ->
         res.status 200
         res.json results
         logger.log 'info', 'RESPONSE 200'
-
-#add headers
-app.use (req,res,next) ->
-  res.setHeader 'Access-Control-Allow-Origin', 'http://diuf.unifr.ch'
-  res.setHeader 'Access-Control-Allow-Methods', 'GET,POST,OPTIONS'
-  res.setHeader 'Access-Control-Allow-Headers', 'X-Requested-With,content-type'
-  res.setHeader 'Access-Control-Allow-Credentials', false
-  next()
 
 
 #setup routes
