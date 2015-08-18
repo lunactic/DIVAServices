@@ -51,20 +51,23 @@ imageHelper = exports = module.exports = class ImageHelper
         callback null, imagePath + '/' + md5String + '/input.png'
       else
         callback err
+
   saveImageUrl: (url, callback ) ->
-   request.head url, (err, res, body) ->
-    imagePath = nconf.get('paths:imageRootPath')
-    console.log 'content-type:', res.headers['content-type']
-    console.log 'content-length:', res.headers['content-length']
-    request(url).pipe(fs.createWriteStream(imagePath + '/temp.png').on 'close', (cb) ->
-      base64 = fs.readFileSync imagePath + '/temp.png', 'base64'
-      md5String = md5(base64)
-      source = fs.createReadStream imagePath + '/temp.png'
-      dest = fs.createWriteStream imagePath + '/' + md5String + '/input.png'
-      source.pipe dest
-      source.on 'end', () ->
-        this.imgFolder = imagePath + '/' + md5String + '/'
-        callback null, imagePath + '/' + md5String + '/input.png'
-      source.on 'error' (err) ->
-        callback err
-    return
+    request.head url, (err, res, body) ->
+      imagePath = nconf.get('paths:imageRootPath')
+      request(url).pipe(fs.createWriteStream(imagePath + '/temp.png')).on 'close', (cb) ->
+        base64 = fs.readFileSync imagePath + '/temp.png', 'base64'
+        md5String = md5(base64)
+        source = fs.createReadStream imagePath + '/temp.png'
+        dest = fs.createWriteStream imagePath + '/' + md5String + '/input.png'
+        fs.mkdir imagePath + '/' + md5String, (err) ->
+          #we don't care if the folder exists
+          return
+        source.pipe dest
+        source.on 'end', () ->
+          this.imgFolder = imagePath + '/' + md5String + '/'
+          callback null, imagePath + '/' + md5String + '/input.png'
+          return
+        source.on 'error', (err) ->
+          callback err
+          return
