@@ -41,7 +41,11 @@ sendResponse = (res, err, response) ->
     logger.log 'error', err.statusText
   else
     res.status 200
-    res.json response
+    #parse an unparsed json string to get a correct response
+    try
+      res.json JSON.parse(response)
+    catch error
+      res.json response
     logger.log 'info', 'RESPONSE 200'
 
 # Expose router
