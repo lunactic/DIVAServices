@@ -59,7 +59,10 @@ postHandler = exports = module.exports = class PostHandler
             callback null
         # save image
         (callback) ->
-          imageHelper.saveImage(req.body.image, callback)
+          if(req.body.image?)
+            imageHelper.saveImage(req.body.image, callback)
+          else if (req.body.url?)
+            imageHelper.saveImageUrl(req.body.url, callback)
           return
         #perform parameter matching
         (imagePath, callback) ->

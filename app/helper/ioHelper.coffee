@@ -28,7 +28,7 @@ ioHelper = exports = module.exports = class IoHelper
     console.log 'trying to read file: ' + path+filename
     fs.stat path + filename, (err, stat) ->
       #check if file exists
-      #console.log err
+      console.log err
       if !err?
         fs.readFile path + filename, 'utf8', (err, data) ->
           if err?
