@@ -98,9 +98,11 @@ postHandler = exports = module.exports = class PostHandler
             ioHelper.saveResult(imageHelper.imgFolder, req.originalUrl, executableHelper.params, data, callback)
           return
         #finall callback, handling of the result and returning it
-        ], (err, results) ->
+        ], (err, results, statIdentifier) ->
           if(err?)
-            cb err,
+            if(statIdentifier?)
+              Statistics.endRecording(statIdentifier, req.originalUrl)
+            cb err
           else
             cb err, JSON.parse results
         return
