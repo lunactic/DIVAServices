@@ -94,7 +94,7 @@ executableHelper = exports = module.exports = class ExecutableHelper
   getExecutionType = (programType) ->
     switch programType
       when 'java'
-        return 'java -jar'
+        return 'java -Djava.awt.headless=true -jar'
       when 'coffeescript'
         return 'coffee'
       else

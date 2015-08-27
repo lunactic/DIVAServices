@@ -6,4 +6,4 @@ set -e #exit on errors
 export NODE_ENV=dev
 export PYTHONIOENCODING=UTF-8
 
-forever --minUptime 1000 --spinSleepTime 5000 --watch -c coffee server.coffee
+forever start --minUptime 1000 --spinSleepTime 5000 --watch -c coffee server.coffee
