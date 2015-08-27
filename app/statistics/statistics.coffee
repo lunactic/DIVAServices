@@ -49,6 +49,8 @@ statistics = exports = module.exports = class Statistics
       @currentStatistics[reqPath] =
         runtime: @endTime[0]
         executions: 1
+    #remove the call from current executions
+    @currentExecutions = @currentExecutions.filter (x) -> x.rand == rand
     return @endTime[0]
 
   @getMeanExecutionTime: (reqPath) ->
