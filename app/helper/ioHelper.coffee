@@ -19,7 +19,7 @@ ioHelper = exports = module.exports = class IoHelper
   #   *path* path to the image folder, where results are stored
   #   *algorithm* the executed algorithm
   #   *params* the used parameter values
-  loadResult: (path, algorithm, params, callback) ->
+  loadResult: (path, algorithm, params, post, callback) ->
     algorithm = algorithm.replace(/\//g, '_')
     #join params with _
     params = params.join('_').replace RegExp(' ', 'g'), '_'
@@ -36,10 +36,14 @@ ioHelper = exports = module.exports = class IoHelper
           else
             callback null, JSON.parse(data)
       else
-        callback err, null
+        if(post)
+          callback null, null
+        else
+          callback err,null
+
 
   # ---
-  # **saveResult**</br>
+  # **/br>
   # Saves the results of a method execution to the disk</br>
   # `params`
   #   *path*  path to the image folder, where results are stored

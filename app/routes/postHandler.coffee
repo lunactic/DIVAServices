@@ -76,7 +76,7 @@ postHandler = exports = module.exports = class PostHandler
           return
         #try to load results from disk
         (callback) ->
-          ioHelper.loadResult(imageHelper.imgFolder, req.originalUrl, @parameters.params, callback)
+          ioHelper.loadResult(imageHelper.imgFolder, req.originalUrl, @parameters.params, true, callback)
           return
         #execute method if not loaded
         (data, callback) ->
@@ -101,5 +101,5 @@ postHandler = exports = module.exports = class PostHandler
           if(err?)
             cb err,
           else
-            cb err, JSON.parse results
+            cb err, results
         return

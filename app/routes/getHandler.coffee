@@ -55,7 +55,7 @@ getHandler = exports = module.exports = class GetHandler
 
     paramMatching = parameterHelper.matchParams(queryParams, highlighter, neededParameters, queryParams.md5, req)
     imgFolder = nconf.get('paths:imageRootPath') + path.sep + paramMatching.data[0] + '/'
-    ioHelper.loadResult(imgFolder, req.path, paramMatching.params, callback)
+    ioHelper.loadResult(imgFolder, req.path, paramMatching.params,false, callback)
     #buildResultFilePath(paramMatching, req, callback)
     return
 

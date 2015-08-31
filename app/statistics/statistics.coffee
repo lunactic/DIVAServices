@@ -27,7 +27,6 @@ statistics = exports = module.exports = class Statistics
     return executionInfo.length > 0
 
   @startRecording: (reqPath) ->
-    logger.log 'info', 'reqPath: ' + reqPath
     @startTime = process.hrtime()
     rand = Math.random()
     @currentExecutions.push({
@@ -50,7 +49,7 @@ statistics = exports = module.exports = class Statistics
         runtime: @endTime[0]
         executions: 1
     #remove the call from current executions
-    @currentExecutions = @currentExecutions.filter (x) -> x.rand == rand
+    @currentExecutions = @currentExecutions.filter (x) -> x.rand != rand
     return @endTime[0]
 
   @getMeanExecutionTime: (reqPath) ->
