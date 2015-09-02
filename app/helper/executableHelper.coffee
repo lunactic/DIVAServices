@@ -17,6 +17,9 @@ executableHelper = exports = module.exports = class ExecutableHelper
   # initialize params and data arrays
   constructor: ->
 
+  executeRequest: (req, cb) ->
+    
+
   # ---
   # **buildCommand**</br>
   # Builds the command line executable command</br>
