@@ -17,26 +17,25 @@
 # Copyright &copy; Marcel Würsch, GPL v3.0 licensed.
 
 # module requirements
-fs                  = require 'fs'
-async               = require 'async'
-ImageHelper         = require '../helper/imageHelper'
-ExecutableHelper    = require '../helper/executableHelper'
-IoHelper            = require '../helper/ioHelper'
-ParameterHelper     = require '../helper/parameterHelper'
-ServicesInfoHelper  = require '../helper/servicesInfoHelper'
 Statistics          = require '../statistics/statistics'
 logger              = require '../logging/logger'
 QueueHandler        = require '../processingQueue/queueHandler'
+ExecutableHelper    = require '../helper/executableHelper'
 #Expose postHandler
 postHandler = exports = module.exports = class PostHandler
 
 
   constructor: () ->
     @queueHandler = new QueueHandler()
+    @executableHelper = new ExecutableHelper()
   # ---
   # **handleRequest**</br>
   # Handle incoming POST requests</br>
   # `params`
   #   *req* the incoming request
   handleRequest: (req, cb) ->
-    @queueHandler.addRequestToQueue(req,cb)
+    console.log 'running Executions' + Statistics.numberOfRunningExecutions
+    if(Statistics.getNumberOfCurrentExecutions() < 5)
+      @executableHelper.executeRequest(req,cb)
+    else
+      @queueHandler.addRequestToQueue(req,cb)

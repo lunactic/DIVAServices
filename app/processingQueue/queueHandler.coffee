@@ -12,8 +12,13 @@ queueHandler = exports = module.exports = class QueueHandler
   constructor: () ->
     @processingQueue = new ProcessingQueue()
     @executableHelper = new ExecutableHelper()
+
   addRequestToQueue: (req,cb) ->
     @processingQueue.addElement(req)
     @executableHelper.preprocessing(req,cb)
+
   getNextRequest: () ->
     return @processingQueue.getNext()
+
+  getQueueSize:() ->
+    return @processingQueue.getSize

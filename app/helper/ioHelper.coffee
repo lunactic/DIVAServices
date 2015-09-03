@@ -72,7 +72,6 @@ ioHelper = exports = module.exports = class IoHelper
     return
 
   writeTempFile: (path, algorithm, params, callback) ->
-
     algorithm = algorithm.replace(/\//g, '_')
     #join params with _
     params = params.join('_').replace RegExp(' ', 'g'), '_'

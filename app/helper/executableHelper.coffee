@@ -75,7 +75,7 @@ executableHelper = exports = module.exports = class ExecutableHelper
       else
         return ''
 
-  executeRequest: (req) ->
+  executeRequest: (req,cb) ->
     serviceInfo = ServicesInfoHelper.getServiceInfo(req.originalUrl)
     if typeof serviceInfo != 'undefined'
       imageHelper = new ImageHelper()
@@ -139,10 +139,10 @@ executableHelper = exports = module.exports = class ExecutableHelper
           return
         #finall callback, handling of the result and returning it
         ], (err, results) ->
-          ##if(err?)
-          ##  cb err,
-          ##else
-          ##  cb err, results
+          if(err?)
+            cb err,
+          else
+            cb err, results
   preprocessing: (req,cb) ->
     serviceInfo = ServicesInfoHelper.getServiceInfo(req.originalUrl)
     imageHelper = new ImageHelper()
