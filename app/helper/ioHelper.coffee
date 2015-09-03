@@ -27,8 +27,6 @@ ioHelper = exports = module.exports = class IoHelper
 
     console.log 'trying to read file: ' + path+filename
     fs.stat path + filename, (err, stat) ->
-      #check if file exists
-      console.log err
       if !err?
         fs.readFile path + filename, 'utf8', (err, data) ->
           if err?
@@ -70,5 +68,27 @@ ioHelper = exports = module.exports = class IoHelper
             callback error, null
           else
             callback null, result
+          return
+    return
+
+  writeTempFile: (path, algorithm, params, callback) ->
+
+    algorithm = algorithm.replace(/\//g, '_')
+    #join params with _
+    params = params.join('_').replace RegExp(' ', 'g'), '_'
+    filename = algorithm + '_' + params + '.json'
+    fs.stat path + filename, (err, stat) ->
+      #check if file exists
+      if !err?
+        callback null, result
+      else if err.code == 'ENOENT'
+        fs.writeFile path + filename, JSON.stringify({status: 'planned'}),  (err) ->
+          if err?
+            error =
+              status: 500
+              statusText: 'Could not save result file'
+            callback error, null
+          else
+            callback null, null
           return
     return

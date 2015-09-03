@@ -79,7 +79,15 @@ parameterHelper = exports = module.exports = class ParameterHelper
       data: data
     return result
 
-
+  buildGetUrl: (method, imagePath, neededParameters, parameterValues) ->
+    getUrl = nconf.get('server:rootUrl') + method + '?'
+    i = 0
+    for key, value of neededParameters
+      if(!checkReservedParameters(key))
+        getUrl += key + '=' + parameterValues[i] + '&'
+        i++
+    getUrl += 'md5=' + imagePath
+    return getUrl
   # ---
   # **getHighlighterParamValues**</br>
   # Gets Parameter values for highlighters.

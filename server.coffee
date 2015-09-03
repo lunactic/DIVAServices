@@ -23,7 +23,6 @@ logger        = require './app/logging/logger'
 router        = require './app/routes/router'
 sysPath       = require 'path'
 Statistics    = require './app/statistics/statistics'
-
 #setup express framework
 app = express()
 
@@ -46,8 +45,6 @@ app.use favicon(__dirname + '/images/favicon/favicon.ico')
 
 #setup routes
 app.use router
-
-#start server on port specified in configuration file
 server = http.createServer app
 #server.timeout = 12000
 

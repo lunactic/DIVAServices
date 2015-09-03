@@ -25,6 +25,10 @@ imageHelper = exports = module.exports = class ImageHelper
   imgFolder: ''
 
   # ---
+  # **md5**</br>
+  # The md5 hash of the current image
+  md5: ''
+  # ---
   # **saveImage**</br>
   # saves a base64 image to the disk
   # the path to the image will be: server.NODE_ENV.json["paths"]["imageRootPath"]/md5Hash/input.EXTENSION
@@ -38,6 +42,7 @@ imageHelper = exports = module.exports = class ImageHelper
     imagePath = nconf.get('paths:imageRootPath')
     base64Data = image.replace(/^data:image\/png;base64,/, "")
     md5String = md5(base64Data)
+    @md5 = md5String
     fs.mkdir imagePath + '/' + md5String, (err) ->
       #we don't care if the folder exists
       return

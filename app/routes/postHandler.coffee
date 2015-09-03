@@ -29,6 +29,8 @@ logger              = require '../logging/logger'
 QueueHandler        = require '../processingQueue/queueHandler'
 #Expose postHandler
 postHandler = exports = module.exports = class PostHandler
+
+
   constructor: () ->
     @queueHandler = new QueueHandler()
   # ---
@@ -37,73 +39,4 @@ postHandler = exports = module.exports = class PostHandler
   # `params`
   #   *req* the incoming request
   handleRequest: (req, cb) ->
-    @queueHandler.addRequestToQueue(req)
-    #serviceInfo = ServicesInfoHelper.getServiceInfo(req.originalUrl)
-    #if typeof serviceInfo != 'undefined'
-    #  imageHelper = new ImageHelper()
-    #  executableHelper = new ExecutableHelper()
-    #  ioHelper = new IoHelper()
-    #  parameterHelper = new ParameterHelper()
-    #  ###
-    #    perform all the steps using an async waterfall
-    #    Each part will be executed and the response is passed on to the next
-    #    function.
-    #  ###
-      #async.waterfall [
-      #  # check if current method is already in execution
-      #  # and can not handle multiple executions
-      #  (callback) ->
-      #    if(!serviceInfo.allowParallel and Statistics.isRunning(req.originalUrl))
-      #      # add request to a processing queue
-      #      error =
-      #        statusText: 'This method can not be run in parallel'
-      #        status: 500
-      #      callback error
-      #    else
-      #      callback null
-      #  # save image
-      #  (callback) ->
-      #    if(req.body.image?)
-      #      imageHelper.saveImage(req.body.image, callback)
-      #    else if (req.body.url?)
-      #      imageHelper.saveImageUrl(req.body.url, callback)
-      #    return
-      #  #perform parameter matching
-      #  (imagePath, callback) ->
-      #    @imagePath = imagePath
-      #    @neededParameters = serviceInfo.parameters
-      #    @inputParameters = req.body.inputs
-      #    @inputHighlighters = req.body.highlighter
-      #    @programType = serviceInfo.programType
-      #    @parameters = parameterHelper.matchParams(@inputParameters, @inputHighlighters.segments,@neededParameters,@imagePath, req)
-      #    callback null
-      #    return
-        #try to load results from disk
-      #  (callback) ->
-      #    ioHelper.loadResult(imageHelper.imgFolder, req.originalUrl, @parameters.params, true, callback)
-      #    return
-        #execute method if not loaded
-      #  (data, callback) ->
-      #    if(data?)
-      #      callback null, data, -1, true
-      #    else
-      #      statIdentifier = Statistics.startRecording(req.originalUrl)
-            #fill executable path with parameter values
-      #      command = executableHelper.buildCommand(serviceInfo.executablePath, @programType, @parameters.data, @parameters.params)
-      #      executableHelper.executeCommand(command, statIdentifier, callback)
-      #    return
-      #  (data, statIdentifier, fromDisk, callback) ->
-      #    if(fromDisk)
-      #      callback null, data
-          #save the response
-      #    else
-      #      console.log 'exeucted command in ' + Statistics.endRecording(statIdentifier, req.originalUrl) + ' seconds'
-      #      ioHelper.saveResult(imageHelper.imgFolder, req.originalUrl, @parameters.params, data, callback)
-      #    return
-      #  #finall callback, handling of the result and returning it
-      #  ], (err, results) ->
-      #    if(err?)
-      #      cb err,
-      #    else
-      #      cb err, results
-      #  return
+    @queueHandler.addRequestToQueue(req,cb)

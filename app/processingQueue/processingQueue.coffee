@@ -1,7 +1,7 @@
 processingQueue = exports = module.exports = class processingQueue
 
   @queue = []
-
+  
   constructor: () ->
     @queue = []
 
