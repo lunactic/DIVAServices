@@ -49,7 +49,8 @@ parameterHelper = exports = module.exports = class ParameterHelper
         return nconf.get('paths:ocropyLanguageModelsPath')
       when 'startUp'
         return neededParameters['startUp']
-
+      when 'resultFile'
+        return '##resultFile##'
   # ---
   # **matchParams**</br>
   # Matches the received parameter values to the needed parameters</br>
@@ -128,6 +129,13 @@ parameterHelper = exports = module.exports = class ParameterHelper
         merged = merged.concat.apply(merged, inputHighlighter)
         merged = merged.map(Math.round)
         return merged.join(' ')
+
+
+  buildFilePath: (path, algorithm, params) ->
+    algorithm = algorithm.replace(/\//g, '_')
+    #join params with _
+    params = params.join('_').replace RegExp(' ', 'g'), '_'
+    return path + '/' + algorithm + '_' + params + '.json'
 
   # ---
   # **checkReservedParameters**</br>

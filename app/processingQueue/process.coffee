@@ -8,3 +8,4 @@ process = exports = module.exports = class Process
   @results: ""
   @programType: ""
   @executablePath: ""
+  @resultHandler: null

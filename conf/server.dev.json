@@ -33,6 +33,7 @@
   },
   "reservedWords" :[
     "image",
+    "resultFile",
     "matlabPath",
     "imageRootPath",
     "matlabScriptsPath",

@@ -17,12 +17,13 @@ ServicesInfoHelper  = require '../helper/servicesInfoHelper'
 Statistics          = require '../statistics/statistics'
 logger              = require '../logging/logger'
 Process             = require '../processingQueue/process'
+ConsoleResultHandler= require '../helper/resultHandlers/consoleResultHandler'
+FileResultHandler   = require '../helper/resultHandlers/fileResultHandler'
 # Expose executableHelper
 executableHelper = exports = module.exports = class ExecutableHelper
 
   # ---
   # **constructor**</br>
-  # initialize params and data arrays
   constructor: ->
 
   # ---
@@ -45,21 +46,10 @@ executableHelper = exports = module.exports = class ExecutableHelper
   # Returns the data as received from the stdout.</br>
   # `params`
   #   *command* the command to execute
-  executeCommand = (command, statIdentifier, callback) ->
+  executeCommand: (command, resultHandler, statIdentifier, callback) ->
     exec = childProcess.exec
-    # (error, stdout, stderr) is a so called "callback" and thus "exec" is an asynchronous function
-    # in this case, you must always put the wrapping function in an asynchronous manner too! (see line
-    # 23)
-    logger.log 'info', 'executing command: ' + command
     child = exec(command, { maxBuffer: 1024 * 48828 }, (error, stdout, stderr) ->
-      if stderr.length > 0
-        err =
-          statusText: stderr
-          status: 500
-        callback err, null, statIdentifier
-      else
-        #console.log 'task finished. Result: ' + stdout
-        callback null, stdout, statIdentifier
+      resultHandler.handleResult(error, stdout, stderr, statIdentifier, callback)
     )
 
   # ---
@@ -77,26 +67,14 @@ executableHelper = exports = module.exports = class ExecutableHelper
         return ''
 
   executeRequest: (process) ->
-      console.log 'startExecution'
       ioHelper = new IoHelper()
+      self = @
       async.waterfall [
-      # check if current method is already in execution
-      # and can not handle multiple executions
-      #  (callback) ->
-      #    if(!serviceInfo.allowParallel and Statistics.isRunning(req.originalUrl))
-      #      # add request to a processing queue
-      #      error =
-      #        statusText: 'This method can not be run in parallel'
-      #        status: 500
-      #      callback error
-      #    else
-      #      callback null
-       #execute method if not loaded
         (callback) ->
           statIdentifier = Statistics.startRecording(process.req.originalUrl)
           #fill executable path with parameter values
           command = buildCommand(process.executablePath, process.programType, process.parameters.data, process.parameters.params)
-          executeCommand(command, statIdentifier, callback)
+          self.executeCommand(command, process.resultHandler, statIdentifier, callback)
           return
         (data, statIdentifier, callback) ->
           console.log 'exeucted command in ' + Statistics.endRecording(statIdentifier, process.req.originalUrl) + ' seconds'
@@ -133,6 +111,14 @@ executableHelper = exports = module.exports = class ExecutableHelper
         process.parameters = @parameters
         process.programType = serviceInfo.programType
         process.executablePath = serviceInfo.executablePath
+        resultHandler = null
+        switch serviceInfo.output
+          when 'console'
+            resultHandler = new ConsoleResultHandler();
+          when 'file'
+            @parameters.data[@parameters.data.indexOf('##resultFile##')] = @fullFileName
+            resultHandler = new FileResultHandler(@fullFileName);
+        process.resultHandler = resultHandler
         callback null
         return
       #try to load results from disk
