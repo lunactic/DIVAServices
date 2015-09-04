@@ -24,24 +24,19 @@ ioHelper = exports = module.exports = class IoHelper
     #join params with _
     params = params.join('_').replace RegExp(' ', 'g'), '_'
     filename = algorithm + '_' + params + '.json'
-
-    console.log 'trying to read file: ' + path+filename
     fs.stat path + filename, (err, stat) ->
       #check if file exists
-      console.log err
       if !err?
         fs.readFile path + filename, 'utf8', (err, data) ->
           if err?
             callback err, null
           else
-            callback null, JSON.parse(data)
+            callback null, data
       else
         if(post)
           callback null, null
         else
           callback err,null
-
-
   # ---
   # **/br>
   # Saves the results of a method execution to the disk</br>
@@ -50,13 +45,7 @@ ioHelper = exports = module.exports = class IoHelper
   #   *algorithm* the executed algorithm
   #   *params*  the used parameter values
   #   *result*  the execution result
-  saveResult: (path, algorithm, params, result, callback) ->
-    #replace / with _
-    algorithm = algorithm.replace(/\//g, '_')
-    #join params with _
-    params = params.join('_').replace RegExp(' ', 'g'), '_'
-    filename = algorithm + '_' + params + '.json'
-
+  saveResult: (path, filename, result, callback) ->
     fs.stat path + filename, (err, stat) ->
       #check if file exists
       if !err?
@@ -64,6 +53,7 @@ ioHelper = exports = module.exports = class IoHelper
       else if err.code == 'ENOENT'
         fs.writeFile path + filename, result,  (err) ->
           if err?
+            logger.log 'error', err
             error =
               status: 500
               statusText: 'Could not save result file'

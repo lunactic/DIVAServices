@@ -19,13 +19,17 @@
 # module requirements
 fs                  = require 'fs'
 async               = require 'async'
+path                = require 'path'
 ImageHelper         = require '../helper/imageHelper'
 ExecutableHelper    = require '../helper/executableHelper'
 IoHelper            = require '../helper/ioHelper'
 ParameterHelper     = require '../helper/parameterHelper'
 ServicesInfoHelper  = require '../helper/servicesInfoHelper'
 Statistics          = require '../statistics/statistics'
+FileResultHandler     = require '../helper/resultHandlers/fileResultHandler'
+ConsoleResultHandler  = require '../helper/resultHandlers/consoleResultHandler'
 logger              = require '../logging/logger'
+
 #Expose postHandler
 postHandler = exports = module.exports = class PostHandler
 
@@ -72,6 +76,8 @@ postHandler = exports = module.exports = class PostHandler
           @inputHighlighters = req.body.highlighter
           @programType = serviceInfo.programType
           @parameters = parameterHelper.matchParams(@inputParameters, @inputHighlighters.segments,@neededParameters,@imagePath, req)
+          @fullFileName = parameterHelper.buildFilePath(path.dirname(@imagePath), req.originalUrl, @parameters.params)
+
           callback null
           return
         #try to load results from disk
@@ -85,16 +91,29 @@ postHandler = exports = module.exports = class PostHandler
           else
             statIdentifier = Statistics.startRecording(req.originalUrl)
             #fill executable path with parameter values
+            resultHandler = null;
+
+            #get the correct result handler
+            switch serviceInfo.output
+              when 'console'
+                resultHandler = new ConsoleResultHandler();
+              when 'file'
+                @parameters.data[@parameters.data.indexOf('##resultFile##')] = @fullFileName
+                resultHandler = new FileResultHandler(@fullFileName);
+
             command = executableHelper.buildCommand(serviceInfo.executablePath, @programType, @parameters.data, @parameters.params)
-            executableHelper.executeCommand(command, statIdentifier, callback)
+            executableHelper.executeCommand(command,resultHandler, statIdentifier, callback)
           return
         (data, statIdentifier, fromDisk, callback) ->
           if(fromDisk)
             callback null, data
           #save the response
           else
-            console.log 'exeucted command in ' + Statistics.endRecording(statIdentifier, req.originalUrl) + ' seconds'
-            ioHelper.saveResult(imageHelper.imgFolder, req.originalUrl, @parameters.params, data, callback)
+            #console.log 'exeucted command in ' + Statistics.endRecording(statIdentifier, req.originalUrl) + ' seconds'
+            if(serviceInfo.output != 'file')
+              ioHelper.saveResult(imageHelper.imgFolder, path.basename(@imagePath), data, callback)
+            else
+              callback null, data
           return
         #finall callback, handling of the result and returning it
         ], (err, results) ->

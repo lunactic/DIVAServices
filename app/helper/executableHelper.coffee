@@ -6,15 +6,15 @@
 # Copyright &copy; Marcel Würsch, GPL v3.0 licensed.
 
 # Module dependencies
-childProcess      = require 'child_process'
-nconf             = require 'nconf'
-logger            = require '../logging/logger'
+childProcess          = require 'child_process'
+nconf                 = require 'nconf'
+logger                = require '../logging/logger'
+
 # Expose executableHelper
 executableHelper = exports = module.exports = class ExecutableHelper
 
   # ---
   # **constructor**</br>
-  # initialize params and data arrays
   constructor: ->
 
   # ---
@@ -37,21 +37,14 @@ executableHelper = exports = module.exports = class ExecutableHelper
   # Returns the data as received from the stdout.</br>
   # `params`
   #   *command* the command to execute
-  executeCommand: (command, statIdentifier, callback) ->
+  executeCommand: (command, resultHandler, statIdentifier, callback) ->
     exec = childProcess.exec
     # (error, stdout, stderr) is a so called "callback" and thus "exec" is an asynchronous function
     # in this case, you must always put the wrapping function in an asynchronous manner too! (see line
     # 23)
     logger.log 'info', 'executing command: ' + command
     child = exec(command, { maxBuffer: 1024 * 48828 }, (error, stdout, stderr) ->
-      if stderr.length > 0
-        err =
-          statusText: stderr
-          status: 500
-        callback err, null, statIdentifier, false
-      else
-        #console.log 'task finished. Result: ' + stdout
-        callback null, stdout, statIdentifier, false
+      resultHandler.handleResult(error, stdout, stderr, statIdentifier, callback)
     )
 
   # ---
