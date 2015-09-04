@@ -16,6 +16,7 @@ ParameterHelper     = require '../helper/parameterHelper'
 ServicesInfoHelper  = require '../helper/servicesInfoHelper'
 Statistics          = require '../statistics/statistics'
 logger              = require '../logging/logger'
+Process             = require '../processingQueue/process'
 # Expose executableHelper
 executableHelper = exports = module.exports = class ExecutableHelper
 
@@ -55,10 +56,10 @@ executableHelper = exports = module.exports = class ExecutableHelper
         err =
           statusText: stderr
           status: 500
-        callback err, null, statIdentifier, false
+        callback err, null, statIdentifier
       else
         #console.log 'task finished. Result: ' + stdout
-        callback null, stdout, statIdentifier, false
+        callback null, stdout, statIdentifier
     )
 
   # ---
@@ -75,79 +76,43 @@ executableHelper = exports = module.exports = class ExecutableHelper
       else
         return ''
 
-  executeRequest: (req,cb) ->
-    serviceInfo = ServicesInfoHelper.getServiceInfo(req.originalUrl)
-    if typeof serviceInfo != 'undefined'
-      imageHelper = new ImageHelper()
+  executeRequest: (process) ->
+      console.log 'startExecution'
       ioHelper = new IoHelper()
-      parameterHelper = new ParameterHelper()
-      ###
-        perform all the steps using an async waterfall
-        Each part will be executed and the response is passed on to the next
-        function.
-      ###
       async.waterfall [
       # check if current method is already in execution
       # and can not handle multiple executions
-        (callback) ->
-          if(!serviceInfo.allowParallel and Statistics.isRunning(req.originalUrl))
-            # add request to a processing queue
-            error =
-              statusText: 'This method can not be run in parallel'
-              status: 500
-            callback error
-          else
-            callback null
-        # save image
-        (callback) ->
-          if(req.body.image?)
-            imageHelper.saveImage(req.body.image, callback)
-          else if (req.body.url?)
-            imageHelper.saveImageUrl(req.body.url, callback)
-          return
-        #perform parameter matching
-        (imagePath, callback) ->
-          @imagePath = imagePath
-          @neededParameters = serviceInfo.parameters
-          @inputParameters = req.body.inputs
-          @inputHighlighters = req.body.highlighter
-          @programType = serviceInfo.programType
-          @parameters = parameterHelper.matchParams(@inputParameters, @inputHighlighters.segments,@neededParameters,@imagePath, req)
-          callback null
-          return
-        #try to load results from disk
-        (callback) ->
-          ioHelper.loadResult(imageHelper.imgFolder, req.originalUrl, @parameters.params, true, callback)
-          return
+      #  (callback) ->
+      #    if(!serviceInfo.allowParallel and Statistics.isRunning(req.originalUrl))
+      #      # add request to a processing queue
+      #      error =
+      #        statusText: 'This method can not be run in parallel'
+      #        status: 500
+      #      callback error
+      #    else
+      #      callback null
        #execute method if not loaded
-        (data, callback) ->
-          if(data?)
-            callback null, data, -1, true
-          else
-            statIdentifier = Statistics.startRecording(req.originalUrl)
-            #fill executable path with parameter values
-            command = buildCommand(serviceInfo.executablePath, @programType, @parameters.data, @parameters.params)
-            executeCommand(command, statIdentifier, callback)
+        (callback) ->
+          statIdentifier = Statistics.startRecording(process.req.originalUrl)
+          #fill executable path with parameter values
+          command = buildCommand(process.executablePath, process.programType, process.parameters.data, process.parameters.params)
+          executeCommand(command, statIdentifier, callback)
           return
-        (data, statIdentifier, fromDisk, callback) ->
-          if(fromDisk)
-            callback null, data
-          #save the response
-          else
-            console.log 'exeucted command in ' + Statistics.endRecording(statIdentifier, req.originalUrl) + ' seconds'
-            ioHelper.saveResult(imageHelper.imgFolder, req.originalUrl, @parameters.params, data, callback)
+        (data, statIdentifier, callback) ->
+          console.log 'exeucted command in ' + Statistics.endRecording(statIdentifier, process.req.originalUrl) + ' seconds'
+          ioHelper.saveResult(process.imageHelper.imgFolder, process.req.originalUrl, process.parameters.params, data, callback)
           return
         #finall callback, handling of the result and returning it
         ], (err, results) ->
-          if(err?)
-            cb err,
-          else
-            cb err, results
-  preprocessing: (req,cb) ->
+          #start next execution
+
+  preprocessing: (req,processingQueue,requestCallback, queueCallback) ->
     serviceInfo = ServicesInfoHelper.getServiceInfo(req.originalUrl)
     imageHelper = new ImageHelper()
     ioHelper = new IoHelper()
     parameterHelper = new ParameterHelper()
+    process = new Process()
+    process.req = req
     async.waterfall [
       (callback) ->
         if(req.body.image?)
@@ -155,6 +120,7 @@ executableHelper = exports = module.exports = class ExecutableHelper
           imageHelper.saveImage(req.body.image, callback)
         else if (req.body.url?)
           imageHelper.saveImageUrl(req.body.url, callback)
+        process.imageHelper = imageHelper
         return
       #perform parameter matching
       (imagePath, callback) ->
@@ -164,6 +130,9 @@ executableHelper = exports = module.exports = class ExecutableHelper
         @inputHighlighters = req.body.highlighter
         @programType = serviceInfo.programType
         @parameters = parameterHelper.matchParams(@inputParameters, @inputHighlighters.segments,@neededParameters,@imagePath, req)
+        process.parameters = @parameters
+        process.programType = serviceInfo.programType
+        process.executablePath = serviceInfo.executablePath
         callback null
         return
       #try to load results from disk
@@ -178,6 +147,12 @@ executableHelper = exports = module.exports = class ExecutableHelper
           ioHelper.writeTempFile(imageHelper.imgFolder, req.originalUrl, @parameters.params, callback)
       ],(err, results) ->
         if(err?)
-          cb err, null
+          requestCallback err, null
         else
-          cb err, {'status':'planned', 'url':@getUrl}
+          if(results?)
+            requestCallback err,results
+          else
+            console.log 'preprocessing done'
+            processingQueue.addElement(process)
+            requestCallback err, {'status':'planned', 'url':@getUrl}
+            queueCallback()

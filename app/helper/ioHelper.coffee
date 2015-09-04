@@ -57,18 +57,17 @@ ioHelper = exports = module.exports = class IoHelper
 
     fs.stat path + filename, (err, stat) ->
       #check if file exists
-      if !err?
-        callback null, result
-      else if err.code == 'ENOENT'
-        fs.writeFile path + filename, result,  (err) ->
-          if err?
-            error =
-              status: 500
-              statusText: 'Could not save result file'
-            callback error, null
-          else
-            callback null, result
-          return
+      console.log 'saving file to: ' + path + filename
+      fs.writeFile path + filename, result,  (err) ->
+        if err?
+          error =
+            status: 500
+            statusText: 'Could not save result file'
+          callback error, null
+        else
+          console.log 'file saved'
+          callback null, result
+        return
     return
 
   writeTempFile: (path, algorithm, params, callback) ->

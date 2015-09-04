@@ -17,25 +17,20 @@
 # Copyright &copy; Marcel Würsch, GPL v3.0 licensed.
 
 # module requirements
-Statistics          = require '../statistics/statistics'
 logger              = require '../logging/logger'
 QueueHandler        = require '../processingQueue/queueHandler'
 ExecutableHelper    = require '../helper/executableHelper'
 #Expose postHandler
 postHandler = exports = module.exports = class PostHandler
 
-
   constructor: () ->
     @queueHandler = new QueueHandler()
     @executableHelper = new ExecutableHelper()
+
   # ---
   # **handleRequest**</br>
   # Handle incoming POST requests</br>
   # `params`
   #   *req* the incoming request
   handleRequest: (req, cb) ->
-    console.log 'running Executions' + Statistics.numberOfRunningExecutions
-    if(Statistics.getNumberOfCurrentExecutions() < 5)
-      @executableHelper.executeRequest(req,cb)
-    else
       @queueHandler.addRequestToQueue(req,cb)
