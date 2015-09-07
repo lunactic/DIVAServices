@@ -130,13 +130,6 @@ parameterHelper = exports = module.exports = class ParameterHelper
         merged = merged.map(Math.round)
         return merged.join(' ')
 
-
-  buildFilePath: (path, algorithm, params) ->
-    algorithm = algorithm.replace(/\//g, '_')
-    #join params with _
-    params = params.join('_').replace RegExp(' ', 'g'), '_'
-    return path + '/' + algorithm + '_' + params + '.json'
-
   # ---
   # **checkReservedParameters**</br>
   # Checks if a parameter is in the list of reserverd words as defined in server.NODE_ENV.json</br>

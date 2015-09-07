@@ -12,6 +12,13 @@ logger  = require '../logging/logger'
 # expose IoHelper
 ioHelper = exports = module.exports = class IoHelper
 
+  buildFilePath: (path,algorithm,params) ->
+
+    algorithm = algorithm.replace(/\//g, '_')
+    #join params with _
+    params = params.join('_').replace RegExp(' ', 'g'), '_'
+    filename = algorithm + '_' + params + '.json'
+    return path + filename
   # ---
   # **loadResult**</br>
   # Loads existing results from the disk</br>
@@ -20,14 +27,11 @@ ioHelper = exports = module.exports = class IoHelper
   #   *algorithm* the executed algorithm
   #   *params* the used parameter values
   loadResult: (path, algorithm, params, post, callback) ->
-    algorithm = algorithm.replace(/\//g, '_')
-    #join params with _
-    params = params.join('_').replace RegExp(' ', 'g'), '_'
-    filename = algorithm + '_' + params + '.json'
-    fs.stat path + filename, (err, stat) ->
+    filePath = @buildFilePath(path,algorithm,params)
+    fs.stat filePath, (err, stat) ->
       #check if file exists
       if !err?
-        fs.readFile path + filename, 'utf8', (err, data) ->
+        fs.readFile filePath, 'utf8', (err, data) ->
           if err?
             callback err, null
           else
@@ -46,16 +50,11 @@ ioHelper = exports = module.exports = class IoHelper
   #   *params*  the used parameter values
   #   *result*  the execution result
   saveResult: (path, algorithm, params, result, callback) ->
-    #replace / with _
-    algorithm = algorithm.replace(/\//g, '_')
-    #join params with _
-    params = params.join('_').replace RegExp(' ', 'g'), '_'
-    filename = algorithm + '_' + params + '.json'
-
-    fs.stat path + filename, (err, stat) ->
+    filePath = @buildFilePath(path,algorithm,params)
+    fs.stat filePath, (err, stat) ->
       #check if file exists
-      console.log 'saving file to: ' + path + filename
-      fs.writeFile path + filename, result,  (err) ->
+      console.log 'saving file to: ' + filePath
+      fs.writeFile filePath, result,  (err) ->
         if err?
           error =
             status: 500
@@ -69,16 +68,13 @@ ioHelper = exports = module.exports = class IoHelper
 
 
   writeTempFile: (path, algorithm, params, callback) ->
-    algorithm = algorithm.replace(/\//g, '_')
-    #join params with _
-    params = params.join('_').replace RegExp(' ', 'g'), '_'
-    filename = algorithm + '_' + params + '.json'
-    fs.stat path + filename, (err, stat) ->
+    filePath = @buildFilePath(path,algorithm,params)
+    fs.stat filePath, (err, stat) ->
       #check if file exists
       if !err?
         callback null, result
       else if err.code == 'ENOENT'
-        fs.writeFile path + filename, JSON.stringify({status: 'planned'}),  (err) ->
+        fs.writeFile filePath, JSON.stringify({status: 'planned'}),  (err) ->
           if err?
             logger.log 'error', err
             error =

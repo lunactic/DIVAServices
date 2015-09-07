@@ -74,6 +74,9 @@ executableHelper = exports = module.exports = class ExecutableHelper
           statIdentifier = Statistics.startRecording(process.req.originalUrl)
           #fill executable path with parameter values
           command = buildCommand(process.executablePath, process.programType, process.parameters.data, process.parameters.params)
+          #if we have a console output, pipe the stdout to a file but keep stderr for error handling
+          if(process.resultType == 'console')
+            command += ' 1>' + process.filePath
           self.executeCommand(command, process.resultHandler, statIdentifier, callback)
           return
         (data, statIdentifier, callback) ->
@@ -111,13 +114,15 @@ executableHelper = exports = module.exports = class ExecutableHelper
         process.parameters = @parameters
         process.programType = serviceInfo.programType
         process.executablePath = serviceInfo.executablePath
+        process.resultType =  serviceInfo.output
+        process.filePath = ioHelper.buildFilePath(imageHelper.imgFolder, req.originalUrl, @parameters.params)
         resultHandler = null
         switch serviceInfo.output
           when 'console'
-            resultHandler = new ConsoleResultHandler();
+            resultHandler = new ConsoleResultHandler(process.filePath);
           when 'file'
-            @parameters.data[@parameters.data.indexOf('##resultFile##')] = @fullFileName
-            resultHandler = new FileResultHandler(@fullFileName);
+            @parameters.data[@parameters.data.indexOf('##resultFile##')] = process.filePath
+            resultHandler = new FileResultHandler(process.filePath);
         process.resultHandler = resultHandler
         callback null
         return
