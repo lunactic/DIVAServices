@@ -1,11 +1,8 @@
-events          = require 'events'
-util            = require 'util'
 Statistics          = require '../statistics/statistics'
-ProcessingQueue = require './processingQueue'
-ExecutableHelper  = require '../helper/executableHelper'
+ProcessingQueue     = require './processingQueue'
+ExecutableHelper    = require '../helper/executableHelper'
 
 queueHandler = exports = module.exports = class QueueHandler
-  util.inherits QueueHandler, events.EventEmitter
 
   instance = null
   @processingQueue = null
@@ -13,12 +10,17 @@ queueHandler = exports = module.exports = class QueueHandler
   constructor: () ->
     @processingQueue = new ProcessingQueue()
     @executableHelper = new ExecutableHelper()
+    self = @
+    @executableHelper.on 'processingFinished', () ->
+      self.executeRequest()
 
   addRequestToQueue: (req,requestCallback) ->
     self = @
     @executableHelper.preprocessing req,@processingQueue,requestCallback, () ->
       self.executeRequest()
 
+  requestAvailable: () ->
+    return @processingQueue.getSize() > 0
 
   getNextRequest: () ->
     return @processingQueue.getNext()
@@ -26,7 +28,7 @@ queueHandler = exports = module.exports = class QueueHandler
   getQueueSize:() ->
     return @processingQueue.getSize
 
-  executeRequest: (req, cb) ->
-    console.log 'EXECUTE REQUEST'
-    if(Statistics.getNumberOfCurrentExecutions() < 5)
+  executeRequest: () ->
+    if(Statistics.getNumberOfCurrentExecutions() < 5 && @requestAvailable())
       @executableHelper.executeRequest(@getNextRequest())
+    

@@ -10,6 +10,8 @@ childProcess        = require 'child_process'
 nconf               = require 'nconf'
 fs                  = require 'fs'
 async               = require 'async'
+{EventEmitter}      = require 'events'
+util                = require 'util'
 ImageHelper         = require '../helper/imageHelper'
 IoHelper            = require '../helper/ioHelper'
 ParameterHelper     = require '../helper/parameterHelper'
@@ -19,13 +21,13 @@ logger              = require '../logging/logger'
 Process             = require '../processingQueue/process'
 ConsoleResultHandler= require '../helper/resultHandlers/consoleResultHandler'
 FileResultHandler   = require '../helper/resultHandlers/fileResultHandler'
+
 # Expose executableHelper
-executableHelper = exports = module.exports = class ExecutableHelper
+executableHelper = exports = module.exports = class ExecutableHelper extends EventEmitter
 
   # ---
   # **constructor**</br>
   constructor: ->
-
   # ---
   # **buildCommand**</br>
   # Builds the command line executable command</br>
@@ -86,6 +88,7 @@ executableHelper = exports = module.exports = class ExecutableHelper
         #finall callback, handling of the result and returning it
         ], (err, results) ->
           #start next execution
+          self.emit('processingFinished')
 
   preprocessing: (req,processingQueue,requestCallback, queueCallback) ->
     serviceInfo = ServicesInfoHelper.getServiceInfo(req.originalUrl)
@@ -143,7 +146,6 @@ executableHelper = exports = module.exports = class ExecutableHelper
           if(results?)
             requestCallback err,results
           else
-            console.log 'preprocessing done'
             processingQueue.addElement(process)
             requestCallback err, {'status':'planned', 'url':@getUrl}
             queueCallback()

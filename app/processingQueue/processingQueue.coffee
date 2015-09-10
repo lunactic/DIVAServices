@@ -7,7 +7,6 @@ processingQueue = exports = module.exports = class processingQueue
 
   addElement: (element) ->
      @queue.push(element)
-     console.log "queue: " + @queue.length
   getNext: ->
      return @queue.shift()
   getSize: ->
