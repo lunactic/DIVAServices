@@ -71,6 +71,7 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
   executeRequest: (process) ->
       ioHelper = new IoHelper()
       self = @
+      console.log 'executing command'
       async.waterfall [
         (callback) ->
           statIdentifier = Statistics.startRecording(process.req.originalUrl)
@@ -78,12 +79,12 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
           command = buildCommand(process.executablePath, process.programType, process.parameters.data, process.parameters.params)
           #if we have a console output, pipe the stdout to a file but keep stderr for error handling
           if(process.resultType == 'console')
-            command += ' 1>' + process.filePath
+            command += ' 1>' + process.tmpFilePath + ';mv ' + process.tmpFilePath + ' ' + process.filePath
           self.executeCommand(command, process.resultHandler, statIdentifier, callback)
           return
         (data, statIdentifier, callback) ->
           console.log 'exeucted command in ' + Statistics.endRecording(statIdentifier, process.req.originalUrl) + ' seconds'
-          ioHelper.saveResult(process.imageHelper.imgFolder, process.req.originalUrl, process.parameters.params, data, callback)
+          #ioHelper.saveResult(process.filePath, data, callback)
           return
         #finall callback, handling of the result and returning it
         ], (err, results) ->
@@ -119,6 +120,7 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
         process.executablePath = serviceInfo.executablePath
         process.resultType =  serviceInfo.output
         process.filePath = ioHelper.buildFilePath(imageHelper.imgFolder, req.originalUrl, @parameters.params)
+        process.tmpFilePath = ioHelper.buildTempFilePath(imageHelper.imgFolder, req.originalUrl, @parameters.params)
         resultHandler = null
         switch serviceInfo.output
           when 'console'
@@ -138,7 +140,7 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
           callback null, data
         else
           @getUrl = parameterHelper.buildGetUrl(req.originalUrl,imageHelper.md5, @neededParameters, @parameters.params)
-          ioHelper.writeTempFile(imageHelper.imgFolder, req.originalUrl, @parameters.params, callback)
+          ioHelper.writeTempFile(process.filePath, callback)
       ],(err, results) ->
         if(err?)
           requestCallback err, null

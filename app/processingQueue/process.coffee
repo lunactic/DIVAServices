@@ -11,3 +11,4 @@ process = exports = module.exports = class Process
   @resultHandler: null
   @resultType: ""
   @filePath: ""
+  @tmpFilePath: ""

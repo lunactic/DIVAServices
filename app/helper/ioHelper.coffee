@@ -13,12 +13,19 @@ logger  = require '../logging/logger'
 ioHelper = exports = module.exports = class IoHelper
 
   buildFilePath: (path,algorithm,params) ->
-
     algorithm = algorithm.replace(/\//g, '_')
     #join params with _
     params = params.join('_').replace RegExp(' ', 'g'), '_'
     filename = algorithm + '_' + params + '.json'
     return path + filename
+
+  buildTempFilePath: (path,algorithm,params) ->
+    algorithm = algorithm.replace(/\//g, '_')
+    #join params with _
+    params = params.join('_').replace RegExp(' ', 'g'), '_'
+    filename = algorithm + '_' + params + '_temp.json'
+    return path + filename
+
   # ---
   # **loadResult**</br>
   # Loads existing results from the disk</br>
@@ -27,6 +34,7 @@ ioHelper = exports = module.exports = class IoHelper
   #   *algorithm* the executed algorithm
   #   *params* the used parameter values
   loadResult: (path, algorithm, params, post, callback) ->
+    console.log 'load'
     filePath = @buildFilePath(path,algorithm,params)
     fs.stat filePath, (err, stat) ->
       #check if file exists
@@ -49,11 +57,11 @@ ioHelper = exports = module.exports = class IoHelper
   #   *algorithm* the executed algorithm
   #   *params*  the used parameter values
   #   *result*  the execution result
-  saveResult: (path, algorithm, params, result, callback) ->
-    filePath = @buildFilePath(path,algorithm,params)
+  saveResult: (filePath, result, callback) ->
+    console.log 'save'
     fs.stat filePath, (err, stat) ->
       #check if file exists
-      console.log 'saving file to: ' + filePath
+      #console.log 'saving file to: ' + filePath
       fs.writeFile filePath, result,  (err) ->
         if err?
           error =
@@ -67,21 +75,19 @@ ioHelper = exports = module.exports = class IoHelper
     return
 
 
-  writeTempFile: (path, algorithm, params, callback) ->
-    filePath = @buildFilePath(path,algorithm,params)
+  writeTempFile: (filePath, callback) ->
+    console.log 'saveTemp'
     fs.stat filePath, (err, stat) ->
       #check if file exists
-      if !err?
-        callback null, result
-      else if err.code == 'ENOENT'
-        fs.writeFile filePath, JSON.stringify({status: 'planned'}),  (err) ->
-          if err?
-            logger.log 'error', err
-            error =
-              status: 500
-              statusText: 'Could not save result file'
-            callback error, null
-          else
-            callback null, null
-          return
+      #console.log 'saving file to: ' + filePath
+      fs.writeFile filePath, JSON.stringify({status :'planned'}),  (err) ->
+        if err?
+          error =
+            status: 500
+            statusText: 'Could not save result file'
+          callback error, null
+        else
+          console.log 'file saved'
+          callback null, null
+        return
     return
