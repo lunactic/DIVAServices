@@ -9,7 +9,7 @@
 nconf = require 'nconf'
 md5   = require 'md5'
 fs    = require 'fs'
-
+request = require 'request'
 # expose imageHelper
 imageHelper = exports = module.exports = class ImageHelper
 
@@ -42,8 +42,9 @@ imageHelper = exports = module.exports = class ImageHelper
       #we don't care if the folder exists
       return
     this.imgFolder = imagePath + '/' + md5String + '/'
-    return fs.stat imagePath + '/' + md5String + '/input.png', (err, stat) ->
+    fs.stat imagePath + '/' + md5String + '/input.png', (err, stat) ->
       if !err?
+        console.log 'file exists already'
         callback null, imagePath + '/' + md5String + '/input.png'
       else if err.code == 'ENOENT'
         fs.writeFile imagePath + '/' + md5String + '/input.png', base64Data, 'base64', (err) ->
@@ -70,12 +71,17 @@ imageHelper = exports = module.exports = class ImageHelper
       fs.mkdir imagePath + '/' + md5String, (err) ->
         #we don't care if the folder exists
         return
-      source = fs.createReadStream imagePath + '/temp.png'
-      dest = fs.createWriteStream imagePath + '/' + md5String + '/input.png'
-      source.pipe(dest)
-      source.on 'end', () ->
-        callback null, imagePath + '/' + md5String + '/input.png'
-        return
-      source.on 'error', (err) ->
-        callback err
-        return
+      fs.stat imagePath + '/' + md5String + '/input.png', (err, stat) ->
+        if !err?
+          console.log 'file exists already'
+          callback null, imagePath + '/' + md5String + '/input.png'
+        else if err.code == 'ENOENT'
+          source = fs.createReadStream imagePath + '/temp.png'
+          dest = fs.createWriteStream imagePath + '/' + md5String + '/input.png'
+          source.pipe(dest)
+          source.on 'end', () ->
+            callback null, imagePath + '/' + md5String + '/input.png'
+            return
+          source.on 'error', (err) ->
+            callback err
+            return
