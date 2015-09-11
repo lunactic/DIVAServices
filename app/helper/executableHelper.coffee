@@ -82,10 +82,6 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
             command += ' 1>' + process.tmpFilePath + ';mv ' + process.tmpFilePath + ' ' + process.filePath
           self.executeCommand(command, process.resultHandler, statIdentifier, callback)
           return
-        (data, statIdentifier, callback) ->
-          console.log 'exeucted command in ' + Statistics.endRecording(statIdentifier, process.req.originalUrl) + ' seconds'
-          #ioHelper.saveResult(process.filePath, data, callback)
-          return
         #finall callback, handling of the result and returning it
         ], (err, results) ->
           #start next execution

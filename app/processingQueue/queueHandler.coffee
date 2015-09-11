@@ -4,7 +4,6 @@ ExecutableHelper    = require '../helper/executableHelper'
 
 queueHandler = exports = module.exports = class QueueHandler
 
-  instance = null
   @processingQueue = null
 
   constructor: () ->
@@ -29,6 +28,6 @@ queueHandler = exports = module.exports = class QueueHandler
     return @processingQueue.getSize
 
   executeRequest: () ->
+    #TODO: Replace getNumberOfCurrentExecutions() with some form of available computing time
     if(Statistics.getNumberOfCurrentExecutions() < 5 && @requestAvailable())
       @executableHelper.executeRequest(@getNextRequest())
-    
