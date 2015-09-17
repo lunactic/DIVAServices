@@ -7,11 +7,8 @@
 
 # Module dependencies
 childProcess        = require 'child_process'
-nconf               = require 'nconf'
-fs                  = require 'fs'
 async               = require 'async'
 {EventEmitter}      = require 'events'
-util                = require 'util'
 ImageHelper         = require '../helper/imageHelper'
 IoHelper            = require '../helper/ioHelper'
 ParameterHelper     = require '../helper/parameterHelper'
@@ -50,6 +47,7 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
   #   *command* the command to execute
   executeCommand: (command, resultHandler, statIdentifier, callback) ->
     exec = childProcess.exec
+    console.log 'executing command: ' + command
     child = exec(command, { maxBuffer: 1024 * 48828 }, (error, stdout, stderr) ->
       resultHandler.handleResult(error, stdout, stderr, statIdentifier, callback)
     )
@@ -68,7 +66,7 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
       else
         return ''
 
-  executeRequest: (process) ->
+  executeRequest: (process, requestCallback) ->
       ioHelper = new IoHelper()
       self = @
       console.log 'executing command'
@@ -85,9 +83,12 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
         #finall callback, handling of the result and returning it
         ], (err, results) ->
           #start next execution
-          self.emit('processingFinished')
+          if(requestCallback?)
+            requestCallback null, results
+          else
+            self.emit('processingFinished')
 
-  preprocessing: (req,processingQueue,requestCallback, queueCallback) ->
+  preprocessing: (req,processingQueue,immediateExecution, requestCallback, queueCallback) ->
     serviceInfo = ServicesInfoHelper.getServiceInfo(req.originalUrl)
     imageHelper = new ImageHelper()
     ioHelper = new IoHelper()
@@ -143,7 +144,11 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
         else
           if(results?)
             requestCallback err,results
-          else
+          else if !immediateExecution
             processingQueue.addElement(process)
             requestCallback err, {'status':'planned', 'url':@getUrl}
+            queueCallback()
+          else
+            console.log 'calling queueCallback'
+            processingQueue.addElement(process)
             queueCallback()

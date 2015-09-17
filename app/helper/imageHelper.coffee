@@ -6,9 +6,9 @@
 # Copyright &copy; Marcel Würsch, GPL v3.0 licensed.
 
 # Module dependencies
-nconf = require 'nconf'
-md5   = require 'md5'
-fs    = require 'fs'
+nconf   = require 'nconf'
+md5     = require 'md5'
+fs      = require 'fs'
 request = require 'request'
 # expose imageHelper
 imageHelper = exports = module.exports = class ImageHelper
@@ -49,7 +49,6 @@ imageHelper = exports = module.exports = class ImageHelper
     this.imgFolder = imagePath + '/' + md5String + '/'
     fs.stat imagePath + '/' + md5String + '/input.png', (err, stat) ->
       if !err?
-        console.log 'file exists already'
         callback null, imagePath + '/' + md5String + '/input.png'
       else if err.code == 'ENOENT'
         fs.writeFile imagePath + '/' + md5String + '/input.png', base64Data, 'base64', (err) ->
@@ -70,7 +69,6 @@ imageHelper = exports = module.exports = class ImageHelper
     imagePath = nconf.get('paths:imageRootPath')
     self = @
     request(url).pipe(fs.createWriteStream(imagePath + '/temp.png')).on 'close', (cb) ->
-      #TODO: delete tmp image after
       base64 = fs.readFileSync imagePath + '/temp.png', 'base64'
       md5String = md5(base64)
       self.md5 = md5String

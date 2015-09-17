@@ -13,9 +13,15 @@ queueHandler = exports = module.exports = class QueueHandler
     @executableHelper.on 'processingFinished', () ->
       self.executeRequest()
 
+  exeucteRequestImmediately: (req, requestCallback) ->
+    self = @
+    tempProcessingQueue = new ProcessingQueue()
+    @executableHelper.preprocessing req, tempProcessingQueue, true, requestCallback, () ->
+      self.executableHelper.executeRequest(tempProcessingQueue.getNext(), requestCallback)
+
   addRequestToQueue: (req,requestCallback) ->
     self = @
-    @executableHelper.preprocessing req,@processingQueue,requestCallback, () ->
+    @executableHelper.preprocessing req,@processingQueue,false, requestCallback, () ->
       self.executeRequest()
 
   requestAvailable: () ->

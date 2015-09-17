@@ -24,6 +24,12 @@ consoleResultHandler = exports = module.exports = class consoleResultHandler
             if err?
               callback err, null, null
             else
+              try
+                data = JSON.parse(data)
+                if(!data.status)
+                  data['status'] ='done' 
+              catch error
+                console.log error
               callback null, data, statIdentifier
         else
           callback err, null, null

@@ -59,7 +59,7 @@ statistics = exports = module.exports = class Statistics
     if(@currentStatistics[reqPath]?)
       return @currentStatistics[reqPath].runtime
     else
-      return 'No runtime information available'
+      return -1
 
   @loadStatistics: () ->
     if(Object.keys(@currentStatistics).length is 0)
