@@ -14,6 +14,7 @@ if not process.env.NODE_ENV? or process.env.NODE_ENV not in ['dev', 'test', 'pro
 nconf = require 'nconf'
 nconf.add 'server', type: 'file', file: './conf/server.' + process.env.NODE_ENV + '.json'
 
+async		  = require 'async'
 bodyParser    = require 'body-parser'
 cookieParser  = require 'cookie-parser'
 express       = require 'express'
@@ -23,6 +24,9 @@ logger        = require './app/logging/logger'
 router        = require './app/routes/router'
 sysPath       = require 'path'
 Statistics    = require './app/statistics/statistics'
+ImageHelper   = require './app/helper/imageHelper'
+ExecutableHelper = require './app/helper/executableHelper'
+IoHelper      = require './app/helper/ioHelper'
 #setup express framework
 app = express()
 
