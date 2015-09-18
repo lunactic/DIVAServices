@@ -59,21 +59,23 @@ app.post '/segmentation/textline/gabor*', (req, res) ->
   imageHelper = new ImageHelper()
   executableHelper = new ExecutableHelper()
   ioHelper = new IoHelper()
+  resultHelper = new ConsoleResultHandler(null)
   if(req.originalUrl.indexOf('merge') > -1)
     command = 'java -Djava.awt.headless=true -jar /data/executables/gabortextlinesegmentation/gabortextlinesegmentation.jar merge ' + req.body.mergePolygon1 + ' ' + req.body.mergePolygon2
-    executableHelper.executeCommand command, null, (err, data, statIdentifier, fromDisk, callback) ->
+    console.log 'result Helper: ' + resultHelper
+    executableHelper.executeCommand command, resultHelper,null, (err, data, statIdentifier, fromDisk, callback) ->
       res.status 200
       res.json JSON.parse data
       logger.log 'info', 'RESPONSE 200'
   else if (req.originalUrl.indexOf('split') > -1)
     command = 'java -Djava.awt.headless=true -jar /data/executables/gabortextlinesegmentation/gabortextlinesegmentation.jar split ' + req.body.splitPolygon + ' ' + req.body.xSplit + ' ' + req.body.ySplit
-    executableHelper.executeCommand command, null, (err, data, statIdentifier, fromDisk, callback) ->
+    executableHelper.executeCommand command, resultHelper,null, (err, data, statIdentifier, fromDisk, callback) ->
       res.status 200
       res.json JSON.parse data
       logger.log 'info', 'RESPONSE 200'
   else if (req.originalUrl.indexOf('erase') > -1)
     command = 'java -Djava.awt.headless=true -jar /data/executables/gabortextlinesegmentation/gabortextlinesegmentation.jar delete ' + req.body.erasePolygon + ' ' + req.body.xErase + ' ' + req.body.yErase
-    executableHelper.executeCommand command, null, (err, data, statIdentifier, fromDisk, callback) ->
+    executableHelper.executeCommand command, resultHelper,null, (err, data, statIdentifier, fromDisk, callback) ->
       res.status 200
       res.json JSON.parse data
       logger.log 'info', 'RESPONSE 200'
@@ -84,7 +86,6 @@ app.post '/segmentation/textline/gabor*', (req, res) ->
         return
       #perform parameter matching
       (imagePath, callback) ->
-        console.log 'imgHelper.imgFolder: ' + imageHelper.imgFolder
         @params = []
         @imagePath = imagePath
         @top = req.body.top
@@ -102,7 +103,7 @@ app.post '/segmentation/textline/gabor*', (req, res) ->
         callback null
         return
       (callback) ->
-        ioHelper.loadResult(imageHelper.imgFolder, req.originalUrl, @params, callback)
+        ioHelper.loadResult(imageHelper.imgFolder, req.originalUrl, @params,true, callback)
         return
       (data, callback) ->
         if(data?)
@@ -111,14 +112,16 @@ app.post '/segmentation/textline/gabor*', (req, res) ->
           #fill executable path with parameter values
           #command = executableHelper.buildCommand(arrayFound[0].executablePath, @inputParameters, @neededParameters, @programType)
           command = 'java -Djava.awt.headless=true -jar /data/executables/gabortextlinesegmentation/gabortextlinesegmentation.jar create ' + @imagePath + ' input ' + nconf.get('paths:matlabScriptsPath') + ' ' + nconf.get('paths:matlabPath') + ' ' + @top + ' ' + @bottom + ' ' + @left + ' ' + @right + ' ' + @linkingRectWidth + ' ' + @linkingRectHeight
-          executableHelper.executeCommand(command, null, callback)
+          resultHelper = new ConsoleResultHandler(null)
+          executableHelper.executeCommand(command,resultHelper, null, callback)
         return
       (data, statIdentifier, fromDisk, callback) ->
         if(fromDisk)
           callback null, data
         #save the response
         else
-          ioHelper.saveResult(imageHelper.imgFolder, req.originalUrl, @params, data, callback)
+          filePath = ioHelper.buildFilePath(imageHelper.imgFolder, req.originalUrl, @params)
+          ioHelper.saveResult(filePath, data, callback)
         return
       #finall callback, handling of the result and returning it
       ], (err, results) ->

@@ -9,10 +9,10 @@ consoleResultHandler = exports = module.exports = class consoleResultHandler
   @file = ""
   constructor: (filePath) ->
     @file = filePath
-  constructor: ->
-
+ 
   handleResult: (error, stdout, stderr, statIdentifier, callback) ->
     #if a file is given
+    console.log 'file: ' + @file
     if(@file?)
       self = @
       if stderr.length > 0
