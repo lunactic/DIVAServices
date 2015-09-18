@@ -22,12 +22,14 @@ statistics = exports = module.exports = class Statistics
   constructor ->
     startTime = 0
 
+  @getNumberOfCurrentExecutions: () ->
+    return @currentExecutions.length
+
   @isRunning :(reqPath) ->
     executionInfo = @currentExecutions.filter (x) -> x.path == reqPath
     return executionInfo.length > 0
 
   @startRecording: (reqPath) ->
-    logger.log 'info', 'reqPath: ' + reqPath
     @startTime = process.hrtime()
     rand = Math.random()
     @currentExecutions.push({
@@ -50,14 +52,15 @@ statistics = exports = module.exports = class Statistics
         runtime: @endTime[0]
         executions: 1
     #remove the call from current executions
-    @currentExecutions = @currentExecutions.filter (x) -> x.rand == rand
+    @currentExecutions = @currentExecutions.filter (x) -> x.rand != rand
     return @endTime[0]
 
   @getMeanExecutionTime: (reqPath) ->
     if(@currentStatistics[reqPath]?)
       return @currentStatistics[reqPath].runtime
     else
-      return 'No runtime information available'
+      return -1
+
   @loadStatistics: () ->
     if(Object.keys(@currentStatistics).length is 0)
       try
@@ -65,6 +68,7 @@ statistics = exports = module.exports = class Statistics
       catch error
         #Should only happen at first startup
         logger.log 'error', 'No statistics file found'
+
   @saveStatistics: (callback) ->
     fs.writeFile nconf.get('paths:statisticsFile'), JSON.stringify(@currentStatistics), (err) ->
       if(err?)

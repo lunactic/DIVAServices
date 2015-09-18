@@ -6,9 +6,9 @@
 # Copyright &copy; Marcel Würsch, GPL v3.0 licensed.
 
 # Module dependencies
-nconf = require 'nconf'
-md5   = require 'md5'
-fs    = require 'fs'
+nconf   = require 'nconf'
+md5     = require 'md5'
+fs      = require 'fs'
 request = require 'request'
 # expose imageHelper
 imageHelper = exports = module.exports = class ImageHelper
@@ -25,8 +25,12 @@ imageHelper = exports = module.exports = class ImageHelper
   imgFolder: ''
 
   # ---
+  # **md5**</br>
+  # The md5 hash of the current image
+  md5: ''
+  # ---
   # **saveImage**</br>
-  # saves an image to the disk
+  # saves a base64 image to the disk
   # the path to the image will be: server.NODE_ENV.json["paths"]["imageRootPath"]/md5Hash/input.EXTENSION
   #   where:
   #     *md5Hash* is the md5Hash of the received image
@@ -38,11 +42,12 @@ imageHelper = exports = module.exports = class ImageHelper
     imagePath = nconf.get('paths:imageRootPath')
     base64Data = image.replace(/^data:image\/png;base64,/, "")
     md5String = md5(base64Data)
+    @md5 = md5String
     fs.mkdir imagePath + '/' + md5String, (err) ->
       #we don't care if the folder exists
       return
     this.imgFolder = imagePath + '/' + md5String + '/'
-    return fs.stat imagePath + '/' + md5String + '/input.png', (err, stat) ->
+    fs.stat imagePath + '/' + md5String + '/input.png', (err, stat) ->
       if !err?
         callback null, imagePath + '/' + md5String + '/input.png'
       else if err.code == 'ENOENT'
@@ -51,23 +56,38 @@ imageHelper = exports = module.exports = class ImageHelper
         callback null, imagePath + '/' + md5String + '/input.png'
       else
         callback err
-
+  # ---
+  # **saveImageUrl**</br>
+  # saves an image to the disk coming from a URL
+  # the path to the image will be: server.NODE_ENV.json["paths"]["imageRootPath"]/md5Hash/input.EXTENSION
+  #   where:
+  #     *md5Hash* is the md5Hash of the received image
+  #     *EXTENSION* is the image extension</br>
+  # `params`
+  #   *url* the URL to the image
   saveImageUrl: (url, callback ) ->
     imagePath = nconf.get('paths:imageRootPath')
     self = @
     request(url).pipe(fs.createWriteStream(imagePath + '/temp.png')).on 'close', (cb) ->
       base64 = fs.readFileSync imagePath + '/temp.png', 'base64'
       md5String = md5(base64)
+      self.md5 = md5String
       self.imgFolder = imagePath + '/' + md5String + '/'
       fs.mkdir imagePath + '/' + md5String, (err) ->
         #we don't care if the folder exists
         return
-      source = fs.createReadStream imagePath + '/temp.png'
-      dest = fs.createWriteStream imagePath + '/' + md5String + '/input.png'
-      source.pipe(dest)
-      source.on 'end', () ->
-        callback null, imagePath + '/' + md5String + '/input.png'
-        return
-      source.on 'error', (err) ->
-        callback err
-        return
+      fs.stat imagePath + '/' + md5String + '/input.png', (err, stat) ->
+        if !err?
+          fs.unlink(imagePath + '/temp.png')
+          callback null, imagePath + '/' + md5String + '/input.png'
+        else if err.code == 'ENOENT'
+          source = fs.createReadStream imagePath + '/temp.png'
+          dest = fs.createWriteStream imagePath + '/' + md5String + '/input.png'
+          source.pipe(dest)
+          source.on 'end', () ->
+            fs.unlink(imagePath + '/temp.png')
+            callback null, imagePath + '/' + md5String + '/input.png'
+            return
+          source.on 'error', (err) ->
+            callback err
+            return

@@ -14,19 +14,15 @@ if not process.env.NODE_ENV? or process.env.NODE_ENV not in ['dev', 'test', 'pro
 nconf = require 'nconf'
 nconf.add 'server', type: 'file', file: './conf/server.' + process.env.NODE_ENV + '.json'
 
-async             = require 'async'
-express       = require 'express'
-#favicon       = require 'serve-favicon'
-cookieParser  = require 'cookie-parser'
 bodyParser    = require 'body-parser'
-sysPath       = require 'path'
+cookieParser  = require 'cookie-parser'
+express       = require 'express'
+favicon       = require 'serve-favicon'
 http          = require 'http'
-router        = require './app/routes/router'
 logger        = require './app/logging/logger'
+router        = require './app/routes/router'
+sysPath       = require 'path'
 Statistics    = require './app/statistics/statistics'
-ImageHelper   = require './app/helper/imageHelper'
-ExecutableHelper = require './app/helper/executableHelper'
-IoHelper      = require './app/helper/ioHelper'
 #setup express framework
 app = express()
 
@@ -133,8 +129,6 @@ app.post '/segmentation/textline/gabor*', (req, res) ->
 
 #setup routes
 app.use router
-
-#start server on port specified in configuration file
 server = http.createServer app
 #server.timeout = 12000
 

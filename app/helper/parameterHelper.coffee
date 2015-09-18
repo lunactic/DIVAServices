@@ -29,7 +29,7 @@ parameterHelper = exports = module.exports = class ParameterHelper
   # `params`
   #   *parameter* reserved parameter
   #   *imagePath* path to the input image
-  getReservedParamValue: (parameter, imagePath, req) ->
+  getReservedParamValue: (parameter, neededParameters, imagePath, req) ->
     switch parameter
       when 'matlabPath'
         return nconf.get('paths:matlabPath')
@@ -47,7 +47,48 @@ parameterHelper = exports = module.exports = class ParameterHelper
         return req.get('host')
       when 'ocropyLanguageModelsPath'
         return nconf.get('paths:ocropyLanguageModelsPath')
+      when 'startUp'
+        return neededParameters['startUp']
+      when 'resultFile'
+        return '##resultFile##'
+  # ---
+  # **matchParams**</br>
+  # Matches the received parameter values to the needed parameters</br>
+  # `params`
+  #   *inputParameters* The received parameters and its values
+  #   *inputHighlighter* The received input highlighter
+  #   *neededParameters*  The needed parameteres
+  #   *imagePath* path to the input image
+  #   *req* incoming request
+  matchParams: (inputParameters, inputHighlighter, neededParameters,imagePath, req) ->
+    params = []
+    data = []
+    for parameter of neededParameters
+      #build parameters
+      if checkReservedParameters parameter
+        #check if highlighter
+        if parameter is 'highlighter'
+          params.push(this.getHighlighterParamValues(neededParameters[parameter], inputHighlighter))
+        else
+          data.push(this.getReservedParamValue(parameter, neededParameters, imagePath, req))
+      else
+        value = this.getParamValue(parameter, inputParameters)
+        if value?
+          params.push(value)
+    result =
+      params: params
+      data: data
+    return result
 
+  buildGetUrl: (method, imagePath, neededParameters, parameterValues) ->
+    getUrl = nconf.get('server:rootUrl') + method + '?'
+    i = 0
+    for key, value of neededParameters
+      if(!checkReservedParameters(key))
+        getUrl += key + '=' + parameterValues[i] + '&'
+        i++
+    getUrl += 'md5=' + imagePath
+    return getUrl
   # ---
   # **getHighlighterParamValues**</br>
   # Gets Parameter values for highlighters.
@@ -62,16 +103,19 @@ parameterHelper = exports = module.exports = class ParameterHelper
   #   *neededHighlighter* required highlighter as defined by the method
   #   *inputHighlighter*  received highlighter with its value from the request
   getHighlighterParamValues: (neededHighlighter, inputHighlighter, callback) ->
-    if(neededHighlighter is not inputHighlighter['type'])
-      error = []
-      error.code = 500
-      error.statusText = 'inputHighlighter does not match the requested highlighter from this method.'
-      callback error
-
+    # TODO: Is this actually needed?
+    #if(neededHighlighter is not inputHighlighter['type'])
+    #  error = []
+    #  error.code = 500
+    #  error.statusText = 'inputHighlighter does not match the requested highlighter from this method.'
+    #  callback error
+    #console.log 'neededHighlighter: ' + neededHighlighter
+    #console.log 'inputHighlighter: ' + inputHighlighter
+    #console.log 'typeof' + typeof(inputHighlighter)
     switch neededHighlighter
       when 'rectangle'
         merged = []
-        merged = merged.concat.apply(merged,inputHighlighter.segments)
+        merged = merged.concat.apply(merged,inputHighlighter)
         merged = merged.map(Math.round)
         return merged.join(' ')
       when 'circle'
@@ -82,6 +126,15 @@ parameterHelper = exports = module.exports = class ParameterHelper
         return position[0] + ' ' + position[1] + ' ' + radius
       when 'polygon'
         merged = []
-        merged = merged.concat.apply(merged, inputHighlighter.segments)
+        merged = merged.concat.apply(merged, inputHighlighter)
         merged = merged.map(Math.round)
         return merged.join(' ')
+
+  # ---
+  # **checkReservedParameters**</br>
+  # Checks if a parameter is in the list of reserverd words as defined in server.NODE_ENV.json</br>
+  # `params`
+  #   *parameter* the parameter to check
+  checkReservedParameters = (parameter) ->
+    reservedParameters = nconf.get('reservedWords')
+    return parameter in reservedParameters
