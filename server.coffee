@@ -23,6 +23,8 @@ logger        = require './app/logging/logger'
 router        = require './app/routes/router'
 sysPath       = require 'path'
 Statistics    = require './app/statistics/statistics'
+Upload        = require './app/upload/upload'
+
 #setup express framework
 app = express()
 
@@ -39,6 +41,16 @@ app.use bodyParser.urlencoded(extended: true, limit: '50mb')
 
 #setup static file handler
 app.use '/static', express.static('/data/images')
+
+app.post '/upload', (req, res) ->
+  if(req.body.image?)
+    console.log 'upload with image'
+    Upload.uploadBase64 req.body.image, (err,result) ->
+      res.json {md5: result.md5}
+  else if(req.body.url?)
+    Upload.uploadUrl req.body.url, (err,result) ->
+      res.json {md5: result.md5}
+
 
 #favicon
 app.use favicon(__dirname + '/images/favicon/favicon.ico')
