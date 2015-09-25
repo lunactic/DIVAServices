@@ -67,7 +67,6 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
         return ''
 
   executeRequest: (process, requestCallback) ->
-      ioHelper = new IoHelper()
       self = @
       console.log 'executing command'
       async.waterfall [
@@ -102,6 +101,8 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
           imageHelper.saveImage(req.body.image, callback)
         else if (req.body.url?)
           imageHelper.saveImageUrl(req.body.url, callback)
+        else if (req.body.md5Image?)
+          imageHelper.loadImageMd5(req.boy.md5Image, callback)
         process.imageHelper = imageHelper
         return
       #perform parameter matching

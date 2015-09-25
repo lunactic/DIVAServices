@@ -11,9 +11,33 @@ router      = require('express').Router()
 GetHandler  = require './getHandler'
 PostHandler = require './postHandler'
 logger      = require '../logging/logger'
+Upload      = require '../upload/upload'
+ImageHelper = require '../helper/imageHelper'
 
 getHandler = new GetHandler()
 postHandler = new PostHandler()
+
+# Set up special route for image uploading
+router.post '/upload', (req, res) ->
+  if(req.body.image?)
+    Upload.uploadBase64 req.body.image, (err,result) ->
+      res.json {md5: result.md5}
+  else if(req.body.url?)
+    Upload.uploadUrl req.body.url, (err,result) ->
+      res.json {md5: result.md5}
+
+# Set up the routing for POST requests
+router.post '*', (req, res, next) ->
+  logger.log 'info', 'POST ' + req.originalUrl
+  postHandler.handleRequest req, (err, response) ->
+    sendResponse res, err, response
+
+
+router.get '/image/:md5', (req,res) ->
+  console.log 'call to check image'
+  ImageHelper.imageExists req.params.md5, (err, response) ->
+    logger.log 'info', 'response: ' + response
+    sendResponse res, err, response
 
 # Set up the routing for GET requests
 router.get '*', (req, res, next) ->
@@ -21,11 +45,6 @@ router.get '*', (req, res, next) ->
   getHandler.handleRequest req, (err, response) ->
     sendResponse res, err, response
 
-# Set up the routing for POST requests
-router.post '*', (req, res, next) ->
-  logger.log 'info', 'POST ' + req.originalUrl
-  postHandler.handleRequest req, (err, response) ->
-    sendResponse res, err, response
 
 # ---
 # **sendResponse**</br>

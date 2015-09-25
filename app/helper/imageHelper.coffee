@@ -28,6 +28,19 @@ imageHelper = exports = module.exports = class ImageHelper
   # **md5**</br>
   # The md5 hash of the current image
   md5: ''
+
+
+  @imageExists: (md5, callback) ->
+    imagePath = nconf.get('paths:imageRootPath')
+
+    fs.stat imagePath + '/' + md5 + '/input.png', (err, stat) ->
+      if (!err?)
+        console.log 'image exists'
+        callback null, {imageAvailable: true}
+      else
+        console.log 'image does not exist'
+        callback null, {imageAvailable: false}
+
   # ---
   # **saveImage**</br>
   # saves a base64 image to the disk
@@ -104,3 +117,16 @@ imageHelper = exports = module.exports = class ImageHelper
           source.on 'error', (err) ->
             callback err
             return
+
+  loadImageMd5: (md5, callback) ->
+    imagePath = nconf.get('paths:imageRootPath')
+    imgFolder = imagePath + '/' + md5 + '/'
+    @md5 = md5
+
+    fs.stat imagePath + '/' + md5 + '/input.png', (err,stat) ->
+      result =
+        folder: imgFolder
+        path: imgFolder + 'input.png'
+        md5: @md5
+      callback null,result
+
