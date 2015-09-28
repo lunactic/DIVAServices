@@ -47,6 +47,7 @@ app.use favicon(__dirname + '/images/favicon/favicon.ico')
 
 #setup routes
 app.use router
+
 server = http.createServer app
 #server.timeout = 12000
 

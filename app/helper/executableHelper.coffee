@@ -117,8 +117,8 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
         process.programType = serviceInfo.programType
         process.executablePath = serviceInfo.executablePath
         process.resultType =  serviceInfo.output
-        process.filePath = ioHelper.buildFilePath(result.imgFolder, req.originalUrl, @parameters.params)
-        process.tmpFilePath = ioHelper.buildTempFilePath(result.imgFolder, req.originalUrl, @parameters.params)
+        process.filePath = ioHelper.buildFilePath(result.folder, req.originalUrl, @parameters.params)
+        process.tmpFilePath = ioHelper.buildTempFilePath(result.folder, req.originalUrl, @parameters.params)
         resultHandler = null
         switch serviceInfo.output
           when 'console'
