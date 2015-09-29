@@ -14,6 +14,7 @@ path               = require 'path'
 Statistics         = require '../statistics/statistics'
 ParameterHelper    = require '../helper/parameterHelper'
 IoHelper           = require '../helper/ioHelper'
+ImageHelper        = require '../helper/imageHelper'
 ServicesInfoHelper = require '../helper/servicesInfoHelper'
 
 #Expose getHandler
@@ -44,6 +45,7 @@ getHandler = exports = module.exports = class GetHandler
 
   getWithQuery = (req, callback) ->
     parameterHelper = new ParameterHelper()
+    imageHelper = new ImageHelper()
     ioHelper = new IoHelper()
     serviceInfo = ServicesInfoHelper.getServiceInfo(req.path)
     queryParams = req.query
@@ -55,7 +57,12 @@ getHandler = exports = module.exports = class GetHandler
 
     paramMatching = parameterHelper.matchParams(queryParams, highlighter, neededParameters, queryParams.md5, req)
     imgFolder = nconf.get('paths:imageRootPath') + path.sep + paramMatching.data[0] + '/'
-    ioHelper.loadResult(imgFolder, req.path, paramMatching.params,false, callback)
+    ioHelper.loadResult(imgFolder, req.path, paramMatching.params,false, (err, data) ->
+      if(queryParams.requireOutputImage == 'false')
+        delete data['image']
+      data['imageUrl'] = imageHelper.getOutputImageUrl(queryParams.md5)
+      callback null, data
+    )
     #buildResultFilePath(paramMatching, req, callback)
     return
 
