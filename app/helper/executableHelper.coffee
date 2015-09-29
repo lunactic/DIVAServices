@@ -86,6 +86,7 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
             delete results['image']
           results['imageUrl'] = process.outputImageUrl
           results['status'] = 'done'
+          results['resultLink'] = process.resultLink
           #start next execution
           if(requestCallback?)
             requestCallback null, results
@@ -128,6 +129,7 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
         process.filePath = ioHelper.buildFilePath(result.folder, req.originalUrl, @parameters.params)
         process.tmpFilePath = ioHelper.buildTempFilePath(result.folder, req.originalUrl, @parameters.params)
         process.outputImageUrl = imageHelper.getOutputImageUrl(result.md5)
+        process.resultLink = parameterHelper.buildGetUrl(req.originalUrl,imageHelper.md5, @neededParameters, @parameters.params)
         resultHandler = null
         switch serviceInfo.output
           when 'console'
@@ -143,14 +145,15 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
         ioHelper.loadResult(@imageFolder, req.originalUrl, @parameters.params, true, callback)
         return
       (data, callback) ->
+        @getUrl = parameterHelper.buildGetUrl(req.originalUrl,imageHelper.md5, @neededParameters, @parameters.params)
         if(data?)
           if(!process.requireOutputImage)
             delete data['image']
           data['imageUrl'] = process.outputImageUrl
           data['status'] = 'done'
+          data['resultLink'] = @getUrl
           callback null, data
         else
-          @getUrl = parameterHelper.buildGetUrl(req.originalUrl,imageHelper.md5, @neededParameters, @parameters.params)
           ioHelper.writeTempFile(process.filePath, callback)
       ],(err, results) ->
         if(err?)
