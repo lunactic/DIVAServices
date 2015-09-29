@@ -84,7 +84,8 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
           #strip the image out of the response if needed
           if(!process.requireOutputImage)
             delete results['image']
-            results['imageUrl'] = process.outputImageUrl
+          results['imageUrl'] = process.outputImageUrl
+          results['status'] = 'done'
           #start next execution
           if(requestCallback?)
             requestCallback null, results
@@ -145,7 +146,8 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
         if(data?)
           if(!process.requireOutputImage)
             delete data['image']
-            data['imageUrl'] = process.outputImageUrl
+          data['imageUrl'] = process.outputImageUrl
+          data['status'] = 'done'
           callback null, data
         else
           @getUrl = parameterHelper.buildGetUrl(req.originalUrl,imageHelper.md5, @neededParameters, @parameters.params)
