@@ -44,6 +44,7 @@ ioHelper = exports = module.exports = class IoHelper
           if err?
             callback err, null
           else
+            data = JSON.parse(data)
             callback null, data
       else
         if(post)

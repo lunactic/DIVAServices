@@ -81,6 +81,9 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
           return
         #finall callback, handling of the result and returning it
         ], (err, results) ->
+          #strip the image out of the response if needed
+          if(!process.requireOutputImage)
+            delete results['image']
           #start next execution
           if(requestCallback?)
             requestCallback null, results
@@ -102,7 +105,7 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
         else if (req.body.url?)
           imageHelper.saveImageUrl(req.body.url, callback)
         else if (req.body.md5Image?)
-          imageHelper.loadImageMd5(req.boy.md5Image, callback)
+          imageHelper.loadImageMd5(req.body.md5Image, callback)
         process.imageHelper = imageHelper
         return
       #perform parameter matching
@@ -113,6 +116,7 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
         @inputHighlighters = req.body.highlighter
         @programType = serviceInfo.programType
         @parameters = parameterHelper.matchParams(@inputParameters, @inputHighlighters.segments,@neededParameters,@imagePath, req)
+        process.requireOutputImage = req.body.requireOutputImage
         process.parameters = @parameters
         process.programType = serviceInfo.programType
         process.executablePath = serviceInfo.executablePath
@@ -135,6 +139,8 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
         return
       (data, callback) ->
         if(data?)
+          if(!process.requireOutputImage)
+            delete data['image']
           callback null, data
         else
           @getUrl = parameterHelper.buildGetUrl(req.originalUrl,imageHelper.md5, @neededParameters, @parameters.params)

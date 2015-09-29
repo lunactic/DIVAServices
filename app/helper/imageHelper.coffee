@@ -120,13 +120,13 @@ imageHelper = exports = module.exports = class ImageHelper
 
   loadImageMd5: (md5, callback) ->
     imagePath = nconf.get('paths:imageRootPath')
-    imgFolder = imagePath + '/' + md5 + '/'
+    @imgFolder = imagePath + '/' + md5 + '/'
     @md5 = md5
-
+    self = @
     fs.stat imagePath + '/' + md5 + '/input.png', (err,stat) ->
       result =
-        folder: imgFolder
-        path: imgFolder + 'input.png'
+        folder: self.imgFolder
+        path: self.imgFolder + 'input.png'
         md5: @md5
       callback null,result
 

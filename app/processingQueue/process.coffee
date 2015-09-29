@@ -12,3 +12,4 @@ process = exports = module.exports = class Process
   @resultType: ""
   @filePath: ""
   @tmpFilePath: ""
+  @requireOutputImage: true
