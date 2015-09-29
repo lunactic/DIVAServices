@@ -111,6 +111,7 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
       #perform parameter matching
       (result, callback) ->
         @imagePath = result.path
+        @imageFolder = result.folder
         @neededParameters = serviceInfo.parameters
         @inputParameters = req.body.inputs
         @inputHighlighters = req.body.highlighter
@@ -136,7 +137,7 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
         return
       #try to load results from disk
       (callback) ->
-        ioHelper.loadResult(imageHelper.imgFolder, req.originalUrl, @parameters.params, true, callback)
+        ioHelper.loadResult(@imageFolder, req.originalUrl, @parameters.params, true, callback)
         return
       (data, callback) ->
         if(data?)
