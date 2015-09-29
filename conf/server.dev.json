@@ -17,7 +17,7 @@
     "timeout": 600000,
     "port": 8080,
     "maxFileSize": 20971520,
-    "rootUrl":"http://127.0.0.1:8080"
+    "rootUrl":"http://192.168.56.101:8080"
   },
   "images": {
     "storeResponse": false

@@ -84,6 +84,7 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
           #strip the image out of the response if needed
           if(!process.requireOutputImage)
             delete results['image']
+            results['imageUrl'] = process.outputImageUrl
           #start next execution
           if(requestCallback?)
             requestCallback null, results
@@ -125,6 +126,7 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
         process.resultType =  serviceInfo.output
         process.filePath = ioHelper.buildFilePath(result.folder, req.originalUrl, @parameters.params)
         process.tmpFilePath = ioHelper.buildTempFilePath(result.folder, req.originalUrl, @parameters.params)
+        process.outputImageUrl = imageHelper.getOutputImageUrl(result.md5)
         resultHandler = null
         switch serviceInfo.output
           when 'console'
@@ -143,6 +145,7 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
         if(data?)
           if(!process.requireOutputImage)
             delete data['image']
+            data['imageUrl'] = process.outputImageUrl
           callback null, data
         else
           @getUrl = parameterHelper.buildGetUrl(req.originalUrl,imageHelper.md5, @neededParameters, @parameters.params)
