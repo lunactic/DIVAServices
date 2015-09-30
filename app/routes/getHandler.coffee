@@ -35,7 +35,9 @@ getHandler = exports = module.exports = class GetHandler
         if err
           callback err
         else
+          data = data.replace(new RegExp('\\$BASEURL\\$','g'),nconf.get('server:rootUrl'))
           data = JSON.parse data
+
           #add statistics information if available
           if(data['info']?)
             data['info']['expectedRuntime'] = Statistics.getMeanExecutionTime req.originalUrl
