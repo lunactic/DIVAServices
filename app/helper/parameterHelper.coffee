@@ -81,7 +81,7 @@ parameterHelper = exports = module.exports = class ParameterHelper
     return result
 
   buildGetUrl: (method, imagePath, neededParameters, parameterValues) ->
-    getUrl = nconf.get('server:rootUrl') + method + '?'
+    getUrl = 'http://' + nconf.get('server:rootUrl') + method + '?'
     i = 0
     for key, value of neededParameters
       if(!checkReservedParameters(key))

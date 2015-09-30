@@ -133,6 +133,6 @@ imageHelper = exports = module.exports = class ImageHelper
 
   getOutputImageUrl: (md5) ->
     rootUrl = nconf.get('server:rootUrl')
-    outputUrl = rootUrl + '/static/' + md5 + '/input.png'
+    outputUrl = 'http://' + rootUrl + '/static/' + md5 + '/input.png'
     return outputUrl
 
