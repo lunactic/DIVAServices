@@ -104,14 +104,6 @@ parameterHelper = exports = module.exports = class ParameterHelper
   #   *inputHighlighter*  received highlighter with its value from the request
   getHighlighterParamValues: (neededHighlighter, inputHighlighter, callback) ->
     # TODO: Is this actually needed?
-    #if(neededHighlighter is not inputHighlighter['type'])
-    #  error = []
-    #  error.code = 500
-    #  error.statusText = 'inputHighlighter does not match the requested highlighter from this method.'
-    #  callback error
-    #console.log 'neededHighlighter: ' + neededHighlighter
-    #console.log 'inputHighlighter: ' + inputHighlighter
-    #console.log 'typeof' + typeof(inputHighlighter)
     switch neededHighlighter
       when 'rectangle'
         merged = []
