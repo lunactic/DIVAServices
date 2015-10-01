@@ -87,9 +87,9 @@ app.post '/segmentation/textline/gabor*', (req, res) ->
         imageHelper.saveImageUrl(req.body.url, callback)
         return
       #perform parameter matching
-      (imagePath, callback) ->
+      (result, callback) ->
         @params = []
-        @imagePath = imagePath
+        @imagePath = result.path
         @top = req.body.top
         @bottom = req.body.bottom
         @left = req.body.left
