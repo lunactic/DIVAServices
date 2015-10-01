@@ -15,17 +15,19 @@ ioHelper = exports = module.exports = class IoHelper
 
   buildFilePath: (path,algorithm,params) ->
     algorithm = algorithm.replace(/\//g, '_')
+    tmpParams = JSON.parse(JSON.stringify(params))
     #join params with _
-    params.splice(params.indexOf('requireOutputImage'),1)
-    params = params.join('_').replace RegExp(' ', 'g'), '_'
-    filename = algorithm + '_' + params + '.json'
+    tmpParams.splice(tmpParams.indexOf('requireOutputImage'),1)
+    tmpParams = tmpParams.join('_').replace RegExp(' ', 'g'), '_'
+    filename = algorithm + '_' + tmpParams + '.json'
     return path + filename
 
   buildTempFilePath: (path,algorithm,params) ->
     algorithm = algorithm.replace(/\//g, '_')
     #join params with _
-    params = params.join('_').replace RegExp(' ', 'g'), '_'
-    filename = algorithm + '_' + params + '_temp.json'
+    tmpParams = JSON.parse(JSON.stringify(params))
+    tmpParams = tmpParams.join('_').replace RegExp(' ', 'g'), '_'
+    filename = algorithm + '_' + tmpParams + '_temp.json'
     return path + filename
 
   # ---
