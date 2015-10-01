@@ -9,12 +9,14 @@
 fs      = require 'fs'
 logger  = require '../logging/logger'
 
+
 # expose IoHelper
 ioHelper = exports = module.exports = class IoHelper
 
   buildFilePath: (path,algorithm,params) ->
     algorithm = algorithm.replace(/\//g, '_')
     #join params with _
+    params.splice(params.indexOf('requireOutputImage'),1)
     params = params.join('_').replace RegExp(' ', 'g'), '_'
     filename = algorithm + '_' + params + '.json'
     return path + filename
@@ -43,11 +45,13 @@ ioHelper = exports = module.exports = class IoHelper
           if err?
             callback err, null
           else
+            data = JSON.parse(data)
             callback null, data
       else
         if(post)
           callback null, null
         else
+          console.log 'error: ' + err
           callback err,null
   # ---
   # **/br>

@@ -67,7 +67,6 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
         return ''
 
   executeRequest: (process, requestCallback) ->
-      ioHelper = new IoHelper()
       self = @
       console.log 'executing command'
       async.waterfall [
@@ -82,6 +81,12 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
           return
         #finall callback, handling of the result and returning it
         ], (err, results) ->
+          #strip the image out of the response if needed
+          if(!process.requireOutputImage)
+            delete results['image']
+          results['imageUrl'] = process.outputImageUrl
+          results['status'] = 'done'
+          results['resultLink'] = process.resultLink
           #start next execution
           if(requestCallback?)
             requestCallback null, results
@@ -102,22 +107,29 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
           imageHelper.saveImage(req.body.image, callback)
         else if (req.body.url?)
           imageHelper.saveImageUrl(req.body.url, callback)
+        else if (req.body.md5Image?)
+          imageHelper.loadImageMd5(req.body.md5Image, callback)
         process.imageHelper = imageHelper
         return
       #perform parameter matching
-      (imagePath, callback) ->
-        @imagePath = imagePath
+      (result, callback) ->
+        @imagePath = result.path
+        @imageFolder = result.folder
         @neededParameters = serviceInfo.parameters
         @inputParameters = req.body.inputs
         @inputHighlighters = req.body.highlighter
         @programType = serviceInfo.programType
         @parameters = parameterHelper.matchParams(@inputParameters, @inputHighlighters.segments,@neededParameters,@imagePath, req)
+        if(req.body.requireOutputImage?)
+          process.requireOutputImage = req.body.requireOutputImage
         process.parameters = @parameters
         process.programType = serviceInfo.programType
         process.executablePath = serviceInfo.executablePath
         process.resultType =  serviceInfo.output
-        process.filePath = ioHelper.buildFilePath(imageHelper.imgFolder, req.originalUrl, @parameters.params)
-        process.tmpFilePath = ioHelper.buildTempFilePath(imageHelper.imgFolder, req.originalUrl, @parameters.params)
+        process.filePath = ioHelper.buildFilePath(result.folder, req.originalUrl, @parameters.params)
+        process.tmpFilePath = ioHelper.buildTempFilePath(result.folder, req.originalUrl, @parameters.params)
+        process.outputImageUrl = imageHelper.getOutputImageUrl(result.md5)
+        process.resultLink = parameterHelper.buildGetUrl(req.originalUrl,imageHelper.md5, @neededParameters, @parameters.params)
         resultHandler = null
         switch serviceInfo.output
           when 'console'
@@ -130,13 +142,18 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
         return
       #try to load results from disk
       (callback) ->
-        ioHelper.loadResult(imageHelper.imgFolder, req.originalUrl, @parameters.params, true, callback)
+        ioHelper.loadResult(@imageFolder, req.originalUrl, @parameters.params, true, callback)
         return
       (data, callback) ->
+        @getUrl = parameterHelper.buildGetUrl(req.originalUrl,imageHelper.md5, @neededParameters, @parameters.params)
         if(data?)
+          if(!process.requireOutputImage)
+            delete data['image']
+          data['imageUrl'] = process.outputImageUrl
+          data['status'] = 'done'
+          data['resultLink'] = @getUrl
           callback null, data
         else
-          @getUrl = parameterHelper.buildGetUrl(req.originalUrl,imageHelper.md5, @neededParameters, @parameters.params)
           ioHelper.writeTempFile(process.filePath, callback)
       ],(err, results) ->
         if(err?)

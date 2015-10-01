@@ -46,7 +46,6 @@ app.use (req,res,next) ->
   res.setHeader 'Access-Control-Allow-Credentials', false
   next()
 
-
 #setup body parser
 app.use bodyParser.json(limit: '50mb')
 app.use bodyParser.urlencoded(extended: true, limit: '50mb')
@@ -54,6 +53,9 @@ app.use bodyParser.urlencoded(extended: true, limit: '50mb')
 #setup static file handler
 app.use '/static', express.static('/data/images')
 
+
+#favicon
+app.use favicon(__dirname + '/images/favicon/favicon.ico')
 #handle gabor post request seperately
 app.post '/segmentation/textline/gabor*', (req, res) ->
   imageHelper = new ImageHelper()
