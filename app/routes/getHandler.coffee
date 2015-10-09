@@ -63,6 +63,8 @@ getHandler = exports = module.exports = class GetHandler
       if(queryParams.requireOutputImage == 'false')
         delete data['image']
       data['imageUrl'] = imageHelper.getOutputImageUrl(queryParams.md5)
+      if(!data.hasOwnProperty('status'))
+        data['status'] = 'done'
       callback null, data
     )
     #buildResultFilePath(paramMatching, req, callback)
