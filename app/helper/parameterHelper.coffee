@@ -51,6 +51,8 @@ parameterHelper = exports = module.exports = class ParameterHelper
         return neededParameters['startUp']
       when 'resultFile'
         return '##resultFile##'
+      when 'noisingXmlFile'
+        return nconf.get('paths:noisingXmlPath')
   # ---
   # **matchParams**</br>
   # Matches the received parameter values to the needed parameters</br>

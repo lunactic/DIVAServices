@@ -29,7 +29,8 @@
     "jsonPath":"/data/json",
     "ocropyLanguageModelsPath": "/data/ocropyLanguageModels",
     "statisticsFile":"/data/statistics.json",
-    "servicesInfoFile":"/data/json/services.json"
+    "servicesInfoFile":"/data/json/services.json",
+    "noisingXmlPath": "/data/noise/scripts/realistic.xml"
   },
   "reservedWords" :[
     "image",
@@ -42,6 +43,7 @@
     "outputFolder",
     "highlighter",
     "ocropyLanguageModelsPath",
-    "startUp"
+    "startUp",
+    "noisingXmlFile"
   ]
 }
