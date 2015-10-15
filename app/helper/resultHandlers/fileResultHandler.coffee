@@ -9,7 +9,7 @@ consoleResultHandler = exports = module.exports = class consoleResultHandler
   @filename: ''
   constructor: (filepath) ->
     @filename = filepath
-  handleResult: (error, stdout, stderr, statIdentifier, callback) ->
+  handleResult: (error, stdout, stderr, statIdentifier,process, callback) ->
     self = @
     fs.stat @filename, (err, stat) ->
       #check if file exists
@@ -21,8 +21,11 @@ consoleResultHandler = exports = module.exports = class consoleResultHandler
           else
             try
               data = JSON.parse(data)
-              if(!data.status)
-                data['status'] ='done'
+              if(!data)
+                data['status'] = 'done'
+              data['imageUrl'] = process.outputImageUrl
+              data['resultLink'] = process.resultLink
+              fs.writeFileSync(self.filename,JSON.stringify(data), "utf8")
             catch error
               console.log error
             callback null, data, statIdentifier

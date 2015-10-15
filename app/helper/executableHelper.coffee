@@ -45,11 +45,11 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
   # Returns the data as received from the stdout.</br>
   # `params`
   #   *command* the command to execute
-  executeCommand: (command, resultHandler, statIdentifier, callback) ->
+  executeCommand: (command, resultHandler, statIdentifier,process, callback) ->
     exec = childProcess.exec
     console.log 'executing command: ' + command
     child = exec(command, { maxBuffer: 1024 * 48828 }, (error, stdout, stderr) ->
-      resultHandler.handleResult(error, stdout, stderr, statIdentifier, callback)
+      resultHandler.handleResult(error, stdout, stderr, statIdentifier,process, callback)
     )
 
   # ---
@@ -77,16 +77,14 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
           #if we have a console output, pipe the stdout to a file but keep stderr for error handling
           if(process.resultType == 'console')
             command += ' 1>' + process.tmpFilePath + ';mv ' + process.tmpFilePath + ' ' + process.filePath
-          self.executeCommand(command, process.resultHandler, statIdentifier, callback)
+          self.executeCommand(command, process.resultHandler, statIdentifier, process, callback)
           return
         #finall callback, handling of the result and returning it
         ], (err, results) ->
           #strip the image out of the response if needed
           if(!process.requireOutputImage)
             delete results['image']
-          results['imageUrl'] = process.outputImageUrl
-          results['status'] = 'done'
-          results['resultLink'] = process.resultLink
+
           #start next execution
           if(requestCallback?)
             requestCallback null, results
@@ -149,9 +147,6 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
         if(data?)
           if(!process.requireOutputImage)
             delete data['image']
-          data['imageUrl'] = process.outputImageUrl
-          data['status'] = 'done'
-          data['resultLink'] = @getUrl
           callback null, data
         else
           ioHelper.writeTempFile(process.filePath, callback)
