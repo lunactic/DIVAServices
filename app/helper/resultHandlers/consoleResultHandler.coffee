@@ -28,7 +28,7 @@ consoleResultHandler = exports = module.exports = class consoleResultHandler
                 data = JSON.parse(data)
                 if(!data['status'])
                   data['status'] = 'done'
-                data['imageUrl'] = process.outputImageUrl
+                data['inputImage'] = process.inputImageUrl
                 data['resultLink'] = process.resultLink
                 fs.writeFileSync(self.file,JSON.stringify(data), "utf8")
               catch error

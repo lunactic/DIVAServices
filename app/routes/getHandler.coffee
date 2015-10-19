@@ -62,7 +62,7 @@ getHandler = exports = module.exports = class GetHandler
     ioHelper.loadResult(imgFolder, req.path, paramMatching.params,false, (err, data) ->
       if(queryParams.requireOutputImage == 'false')
         delete data['image']
-      data['imageUrl'] = imageHelper.getOutputImageUrl(queryParams.md5)
+      data['imageUrl'] = imageHelper.getInputImageUrl(queryParams.md5)
       if(!data.hasOwnProperty('status'))
         data['status'] = 'done'
       callback null, data

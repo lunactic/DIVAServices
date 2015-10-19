@@ -12,7 +12,7 @@ process = exports = module.exports = class Process
   @filePath: ""
   @tmpFilePath: ""
   @requireOutputImage: true
-  @outputImageUrl: ""
+  @inputImageUrl: ""
   @resultLink: ""
 
   constructor: () ->
