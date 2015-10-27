@@ -49,8 +49,9 @@ app.use favicon(__dirname + '/images/favicon/favicon.ico')
 app.use router
 
 server = http.createServer app
-#server.timeout = 12000
+server.timeout = nconf.get('server:timeout')
 
 server.listen nconf.get('server:port'), ->
   Statistics.loadStatistics()
   logger.log 'info', 'Server listening on port ' + nconf.get 'server:port'
+  
