@@ -33,7 +33,8 @@
     "noisingXmlPath": "/data/noise/scripts/realistic.xml"
   },
   "reservedWords" :[
-    "image",
+    "inputImage",
+    "outputImage",
     "resultFile",
     "matlabPath",
     "imageRootPath",

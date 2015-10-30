@@ -136,3 +136,5 @@ imageHelper = exports = module.exports = class ImageHelper
     outputUrl = 'http://' + rootUrl + '/static/' + md5 + '/input.png'
     return outputUrl
 
+
+
