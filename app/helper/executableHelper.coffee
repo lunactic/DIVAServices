@@ -127,6 +127,8 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
         process.filePath = ioHelper.buildFilePath(result.folder, req.originalUrl, @parameters.params)
         process.tmpFilePath = ioHelper.buildTempFilePath(result.folder, req.originalUrl, @parameters.params)
         process.inputImageUrl = imageHelper.getInputImageUrl(result.md5)
+        if(@neededParameters.outputImage?)
+          process.outputImageUrl = imageHelper.getOutputImageUrl(result.md5)
         process.resultLink = parameterHelper.buildGetUrl(req.originalUrl,imageHelper.md5, @neededParameters, @parameters.params)
         resultHandler = null
         switch serviceInfo.output

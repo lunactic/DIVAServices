@@ -37,7 +37,7 @@ parameterHelper = exports = module.exports = class ParameterHelper
         return nconf.get('paths:matlabScriptsPath')
       when 'inputFileExtension'
         return path.extname(imagePath).slice(1)
-      when 'image'
+      when 'inputImage'
         return imagePath
       when 'imageRootPath'
         return nconf.get('paths:imageRootPath')
@@ -51,6 +51,8 @@ parameterHelper = exports = module.exports = class ParameterHelper
         return neededParameters['startUp']
       when 'resultFile'
         return '##resultFile##'
+      when 'outputImage'
+        return path.dirname(imagePath) + '/output.png'
       when 'noisingXmlFile'
         return nconf.get('paths:noisingXmlPath')
   # ---
