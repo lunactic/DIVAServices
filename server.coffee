@@ -18,7 +18,9 @@ bodyParser    = require 'body-parser'
 cookieParser  = require 'cookie-parser'
 express       = require 'express'
 favicon       = require 'serve-favicon'
+fs            = require 'fs'
 http          = require 'http'
+morgan        = require 'morgan'
 logger        = require './app/logging/logger'
 router        = require './app/routes/router'
 sysPath       = require 'path'
@@ -41,10 +43,10 @@ app.use bodyParser.urlencoded(extended: true, limit: '50mb')
 #setup static file handler
 app.use '/static', express.static('/data/images')
 
-
+accessLogStream = fs.createWriteStream(__dirname + '/logs/access.log',{flgas:'a'})
 #favicon
 app.use favicon(__dirname + '/images/favicon/favicon.ico')
-
+app.use(morgan('combined',{stream: accessLogStream}))
 #setup routes
 app.use router
 

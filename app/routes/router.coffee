@@ -28,20 +28,16 @@ router.post '/upload', (req, res) ->
 
 # Set up the routing for POST requests
 router.post '*', (req, res, next) ->
-  logger.log 'info', 'POST ' + req.originalUrl
   postHandler.handleRequest req, (err, response) ->
     sendResponse res, err, response
 
 
 router.get '/image/:md5', (req,res) ->
-  console.log 'call to check image'
   ImageHelper.imageExists req.params.md5, (err, response) ->
-    logger.log 'info', 'response: ' + response
     sendResponse res, err, response
 
 # Set up the routing for GET requests
 router.get '*', (req, res, next) ->
-  logger.log 'info', 'GET ' + req.originalUrl
   getHandler.handleRequest req, (err, response) ->
     sendResponse res, err, response
 
@@ -65,7 +61,6 @@ sendResponse = (res, err, response) ->
       res.json JSON.parse(response)
     catch error
       res.json response
-    logger.log 'info', 'RESPONSE 200'
 
 # Expose router
 module.exports = router
