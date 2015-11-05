@@ -9,6 +9,7 @@
 childProcess        = require 'child_process'
 async               = require 'async'
 {EventEmitter}      = require 'events'
+_                   = require 'lodash'
 ImageHelper         = require '../helper/imageHelper'
 IoHelper            = require '../helper/ioHelper'
 ParameterHelper     = require '../helper/parameterHelper'
@@ -37,7 +38,9 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
     # get exectuable type
     execType = getExecutionType programType
     # return the command line call
-    return execType + ' ' + executablePath + ' ' + data.join(' ') + ' ' + params.join(' ')
+    dataPath = _.valuesIn(data).join(' ')
+    paramsPath = _.valuesIn(params).join(' ')
+    return execType + ' ' + executablePath + ' ' + dataPath+ ' ' + paramsPath
 
   # ---
   # **executeCommand**</br>
@@ -45,12 +48,11 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
   # Returns the data as received from the stdout.</br>
   # `params`
   #   *command* the command to execute
-  executeCommand: (command, resultHandler, statIdentifier, callback) ->
+  executeCommand: (command, resultHandler, statIdentifier,process, callback) ->
     exec = childProcess.exec
     console.log 'executing command: ' + command
     child = exec(command, { maxBuffer: 1024 * 48828 }, (error, stdout, stderr) ->
-      console.log 'result computed'
-      resultHandler.handleResult(error, stdout, stderr, statIdentifier, callback)
+    resultHandler.handleResult(error, stdout, stderr, statIdentifier,process, callback)
     )
 
   # ---
@@ -69,7 +71,6 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
 
   executeRequest: (process, requestCallback) ->
       self = @
-      console.log 'executing command'
       async.waterfall [
         (callback) ->
           statIdentifier = Statistics.startRecording(process.req.originalUrl)
@@ -78,16 +79,14 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
           #if we have a console output, pipe the stdout to a file but keep stderr for error handling
           if(process.resultType == 'console')
             command += ' 1>' + process.tmpFilePath + ';mv ' + process.tmpFilePath + ' ' + process.filePath
-          self.executeCommand(command, process.resultHandler, statIdentifier, callback)
+          self.executeCommand(command, process.resultHandler, statIdentifier, process, callback)
           return
         #finall callback, handling of the result and returning it
         ], (err, results) ->
           #strip the image out of the response if needed
           if(!process.requireOutputImage)
             delete results['image']
-          results['imageUrl'] = process.outputImageUrl
-          results['status'] = 'done'
-          results['resultLink'] = process.resultLink
+
           #start next execution
           if(requestCallback?)
             requestCallback null, results
@@ -104,7 +103,6 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
     async.waterfall [
       (callback) ->
         if(req.body.image?)
-          console.log 'saving image'
           imageHelper.saveImage(req.body.image, callback)
         else if (req.body.url?)
           imageHelper.saveImageUrl(req.body.url, callback)
@@ -129,14 +127,16 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
         process.resultType =  serviceInfo.output
         process.filePath = ioHelper.buildFilePath(result.folder, req.originalUrl, @parameters.params)
         process.tmpFilePath = ioHelper.buildTempFilePath(result.folder, req.originalUrl, @parameters.params)
-        process.outputImageUrl = imageHelper.getOutputImageUrl(result.md5)
-        process.resultLink = parameterHelper.buildGetUrl(req.originalUrl,imageHelper.md5, @neededParameters, @parameters.params)
+        process.inputImageUrl = imageHelper.getInputImageUrl(result.md5)
+        if(@neededParameters.outputImage?)
+          process.outputImageUrl = imageHelper.getOutputImageUrl(result.md5)
+        process.resultLink = parameterHelper.buildGetUrl(req.originalUrl,imageHelper.md5, @neededParameters, @parameters.params, @inputHighlighters)
         resultHandler = null
         switch serviceInfo.output
           when 'console'
             resultHandler = new ConsoleResultHandler(process.filePath);
           when 'file'
-            @parameters.data[@parameters.data.indexOf('##resultFile##')] = process.filePath
+            @parameters.data['resultFile'] = process.filePath
             resultHandler = new FileResultHandler(process.filePath);
         process.resultHandler = resultHandler
         callback null
@@ -146,13 +146,10 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
         ioHelper.loadResult(@imageFolder, req.originalUrl, @parameters.params, true, callback)
         return
       (data, callback) ->
-        @getUrl = parameterHelper.buildGetUrl(req.originalUrl,imageHelper.md5, @neededParameters, @parameters.params)
+        @getUrl = parameterHelper.buildGetUrl(req.originalUrl,imageHelper.md5, @neededParameters, @parameters.params, @inputHighlighters)
         if(data?)
           if(!process.requireOutputImage)
             delete data['image']
-          data['imageUrl'] = process.outputImageUrl
-          data['status'] = 'done'
-          data['resultLink'] = @getUrl
           callback null, data
         else
           ioHelper.writeTempFile(process.filePath, callback)
@@ -167,6 +164,5 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
             requestCallback err, {'status':'planned', 'url':@getUrl}
             queueCallback()
           else
-            console.log 'calling queueCallback'
             processingQueue.addElement(process)
             queueCallback()

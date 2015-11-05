@@ -35,10 +35,8 @@ imageHelper = exports = module.exports = class ImageHelper
 
     fs.stat imagePath + '/' + md5 + '/input.png', (err, stat) ->
       if (!err?)
-        console.log 'image exists'
         callback null, {imageAvailable: true}
       else
-        console.log 'image does not exist'
         callback null, {imageAvailable: false}
 
   # ---
@@ -57,7 +55,6 @@ imageHelper = exports = module.exports = class ImageHelper
     md5String = md5(base64Data)
     @md5 = md5String
     self = @
-    console.log 'creating directory: ' + imagePath + '/' + md5String
     fs.mkdir imagePath + '/' + md5String, (err) ->
       return
 
@@ -73,7 +70,6 @@ imageHelper = exports = module.exports = class ImageHelper
       else if err.code == 'ENOENT'
         fs.writeFile imgFolder + 'input.png', base64Data, 'base64', (err) ->
           return
-        console.log 'calling callback with result: ' + JSON.stringify(result)
         callback null, result
       else
         callback err
@@ -131,8 +127,14 @@ imageHelper = exports = module.exports = class ImageHelper
       callback null,result
 
 
-  getOutputImageUrl: (md5) ->
+  getInputImageUrl: (md5) ->
     rootUrl = nconf.get('server:rootUrl')
     outputUrl = 'http://' + rootUrl + '/static/' + md5 + '/input.png'
     return outputUrl
+
+  getOutputImageUrl: (md5) ->
+    rootUrl = nconf.get('server:rootUrl')
+    outputUrl = 'http://' + rootUrl + '/static/' + md5 + '/output.png'
+    return outputUrl
+
 

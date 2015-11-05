@@ -11,7 +11,6 @@ path    = require 'path'
 # expose parameterHelper
 parameterHelper = exports = module.exports = class ParameterHelper
 
-
   # ---
   # **getParamValue**</br>
   # Gets the value of an input parameter</br>
@@ -37,7 +36,7 @@ parameterHelper = exports = module.exports = class ParameterHelper
         return nconf.get('paths:matlabScriptsPath')
       when 'inputFileExtension'
         return path.extname(imagePath).slice(1)
-      when 'image'
+      when 'inputImage'
         return imagePath
       when 'imageRootPath'
         return nconf.get('paths:imageRootPath')
@@ -51,6 +50,8 @@ parameterHelper = exports = module.exports = class ParameterHelper
         return neededParameters['startUp']
       when 'resultFile'
         return '##resultFile##'
+      when 'outputImage'
+        return path.dirname(imagePath) + '/output.png'
       when 'noisingXmlFile'
         return nconf.get('paths:noisingXmlPath')
   # ---
@@ -63,32 +64,34 @@ parameterHelper = exports = module.exports = class ParameterHelper
   #   *imagePath* path to the input image
   #   *req* incoming request
   matchParams: (inputParameters, inputHighlighter, neededParameters,imagePath, req) ->
-    params = []
-    data = []
+    params = {}
+    data = {}
     for parameter of neededParameters
       #build parameters
       if checkReservedParameters parameter
         #check if highlighter
         if parameter is 'highlighter'
-          params.push(this.getHighlighterParamValues(neededParameters[parameter], inputHighlighter))
+          params[neededParameters[parameter]] = this.getHighlighterParamValues(neededParameters[parameter], inputHighlighter)
         else
-          data.push(this.getReservedParamValue(parameter, neededParameters, imagePath, req))
+          data[parameter] = this.getReservedParamValue(parameter, neededParameters, imagePath, req)
       else
         value = this.getParamValue(parameter, inputParameters)
         if value?
-          params.push(value)
+          params[parameter] = value
     result =
       params: params
       data: data
     return result
 
-  buildGetUrl: (method, imagePath, neededParameters, parameterValues) ->
+  buildGetUrl: (method, imagePath, neededParameters, parameterValues, inputHighlighters) ->
     getUrl = 'http://' + nconf.get('server:rootUrl') + method + '?'
     i = 0
     for key, value of neededParameters
       if(!checkReservedParameters(key))
         getUrl += key + '=' + parameterValues[i] + '&'
         i++
+      else if(key is 'highlighter')
+        getUrl += key + '=' + JSON.stringify(inputHighlighters['segments']) + '&'
     getUrl += 'md5=' + imagePath
     return getUrl
   # ---
@@ -123,6 +126,7 @@ parameterHelper = exports = module.exports = class ParameterHelper
         merged = merged.concat.apply(merged, inputHighlighter)
         merged = merged.map(Math.round)
         return merged.join(' ')
+
 
   # ---
   # **checkReservedParameters**</br>

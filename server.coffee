@@ -21,6 +21,7 @@ express           = require 'express'
 favicon           = require 'serve-favicon'
 http              = require 'http'
 logger            = require './app/logging/logger'
+morgan            = require 'morgan'
 router            = require './app/routes/router'
 sysPath           = require 'path'
 Statistics        = require './app/statistics/statistics'
@@ -31,6 +32,12 @@ ConsoleResultHandler = require './app/helper/resultHandlers/consoleResultHandler
 
 #setup express framework
 app = express()
+
+#HTTPS settings
+#privateKey = fs.readFileSync('/data/express.key','utf8')
+#certificate = fs.readFileSync('/data/express.crt','utf8')
+
+#credentials = {key: privateKey, cert: certificate}
 
 #shutdown handler
 process.on 'SIGTERM', () ->
@@ -53,7 +60,7 @@ app.use bodyParser.urlencoded(extended: true, limit: '50mb')
 #setup static file handler
 app.use '/static', express.static('/data/images')
 
-
+accessLogStream = fs.createWriteStream(__dirname + '/logs/access.log',{flgas:'a'})
 #favicon
 app.use favicon(__dirname + '/images/favicon/favicon.ico')
 #handle gabor post request seperately
@@ -143,7 +150,20 @@ app.post '/segmentation/textline/gabor*', (req, res) ->
 app.use router
 server = http.createServer app
 #server.timeout = 12000
+app.use(morgan('combined',{stream: accessLogStream}))
+#setup routes
+app.use router
 
-server.listen nconf.get('server:port'), ->
+
+#httpsServer = https.createServer(credentials,app)
+httpServer = http.createServer(app)
+
+httpServer.timeout = nconf.get('server:timeout')
+httpsServer.timeout = nconf.get('server:timeout')
+
+httpServer.listen nconf.get('server:httpPort'), ->
   Statistics.loadStatistics()
-  logger.log 'info', 'Server listening on port ' + nconf.get 'server:port'
+  logger.log 'info', 'HTTP Server listening on port ' + nconf.get 'server:httpPort'
+
+#httpsServer.listen nconf.get('server:httpsPort'), ->
+#  logger.log 'info', 'HTTPS Server listening on port ' + nconf.get 'server:httpsPort'
