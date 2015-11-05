@@ -11,7 +11,6 @@ path    = require 'path'
 # expose parameterHelper
 parameterHelper = exports = module.exports = class ParameterHelper
 
-  higlighters = ['rectangle', 'polygon', 'circle']
   # ---
   # **getParamValue**</br>
   # Gets the value of an input parameter</br>
@@ -84,15 +83,15 @@ parameterHelper = exports = module.exports = class ParameterHelper
       data: data
     return result
 
-  buildGetUrl: (method, imagePath, neededParameters, parameterValues) ->
+  buildGetUrl: (method, imagePath, neededParameters, parameterValues, inputHighlighters) ->
     getUrl = 'http://' + nconf.get('server:rootUrl') + method + '?'
     i = 0
     for key, value of neededParameters
       if(!checkReservedParameters(key))
         getUrl += key + '=' + parameterValues[i] + '&'
         i++
-      else if(key in higlighters)
-        higlighterValues = @getHighlighterParamValues(value, parameterValues,null)
+      else if(key is 'highlighter')
+        getUrl += key + '=' + JSON.stringify(inputHighlighters['segments']) + '&'
     getUrl += 'md5=' + imagePath
     return getUrl
   # ---
@@ -127,6 +126,7 @@ parameterHelper = exports = module.exports = class ParameterHelper
         merged = merged.concat.apply(merged, inputHighlighter)
         merged = merged.map(Math.round)
         return merged.join(' ')
+
 
   # ---
   # **checkReservedParameters**</br>

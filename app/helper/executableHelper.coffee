@@ -71,7 +71,6 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
 
   executeRequest: (process, requestCallback) ->
       self = @
-      console.log 'executing command'
       async.waterfall [
         (callback) ->
           statIdentifier = Statistics.startRecording(process.req.originalUrl)
@@ -104,7 +103,6 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
     async.waterfall [
       (callback) ->
         if(req.body.image?)
-          console.log 'saving image'
           imageHelper.saveImage(req.body.image, callback)
         else if (req.body.url?)
           imageHelper.saveImageUrl(req.body.url, callback)
@@ -132,7 +130,7 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
         process.inputImageUrl = imageHelper.getInputImageUrl(result.md5)
         if(@neededParameters.outputImage?)
           process.outputImageUrl = imageHelper.getOutputImageUrl(result.md5)
-        process.resultLink = parameterHelper.buildGetUrl(req.originalUrl,imageHelper.md5, @neededParameters, @parameters.params)
+        process.resultLink = parameterHelper.buildGetUrl(req.originalUrl,imageHelper.md5, @neededParameters, @parameters.params, @inputHighlighters)
         resultHandler = null
         switch serviceInfo.output
           when 'console'
@@ -148,7 +146,7 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
         ioHelper.loadResult(@imageFolder, req.originalUrl, @parameters.params, true, callback)
         return
       (data, callback) ->
-        @getUrl = parameterHelper.buildGetUrl(req.originalUrl,imageHelper.md5, @neededParameters, @parameters.params)
+        @getUrl = parameterHelper.buildGetUrl(req.originalUrl,imageHelper.md5, @neededParameters, @parameters.params, @inputHighlighters)
         if(data?)
           if(!process.requireOutputImage)
             delete data['image']
@@ -166,6 +164,5 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
             requestCallback err, {'status':'planned', 'url':@getUrl}
             queueCallback()
           else
-            console.log 'calling queueCallback'
             processingQueue.addElement(process)
             queueCallback()

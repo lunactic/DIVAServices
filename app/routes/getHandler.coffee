@@ -58,7 +58,7 @@ getHandler = exports = module.exports = class GetHandler
       highlighter = JSON.parse(queryParams.highlighter)
 
     paramMatching = parameterHelper.matchParams(queryParams, highlighter, neededParameters, queryParams.md5, req)
-    imgFolder = nconf.get('paths:imageRootPath') + path.sep + paramMatching.data[0] + '/'
+    imgFolder = nconf.get('paths:imageRootPath') + path.sep + paramMatching.data['inputImage'] + '/'
     ioHelper.loadResult(imgFolder, req.path, paramMatching.params,false, (err, data) ->
       if(queryParams.requireOutputImage == 'false')
         delete data['image']
@@ -67,7 +67,6 @@ getHandler = exports = module.exports = class GetHandler
         data['status'] = 'done'
       callback null, data
     )
-    #buildResultFilePath(paramMatching, req, callback)
     return
 
   buildResultFilePath = (paramMatching, req, callback) ->

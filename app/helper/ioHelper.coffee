@@ -54,7 +54,7 @@ ioHelper = exports = module.exports = class IoHelper
         if(post)
           callback null, null
         else
-          console.log 'error: ' + err
+          logger.log 'error', err
           callback err,null
   # ---
   # **/br>
@@ -65,7 +65,6 @@ ioHelper = exports = module.exports = class IoHelper
   #   *params*  the used parameter values
   #   *result*  the execution result
   saveResult: (filePath, result, callback) ->
-    console.log 'save'
     fs.stat filePath, (err, stat) ->
       #check if file exists
       #console.log 'saving file to: ' + filePath
@@ -76,14 +75,12 @@ ioHelper = exports = module.exports = class IoHelper
             statusText: 'Could not save result file'
           callback error, null
         else
-          console.log 'file saved'
           callback null, result
         return
     return
 
 
   writeTempFile: (filePath, callback) ->
-    console.log 'saveTemp'
     fs.stat filePath, (err, stat) ->
       #check if file exists
       #console.log 'saving file to: ' + filePath
@@ -94,7 +91,6 @@ ioHelper = exports = module.exports = class IoHelper
             statusText: 'Could not save result file'
           callback error, null
         else
-          console.log 'file saved'
           callback null, null
         return
     return
