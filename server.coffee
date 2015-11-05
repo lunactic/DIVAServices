@@ -122,7 +122,7 @@ app.post '/segmentation/textline/gabor*', (req, res) ->
           #command = executableHelper.buildCommand(arrayFound[0].executablePath, @inputParameters, @neededParameters, @programType)
           command = 'java -Djava.awt.headless=true -jar /data/executables/gabortextlinesegmentation/gabortextlinesegmentation.jar create ' + @imagePath + ' input ' + nconf.get('paths:matlabScriptsPath') + ' ' + nconf.get('paths:matlabPath') + ' ' + @top + ' ' + @bottom + ' ' + @left + ' ' + @right + ' ' + @linkingRectWidth + ' ' + @linkingRectHeight
           resultHelper = new ConsoleResultHandler(null)
-          executableHelper.executeCommand(command,resultHelper, null, callback)
+          executableHelper.executeCommand(command,resultHelper, null, null, callback)
         return
       (data, statIdentifier, fromDisk, callback) ->
         if(fromDisk)

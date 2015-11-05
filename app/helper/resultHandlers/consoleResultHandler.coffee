@@ -20,7 +20,7 @@ consoleResultHandler = exports = module.exports = class consoleResultHandler
       #console.log 'task finished. Result: ' + stdout
       callback null, stdout, statIdentifier
 
-  handleResult: (error, stdout, stderr, statIdentifier,process, callback) ->
+  handleResult: (error, stdout, stderr, statIdentifier, process, callback) ->
     if(!file?)
       @handleResultGabor(error,stdout,stderr,statIdentifier,callback)
 
