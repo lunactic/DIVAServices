@@ -7,6 +7,7 @@
 
 # Module dependecies
 fs      = require 'fs'
+_       = require 'lodash'
 logger  = require '../logging/logger'
 
 
@@ -15,22 +16,18 @@ ioHelper = exports = module.exports = class IoHelper
 
   buildFilePath: (path,algorithm,params) ->
     algorithm = algorithm.replace(/\//g, '_')
-    tmpParams = JSON.parse(JSON.stringify(params))
     #join params with _
-    if(tmpParams.indexOf('requireOutputImage') != -1)
-      tmpParams.splice(tmpParams.indexOf('requireOutputImage'),1)
-    tmpParams = tmpParams.join('_').replace RegExp(' ', 'g'), '_'
-    filename = algorithm + '_' + tmpParams + '.json'
+    tmpParams = JSON.parse(JSON.stringify(params))
+    values = _.valuesIn(tmpParams).join(' ').replace(RegExp(' ', 'g'), '_')
+    filename = algorithm + '_' + values + '.json'
     return path + filename
 
   buildTempFilePath: (path,algorithm,params) ->
     algorithm = algorithm.replace(/\//g, '_')
     #join params with _
     tmpParams = JSON.parse(JSON.stringify(params))
-    if(tmpParams.indexOf('requireOutputImage') != -1)
-      tmpParams.splice(tmpParams.indexOf('requireOutputImage'),1)
-    tmpParams = tmpParams.join('_').replace RegExp(' ', 'g'), '_'
-    filename = algorithm + '_' + tmpParams + '_temp.json'
+    values = _.valuesIn(tmpParams).join(' ').replace(RegExp(' ', 'g'), '_')
+    filename = algorithm + '_' + values + '_temp.json'
     return path + filename
 
   # ---
@@ -41,8 +38,9 @@ ioHelper = exports = module.exports = class IoHelper
   #   *algorithm* the executed algorithm
   #   *params* the used parameter values
   loadResult: (path, algorithm, params, post, callback) ->
-    console.log 'load'
     filePath = @buildFilePath(path,algorithm,params)
+    console.log 'load from file  ' + filePath
+
     fs.stat filePath, (err, stat) ->
       #check if file exists
       if !err?
