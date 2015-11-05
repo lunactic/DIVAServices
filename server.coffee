@@ -160,7 +160,7 @@ app.use router
 httpServer = http.createServer(app)
 
 httpServer.timeout = nconf.get('server:timeout')
-httpsServer.timeout = nconf.get('server:timeout')
+#httpsServer.timeout = nconf.get('server:timeout')
 
 httpServer.listen nconf.get('server:httpPort'), ->
   Statistics.loadStatistics()
