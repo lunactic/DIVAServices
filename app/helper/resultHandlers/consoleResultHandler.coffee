@@ -10,8 +10,20 @@ consoleResultHandler = exports = module.exports = class consoleResultHandler
   constructor: (filePath) ->
     @file = filePath
 
+  handleResultGabor: (error, stdout, stderr, statIdentifier, callback) ->
+  if stderr.length > 0
+    err =
+      statusText: stderr
+      status: 500
+    callback err, null, statIdentifier
+  else
+    #console.log 'task finished. Result: ' + stdout
+    callback null, stdout, statIdentifier
 
   handleResult: (error, stdout, stderr, statIdentifier,process, callback) ->
+    if(!file?)
+      @handleResultGabor(error,stdout,stderr,statIdentifier,callback)
+
     self = @
     if stderr.length > 0
       err =
