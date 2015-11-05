@@ -20,6 +20,7 @@ express       = require 'express'
 favicon       = require 'serve-favicon'
 fs            = require 'fs'
 http          = require 'http'
+https         = require 'https'
 morgan        = require 'morgan'
 logger        = require './app/logging/logger'
 router        = require './app/routes/router'
@@ -28,6 +29,12 @@ Statistics    = require './app/statistics/statistics'
 
 #setup express framework
 app = express()
+
+#HTTPS settings
+privateKey = fs.readFileSync('/data/express.key','utf8')
+certificate = fs.readFileSync('/data/express.crt','utf8')
+
+credentials = {key: privateKey, cert: certificate}
 
 #shutdown handler
 process.on 'SIGTERM', () ->
@@ -50,10 +57,17 @@ app.use(morgan('combined',{stream: accessLogStream}))
 #setup routes
 app.use router
 
-server = http.createServer app
-server.timeout = nconf.get('server:timeout')
 
-server.listen nconf.get('server:port'), ->
+
+httpsServer = https.createServer(credentials,app)
+httpServer = http.createServer(app)
+
+httpServer.timeout = nconf.get('server:timeout')
+httpsServer.timeout = nconf.get('server:timeout')
+
+httpServer.listen nconf.get('server:httpPort'), ->
   Statistics.loadStatistics()
-  logger.log 'info', 'Server listening on port ' + nconf.get 'server:port'
-  
+  logger.log 'info', 'HTTP Server listening on port ' + nconf.get 'server:httpPort'
+
+httpsServer.listen nconf.get('server:httpsPort'), ->
+  logger.log 'info', 'HTTPS Server listening on port ' + nconf.get 'server:httpsPort'
