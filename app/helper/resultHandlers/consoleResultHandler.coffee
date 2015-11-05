@@ -15,10 +15,10 @@ consoleResultHandler = exports = module.exports = class consoleResultHandler
       err =
         statusText: stderr
         status: 500
-      callback err, null, statIdentifier
+      callback err, null, statIdentifier, false
     else
       #console.log 'task finished. Result: ' + stdout
-      callback null, stdout, statIdentifier
+      callback null, stdout, statIdentifier, false
 
   handleResult: (error, stdout, stderr, statIdentifier, process, callback) ->
     if(!file?)
