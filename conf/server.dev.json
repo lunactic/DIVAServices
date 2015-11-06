@@ -35,6 +35,7 @@
   },
   "reservedWords" :[
     "inputImage",
+    "inputImageUrl",
     "outputImage",
     "resultFile",
     "matlabPath",

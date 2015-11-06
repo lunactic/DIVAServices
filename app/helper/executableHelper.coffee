@@ -118,7 +118,7 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
         @inputParameters = req.body.inputs
         @inputHighlighters = req.body.highlighter
         @programType = serviceInfo.programType
-        @parameters = parameterHelper.matchParams(@inputParameters, @inputHighlighters.segments,@neededParameters,@imagePath, req)
+        @parameters = parameterHelper.matchParams(@inputParameters, @inputHighlighters.segments,@neededParameters,@imagePath,imageHelper.md5, req)
         if(req.body.requireOutputImage?)
           process.requireOutputImage = req.body.requireOutputImage
         process.parameters = @parameters
