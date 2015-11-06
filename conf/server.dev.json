@@ -18,7 +18,7 @@
     "httpPort": 8080,
     "httpsPort": 8443,
     "maxFileSize": 20971520,
-    "rootUrl":"192.168.56.101:8080"
+    "rootUrl":"divaservices.unifr.ch"
   },
   "images": {
     "storeResponse": false

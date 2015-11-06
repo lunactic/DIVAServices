@@ -21,8 +21,9 @@ consoleResultHandler = exports = module.exports = class consoleResultHandler
       callback null, stdout, statIdentifier, false
 
   handleResult: (error, stdout, stderr, statIdentifier, process, callback) ->
-    if(!file?)
+    if(!@file?)
       @handleResultGabor(error,stdout,stderr,statIdentifier,callback)
+      return
 
     self = @
     if stderr.length > 0
