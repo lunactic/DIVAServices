@@ -7,6 +7,7 @@
 # Module dependencies
 nconf   = require 'nconf'
 path    = require 'path'
+ImageHelper = require './imageHelper'
 
 # expose parameterHelper
 parameterHelper = exports = module.exports = class ParameterHelper
@@ -27,8 +28,11 @@ parameterHelper = exports = module.exports = class ParameterHelper
   # Gets the value of a reserved parameter as defined in conf/server.NODE_ENV.json</br>
   # `params`
   #   *parameter* reserved parameter
+  #   *neededParameters* the required parameters
   #   *imagePath* path to the input image
-  getReservedParamValue: (parameter, neededParameters, imagePath, req) ->
+  #   *md5* md5 hash of the input image
+  #   *req* the request
+  getReservedParamValue: (parameter, neededParameters, imagePath, md5, req) ->
     switch parameter
       when 'matlabPath'
         return nconf.get('paths:matlabPath')
@@ -38,6 +42,9 @@ parameterHelper = exports = module.exports = class ParameterHelper
         return path.extname(imagePath).slice(1)
       when 'inputImage'
         return imagePath
+      when 'inputImageUrl'
+        imageHelper = new ImageHelper()
+        return imageHelper.getInputImageUrl(md5)
       when 'imageRootPath'
         return nconf.get('paths:imageRootPath')
       when 'outputFolder'
@@ -62,8 +69,9 @@ parameterHelper = exports = module.exports = class ParameterHelper
   #   *inputHighlighter* The received input highlighter
   #   *neededParameters*  The needed parameteres
   #   *imagePath* path to the input image
+  #   *md5* md5 hash of the input image
   #   *req* incoming request
-  matchParams: (inputParameters, inputHighlighter, neededParameters,imagePath, req) ->
+  matchParams: (inputParameters, inputHighlighter, neededParameters,imagePath, md5,  req) ->
     params = {}
     data = {}
     for parameter of neededParameters
@@ -73,7 +81,7 @@ parameterHelper = exports = module.exports = class ParameterHelper
         if parameter is 'highlighter'
           params[neededParameters[parameter]] = this.getHighlighterParamValues(neededParameters[parameter], inputHighlighter)
         else
-          data[parameter] = this.getReservedParamValue(parameter, neededParameters, imagePath, req)
+          data[parameter] = this.getReservedParamValue(parameter, neededParameters, imagePath, md5, req)
       else
         value = this.getParamValue(parameter, inputParameters)
         if value?
@@ -94,6 +102,7 @@ parameterHelper = exports = module.exports = class ParameterHelper
         getUrl += key + '=' + JSON.stringify(inputHighlighters['segments']) + '&'
     getUrl += 'md5=' + imagePath
     return getUrl
+
   # ---
   # **getHighlighterParamValues**</br>
   # Gets Parameter values for highlighters.
