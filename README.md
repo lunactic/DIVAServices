@@ -45,22 +45,22 @@ Defines how the response of a GET request to a specific algorithm will look. Thi
 ###Basic Information ###
 Integrating DivaServices works like integrating any other RESTFul-API as well. To get an overview of which algorithms are available perform a GET request to the root (e.g. http://divaservices.unifr.ch). The server will respond with a message like this:
 ````json
-    [
-    {
-      "name": "Text Block Extraction",
-      "description": "Text block extraction method",
-      "url": "http://divaservices.unifr.ch/extraction/textblock"
-    },
-    {
-      "name": "Multi Scale Interest Point Detection",
-      "description": "Multi scale interest point detectors based on Gaussian scale space",
-      "url": "http://divaservices.unifr.ch/ipd/multiscale"
+[
+  {
+    "name": "Text Block Extraction",
+    "description": "Text block extraction method",
+    "url": "http://divaservices.unifr.ch/extraction/textblock"
   },
-    {
-      "name": "Artificial Noising",
-      "description": "Add artificial noise to an image",
-      "url": "http://divaservices.unifr.ch/noise"
-    }
+  {
+    "name": "Multi Scale Interest Point Detection",
+    "description": "Multi scale interest point detectors based on Gaussian scale space",
+    "url": "http://divaservices.unifr.ch/ipd/multiscale"
+  },
+  {
+    "name": "Artificial Noising",
+    "description": "Add artificial noise to an image",
+    "url": "http://divaservices.unifr.ch/noise"
+  }
 ]
 ````
 Responding with a list of all currently available methods. A GET request to a certain method (e.g. http://divaservices.unifr.ch/extraction/textblock) will return information this specific method needs for execution:
@@ -105,13 +105,13 @@ To send an image as base64 string include id as following into your POST message
 Include a URL in the following way into your POST message body:
 ````json
   {
-  "url": "http://url.to.your.image"
+    "url": "http://url.to.your.image"
   }
 ````
 **Send image as md5**
 If you know that an image is already available on the server you can also simply send the md5-hash of the base64 representation using:
 ````json
   {
-  "md5Image": "md5HashOfBas64"
-}
+    "md5Image": "md5HashOfBas64"
+  }
 ````
