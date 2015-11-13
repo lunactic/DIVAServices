@@ -101,6 +101,7 @@ app.post '/segmentation/textline/gabor*', (req, res) ->
       (result, callback) ->
         @params = []
         @imagePath = result.path
+        @imageFolder = result.folder
         @top = req.body.top
         @bottom = req.body.bottom
         @left = req.body.left
@@ -116,7 +117,7 @@ app.post '/segmentation/textline/gabor*', (req, res) ->
         callback null
         return
       (callback) ->
-        ioHelper.loadResult(imageHelper.imgFolder, req.originalUrl, @params,true, callback)
+        ioHelper.loadResult(@imageFolder, req.originalUrl, @params,true, callback)
         return
       (data, callback) ->
         if(data?)
@@ -133,7 +134,7 @@ app.post '/segmentation/textline/gabor*', (req, res) ->
           callback null, data
         #save the response
         else
-          filePath = ioHelper.buildFilePath(imageHelper.imgFolder, req.originalUrl, @params)
+          filePath = ioHelper.buildFilePath(@imageFolder, req.originalUrl, @params)
           ioHelper.saveResult(filePath, data, callback)
         return
       #finall callback, handling of the result and returning it
