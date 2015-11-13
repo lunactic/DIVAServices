@@ -73,19 +73,19 @@ app.post '/segmentation/textline/gabor*', (req, res) ->
   if(req.originalUrl.indexOf('merge') > -1)
     command = 'java -Djava.awt.headless=true -jar /data/executables/gabortextlinesegmentation/gabortextlinesegmentation.jar merge ' + req.body.mergePolygon1 + ' ' + req.body.mergePolygon2
     console.log 'result Helper: ' + resultHelper
-    executableHelper.executeCommand command, resultHelper,null, (err, data, statIdentifier, fromDisk, callback) ->
+    executableHelper.executeCommand command, resultHelper,null,null, (err, data, statIdentifier, fromDisk, callback) ->
       res.status 200
       res.json JSON.parse data
       logger.log 'info', 'RESPONSE 200'
   else if (req.originalUrl.indexOf('split') > -1)
     command = 'java -Djava.awt.headless=true -jar /data/executables/gabortextlinesegmentation/gabortextlinesegmentation.jar split ' + req.body.splitPolygon + ' ' + req.body.xSplit + ' ' + req.body.ySplit
-    executableHelper.executeCommand command, resultHelper,null, (err, data, statIdentifier, fromDisk, callback) ->
+    executableHelper.executeCommand command, resultHelper,null,null, (err, data, statIdentifier, fromDisk, callback) ->
       res.status 200
       res.json JSON.parse data
       logger.log 'info', 'RESPONSE 200'
   else if (req.originalUrl.indexOf('erase') > -1)
     command = 'java -Djava.awt.headless=true -jar /data/executables/gabortextlinesegmentation/gabortextlinesegmentation.jar delete ' + req.body.erasePolygon + ' ' + req.body.xErase + ' ' + req.body.yErase
-    executableHelper.executeCommand command, resultHelper,null, (err, data, statIdentifier, fromDisk, callback) ->
+    executableHelper.executeCommand command, resultHelper,null,null (err, data, statIdentifier, fromDisk, callback) ->
       res.status 200
       res.json JSON.parse data
       logger.log 'info', 'RESPONSE 200'
