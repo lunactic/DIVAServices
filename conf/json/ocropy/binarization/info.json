@@ -1,0 +1,25 @@
+{
+  "name": "ocropy - binarization",
+  "description": "Binarization using the ocropy binarization method",
+  "url": "http://$BASEURL$/ocropy/binarization",
+  "info": {
+    "author": "tmbdev",
+    "url": "https://github.com/tmbdev/ocropy",
+    "license": "Apache License 2.0 - (https://www.apache.org/licenses/LICENSE-2.0)",
+    "works on": "all image types"
+  },
+  "input": [],
+  "example": {
+    "input": {
+      "highlighter": {},
+      "inputs": {},
+      "md5Image": "2a048f6dcce9d52ea9b80de048591ce9",
+      "requireOutputImage": false
+    },
+    "output": {
+      "resultLink": "http://divaservices.unifr.ch/ocropy/binarization?md5=2a048f6dcce9d52ea9b80de048591ce9",
+      "imageUrl": "http://divaservices.unifr.ch/static/2a048f6dcce9d52ea9b80de048591ce9/input.png",
+      "status": "done"
+    }
+  }
+}
