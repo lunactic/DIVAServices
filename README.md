@@ -29,7 +29,7 @@ The necessary binaries to run the methods are currently only available upon requ
 
 ----------
 ##Installation
-The installation process is described on a seperate wiki page here: [Installation](https://github.com/lunactic/DIVAServices/wiki/Installation)git 
+The installation process is described on a seperate wiki page here: [Installation](https://github.com/lunactic/DIVAServices/wiki/Installation)
 
 ----------
 
