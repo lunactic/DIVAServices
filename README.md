@@ -1,5 +1,4 @@
-<<<<<<< HEAD
-#DivaServices
+#DIVAServices
 This is a basic implementation of the DivaServices, developed in the Diva group at University of Fribourg (http://diuf.unifr.ch/diva/)
 
 DivaServices is a RESTFul webservice to access different Document Image Analysis algorithms.
@@ -27,18 +26,10 @@ Currently 16 methods are available:
  - Image Noising (UniFr)
 
 The necessary binaries to run the methods are currently only available upon request.
-=======
-DIVAServices
-=======
-
-This is the repository for the DIVAServices backend written in [node.js](https://nodejs.org/). It offers access to different Document Image Analysis (DIA) methods over a RESTFul-API.
-
-The current development version is accessible at [http://divaservices.unifr.ch](http://divaservices.unifr.ch). Feel free to play with it and come back with questions or ideas.
-
 
 ----------
 ##JSON Schema ##
-For validating the input and the output we designed a JSON-Schema that can be used. It can be found at '/conf/schema.json'. Currently there are three important schemas:
+For validating the input and the output we designed a JSON-Schema that can be used. It can be found at '/conf/schemas.json'. Currently there are three important schemas:
 
 **root:algorithmSchema**
 Defines how an algorithm is defined at the root level of the application.
@@ -200,4 +191,10 @@ Include a URL in the following way into your POST message body:
     {
 	  "url": "http://url.to.your.image
 	}
->>>>>>> development
+ **send image as md5** 
+ If you know that an image is already available on the server you can simply send the md5 hash of the bas64 representation of the image:
+  ````json
+  {
+    "md5Image": "md5HashOfBas64"
+  }
+ ````

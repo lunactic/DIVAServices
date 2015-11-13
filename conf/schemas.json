@@ -27,6 +27,11 @@
             "minLength": 5,
             "maxLength": 255
           },
+          "type":{
+            "type":"string",
+            "minLength": 2,
+            "maxLength": 50
+          },
           "url": {
             "format": "uri"
           }
@@ -174,7 +179,7 @@
             "additionalItems": false
           }
         },
-        "additionalProperties": false
+        "additionalProperties": true
       },
       "algorithmSchema": {
         "id": "algorithmSchema",
