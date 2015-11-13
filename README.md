@@ -87,7 +87,7 @@ Defines how the response of a GET request to a specific algorithm will look. Thi
 ## Integrating DivaServices in your Application ##
 ###Basic Information ###
 Integrating DivaServices works like integrating any other RESTFul-API as well. To get an overview of which algorithms are available perform a GET request to the root (e.g. http://divaservices.unifr.ch). The server will respond with a message like this:
-
+````json
     [
     {
       name: "Text Block Extraction",
@@ -105,9 +105,9 @@ Integrating DivaServices works like integrating any other RESTFul-API as well. T
       url: "http://divaservices.unifr.ch/noise"
     }
 ]
-
+````
 Responding with a list of all currently available methods. A GET request to a certain method (e.g. http://divaservices.unifr.ch/extraction/textblock) will return information this specific method needs for execution:
-
+````json
   {
     name: "Text Block Extraction",
     description: "Text block extraction method",
@@ -118,7 +118,8 @@ Responding with a list of all currently available methods. A GET request to a ce
     },
     input: [],
     example: {}
-  }    
+  }
+````
 #### input ####
 The input array describes the needed inputs for this method to be able to execute. Currently we have the following possible parameters:
 
@@ -138,19 +139,20 @@ DIVAServices accept images over two ways. Images can be sent either as *base64* 
 
 **Send image as base64**
 To send an image as base64 string include id as following into your POST message body:
-
+````json
   {
     "image": "base64EncodedImageString"
   }
+````  
 **Send image as URL**
 Include a URL in the following way into your POST message body:
-
+````json
   {
   "url": "http://url.to.your.image
 }
-
+````
 Responding with a list of all currently available methods. A GET request to a certain method (e.g. http://divaservices.unifr.ch/extraction/textblock) will return information this specific method needs for execution:
-
+````json
     {
 	    name: "Text Block Extraction",
 	    description: "Text block extraction method",
@@ -162,6 +164,7 @@ Responding with a list of all currently available methods. A GET request to a ce
 	    input: [],
 	    example: {}
     }
+````
 #### input ####
 The input array describes the needed inputs for this method to be able to execute. Currently we have the following possible parameters:
 
@@ -181,16 +184,18 @@ DIVAServices accept images over two ways. Images can be sent either as *base64* 
 
 **Send image as base64**
 To send an image as base64 string include id as following into your POST message body:
-
+````json
     {
 	    "image": "base64EncodedImageString"
     }
+````
 **Send image as URL**
 Include a URL in the following way into your POST message body:
-
+````json
     {
 	  "url": "http://url.to.your.image
 	}
+````
  **send image as md5** 
  If you know that an image is already available on the server you can simply send the md5 hash of the bas64 representation of the image:
   ````json
