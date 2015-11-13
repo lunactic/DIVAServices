@@ -15,8 +15,10 @@
   },
   "server": {
     "timeout": 600000,
-    "port": 8080,
-    "maxFileSize": 20971520
+    "httpPort": 8080,
+    "httpsPort": 8443,
+    "maxFileSize": 20971520,
+    "rootUrl":"192.168.56.101:8080"
   },
   "images": {
     "storeResponse": false
@@ -27,10 +29,15 @@
     "matlabScriptsPath": "/data/matlab",
     "jsonPath":"/data/json",
     "ocropyLanguageModelsPath": "/data/ocropyLanguageModels",
-    "statisticsFile":"/data/statistics.json"
+    "statisticsFile":"/data/statistics.json",
+    "servicesInfoFile":"/data/json/services.json",
+    "noisingXmlPath": "/data/noise/scripts/realistic.xml"
   },
   "reservedWords" :[
-    "image",
+    "inputImage",
+    "inputImageUrl",
+    "outputImage",
+    "resultFile",
     "matlabPath",
     "imageRootPath",
     "matlabScriptsPath",
@@ -38,6 +45,8 @@
     "inputFileExtension",
     "outputFolder",
     "highlighter",
-    "ocropyLanguageModelsPath"
+    "ocropyLanguageModelsPath",
+    "startUp",
+    "noisingXmlFile"
   ]
 }

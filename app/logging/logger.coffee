@@ -29,3 +29,7 @@ exports.log = (level, msg, module) ->
     logger[level] msg + " [#{module}]"
   else
     logger[level] msg
+
+exports.logRequest = (req) ->
+  ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress
+  logger['info'] ip + ';' + req.method + ';' + req.originalUrl

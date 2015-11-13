@@ -7,10 +7,10 @@
 # Module dependencies
 nconf   = require 'nconf'
 path    = require 'path'
+ImageHelper = require './imageHelper'
 
 # expose parameterHelper
 parameterHelper = exports = module.exports = class ParameterHelper
-
 
   # ---
   # **getParamValue**</br>
@@ -28,8 +28,11 @@ parameterHelper = exports = module.exports = class ParameterHelper
   # Gets the value of a reserved parameter as defined in conf/server.NODE_ENV.json</br>
   # `params`
   #   *parameter* reserved parameter
+  #   *neededParameters* the required parameters
   #   *imagePath* path to the input image
-  getReservedParamValue: (parameter, imagePath, req) ->
+  #   *md5* md5 hash of the input image
+  #   *req* the request
+  getReservedParamValue: (parameter, neededParameters, imagePath, md5, req) ->
     switch parameter
       when 'matlabPath'
         return nconf.get('paths:matlabPath')
@@ -37,8 +40,11 @@ parameterHelper = exports = module.exports = class ParameterHelper
         return nconf.get('paths:matlabScriptsPath')
       when 'inputFileExtension'
         return path.extname(imagePath).slice(1)
-      when 'image'
+      when 'inputImage'
         return imagePath
+      when 'inputImageUrl'
+        imageHelper = new ImageHelper()
+        return imageHelper.getInputImageUrl(md5)
       when 'imageRootPath'
         return nconf.get('paths:imageRootPath')
       when 'outputFolder'
@@ -47,6 +53,55 @@ parameterHelper = exports = module.exports = class ParameterHelper
         return req.get('host')
       when 'ocropyLanguageModelsPath'
         return nconf.get('paths:ocropyLanguageModelsPath')
+      when 'startUp'
+        return neededParameters['startUp']
+      when 'resultFile'
+        return '##resultFile##'
+      when 'outputImage'
+        return path.dirname(imagePath) + '/output.png'
+      when 'noisingXmlFile'
+        return nconf.get('paths:noisingXmlPath')
+  # ---
+  # **matchParams**</br>
+  # Matches the received parameter values to the needed parameters</br>
+  # `params`
+  #   *inputParameters* The received parameters and its values
+  #   *inputHighlighter* The received input highlighter
+  #   *neededParameters*  The needed parameteres
+  #   *imagePath* path to the input image
+  #   *md5* md5 hash of the input image
+  #   *req* incoming request
+  matchParams: (inputParameters, inputHighlighter, neededParameters,imagePath, md5,  req) ->
+    params = {}
+    data = {}
+    for parameter of neededParameters
+      #build parameters
+      if checkReservedParameters parameter
+        #check if highlighter
+        if parameter is 'highlighter'
+          params[neededParameters[parameter]] = this.getHighlighterParamValues(neededParameters[parameter], inputHighlighter)
+        else
+          data[parameter] = this.getReservedParamValue(parameter, neededParameters, imagePath, md5, req)
+      else
+        value = this.getParamValue(parameter, inputParameters)
+        if value?
+          params[parameter] = value
+    result =
+      params: params
+      data: data
+    return result
+
+  buildGetUrl: (method, imagePath, neededParameters, parameterValues, inputHighlighters) ->
+    getUrl = 'http://' + nconf.get('server:rootUrl') + method + '?'
+    i = 0
+    for key, value of neededParameters
+      if(!checkReservedParameters(key))
+        getUrl += key + '=' + parameterValues[i] + '&'
+        i++
+      else if(key is 'highlighter')
+        getUrl += key + '=' + JSON.stringify(inputHighlighters['segments']) + '&'
+    getUrl += 'md5=' + imagePath
+    return getUrl
 
   # ---
   # **getHighlighterParamValues**</br>
@@ -62,16 +117,11 @@ parameterHelper = exports = module.exports = class ParameterHelper
   #   *neededHighlighter* required highlighter as defined by the method
   #   *inputHighlighter*  received highlighter with its value from the request
   getHighlighterParamValues: (neededHighlighter, inputHighlighter, callback) ->
-    if(neededHighlighter is not inputHighlighter['type'])
-      error = []
-      error.code = 500
-      error.statusText = 'inputHighlighter does not match the requested highlighter from this method.'
-      callback error
-
+    # TODO: Is this actually needed?
     switch neededHighlighter
       when 'rectangle'
         merged = []
-        merged = merged.concat.apply(merged,inputHighlighter.segments)
+        merged = merged.concat.apply(merged,inputHighlighter)
         merged = merged.map(Math.round)
         return merged.join(' ')
       when 'circle'
@@ -82,6 +132,16 @@ parameterHelper = exports = module.exports = class ParameterHelper
         return position[0] + ' ' + position[1] + ' ' + radius
       when 'polygon'
         merged = []
-        merged = merged.concat.apply(merged, inputHighlighter.segments)
+        merged = merged.concat.apply(merged, inputHighlighter)
         merged = merged.map(Math.round)
         return merged.join(' ')
+
+
+  # ---
+  # **checkReservedParameters**</br>
+  # Checks if a parameter is in the list of reserverd words as defined in server.NODE_ENV.json</br>
+  # `params`
+  #   *parameter* the parameter to check
+  checkReservedParameters = (parameter) ->
+    reservedParameters = nconf.get('reservedWords')
+    return parameter in reservedParameters

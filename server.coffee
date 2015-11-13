@@ -14,18 +14,27 @@ if not process.env.NODE_ENV? or process.env.NODE_ENV not in ['dev', 'test', 'pro
 nconf = require 'nconf'
 nconf.add 'server', type: 'file', file: './conf/server.' + process.env.NODE_ENV + '.json'
 
-express       = require 'express'
-#favicon       = require 'serve-favicon'
-cookieParser  = require 'cookie-parser'
 bodyParser    = require 'body-parser'
-sysPath       = require 'path'
+cookieParser  = require 'cookie-parser'
+express       = require 'express'
+favicon       = require 'serve-favicon'
+fs            = require 'fs'
 http          = require 'http'
-router        = require './app/routes/router'
+https         = require 'https'
+morgan        = require 'morgan'
 logger        = require './app/logging/logger'
+router        = require './app/routes/router'
+sysPath       = require 'path'
 Statistics    = require './app/statistics/statistics'
 
 #setup express framework
 app = express()
+
+#HTTPS settings
+privateKey = fs.readFileSync('/data/express.key','utf8')
+certificate = fs.readFileSync('/data/express.crt','utf8')
+
+credentials = {key: privateKey, cert: certificate}
 
 #shutdown handler
 process.on 'SIGTERM', () ->
@@ -41,13 +50,24 @@ app.use bodyParser.urlencoded(extended: true, limit: '50mb')
 #setup static file handler
 app.use '/static', express.static('/data/images')
 
+accessLogStream = fs.createWriteStream(__dirname + '/logs/access.log',{flgas:'a'})
+#favicon
+app.use favicon(__dirname + '/images/favicon/favicon.ico')
+app.use(morgan('combined',{stream: accessLogStream}))
 #setup routes
 app.use router
 
-#start server on port specified in configuration file
-server = http.createServer app
-#server.timeout = 12000
 
-server.listen nconf.get('server:port'), ->
+
+httpsServer = https.createServer(credentials,app)
+httpServer = http.createServer(app)
+
+httpServer.timeout = nconf.get('server:timeout')
+httpsServer.timeout = nconf.get('server:timeout')
+
+httpServer.listen nconf.get('server:httpPort'), ->
   Statistics.loadStatistics()
-  logger.log 'info', 'Server listening on port ' + nconf.get 'server:port'
+  logger.log 'info', 'HTTP Server listening on port ' + nconf.get 'server:httpPort'
+
+httpsServer.listen nconf.get('server:httpsPort'), ->
+  logger.log 'info', 'HTTPS Server listening on port ' + nconf.get 'server:httpsPort'

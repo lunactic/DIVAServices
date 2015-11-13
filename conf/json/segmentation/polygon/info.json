@@ -1,0 +1,23 @@
+{
+  "name":"Polygonization",
+  "description":"polygons from a binary image",
+  "url":"http://$BASEURL$/segmentation/polygon",
+  "info":{
+    "works on": "binary images (with white as foreground)"
+  },
+  "input": [
+    {
+      "number": {
+        "name": "tightness",
+        "description": "The tightness of the polyong",
+        "options": {
+          "required": true,
+          "steps": 1,
+          "default": 7,
+          "min":7,
+          "max":30
+        }
+      }
+    }
+  ]
+}

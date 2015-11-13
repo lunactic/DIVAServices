@@ -11,21 +11,36 @@ router      = require('express').Router()
 GetHandler  = require './getHandler'
 PostHandler = require './postHandler'
 logger      = require '../logging/logger'
+Upload      = require '../upload/upload'
+ImageHelper = require '../helper/imageHelper'
 
 getHandler = new GetHandler()
 postHandler = new PostHandler()
 
-# Set up the routing for GET requests
-router.get '*', (req, res, next) ->
-  logger.log 'info', 'GET ' + req.originalUrl
-  getHandler.handleRequest req, (err, response) ->
-    sendResponse res, err, response
+# Set up special route for image uploading
+router.post '/upload', (req, res) ->
+  if(req.body.image?)
+    Upload.uploadBase64 req.body.image, (err,result) ->
+      res.json {md5: result.md5}
+  else if(req.body.url?)
+    Upload.uploadUrl req.body.url, (err,result) ->
+      res.json {md5: result.md5}
 
 # Set up the routing for POST requests
 router.post '*', (req, res, next) ->
-  logger.log 'info', 'POST ' + req.originalUrl
   postHandler.handleRequest req, (err, response) ->
     sendResponse res, err, response
+
+
+router.get '/image/:md5', (req,res) ->
+  ImageHelper.imageExists req.params.md5, (err, response) ->
+    sendResponse res, err, response
+
+# Set up the routing for GET requests
+router.get '*', (req, res, next) ->
+  getHandler.handleRequest req, (err, response) ->
+    sendResponse res, err, response
+
 
 # ---
 # **sendResponse**</br>
@@ -36,14 +51,16 @@ router.post '*', (req, res, next) ->
 #   *response* the JSON response. If set a HTTP 200 will be returned
 sendResponse = (res, err, response) ->
   if err?
-    logger.log 'error', JSON.stringify(err)
     res.status err.status or 500
     res.json err.statusText
     logger.log 'error', err.statusText
   else
     res.status 200
-    res.json response
-    logger.log 'info', 'RESPONSE 200'
+    #parse an unparsed json string to get a correct response
+    try
+      res.json JSON.parse(response)
+    catch error
+      res.json response
 
 # Expose router
 module.exports = router

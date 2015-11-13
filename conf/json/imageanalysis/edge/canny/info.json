@@ -1,0 +1,20 @@
+{
+  "name": "Canny Edge Detection",
+  "description": "Canny Edge Detection",
+  "url": "http://$BASEURL$/imageanalysis/edge/canny",
+  "info": {},
+  "input": [],
+  "example": {
+    "input": {
+      "highlighter": {},
+      "inputs": {},
+      "md5Image": "2a048f6dcce9d52ea9b80de048591ce9",
+      "requireOutputImage": false
+    },
+    "output": {
+      "resultLink": "http://divaservices.unifr.ch/imageanalysis/edge/canny?md5=2a048f6dcce9d52ea9b80de048591ce9",
+      "imageUrl": "http://divaservices.unifr.ch/static/2a048f6dcce9d52ea9b80de048591ce9/input.png",
+      "status": "done"
+    }
+  }
+}
