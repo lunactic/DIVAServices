@@ -28,19 +28,6 @@ Currently 16 methods are available:
 The necessary binaries to run the methods are currently only available upon request.
 
 ----------
-##JSON Schema ##
-For validating the input and the output we designed a JSON-Schema that can be used. It can be found at '/conf/schemas.json'. Currently there are three important schemas:
-
-**root:algorithmSchema**
-Defines how an algorithm is defined at the root level of the application.
-
-**details:responseSchema**
-Defines how the response of an algorithm will look after invoking it using a POST request.
-
-**details:algorithmSchema**
-Defines how the response of a GET request to a specific algorithm will look. This information contains all necessary information about which information is needed of an algorithm to be executed.
-
-
 ## Integrating DivaServices in your Application ##
 ###Basic Information ###
 Integrating DivaServices works like integrating any other RESTFul-API as well. To get an overview of which algorithms are available perform a GET request to the root (e.g. http://divaservices.unifr.ch). The server will respond with a message like this:
@@ -115,3 +102,17 @@ If you know that an image is already available on the server you can also simply
     "md5Image": "md5HashOfBas64"
   }
 ````
+
+##JSON Schema ##
+For validating the input and the output we designed a JSON-Schema that can be used. It can be found at '/conf/schemas.json'. Currently there are three important schemas:
+
+**root:algorithmSchema**
+Defines how an algorithm is defined at the root level of the application.
+
+**details:responseSchema**
+Defines how the response of an algorithm will look after invoking it using a POST request.
+
+**details:algorithmSchema**
+Defines how the response of a GET request to a specific algorithm will look. This information contains all necessary information about which information is needed of an algorithm to be executed.
+
+----------
