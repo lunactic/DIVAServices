@@ -28,6 +28,11 @@ Currently 16 methods are available:
 The necessary binaries to run the methods are currently only available upon request.
 
 ----------
+##Installation
+The installation process is described on a seperate wiki page here: [Installation]{https://github.com/lunactic/DIVAServices/wiki/Installation}
+
+----------
+
 ## Integrating DivaServices in your Application ##
 ###Basic Information ###
 Integrating DivaServices works like integrating any other RESTFul-API as well. To get an overview of which algorithms are available perform a GET request to the root (e.g. http://divaservices.unifr.ch). The server will respond with a message like this:
