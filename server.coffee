@@ -85,7 +85,7 @@ app.post '/segmentation/textline/gabor*', (req, res) ->
       logger.log 'info', 'RESPONSE 200'
   else if (req.originalUrl.indexOf('erase') > -1)
     command = 'java -Djava.awt.headless=true -jar /data/executables/gabortextlinesegmentation/gabortextlinesegmentation.jar delete ' + req.body.erasePolygon + ' ' + req.body.xErase + ' ' + req.body.yErase
-    executableHelper.executeCommand command, resultHelper,null,null (err, data, statIdentifier, fromDisk, callback) ->
+    executableHelper.executeCommand command, resultHelper,null,null, (err, data, statIdentifier, fromDisk, callback) ->
       res.status 200
       res.json JSON.parse data
       logger.log 'info', 'RESPONSE 200'
