@@ -92,7 +92,10 @@ app.post '/segmentation/textline/gabor*', (req, res) ->
   else
     async.waterfall [
       (callback) ->
-        imageHelper.saveImageUrl(req.body.url, callback)
+        if(req.body.url?)
+          imageHelper.saveImageUrl(req.body.url, callback)
+        else if(req.body.image?)
+          imageHelper.saveImage(req.body.image,callback)
         return
       #perform parameter matching
       (result, callback) ->
