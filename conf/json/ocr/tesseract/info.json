@@ -1,0 +1,21 @@
+{
+  "name": "Tesseract OCR",
+  "description": "OCR using the Tesseract engine",
+  "url": "http://$BASEURL$/ocr/tesseract",
+  "input": [],
+  "info": {
+    "author": "Google Inc.",
+    "url": "https://code.google.com/p/tesseract-ocr/",
+    "license": "Apache License 2.0 - (https://www.apache.org/licenses/LICENSE-2.0)",
+    "works on": "binary images  (with black as foreground)"
+  },
+  "example": {
+    "input": {
+      "url": "https://upload.wikimedia.org/wikipedia/commons/3/30/Pangram_en_Rockwell.png"
+    },
+    "output": {
+      "url": "https://upload.wikimedia.org/wikipedia/commons/3/30/Pangram_en_Rockwell.png",
+      "result": "Rockwell\nThe quick brown fox \u003c \njumps over a lazy dog\n\n"
+    }
+  }
+}

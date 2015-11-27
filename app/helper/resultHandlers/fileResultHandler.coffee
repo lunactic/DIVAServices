@@ -4,6 +4,7 @@
 # **FileResultHandler** handles results coming from a file
 
 fs = require 'fs'
+logger = require '../../logging/logger'
 
 consoleResultHandler = exports = module.exports = class consoleResultHandler
   @filename: ''

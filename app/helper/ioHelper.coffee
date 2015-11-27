@@ -39,7 +39,7 @@ ioHelper = exports = module.exports = class IoHelper
   #   *params* the used parameter values
   loadResult: (path, algorithm, params, post, callback) ->
     filePath = @buildFilePath(path,algorithm,params)
-    console.log 'load from file  ' + filePath
+    logger.log "info",'load from file  ' + filePath
 
     fs.stat filePath, (err, stat) ->
       #check if file exists

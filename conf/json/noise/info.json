@@ -1,0 +1,38 @@
+{
+  "name": "Artificial Noising",
+  "description": "Add artificial noise to an image; Warning! This methods is computationally expensive and might take a few minutes to finish.",
+  "url": "http://$BASEURL$/noise",
+  "info": {
+    "author": "Mathias Seuret",
+    "email": "mathias.seuret@unifr.ch",
+    "works on": "color images"
+  },
+  "input": [
+  {
+      "number": {
+        "name": "density",
+        "description": "The density of the artificial noise",
+        "options": {
+          "required": true,
+          "min": 25,
+          "max": 75,
+          "steps": 1,
+          "default": 50
+        }
+      }
+    },
+    {
+      "number": {
+        "name": "strength",
+        "description": "The strength of the artificial noise",
+        "options": {
+          "required": true,
+          "min": 0,
+          "max": 3,
+          "steps": 0.1,
+          "default": 1.5
+        }
+      }
+    }
+   ]
+}
