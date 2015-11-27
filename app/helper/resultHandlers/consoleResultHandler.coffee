@@ -3,7 +3,7 @@
 #
 # **ConsoleResultHandler** handles results coming from the console
 fs = require 'fs'
-
+logger = require '../../logging/logger'
 
 consoleResultHandler = exports = module.exports = class consoleResultHandler
   @file = ""
@@ -34,7 +34,7 @@ consoleResultHandler = exports = module.exports = class consoleResultHandler
                   data['outputImage'] = process.outputImageUrl
                 fs.writeFileSync(self.file,JSON.stringify(data), "utf8")
               catch error
-                console.log error
+                logger.log 'error', error
               callback null, data, statIdentifier
         else
           callback err, null, null

@@ -50,7 +50,7 @@ app.use bodyParser.urlencoded(extended: true, limit: '50mb')
 #setup static file handler
 app.use '/static', express.static('/data/images')
 
-accessLogStream = fs.createWriteStream(__dirname + '/logs/access.log',{flgas:'a'})
+accessLogStream = fs.createWriteStream(__dirname + '/logs/access.log',{flags:'a'})
 #favicon
 app.use favicon(__dirname + '/images/favicon/favicon.ico')
 app.use(morgan('combined',{stream: accessLogStream}))
