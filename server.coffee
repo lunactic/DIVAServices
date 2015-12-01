@@ -64,6 +64,8 @@ app.use '/static', express.static('/data/images')
 accessLogStream = fs.createWriteStream(__dirname + '/logs/access.log',{flags:'a'})
 #favicon
 app.use favicon(__dirname + '/images/favicon/favicon.ico')
+app.use(morgan('combined',{stream: accessLogStream}))
+
 #handle gabor post request seperately
 app.post '/segmentation/textline/gabor*', (req, res) ->
   imageHelper = new ImageHelper()
@@ -72,7 +74,6 @@ app.post '/segmentation/textline/gabor*', (req, res) ->
   resultHelper = new ConsoleResultHandler(null)
   if(req.originalUrl.indexOf('merge') > -1)
     command = 'java -Djava.awt.headless=true -jar /data/executables/gabortextlinesegmentation/gabortextlinesegmentation.jar merge ' + req.body.mergePolygon1 + ' ' + req.body.mergePolygon2
-    console.log 'result Helper: ' + resultHelper
     executableHelper.executeCommand command, resultHelper,null,null, (err, data, statIdentifier, fromDisk, callback) ->
       res.status 200
       res.json JSON.parse data
@@ -146,16 +147,10 @@ app.post '/segmentation/textline/gabor*', (req, res) ->
           logger.log 'error', err.statusText
         else
           res.status 200
-          console.log 'result: ' + JSON.parse results
           res.json JSON.parse results
           logger.log 'info', 'RESPONSE 200'
 
-
-#setup routes
-app.use router
-server = http.createServer app
 #server.timeout = 12000
-app.use(morgan('combined',{stream: accessLogStream}))
 #setup routes
 app.use router
 

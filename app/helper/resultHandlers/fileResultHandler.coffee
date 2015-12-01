@@ -14,7 +14,6 @@ consoleResultHandler = exports = module.exports = class consoleResultHandler
     self = @
     fs.stat @filename, (err, stat) ->
       #check if file exists
-      console.log err
       if !err?
         fs.readFile self.filename, 'utf8', (err, data) ->
           if err?
@@ -30,7 +29,7 @@ consoleResultHandler = exports = module.exports = class consoleResultHandler
                 data['outputImage'] = process.outputImageUrl
               fs.writeFileSync(self.filename,JSON.stringify(data), "utf8")
             catch error
-              console.log error
+              logger.log 'error', error
             callback null, data, statIdentifier
       else
         callback err, null, null

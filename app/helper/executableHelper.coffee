@@ -52,7 +52,6 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
     exec = childProcess.exec
     logger.log "info", 'executing command: ' + command
     child = exec(command, { maxBuffer: 1024 * 48828 }, (error, stdout, stderr) ->
-      console.log 'callback ' + callback
       resultHandler.handleResult(error, stdout, stderr, statIdentifier,process, callback)
     )
 
