@@ -95,57 +95,74 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
 
   preprocessing: (req,processingQueue,immediateExecution, requestCallback, queueCallback) ->
     serviceInfo = ServicesInfoHelper.getServiceInfo(req.originalUrl)
-    imageHelper = new ImageHelper()
     ioHelper = new IoHelper()
     parameterHelper = new ParameterHelper()
-    process = new Process()
-    process.req = req
+    processes = []
     async.waterfall [
       (callback) ->
-        if(req.body.image?)
-          imageHelper.saveImage(req.body.image, callback)
-        else if (req.body.url?)
-          imageHelper.saveImageUrl(req.body.url, callback)
-        else if (req.body.md5Image?)
-          imageHelper.loadImageMd5(req.body.md5Image, callback)
-        process.imageHelper = imageHelper
+        inputImages = req.body.images
+        images = []
+        #TODO: Differentiate beween req.body.images.size() == 1 or >1
+        for image in inputImages
+          process = new Process()
+          process.req = req
+
+          if(image.type is 'image')
+            images.push ImageHelper.saveImage(image.value)
+          else if (image.type is 'url')
+            images.push ImageHelper.saveImageUrl(image.value)
+          else if (image.type is 'md5')
+            images.push ImageHelper.loadImageMd5(image.value)
+          processes.push(process)
+        callback null, images, processes
         return
       #perform parameter matching
-      (result, callback) ->
-        @imagePath = result.path
-        @imageFolder = result.folder
-        @neededParameters = serviceInfo.parameters
-        @inputParameters = req.body.inputs
-        @inputHighlighters = req.body.highlighter
-        @programType = serviceInfo.programType
-        @parameters = parameterHelper.matchParams(@inputParameters, @inputHighlighters.segments,@neededParameters,@imagePath,imageHelper.md5, req)
-        if(req.body.requireOutputImage?)
-          process.requireOutputImage = req.body.requireOutputImage
-        process.parameters = @parameters
-        process.programType = serviceInfo.programType
-        process.executablePath = serviceInfo.executablePath
-        process.resultType =  serviceInfo.output
-        process.filePath = ioHelper.buildFilePath(result.folder, req.originalUrl, @parameters.params)
-        process.tmpFilePath = ioHelper.buildTempFilePath(result.folder, req.originalUrl, @parameters.params)
-        process.inputImageUrl = imageHelper.getInputImageUrl(result.md5)
-        if(@neededParameters.outputImage?)
-          process.outputImageUrl = imageHelper.getOutputImageUrl(result.md5)
-        process.resultLink = parameterHelper.buildGetUrl(req.originalUrl,imageHelper.md5, @neededParameters, @parameters.params, @inputHighlighters)
-        resultHandler = null
-        switch serviceInfo.output
-          when 'console'
-            resultHandler = new ConsoleResultHandler(process.filePath);
-          when 'file'
-            @parameters.data['resultFile'] = process.filePath
-            resultHandler = new FileResultHandler(process.filePath);
-        process.resultHandler = resultHandler
-        callback null
+      (images,processes, callback) ->
+        #TODO: Expand this to a loop
+        #Create an array of processes that are added to the processing queue
+        for image, i in images
+          process = processes[i]
+          process.imagePath = image.path
+          process.imageFolder = image.folder
+          process.neededParameters = serviceInfo.parameters
+          process.inputParameters = req.body.inputs
+          process.inputHighlighters = req.body.highlighter
+          process.parameters = parameterHelper.matchParams(process.inputParameters, process.inputHighlighters.segments,process.neededParameters,process.imagePath,image.md5, req)
+          if(req.body.requireOutputImage?)
+            process.requireOutputImage = req.body.requireOutputImage
+          process.programType = serviceInfo.programType
+          process.executablePath = serviceInfo.executablePath
+          process.resultType =  serviceInfo.output
+          process.method = parameterHelper.getMethodName(req.originalUrl)
+          process.filePath = ioHelper.buildFilePath(image.folder, req.originalUrl, process.parameters.params)
+          process.tmpFilePath = ioHelper.buildTempFilePath(image.folder, req.originalUrl, process.parameters.params)
+          process.inputImageUrl = ImageHelper.getInputImageUrl(image.md5)
+          if(process.neededParameters.outputImage?)
+            process.outputImageUrl = ImageHelper.getOutputImageUrl(image.md5)
+          process.resultLink = parameterHelper.buildGetUrl(req.originalUrl,image.md5, process.neededParameters, process.parameters.params, process.inputHighlighters)
+          resultHandler = null
+          switch serviceInfo.output
+            when 'console'
+              resultHandler = new ConsoleResultHandler(process.filePath);
+            when 'file'
+              process.parameters.data['resultFile'] = process.filePath
+              resultHandler = new FileResultHandler(process.filePath);
+          process.resultHandler = resultHandler
+          #callback null
+        callback null, processes
         return
+
       #try to load results from disk
-      (callback) ->
-        ioHelper.loadResult(@imageFolder, req.originalUrl, @parameters.params, true, callback)
+      (processes,callback) ->
+        #try to load results for each process
+        #TODO ADD RESULTS TO PROCESS
+        for process in processes
+          ioHelper.loadResult process.imageFolder, req.originalUrl, process.parameters.params, true, () ->
+            if(data?)
+              process.result = data
         return
       (data, callback) ->
+        #todo change imageHelper.md5 to image/process.md5
         @getUrl = parameterHelper.buildGetUrl(req.originalUrl,imageHelper.md5, @neededParameters, @parameters.params, @inputHighlighters)
         if(data?)
           if(!process.requireOutputImage)

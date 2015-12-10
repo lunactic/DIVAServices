@@ -7,6 +7,7 @@
 # Module dependencies
 nconf   = require 'nconf'
 path    = require 'path'
+_       = require 'lodash'
 ImageHelper = require './imageHelper'
 
 # expose parameterHelper
@@ -137,7 +138,11 @@ parameterHelper = exports = module.exports = class ParameterHelper
         return merged.join(' ')
 
 
-  # ---
+  getMethodName: (algorithm) ->
+    return algorithm.replace(/\//g, '')
+
+
+# ---
   # **checkReservedParameters**</br>
   # Checks if a parameter is in the list of reserverd words as defined in server.NODE_ENV.json</br>
   # `params`

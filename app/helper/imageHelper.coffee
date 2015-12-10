@@ -10,24 +10,9 @@ nconf   = require 'nconf'
 md5     = require 'md5'
 fs      = require 'fs'
 request = require 'request'
+deasync = require 'deasync'
 # expose imageHelper
 imageHelper = exports = module.exports = class ImageHelper
-
-  # ---
-  # **constructor**</br>
-  # initialize image folder
-  constructor: () ->
-    imgFolder = ''
-
-  # ---
-  # **imgFolder**</br>
-  # The folder of the current image
-  imgFolder: ''
-
-  # ---
-  # **md5**</br>
-  # The md5 hash of the current image
-  md5: ''
 
 
   @imageExists: (md5, callback) ->
@@ -48,31 +33,35 @@ imageHelper = exports = module.exports = class ImageHelper
   #     *EXTENSION* is the image extension</br>
   # `params`
   #   *image* the received base64 encoded image
-  saveImage: (image, callback) ->
+  @saveImage: (image) ->
     #code for saving an image
     imagePath = nconf.get('paths:imageRootPath')
     base64Data = image.replace(/^data:image\/png;base64,/, "")
     md5String = md5(base64Data)
-    @md5 = md5String
+    image = {}
+    sync = false
     self = @
     fs.mkdir imagePath + '/' + md5String, (err) ->
       return
-
     imgFolder = imagePath + '/' + md5String + '/'
-
     fs.stat imagePath + '/' + md5String + '/' + 'input.png', (err, stat) ->
-      result =
+      image =
         folder: imgFolder
         path: imgFolder + 'input.png'
-        md5: self.md5
+        md5: md5String
+
       if !err?
-        callback null, result
+        sync = true
+        return
       else if err.code == 'ENOENT'
         fs.writeFile imgFolder + 'input.png', base64Data, 'base64', (err) ->
           return
-        callback null, result
+        return
       else
-        callback err
+        #error handling
+    while(!sync)
+      require('deasync').sleep(100)
+    return image
   # ---
   # **saveImageUrl**</br>
   # saves an image to the disk coming from a URL
@@ -82,57 +71,71 @@ imageHelper = exports = module.exports = class ImageHelper
   #     *EXTENSION* is the image extension</br>
   # `params`
   #   *url* the URL to the image
-  saveImageUrl: (url, callback ) ->
+  @saveImageUrl: (url) ->
     imagePath = nconf.get('paths:imageRootPath')
     self = @
+    image = {}
+    sync = false
     request(url).pipe(fs.createWriteStream(imagePath + '/temp.png')).on 'close', (cb) ->
       base64 = fs.readFileSync imagePath + '/temp.png', 'base64'
       md5String = md5(base64)
-      self.md5 = md5String
-      self.imgFolder = imagePath + '/' + md5String + '/'
-      result =
-        folder: self.imgFolder
-        path: self.imgFolder + 'input.png'
-        md5: self.md5
-
+      imgFolder = imagePath + '/' + md5String + '/'
+      image =
+        folder: imgFolder
+        path:  imgFolder + 'input.png'
+        md5: md5String
+      #console.log result
       fs.mkdir imagePath + '/' + md5String, (err) ->
-        #we don't care if the folder exists
         return
-      fs.stat result.path, (err, stat) ->
+
+      fs.stat image.path, (err, stat) ->
         if !err?
           fs.unlink(imagePath + '/temp.png')
-          callback null, result
+          sync = true
+          return
         else if err.code == 'ENOENT'
           source = fs.createReadStream imagePath + '/temp.png'
-          dest = fs.createWriteStream result.path
+          dest = fs.createWriteStream image.path
           source.pipe(dest)
           source.on 'end', () ->
             fs.unlink(imagePath + '/temp.png')
-            callback null, result
+            sync = true
             return
           source.on 'error', (err) ->
-            callback err
+            console.log err
+            sync = true
             return
+          return
+      return
+    while(!sync)
+      require('deasync').sleep(100)
+    return image
 
-  loadImageMd5: (md5, callback) ->
+
+  @loadImageMd5: (md5) ->
     imagePath = nconf.get('paths:imageRootPath')
-    @imgFolder = imagePath + '/' + md5 + '/'
-    @md5 = md5
+    imgFolder = imagePath + '/' + md5 + '/'
     self = @
+    image = {}
+    sync = false
     fs.stat imagePath + '/' + md5 + '/input.png', (err,stat) ->
-      result =
-        folder: self.imgFolder
-        path: self.imgFolder + 'input.png'
-        md5: self.md5
-      callback null,result
+      image =
+        folder: imgFolder
+        path: imgFolder + 'input.png'
+        md5: md5
+      sync = true
+      return
+    while(!sync)
+      require('deasync').sleep(100)
+    return image
 
 
-  getInputImageUrl: (md5) ->
+  @getInputImageUrl: (md5) ->
     rootUrl = nconf.get('server:rootUrl')
     outputUrl = 'http://' + rootUrl + '/static/' + md5 + '/input.png'
     return outputUrl
 
-  getOutputImageUrl: (md5) ->
+  @getOutputImageUrl: (md5) ->
     rootUrl = nconf.get('server:rootUrl')
     outputUrl = 'http://' + rootUrl + '/static/' + md5 + '/output.png'
     return outputUrl
