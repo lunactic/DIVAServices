@@ -7,12 +7,26 @@
 
 # Module dependecies
 fs      = require 'fs'
+nconf   = require 'nconf'
+path    = require 'path'
 _       = require 'lodash'
 logger  = require '../logging/logger'
 
 
 # expose IoHelper
 ioHelper = exports = module.exports = class IoHelper
+
+  getOutputFolder: (rootFolder, service) ->
+    #check which folder is to be used
+    imagePath = nconf.get('paths:imageRootPath')
+    rootPath = imagePath + '/' + rootFolder
+    folders = fs.readdirSync(rootPath).filter (file) ->
+      fs.statSync(path.join(rootPath,file)).isDirectory()
+    #TODO: parse out only the folders with SERVICE in the name and then select the highest number
+    console.log rootPath
+    console.log service
+    console.log folders
+
 
   buildFilePath: (path,algorithm,params) ->
     algorithm = algorithm.replace(/\//g, '_')

@@ -99,23 +99,21 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
       (callback) ->
         inputImages = req.body.images
         images = []
-        #TODO: Differentiate beween req.body.images.size() == 1 or >1
         if inputImages.length > 1
           #generte a random folder name
           folder = RandomWordGenerator.generateRandomWord()
-
-        for image,i in inputImages
-          process = new Process()
-          process.req = req
-
-          if(image.type is 'image')
-            images.push ImageHelper.saveImage(image.value)
-          else if (image.type is 'url')
-            images.push ImageHelper.saveImageUrl(image.value,folder, i)
-          else if (image.type is 'md5')
-            images.push ImageHelper.loadImageMd5(image.value)
-          processes.push(process)
-        callback null, images, processes
+          for image,i in inputImages
+            process = new Process()
+            process.req = req
+            process.rootFolder = folder
+            if(image.type is 'image')
+              images.push ImageHelper.saveImage(image.value)
+            else if (image.type is 'url')
+              images.push ImageHelper.saveImageUrl(image.value,process.rootFolder, i)
+            else if (image.type is 'md5')
+              images.push ImageHelper.loadImageMd5(image.value)
+            processes.push(process)
+          callback null, images, processes
         return
       #perform parameter matching
       (images,processes, callback) ->
@@ -124,6 +122,7 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
           process = processes[i]
           process.imagePath = image.path
           process.imageFolder = image.folder
+
           process.neededParameters = serviceInfo.parameters
           process.inputParameters = req.body.inputs
           process.inputHighlighters = req.body.highlighter
@@ -134,6 +133,7 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
           process.programType = serviceInfo.programType
           process.executablePath = serviceInfo.executablePath
           process.resultType =  serviceInfo.output
+          process.outputFolder = ioHelper.getOutputFolder(process.rootFolder, serviceInfo.service)
           process.method = parameterHelper.getMethodName(req.originalUrl)
           process.filePath = ioHelper.buildFilePath(image.folder, req.originalUrl, process.parameters.params)
           process.tmpFilePath = ioHelper.buildTempFilePath(image.folder, req.originalUrl, process.parameters.params)
@@ -150,7 +150,7 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
               resultHandler = new FileResultHandler(process.filePath);
           process.resultHandler = resultHandler
           #callback null
-        callback null, processes
+        #callback null, processes
         return
       #TODO: generate the path for the execution (how can I find an executedRequest?)
       #try to load results from disk
@@ -192,5 +192,4 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
             if(!process.results?)
               processingQueue.addElement(process)
               queueCallback()
-          console.log results
           requestCallback null, results

@@ -15,6 +15,8 @@ RandomWordGenerator   = require '../randomizer/randomWordGenerator'
 logger                = require '../logging/logger'
 
 # expose imageHelper
+#TODO: create a structure to find an image based on its md5 hash
+
 imageHelper = exports = module.exports = class ImageHelper
 
 
@@ -36,28 +38,35 @@ imageHelper = exports = module.exports = class ImageHelper
   #     *EXTENSION* is the image extension</br>
   # `params`
   #   *image* the received base64 encoded image
-  @saveImage: (image) ->
+  @saveImage: (image, folder, counter) ->
     #code for saving an image
     imagePath = nconf.get('paths:imageRootPath')
     base64Data = image.replace(/^data:image\/png;base64,/, "")
     md5String = md5(base64Data)
+    if(!folder?)
+      folder = md5String
+    if(!counter?)
+      counter = ''
     image = {}
     sync = false
     self = @
-    fs.mkdir imagePath + '/' + md5String, (err) ->
-      return
-    imgFolder = imagePath + '/' + md5String + '/'
+    try
+      fs.mkdirSync imagePath + '/' + folder
+      fs.mkdirSync imagePath + '/' + folder + '/original'
+    catch error
+    #we don't care for errors they are thrown when the folder exists
+
+    imgFolder = imagePath + '/' + folder + '/original/'
     fs.stat imagePath + '/' + md5String + '/' + 'input.png', (err, stat) ->
       image =
         folder: imgFolder
-        path: imgFolder + 'input.png'
+        path:  imgFolder + 'input' + counter + '.png'
         md5: md5String
-
       if !err?
         sync = true
         return
       else if err.code == 'ENOENT'
-        fs.writeFile imgFolder + 'input.png', base64Data, 'base64', (err) ->
+        fs.writeFile image.path, base64Data, 'base64', (err) ->
           return
         return
       else
@@ -75,6 +84,8 @@ imageHelper = exports = module.exports = class ImageHelper
   # `params`
   #   *url* the URL to the image
   @saveImageUrl: (url, folder, counter) ->
+    if(!counter?)
+      counter = ''
     imagePath = nconf.get('paths:imageRootPath')
     self = @
     image = {}
@@ -84,8 +95,6 @@ imageHelper = exports = module.exports = class ImageHelper
       md5String = md5(base64)
       if(!folder?)
         folder = md5String
-      if(!counter?)
-        counter = ''
       imgFolder = imagePath + '/' + folder + '/original/'
       image =
         folder: imgFolder
@@ -96,7 +105,7 @@ imageHelper = exports = module.exports = class ImageHelper
         fs.mkdirSync imagePath + '/' + folder
         fs.mkdirSync imagePath + '/' + folder + '/original'
       catch error
-        logger.log 'error', error
+        #we don't care for errors they are thrown when the folder exists
 
       fs.stat image.path, (err, stat) ->
         if !err?
@@ -122,6 +131,7 @@ imageHelper = exports = module.exports = class ImageHelper
     return image
 
 
+  #TODO rework this to load an image
   @loadImageMd5: (md5) ->
     imagePath = nconf.get('paths:imageRootPath')
     imgFolder = imagePath + '/' + md5 + '/'
