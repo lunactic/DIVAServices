@@ -80,17 +80,15 @@ ioHelper = exports = module.exports = class IoHelper
     return
 
 
-  writeTempFile: (filePath, callback) ->
-    fs.stat filePath, (err, stat) ->
-      #check if file exists
-      #console.log 'saving file to: ' + filePath
-      fs.writeFile filePath, JSON.stringify({status :'planned'}),  (err) ->
-        if err?
-          error =
-            status: 500
-            statusText: 'Could not save result file'
-          callback error, null
-        else
-          callback null, null
-        return
+  writeTempFile: (filePath) ->
+    try
+      stats = fs.statSync filePath
+        #check if file exists
+        #console.log 'saving file to: ' + filePath
+    catch error
+      try
+        fs.writeFileSync filePath, JSON.stringify({status :'planned'})
+      catch error
+        logger.log 'error', error
+
     return

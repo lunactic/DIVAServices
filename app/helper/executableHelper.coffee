@@ -127,6 +127,7 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
           process.neededParameters = serviceInfo.parameters
           process.inputParameters = req.body.inputs
           process.inputHighlighters = req.body.highlighter
+          process.md5 = image.md5
           process.parameters = parameterHelper.matchParams(process.inputParameters, process.inputHighlighters.segments,process.neededParameters,process.imagePath,image.md5, req)
           if(req.body.requireOutputImage?)
             process.requireOutputImage = req.body.requireOutputImage
@@ -151,7 +152,6 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
           #callback null
         callback null, processes
         return
-
       #try to load results from disk
       (processes,callback) ->
         #try to load results for each process
@@ -160,25 +160,28 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
           ioHelper.loadResult process.imageFolder, req.originalUrl, process.parameters.params, true, () ->
             if(data?)
               process.result = data
+        callback null, processes
         return
-      (data, callback) ->
+      (processes, callback) ->
         #todo change imageHelper.md5 to image/process.md5
-        @getUrl = parameterHelper.buildGetUrl(req.originalUrl,imageHelper.md5, @neededParameters, @parameters.params, @inputHighlighters)
-        if(data?)
-          if(!process.requireOutputImage)
-            delete data['image']
-          callback null, data
-        else
-          ioHelper.writeTempFile(process.filePath, callback)
-      ],(err, results) ->
+        for process in processes
+          getUrl = parameterHelper.buildGetUrl(req.originalUrl,process.md5, process.neededParameters, process.parameters.params, process.inputHighlighters)
+          if(process.data?)
+            if(!process.requireOutputImage)
+              delete process.data['image']
+          else
+            ioHelper.writeTempFile(process.filePath)
+        callback null, processes
+      ],(err, processes) ->
         if(err?)
           requestCallback err, null
-        else
-          if(results?)
+
+        for process in processes
+          if(process.results?)
             requestCallback err,results
           else if !immediateExecution
             processingQueue.addElement(process)
-            requestCallback err, {'status':'planned', 'url':@getUrl}
+            requestCallback err, {'status':'planned', 'url':process.getUrl}
             queueCallback()
           else
             processingQueue.addElement(process)

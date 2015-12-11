@@ -2,6 +2,7 @@
 
 process = exports = module.exports = class Process
   @req: null
+  @md5: ""
   @method: ""
   @imagePath: ""
   @imageFolder: ""
@@ -9,7 +10,7 @@ process = exports = module.exports = class Process
   @inputParameters: null
   @inputHighlighters: null
   @parameters: null
-  @results: ""
+  @result: ""
   @programType: ""
   @executablePath: ""
   @resultHandler: null
@@ -19,5 +20,6 @@ process = exports = module.exports = class Process
   @requireOutputImage: true
   @inputImageUrl: ""
   @outputImageUrl: ""
+  @result: null
   @resultLink: ""
   @data: null
