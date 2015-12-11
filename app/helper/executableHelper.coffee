@@ -19,6 +19,7 @@ logger              = require '../logging/logger'
 Process             = require '../processingQueue/process'
 ConsoleResultHandler= require '../helper/resultHandlers/consoleResultHandler'
 FileResultHandler   = require '../helper/resultHandlers/fileResultHandler'
+RandomWordGenerator = require '../randomizer/randomWordGenerator'
 
 # Expose executableHelper
 executableHelper = exports = module.exports = class ExecutableHelper extends EventEmitter
@@ -86,12 +87,8 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
           #strip the image out of the response if needed
           if(!process.requireOutputImage)
             delete results['image']
-
           #start next execution
-          if(requestCallback?)
-            requestCallback null, results
-          else
-            self.emit('processingFinished')
+          self.emit('processingFinished')
 
   preprocessing: (req,processingQueue,immediateExecution, requestCallback, queueCallback) ->
     serviceInfo = ServicesInfoHelper.getServiceInfo(req.originalUrl)
@@ -103,14 +100,18 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
         inputImages = req.body.images
         images = []
         #TODO: Differentiate beween req.body.images.size() == 1 or >1
-        for image in inputImages
+        if inputImages.length > 1
+          #generte a random folder name
+          folder = RandomWordGenerator.generateRandomWord()
+
+        for image,i in inputImages
           process = new Process()
           process.req = req
 
           if(image.type is 'image')
             images.push ImageHelper.saveImage(image.value)
           else if (image.type is 'url')
-            images.push ImageHelper.saveImageUrl(image.value)
+            images.push ImageHelper.saveImageUrl(image.value,folder, i)
           else if (image.type is 'md5')
             images.push ImageHelper.loadImageMd5(image.value)
           processes.push(process)
@@ -118,7 +119,6 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
         return
       #perform parameter matching
       (images,processes, callback) ->
-        #TODO: Expand this to a loop
         #Create an array of processes that are added to the processing queue
         for image, i in images
           process = processes[i]
@@ -152,10 +152,10 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
           #callback null
         callback null, processes
         return
+      #TODO: generate the path for the execution (how can I find an executedRequest?)
       #try to load results from disk
       (processes,callback) ->
         #try to load results for each process
-        #TODO ADD RESULTS TO PROCESS
         for process in processes
           ioHelper.loadResult process.imageFolder, req.originalUrl, process.parameters.params, true, () ->
             if(data?)
@@ -163,9 +163,7 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
         callback null, processes
         return
       (processes, callback) ->
-        #todo change imageHelper.md5 to image/process.md5
         for process in processes
-          getUrl = parameterHelper.buildGetUrl(req.originalUrl,process.md5, process.neededParameters, process.parameters.params, process.inputHighlighters)
           if(process.data?)
             if(!process.requireOutputImage)
               delete process.data['image']
@@ -175,14 +173,24 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
       ],(err, processes) ->
         if(err?)
           requestCallback err, null
-
-        for process in processes
+        if processes.length == 1
+          process = processes[0]
           if(process.results?)
             requestCallback err,results
           else if !immediateExecution
             processingQueue.addElement(process)
-            requestCallback err, {'status':'planned', 'url':process.getUrl}
+            requestCallback err, {'status':'planned', 'url':process.resultLink}
             queueCallback()
           else
             processingQueue.addElement(process)
             queueCallback()
+        else if processes.length > 1
+          #what to return here??
+          results = []
+          for process in processes
+            results.push({'resultLink':process.resultLink})
+            if(!process.results?)
+              processingQueue.addElement(process)
+              queueCallback()
+          console.log results
+          requestCallback null, results

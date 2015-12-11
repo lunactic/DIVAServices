@@ -6,11 +6,14 @@
 # Copyright &copy; Marcel Würsch, GPL v3.0 licensed.
 
 # Module dependencies
-nconf   = require 'nconf'
-md5     = require 'md5'
-fs      = require 'fs'
-request = require 'request'
-deasync = require 'deasync'
+nconf                 = require 'nconf'
+md5                   = require 'md5'
+fs                    = require 'fs'
+request               = require 'request'
+deasync               = require 'deasync'
+RandomWordGenerator   = require '../randomizer/randomWordGenerator'
+logger                = require '../logging/logger'
+
 # expose imageHelper
 imageHelper = exports = module.exports = class ImageHelper
 
@@ -71,7 +74,7 @@ imageHelper = exports = module.exports = class ImageHelper
   #     *EXTENSION* is the image extension</br>
   # `params`
   #   *url* the URL to the image
-  @saveImageUrl: (url) ->
+  @saveImageUrl: (url, folder, counter) ->
     imagePath = nconf.get('paths:imageRootPath')
     self = @
     image = {}
@@ -79,14 +82,21 @@ imageHelper = exports = module.exports = class ImageHelper
     request(url).pipe(fs.createWriteStream(imagePath + '/temp.png')).on 'close', (cb) ->
       base64 = fs.readFileSync imagePath + '/temp.png', 'base64'
       md5String = md5(base64)
-      imgFolder = imagePath + '/' + md5String + '/'
+      if(!folder?)
+        folder = md5String
+      if(!counter?)
+        counter = ''
+      imgFolder = imagePath + '/' + folder + '/original/'
       image =
         folder: imgFolder
-        path:  imgFolder + 'input.png'
+        path:  imgFolder + 'input' + counter + '.png'
         md5: md5String
       #console.log result
-      fs.mkdir imagePath + '/' + md5String, (err) ->
-        return
+      try
+        fs.mkdirSync imagePath + '/' + folder
+        fs.mkdirSync imagePath + '/' + folder + '/original'
+      catch error
+        logger.log 'error', error
 
       fs.stat image.path, (err, stat) ->
         if !err?
@@ -128,7 +138,6 @@ imageHelper = exports = module.exports = class ImageHelper
     while(!sync)
       require('deasync').sleep(100)
     return image
-
 
   @getInputImageUrl: (md5) ->
     rootUrl = nconf.get('server:rootUrl')
