@@ -5,6 +5,7 @@
 # Copyright &copy; Marcel Würsch, GPL v3.0 licensed.
 
 # Module dependencies
+fs      = require 'fs'
 nconf   = require 'nconf'
 path    = require 'path'
 _       = require 'lodash'
@@ -141,6 +142,16 @@ parameterHelper = exports = module.exports = class ParameterHelper
   getMethodName: (algorithm) ->
     return algorithm.replace(/\//g, '')
 
+  saveParamInfo: (parameters, rootFolder,outputFolder,method ) ->
+    path = nconf.get('paths:imageRootPath') + '/'+ rootFolder + '/' + method + '.json'
+    data =
+      parameters: parameters.params
+      folder: outputFolder
+    try
+      fs.statSync(path).isFile()
+      console.log 'appendFile'
+    catch error
+      fs.writeFileSync(path, JSON.stringify(data))
 
 # ---
   # **checkReservedParameters**</br>
@@ -150,3 +161,5 @@ parameterHelper = exports = module.exports = class ParameterHelper
   checkReservedParameters = (parameter) ->
     reservedParameters = nconf.get('reservedWords')
     return parameter in reservedParameters
+
+

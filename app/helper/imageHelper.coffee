@@ -159,6 +159,30 @@ imageHelper = exports = module.exports = class ImageHelper
       require('deasync').sleep(100)
     return image
 
+  @loadCollection: (collectionName) ->
+    imagePath = nconf.get('paths:imageRootPath')
+    imgFolder = imagePath + '/' + collectionName + '/'
+    self = @
+    images = []
+    try
+      fs.statSync(imgFolder)
+      fs.statSync(imgFolder + '/original/')
+      files = fs.readdirSync imgFolder + '/original/'
+      for file in files
+        base64 = fs.readFileSync imgFolder + '/original/' +file, 'base64'
+        md5String = md5(base64)
+        filename = file.split('.')
+        image =
+          folder: imagePath + '/' + collectionName + '/'
+          name: filename[0]
+          extension: filename[1]
+          path: imgFolder + 'original/'+ file
+          md5: md5String
+        images.push(image)
+      return images
+    catch error
+      logger.log 'error', 'Tried to load collection: ' + collectionName + ' which does not exist.'
+      return []
   @getInputImageUrl: (folder, filename, extension) ->
     rootUrl = nconf.get('server:rootUrl')
     outputUrl = 'http://' + rootUrl + '/static/' + folder + '/original/' + filename + '.' + extension

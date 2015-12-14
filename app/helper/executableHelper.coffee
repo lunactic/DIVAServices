@@ -105,7 +105,7 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
           for inputImage,i in inputImages
             process = new Process()
             process.req = req
-            process.rootFolder = rootFolder
+            process.rootFolder = @rootFolder
             image = {}
             if(inputImage.type is 'image')
               image = ImageHelper.saveImage(inputImage.value)
@@ -116,6 +116,16 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
             ImageHelper.addImageInfo(image.md5, image.path)
             process.image = image
             processes.push(process)
+        else
+          if(req.body.images[0].collection?)
+            images = ImageHelper.loadCollection(req.body.images[0].collection)
+            @rootFolder = req.body.images[0].collection
+            for image in images
+              process = new Process()
+              process.req = req
+              process.rootFolder = @rootFolder
+              process.image = image
+              processes.push(process)
           callback null, processes
         return
       #receive all information for a process
@@ -148,6 +158,7 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
               process.parameters.data['resultFile'] = process.filePath
               resultHandler = new FileResultHandler(process.filePath);
           process.resultHandler = resultHandler
+          parameterHelper.saveParamInfo(process.parameters,process.rootFolder,process.outputFolder, process.method)
           #callback null
         callback null, processes
         return
