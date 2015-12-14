@@ -20,13 +20,21 @@ ioHelper = exports = module.exports = class IoHelper
     #check which folder is to be used
     imagePath = nconf.get('paths:imageRootPath')
     rootPath = imagePath + '/' + rootFolder
+    #read all folders in the current directory
     folders = fs.readdirSync(rootPath).filter (file) ->
       fs.statSync(path.join(rootPath,file)).isDirectory()
-    #TODO: parse out only the folders with SERVICE in the name and then select the highest number
-    console.log rootPath
-    console.log service
-    console.log folders
 
+    #filter for folders matching the service name
+    folders = _.filter folders,  (folder) ->
+      _.contains folder,service
+
+    if(folders.length > 0)
+      numbers = _.invoke folders, String::split, '_'
+      numbers = _.pluck(numbers, 1)
+      maxNumber = parseInt(_.max(numbers),10)
+      return rootPath + '/' + service + '_' + (maxNumber + 1)
+    else
+      return rootPath + '/' + service + '_0'
 
   buildFilePath: (path,algorithm,params) ->
     algorithm = algorithm.replace(/\//g, '_')

@@ -101,11 +101,11 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
         images = []
         if inputImages.length > 1
           #generte a random folder name
-          folder = RandomWordGenerator.generateRandomWord()
+          @rootFolder = RandomWordGenerator.generateRandomWord()
           for image,i in inputImages
             process = new Process()
             process.req = req
-            process.rootFolder = folder
+            process.rootFolder = rootFolder
             if(image.type is 'image')
               images.push ImageHelper.saveImage(image.value)
             else if (image.type is 'url')
@@ -118,11 +118,12 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
       #perform parameter matching
       (images,processes, callback) ->
         #Create an array of processes that are added to the processing queue
+        outputFolder = ioHelper.getOutputFolder(@rootFolder, serviceInfo.service)
         for image, i in images
           process = processes[i]
+          process.outputFolder = outputFolder
           process.imagePath = image.path
           process.imageFolder = image.folder
-
           process.neededParameters = serviceInfo.parameters
           process.inputParameters = req.body.inputs
           process.inputHighlighters = req.body.highlighter
@@ -133,7 +134,6 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
           process.programType = serviceInfo.programType
           process.executablePath = serviceInfo.executablePath
           process.resultType =  serviceInfo.output
-          process.outputFolder = ioHelper.getOutputFolder(process.rootFolder, serviceInfo.service)
           process.method = parameterHelper.getMethodName(req.originalUrl)
           process.filePath = ioHelper.buildFilePath(image.folder, req.originalUrl, process.parameters.params)
           process.tmpFilePath = ioHelper.buildTempFilePath(image.folder, req.originalUrl, process.parameters.params)
