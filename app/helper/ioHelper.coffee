@@ -32,25 +32,18 @@ ioHelper = exports = module.exports = class IoHelper
       numbers = _.invoke folders, String::split, '_'
       numbers = _.pluck(numbers, 1)
       maxNumber = parseInt(_.max(numbers),10)
+      fs.mkdirSync rootPath + '/' + service + '_' + (maxNumber + 1)
       return rootPath + '/' + service + '_' + (maxNumber + 1)
     else
+      fs.mkdirSync rootPath + '/' + service + '_0'
       return rootPath + '/' + service + '_0'
 
-  buildFilePath: (path,algorithm,params) ->
-    algorithm = algorithm.replace(/\//g, '_')
-    #join params with _
-    tmpParams = JSON.parse(JSON.stringify(params))
-    values = _.valuesIn(tmpParams).join(' ').replace(RegExp(' ', 'g'), '_')
-    filename = algorithm + '_' + values + '.json'
-    return path + filename
+  #build file Path from outputFolder name and filename
+  buildFilePath: (path, fileName) ->
+    return path + '/' + fileName + '.json'
 
-  buildTempFilePath: (path,algorithm,params) ->
-    algorithm = algorithm.replace(/\//g, '_')
-    #join params with _
-    tmpParams = JSON.parse(JSON.stringify(params))
-    values = _.valuesIn(tmpParams).join(' ').replace(RegExp(' ', 'g'), '_')
-    filename = algorithm + '_' + values + '_temp.json'
-    return path + filename
+  buildTempFilePath: (path, fileName) ->
+    return path + '/' + fileName + '_temp.json'
 
   # ---
   # **loadResult**</br>
@@ -59,8 +52,7 @@ ioHelper = exports = module.exports = class IoHelper
   #   *path* path to the image folder, where results are stored
   #   *algorithm* the executed algorithm
   #   *params* the used parameter values
-  loadResult: (path, algorithm, params, post, callback) ->
-    filePath = @buildFilePath(path,algorithm,params)
+  loadResult: (filePath, post, callback) ->
     logger.log "info",'load from file  ' + filePath
 
     fs.stat filePath, (err, stat) ->

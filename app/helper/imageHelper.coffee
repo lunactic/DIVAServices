@@ -57,10 +57,14 @@ imageHelper = exports = module.exports = class ImageHelper
     #we don't care for errors they are thrown when the folder exists
 
     imgFolder = imagePath + '/' + folder + '/original/'
-    fs.stat imagePath + '/' + md5String + '/' + 'input.png', (err, stat) ->
+    imgName = 'input' + counter
+    imgExtension = 'png'
+    fs.stat imgFolder + imgName, (err, stat) ->
       image =
         folder: imgFolder
-        path:  imgFolder + 'input' + counter + '.png'
+        name: imgName
+        extension: imgExtension
+        path:  imgFolder + imgName + '.' + imgExtension
         md5: md5String
       if !err?
         sync = true
@@ -96,9 +100,13 @@ imageHelper = exports = module.exports = class ImageHelper
       if(!folder?)
         folder = md5String
       imgFolder = imagePath + '/' + folder + '/original/'
+      imgName = 'input' + counter
+      imgExtension = 'png'
       image =
         folder: imgFolder
-        path:  imgFolder + 'input' + counter + '.png'
+        name: imgName
+        extension: imgExtension
+        path: imgFolder + imgName + '.' + imgExtension
         md5: md5String
       #console.log result
       try
@@ -149,14 +157,14 @@ imageHelper = exports = module.exports = class ImageHelper
       require('deasync').sleep(100)
     return image
 
-  @getInputImageUrl: (md5) ->
+  @getInputImageUrl: (folder, filename, extension) ->
     rootUrl = nconf.get('server:rootUrl')
-    outputUrl = 'http://' + rootUrl + '/static/' + md5 + '/input.png'
+    outputUrl = 'http://' + rootUrl + '/static/' + folder + '/original/' + filename + '.' + extension
     return outputUrl
 
-  @getOutputImageUrl: (md5) ->
+  @getOutputImageUrl: (folder, filename, extension) ->
     rootUrl = nconf.get('server:rootUrl')
-    outputUrl = 'http://' + rootUrl + '/static/' + md5 + '/output.png'
+    outputUrl = 'http://' + rootUrl + '/static/' + folder + filename + '.' + extension
     return outputUrl
 
 

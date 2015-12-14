@@ -2,10 +2,8 @@
 
 process = exports = module.exports = class Process
   @req: null
-  @md5: ""
   @method: ""
-  @imagePath: ""
-  @imageFolder: ""
+  @image: null
   @rootFolder: ""
   @neededParameters: null
   @inputParameters: null

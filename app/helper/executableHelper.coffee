@@ -98,49 +98,46 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
     async.waterfall [
       (callback) ->
         inputImages = req.body.images
-        images = []
         if inputImages.length > 1
           #generte a random folder name
           @rootFolder = RandomWordGenerator.generateRandomWord()
-          for image,i in inputImages
+          for inputImage,i in inputImages
             process = new Process()
             process.req = req
             process.rootFolder = rootFolder
-            if(image.type is 'image')
-              images.push ImageHelper.saveImage(image.value)
-            else if (image.type is 'url')
-              images.push ImageHelper.saveImageUrl(image.value,process.rootFolder, i)
-            else if (image.type is 'md5')
-              images.push ImageHelper.loadImageMd5(image.value)
+            image = {}
+            if(inputImage.type is 'image')
+              image = ImageHelper.saveImage(inputImage.value)
+            else if (inputImage.type is 'url')
+              image = ImageHelper.saveImageUrl(inputImage.value,process.rootFolder, i)
+            else if (inputImage.type is 'md5')
+              image = ImageHelper.loadImageMd5(inputImage.value)
+            process.image = image
             processes.push(process)
-          callback null, images, processes
+          callback null, processes
         return
       #perform parameter matching
-      (images,processes, callback) ->
+      (processes, callback) ->
         #Create an array of processes that are added to the processing queue
         outputFolder = ioHelper.getOutputFolder(@rootFolder, serviceInfo.service)
-        for image, i in images
-          process = processes[i]
+        for process in processes
           process.outputFolder = outputFolder
-          process.imagePath = image.path
-          process.imageFolder = image.folder
           process.neededParameters = serviceInfo.parameters
           process.inputParameters = req.body.inputs
           process.inputHighlighters = req.body.highlighter
-          process.md5 = image.md5
-          process.parameters = parameterHelper.matchParams(process.inputParameters, process.inputHighlighters.segments,process.neededParameters,process.imagePath,image.md5, req)
+          process.parameters = parameterHelper.matchParams(process.inputParameters, process.inputHighlighters.segments,process.neededParameters,process.image.path,process.image.md5, req)
           if(req.body.requireOutputImage?)
             process.requireOutputImage = req.body.requireOutputImage
           process.programType = serviceInfo.programType
           process.executablePath = serviceInfo.executablePath
           process.resultType =  serviceInfo.output
           process.method = parameterHelper.getMethodName(req.originalUrl)
-          process.filePath = ioHelper.buildFilePath(image.folder, req.originalUrl, process.parameters.params)
-          process.tmpFilePath = ioHelper.buildTempFilePath(image.folder, req.originalUrl, process.parameters.params)
-          process.inputImageUrl = ImageHelper.getInputImageUrl(image.md5)
+          process.filePath = ioHelper.buildFilePath(process.outputFolder, process.image.name)
+          process.tmpFilePath = ioHelper.buildTempFilePath(process.outputFolder, process.image.name)
+          process.inputImageUrl = ImageHelper.getInputImageUrl(process.rootFolder, process.image.name, process.image.extension)
           if(process.neededParameters.outputImage?)
-            process.outputImageUrl = ImageHelper.getOutputImageUrl(image.md5)
-          process.resultLink = parameterHelper.buildGetUrl(req.originalUrl,image.md5, process.neededParameters, process.parameters.params, process.inputHighlighters)
+            process.outputImageUrl = ImageHelper.getOutputImageUrl(process.rootFolder + '/' + process.outputFolder, process.image.name, process.image.extension )
+          process.resultLink = parameterHelper.buildGetUrl(req.originalUrl,process.image.md5, process.neededParameters, process.parameters.params, process.inputHighlighters)
           resultHandler = null
           switch serviceInfo.output
             when 'console'
@@ -150,14 +147,14 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
               resultHandler = new FileResultHandler(process.filePath);
           process.resultHandler = resultHandler
           #callback null
-        #callback null, processes
+        callback null, processes
         return
       #TODO: generate the path for the execution (how can I find an executedRequest?)
       #try to load results from disk
       (processes,callback) ->
         #try to load results for each process
         for process in processes
-          ioHelper.loadResult process.imageFolder, req.originalUrl, process.parameters.params, true, () ->
+          ioHelper.loadResult process.filePath, true, () ->
             if(data?)
               process.result = data
         callback null, processes
