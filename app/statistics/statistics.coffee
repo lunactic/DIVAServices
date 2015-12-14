@@ -69,10 +69,5 @@ statistics = exports = module.exports = class Statistics
         #Should only happen at first startup
         logger.log 'error', 'No statistics file found'
 
-  @saveStatistics: (callback) ->
-    fs.writeFile nconf.get('paths:statisticsFile'), JSON.stringify(@currentStatistics), (err) ->
-      if(err?)
-        callback err
-      else
-        callback null
-      return
+  @saveStatistics: () ->
+    fs.writeFileSync nconf.get('paths:statisticsFile'), JSON.stringify(@currentStatistics)

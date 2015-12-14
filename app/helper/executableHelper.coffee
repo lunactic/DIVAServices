@@ -101,6 +101,7 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
         if inputImages.length > 1
           #generte a random folder name
           @rootFolder = RandomWordGenerator.generateRandomWord()
+          #save all images
           for inputImage,i in inputImages
             process = new Process()
             process.req = req
@@ -112,11 +113,12 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
               image = ImageHelper.saveImageUrl(inputImage.value,process.rootFolder, i)
             else if (inputImage.type is 'md5')
               image = ImageHelper.loadImageMd5(inputImage.value)
+            ImageHelper.addImageInfo(image.md5, image.path)
             process.image = image
             processes.push(process)
           callback null, processes
         return
-      #perform parameter matching
+      #receive all information for a process
       (processes, callback) ->
         #Create an array of processes that are added to the processing queue
         outputFolder = ioHelper.getOutputFolder(@rootFolder, serviceInfo.service)

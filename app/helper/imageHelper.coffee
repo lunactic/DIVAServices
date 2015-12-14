@@ -6,6 +6,7 @@
 # Copyright &copy; Marcel Würsch, GPL v3.0 licensed.
 
 # Module dependencies
+_                     = require 'lodash'
 nconf                 = require 'nconf'
 md5                   = require 'md5'
 fs                    = require 'fs'
@@ -19,6 +20,7 @@ logger                = require '../logging/logger'
 
 imageHelper = exports = module.exports = class ImageHelper
 
+  @imageInfo ?= JSON.parse(fs.readFileSync(nconf.get('paths:imageInfoFile'),'utf-8'))
 
   @imageExists: (md5, callback) ->
     imagePath = nconf.get('paths:imageRootPath')
@@ -166,5 +168,16 @@ imageHelper = exports = module.exports = class ImageHelper
     rootUrl = nconf.get('server:rootUrl')
     outputUrl = 'http://' + rootUrl + '/static/' + folder + filename + '.' + extension
     return outputUrl
+
+  @addImageInfo: (md5,file) ->
+    @imageInfo.push {md5:md5, file:file}
+    @saveImageInfo()
+
+  @getImageInfo: (md5) ->
+    return _.find @imageInfo, (info) ->
+      return info.md5 == md5
+
+  @saveImageInfo: () ->
+    fs.writeFileSync nconf.get('paths:imageInfoFile'),JSON.stringify(@imageInfo), 'utf8'
 
 

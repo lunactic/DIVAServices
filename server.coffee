@@ -26,6 +26,7 @@ logger        = require './app/logging/logger'
 router        = require './app/routes/router'
 sysPath       = require 'path'
 Statistics    = require './app/statistics/statistics'
+ImageHelper   = require './app/helper/imageHelper'
 
 #setup express framework
 app = express()
@@ -39,9 +40,9 @@ credentials = {key: privateKey, cert: certificate}
 #shutdown handler
 process.on 'SIGTERM', () ->
   logger.log 'info', 'RECEIVED SIGTERM'
-  Statistics.saveStatistics () ->
-    process.exit(0)
-
+  Statistics.saveStatistics()
+  ImageHelper.saveImageInfo()
+  process.exit(0)
 
 #setup body parser
 app.use bodyParser.json(limit: '50mb')

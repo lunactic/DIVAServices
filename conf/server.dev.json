@@ -29,6 +29,7 @@
     "matlabScriptsPath": "/data/matlab",
     "jsonPath":"/data/json",
     "ocropyLanguageModelsPath": "/data/ocropyLanguageModels",
+    "imageInfoFile": "/data/images/imageInfo.json",
     "statisticsFile":"/data/statistics.json",
     "servicesInfoFile":"/data/json/services.json",
     "noisingXmlPath": "/data/noise/scripts/realistic.xml"
