@@ -10,6 +10,7 @@ nconf   = require 'nconf'
 path    = require 'path'
 _       = require 'lodash'
 ImageHelper = require './imageHelper'
+IoHelper    = require './ioHelper'
 
 # expose parameterHelper
 parameterHelper = exports = module.exports = class ParameterHelper
@@ -142,7 +143,15 @@ parameterHelper = exports = module.exports = class ParameterHelper
   getMethodName: (algorithm) ->
     return algorithm.replace(/\//g, '')
 
-  saveParamInfo: (parameters, rootFolder,outputFolder,method ) ->
+  saveParamInfo: (process, parameters, rootFolder,outputFolder,method ) ->
+    if process.result?
+      return
+
+    try
+      fs.mkdirSync(outputFolder)
+    catch error
+      #no need to handle the error
+
     path = nconf.get('paths:imageRootPath') + '/'+ rootFolder + '/' + method + '.json'
     content = []
     data =
@@ -159,6 +168,24 @@ parameterHelper = exports = module.exports = class ParameterHelper
       content.push data
       fs.writeFileSync(path, JSON.stringify(content))
 
+  loadParamInfo: (process, rootFolder, method) ->
+    path = nconf.get('paths:imageRootPath') + '/' + rootFolder + '/' + method + '.json'
+    data =
+      parameters: process.parameters.params
+      folder: process.outputFolder
+    try
+      fs.statSync(path).isFile()
+      content = JSON.parse(fs.readFileSync(path,'utf8'))
+      if((info = _.where(content,{'parameters':data.parameters})).length > 0)
+        ioHelper = new IoHelper()
+        process.filePath = ioHelper.buildFilePath(info[0].folder, process.image.name)
+        #found some information about this method
+      else
+        #found no information about that method
+        return
+    catch error
+      #no information found
+      return
 # ---
   # **checkReservedParameters**</br>
   # Checks if a parameter is in the list of reserverd words as defined in server.NODE_ENV.json</br>

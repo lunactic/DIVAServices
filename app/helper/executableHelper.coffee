@@ -117,6 +117,7 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
             process.image = image
             processes.push(process)
         else
+          #process a collection
           if(req.body.images[0].collection?)
             images = ImageHelper.loadCollection(req.body.images[0].collection)
             @rootFolder = req.body.images[0].collection
@@ -138,14 +139,17 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
           process.inputParameters = req.body.inputs
           process.inputHighlighters = req.body.highlighter
           process.parameters = parameterHelper.matchParams(process.inputParameters, process.inputHighlighters.segments,process.neededParameters,process.image.path,process.image.md5, req)
+          process.method = parameterHelper.getMethodName(req.originalUrl)
+          process.filePath = ioHelper.buildFilePath(process.outputFolder, process.image.name)
+          process.tmpFilePath = ioHelper.buildTempFilePath(process.outputFolder, process.image.name)
+          #TODO: Check for the results here and change the process information accordingly
+          parameterHelper.loadParamInfo process,process.rootFolder,process.method
+
           if(req.body.requireOutputImage?)
             process.requireOutputImage = req.body.requireOutputImage
           process.programType = serviceInfo.programType
           process.executablePath = serviceInfo.executablePath
           process.resultType =  serviceInfo.output
-          process.method = parameterHelper.getMethodName(req.originalUrl)
-          process.filePath = ioHelper.buildFilePath(process.outputFolder, process.image.name)
-          process.tmpFilePath = ioHelper.buildTempFilePath(process.outputFolder, process.image.name)
           process.inputImageUrl = ImageHelper.getInputImageUrl(process.rootFolder, process.image.name, process.image.extension)
           if(process.neededParameters.outputImage?)
             process.outputImageUrl = ImageHelper.getOutputImageUrl(process.rootFolder + '/' + process.outputFolder, process.image.name, process.image.extension )
@@ -158,7 +162,6 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
               process.parameters.data['resultFile'] = process.filePath
               resultHandler = new FileResultHandler(process.filePath);
           process.resultHandler = resultHandler
-          parameterHelper.saveParamInfo(process.parameters,process.rootFolder,process.outputFolder, process.method)
           #callback null
         callback null, processes
         return
@@ -166,9 +169,9 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
       (processes,callback) ->
         #try to load results for each process
         for process in processes
-          ioHelper.loadResult process.filePath, true, () ->
-            if(data?)
-              process.result = data
+          data = ioHelper.loadResult process.filePath
+          if(data?)
+            process.result = data
         callback null, processes
         return
       (processes, callback) ->
@@ -177,6 +180,7 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
             if(!process.requireOutputImage)
               delete process.data['image']
           else
+            parameterHelper.saveParamInfo(process,process.parameters,process.rootFolder,process.outputFolder, process.method)
             ioHelper.writeTempFile(process.filePath)
         callback null, processes
       ],(err, processes) ->
@@ -198,7 +202,7 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
           results = []
           for process in processes
             results.push({'resultLink':process.resultLink})
-            if(!process.results?)
+            if(!process.result?)
               processingQueue.addElement(process)
               queueCallback()
           requestCallback null, results

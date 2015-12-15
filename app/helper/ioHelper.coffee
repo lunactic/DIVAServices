@@ -32,10 +32,8 @@ ioHelper = exports = module.exports = class IoHelper
       numbers = _.invoke folders, String::split, '_'
       numbers = _.pluck(numbers, 1)
       maxNumber = parseInt(_.max(numbers),10)
-      fs.mkdirSync rootPath + '/' + service + '_' + (maxNumber + 1)
       return rootPath + '/' + service + '_' + (maxNumber + 1)
     else
-      fs.mkdirSync rootPath + '/' + service + '_0'
       return rootPath + '/' + service + '_0'
 
   #build file Path from outputFolder name and filename
@@ -49,27 +47,16 @@ ioHelper = exports = module.exports = class IoHelper
   # **loadResult**</br>
   # Loads existing results from the disk</br>
   # `params`
-  #   *path* path to the image folder, where results are stored
-  #   *algorithm* the executed algorithm
-  #   *params* the used parameter values
-  loadResult: (filePath, post, callback) ->
+  #   *filePath* path to the result file
+  loadResult: (filePath) ->
     logger.log "info",'load from file  ' + filePath
+    try
+      fs.statSync(filePath)
+      content = JSON.parse(fs.readFileSync(filePath,'utf8'))
+      return content
+    catch error
+      return null
 
-    fs.stat filePath, (err, stat) ->
-      #check if file exists
-      if !err?
-        fs.readFile filePath, 'utf8', (err, data) ->
-          if err?
-            callback err, null
-          else
-            data = JSON.parse(data)
-            callback null, data
-      else
-        if(post)
-          callback null, null
-        else
-          logger.log 'error', err
-          callback err,null
   # ---
   # **/br>
   # Saves the results of a method execution to the disk</br>
