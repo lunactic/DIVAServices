@@ -162,7 +162,6 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
           #callback null
         callback null, processes
         return
-      #TODO: generate the path for the execution (how can I find an executedRequest?)
       #try to load results from disk
       (processes,callback) ->
         #try to load results for each process

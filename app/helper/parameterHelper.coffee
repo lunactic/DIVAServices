@@ -144,14 +144,20 @@ parameterHelper = exports = module.exports = class ParameterHelper
 
   saveParamInfo: (parameters, rootFolder,outputFolder,method ) ->
     path = nconf.get('paths:imageRootPath') + '/'+ rootFolder + '/' + method + '.json'
+    content = []
     data =
       parameters: parameters.params
       folder: outputFolder
     try
       fs.statSync(path).isFile()
-      console.log 'appendFile'
+      content = JSON.parse(fs.readFileSync(path,'utf8'))
+      #only save the information if its not already present
+      if(_.where(content,data).length == 0)
+        content.push data
+        fs.writeFileSync(path, JSON.stringify(content))
     catch error
-      fs.writeFileSync(path, JSON.stringify(data))
+      content.push data
+      fs.writeFileSync(path, JSON.stringify(content))
 
 # ---
   # **checkReservedParameters**</br>
