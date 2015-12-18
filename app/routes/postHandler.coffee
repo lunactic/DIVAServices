@@ -34,6 +34,11 @@ postHandler = exports = module.exports = class PostHandler
   # `params`
   #   *req* the incoming request
   handleRequest: (req, cb) ->
+
+    #only needed in debugging
+    if(req.originalUrl.startsWith('/services'))
+      req.originalUrl = req.originalUrl.replace('/services','')
+
     #If mean-execution time < 60s directly execute
     if (Statistics.getMeanExecutionTime(req.originalUrl) < 60)
       @queueHandler.executeRequestImmediately(req,cb)

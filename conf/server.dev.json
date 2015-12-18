@@ -25,6 +25,7 @@
   },
   "paths": {
     "imageRootPath": "/data/images",
+    "textualRootPath": "/data/textual",
     "matlabPath": "/usr/local/bin/matlab",
     "matlabScriptsPath": "/data/matlab",
     "jsonPath":"/data/json",
