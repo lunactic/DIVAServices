@@ -14,6 +14,7 @@ ImageHelper         = require '../helper/imageHelper'
 IoHelper            = require '../helper/ioHelper'
 ParameterHelper     = require '../helper/parameterHelper'
 ServicesInfoHelper  = require '../helper/servicesInfoHelper'
+InputHelper         = require '../helper/inputHelper'
 Statistics          = require '../statistics/statistics'
 logger              = require '../logging/logger'
 Process             = require '../processingQueue/process'
@@ -98,6 +99,7 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
     imageHelper = new ImageHelper()
     ioHelper = new IoHelper()
     parameterHelper = new ParameterHelper()
+    inputHelper = new InputHelper()
     process = new Process()
     process.req = req
     async.waterfall [
@@ -108,7 +110,11 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
           imageHelper.saveImageUrl(req.body.url, callback)
         else if (req.body.md5Image?)
           imageHelper.loadImageMd5(req.body.md5Image, callback)
-        process.imageHelper = imageHelper
+        else
+          #no image was provided
+          inputHelper.saveInput(req.body.inputs.input, callback)
+        #TODO CHECK IF NEEDED
+        #process.imageHelper = imageHelper
         return
       #perform parameter matching
       (result, callback) ->

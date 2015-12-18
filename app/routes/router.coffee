@@ -32,6 +32,7 @@ router.post '*', (req, res, next) ->
     sendResponse res, err, response
 
 
+
 router.get '/image/:md5', (req,res) ->
   ImageHelper.imageExists req.params.md5, (err, response) ->
     sendResponse res, err, response
