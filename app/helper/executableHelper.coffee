@@ -127,7 +127,7 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
               process.rootFolder = @rootFolder
               process.image = image
               processes.push(process)
-          callback null, processes
+        callback null, processes
         return
       #receive all information for a process
       (processes, callback) ->
@@ -142,6 +142,7 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
           process.method = parameterHelper.getMethodName(req.originalUrl)
           process.filePath = ioHelper.buildFilePath(process.outputFolder, process.image.name)
           process.tmpFilePath = ioHelper.buildTempFilePath(process.outputFolder, process.image.name)
+          #NOTE: this might change process.filePath and process.outputFolder
           parameterHelper.loadParamInfo process,process.rootFolder,process.method
           if(req.body.requireOutputImage?)
             process.requireOutputImage = req.body.requireOutputImage
@@ -203,4 +204,7 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
             if(!process.result?)
               processingQueue.addElement(process)
               queueCallback()
-          requestCallback null, results
+          message =
+            results: results
+            collection: processes[0].rootFolder
+          requestCallback null, message

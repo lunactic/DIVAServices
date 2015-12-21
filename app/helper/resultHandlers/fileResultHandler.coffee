@@ -26,6 +26,7 @@ consoleResultHandler = exports = module.exports = class consoleResultHandler
                 data['status'] = 'done'
               data['inputImage'] = process.inputImageUrl
               data['resultLink'] = process.resultLink
+              data['collectionName'] = process.rootFolder
               if(process.outputImageUrl?)
                 data['outputImage'] = process.outputImageUrl
               fs.writeFileSync(self.filename,JSON.stringify(data), "utf8")
