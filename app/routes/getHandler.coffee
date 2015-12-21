@@ -47,7 +47,6 @@ getHandler = exports = module.exports = class GetHandler
 
   getWithQuery = (req, callback) ->
     parameterHelper = new ParameterHelper()
-    imageHelper = new ImageHelper()
     ioHelper = new IoHelper()
     serviceInfo = ServicesInfoHelper.getServiceInfo(req.path)
     queryParams = req.query

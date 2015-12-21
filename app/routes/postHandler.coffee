@@ -17,7 +17,6 @@
 # Copyright &copy; Marcel Würsch, GPL v3.0 licensed.
 
 # module requirements
-logger              = require '../logging/logger'
 QueueHandler        = require '../processingQueue/queueHandler'
 ExecutableHelper    = require '../helper/executableHelper'
 Statistics          = require '../statistics/statistics'

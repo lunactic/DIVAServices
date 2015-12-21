@@ -20,7 +20,7 @@ statistics = exports = module.exports = class Statistics
   @startTime = 0
 
   constructor ->
-    startTime = 0
+    @startTime = 0
 
   @getNumberOfCurrentExecutions: () ->
     return @currentExecutions.length

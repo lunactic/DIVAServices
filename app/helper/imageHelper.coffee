@@ -12,7 +12,6 @@ md5                   = require 'md5'
 fs                    = require 'fs'
 request               = require 'request'
 deasync               = require 'deasync'
-RandomWordGenerator   = require '../randomizer/randomWordGenerator'
 logger                = require '../logging/logger'
 
 # expose imageHelper
@@ -51,7 +50,6 @@ imageHelper = exports = module.exports = class ImageHelper
       counter = ''
     image = {}
     sync = false
-    self = @
     try
       fs.mkdirSync imagePath + '/' + folder
       fs.mkdirSync imagePath + '/' + folder + '/original'
@@ -93,7 +91,6 @@ imageHelper = exports = module.exports = class ImageHelper
     if(!counter?)
       counter = ''
     imagePath = nconf.get('paths:imageRootPath')
-    self = @
     image = {}
     sync = false
     request(url).pipe(fs.createWriteStream(imagePath + '/temp.png')).on 'close', (cb) ->
@@ -145,7 +142,6 @@ imageHelper = exports = module.exports = class ImageHelper
   @loadImageMd5: (md5) ->
     imagePath = nconf.get('paths:imageRootPath')
     imgFolder = imagePath + '/' + md5 + '/'
-    self = @
     image = {}
     sync = false
     fs.stat imagePath + '/' + md5 + '/input.png', (err,stat) ->
@@ -162,7 +158,6 @@ imageHelper = exports = module.exports = class ImageHelper
   @loadCollection: (collectionName) ->
     imagePath = nconf.get('paths:imageRootPath')
     imgFolder = imagePath + '/' + collectionName + '/'
-    self = @
     images = []
     try
       fs.statSync(imgFolder)

@@ -111,7 +111,7 @@ parameterHelper = exports = module.exports = class ParameterHelper
   # `params`
   #   *neededHighlighter* required highlighter as defined by the method
   #   *inputHighlighter*  received highlighter with its value from the request
-  getHighlighterParamValues: (neededHighlighter, inputHighlighter, callback) ->
+  getHighlighterParamValues: (neededHighlighter, inputHighlighter) ->
     switch neededHighlighter
       when 'rectangle'
         merged = []
