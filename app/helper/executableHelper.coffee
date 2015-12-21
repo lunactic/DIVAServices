@@ -153,7 +153,7 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
           process.inputImageUrl = ImageHelper.getInputImageUrl(process.rootFolder, process.image.name, process.image.extension)
           if(process.neededParameters.outputImage?)
             process.outputImageUrl = ImageHelper.getOutputImageUrl(process.rootFolder + '/' + process.outputFolder, process.image.name, process.image.extension )
-          process.resultLink = parameterHelper.buildGetUrl(req.originalUrl,process.image.md5, process.neededParameters, process.parameters.params, process.inputHighlighters)
+          process.resultLink = parameterHelper.buildGetUrl(process)
           resultHandler = null
           switch serviceInfo.output
             when 'console'

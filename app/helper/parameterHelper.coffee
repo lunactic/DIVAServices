@@ -94,17 +94,8 @@ parameterHelper = exports = module.exports = class ParameterHelper
       data: data
     return result
 
-  buildGetUrl: (method, imagePath, neededParameters, parameterValues, inputHighlighters) ->
-    #fix getURL to static path pointing to the json file
-    getUrl = 'http://' + nconf.get('server:rootUrl') + method + '?'
-    i = 0
-    for key, value of neededParameters
-      if(!checkReservedParameters(key))
-        getUrl += key + '=' + parameterValues[i] + '&'
-        i++
-      else if(key is 'highlighter')
-        getUrl += key + '=' + JSON.stringify(inputHighlighters['segments']) + '&'
-    getUrl += 'md5=' + imagePath
+  buildGetUrl: (process) ->
+    getUrl = 'http://' + nconf.get('server:rootUrl') + '/static/' + process.rootFolder + '/' + process.outputFolder.split('/')[process.outputFolder.split('/').length - 1] + '/' + process.image.name + '.json'
     return getUrl
 
   # ---
@@ -121,7 +112,6 @@ parameterHelper = exports = module.exports = class ParameterHelper
   #   *neededHighlighter* required highlighter as defined by the method
   #   *inputHighlighter*  received highlighter with its value from the request
   getHighlighterParamValues: (neededHighlighter, inputHighlighter, callback) ->
-    # TODO: Is this actually needed?
     switch neededHighlighter
       when 'rectangle'
         merged = []
@@ -178,9 +168,10 @@ parameterHelper = exports = module.exports = class ParameterHelper
       fs.statSync(path).isFile()
       content = JSON.parse(fs.readFileSync(path,'utf8'))
       if((info = _.where(content,{'parameters':data.parameters})).length > 0)
+        #found some information about this method
         ioHelper = new IoHelper()
         process.filePath = ioHelper.buildFilePath(info[0].folder, process.image.name)
-        #found some information about this method
+        process.outputFolder = info[0].folder
       else
         #found no information about that method
         return
