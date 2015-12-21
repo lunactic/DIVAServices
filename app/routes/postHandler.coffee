@@ -36,6 +36,6 @@ postHandler = exports = module.exports = class PostHandler
   handleRequest: (req, cb) ->
     #If mean-execution time < 60s directly execute
     if (Statistics.getMeanExecutionTime(req.originalUrl) < 60)
-      @queueHandler.executeRequestImmediately(req,cb)
+      @queueHandler.executeRequestImmediately(req)
     else
-      @queueHandler.addRequestToQueue(req,cb)
+      @queueHandler.addRequestToQueue(req)

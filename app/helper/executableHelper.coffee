@@ -70,7 +70,7 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
       else
         return ''
 
-  executeRequest: (process, requestCallback) ->
+  executeRequest: (process) ->
       self = @
       async.waterfall [
         (callback) ->
@@ -142,9 +142,7 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
           process.method = parameterHelper.getMethodName(req.originalUrl)
           process.filePath = ioHelper.buildFilePath(process.outputFolder, process.image.name)
           process.tmpFilePath = ioHelper.buildTempFilePath(process.outputFolder, process.image.name)
-          #TODO: Check for the results here and change the process information accordingly
           parameterHelper.loadParamInfo process,process.rootFolder,process.method
-
           if(req.body.requireOutputImage?)
             process.requireOutputImage = req.body.requireOutputImage
           process.programType = serviceInfo.programType
