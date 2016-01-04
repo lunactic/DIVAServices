@@ -143,21 +143,21 @@ parameterHelper = exports = module.exports = class ParameterHelper
     catch error
       #no need to handle the error
 
-    path = nconf.get('paths:imageRootPath') + '/'+ rootFolder + '/' + method + '.json'
+    methodPath = nconf.get('paths:imageRootPath') + '/'+ rootFolder + '/' + method + '.json'
     content = []
     data =
       parameters: parameters.params
       folder: outputFolder
     try
-      fs.statSync(path).isFile()
-      content = JSON.parse(fs.readFileSync(path,'utf8'))
+      fs.statSync(methodPath).isFile()
+      content = JSON.parse(fs.readFileSync(methodPath,'utf8'))
       #only save the information if its not already present
       if(_.where(content,data).length == 0)
         content.push data
-        fs.writeFileSync(path, JSON.stringify(content))
+        fs.writeFileSync(methodPath, JSON.stringify(content))
     catch error
       content.push data
-      fs.writeFileSync(path, JSON.stringify(content))
+      fs.writeFileSync(methodPath, JSON.stringify(content))
 
   loadParamInfo: (process, rootFolder, method) ->
     paramPath = nconf.get('paths:imageRootPath') + '/' + rootFolder + '/' + method + '.json'

@@ -5,6 +5,8 @@ process = exports = module.exports = class Process
   @method: ""
   @image: null
   @rootFolder: ""
+  @outputFolder: ""
+  @methodFolder: ""
   @neededParameters: null
   @inputParameters: null
   @inputHighlighters: null

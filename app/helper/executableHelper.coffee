@@ -10,6 +10,7 @@ childProcess        = require 'child_process'
 async               = require 'async'
 {EventEmitter}      = require 'events'
 _                   = require 'lodash'
+path                = require 'path'
 ImageHelper         = require '../helper/imageHelper'
 IoHelper            = require '../helper/ioHelper'
 ParameterHelper     = require '../helper/parameterHelper'
@@ -108,7 +109,7 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
             process.rootFolder = @rootFolder
             image = {}
             if(inputImage.type is 'image')
-              image = ImageHelper.saveImage(inputImage.value)
+              image = ImageHelper.saveOriginalImage(inputImage.value)
             else if (inputImage.type is 'url')
               image = ImageHelper.saveImageUrl(inputImage.value,process.rootFolder, i)
             else if (inputImage.type is 'md5')
@@ -135,6 +136,7 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
         outputFolder = ioHelper.getOutputFolder(@rootFolder, serviceInfo.service)
         for process in processes
           process.outputFolder = outputFolder
+          process.methodFolder = path.basename(process.outputFolder)
           process.neededParameters = serviceInfo.parameters
           process.inputParameters = req.body.inputs
           process.inputHighlighters = req.body.highlighter
@@ -150,8 +152,7 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
           process.executablePath = serviceInfo.executablePath
           process.resultType =  serviceInfo.output
           process.inputImageUrl = ImageHelper.getInputImageUrl(process.rootFolder, process.image.name, process.image.extension)
-          if(process.neededParameters.outputImage?)
-            process.outputImageUrl = ImageHelper.getOutputImageUrl(process.rootFolder + '/' + process.outputFolder, process.image.name, process.image.extension )
+          process.outputImageUrl = ImageHelper.getOutputImageUrl(process.rootFolder + '/' + process.methodFolder, process.image.name, process.image.extension )
           process.resultLink = parameterHelper.buildGetUrl(process)
           resultHandler = null
           switch serviceInfo.output
@@ -207,4 +208,5 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
           message =
             results: results
             collection: processes[0].rootFolder
+            status: 'done'
           requestCallback null, message

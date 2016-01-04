@@ -5,6 +5,7 @@
 
 fs = require 'fs'
 logger = require '../../logging/logger'
+ImageHelper = require '../imageHelper'
 
 consoleResultHandler = exports = module.exports = class consoleResultHandler
   @filename: ''
@@ -24,11 +25,11 @@ consoleResultHandler = exports = module.exports = class consoleResultHandler
               data = JSON.parse(data)
               if(!data)
                 data['status'] = 'done'
+              ImageHelper.saveImageJson(data['image'],process)
               data['inputImage'] = process.inputImageUrl
               data['resultLink'] = process.resultLink
+              data['outputImage'] = process.outputImageUrl
               data['collectionName'] = process.rootFolder
-              if(process.outputImageUrl?)
-                data['outputImage'] = process.outputImageUrl
               fs.writeFileSync(self.filename,JSON.stringify(data), "utf8")
             catch error
               console.log error

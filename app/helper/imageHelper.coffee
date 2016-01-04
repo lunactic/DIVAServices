@@ -39,7 +39,7 @@ imageHelper = exports = module.exports = class ImageHelper
   #     *EXTENSION* is the image extension</br>
   # `params`
   #   *image* the received base64 encoded image
-  @saveImage: (image, folder, counter) ->
+  @saveOriginalImage: (image, folder, counter) ->
     #code for saving an image
     imagePath = nconf.get('paths:imageRootPath')
     base64Data = image.replace(/^data:image\/png;base64,/, "")
@@ -78,6 +78,10 @@ imageHelper = exports = module.exports = class ImageHelper
     while(!sync)
       require('deasync').sleep(100)
     return image
+
+  @saveImageJson: (image,process) ->
+    base64Data = image.replace(/^data:image\/png;base64,/, "")
+    fs.writeFileSync(process.outputFolder + '/' + process.image.name + '.' + process.image.extension,base64Data, 'base64')
   # ---
   # **saveImageUrl**</br>
   # saves an image to the disk coming from a URL
@@ -185,7 +189,7 @@ imageHelper = exports = module.exports = class ImageHelper
 
   @getOutputImageUrl: (folder, filename, extension) ->
     rootUrl = nconf.get('server:rootUrl')
-    outputUrl = 'http://' + rootUrl + '/static/' + folder + filename + '.' + extension
+    outputUrl = 'http://' + rootUrl + '/static/' + folder + '/' + filename + '.' + extension
     return outputUrl
 
   @addImageInfo: (md5,file) ->

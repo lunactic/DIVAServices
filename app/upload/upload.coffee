@@ -8,4 +8,4 @@ upload = exports = module.exports = class Upload
     @imageHelper.saveImageUrl(url, callback)
 
   @uploadBase64: (base64, callback) ->
-    @imageHelper.saveImage(base64,callback)
+    @imageHelper.saveOriginalImage(base64,callback)
