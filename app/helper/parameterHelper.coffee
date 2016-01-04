@@ -160,13 +160,13 @@ parameterHelper = exports = module.exports = class ParameterHelper
       fs.writeFileSync(path, JSON.stringify(content))
 
   loadParamInfo: (process, rootFolder, method) ->
-    path = nconf.get('paths:imageRootPath') + '/' + rootFolder + '/' + method + '.json'
+    paramPath = nconf.get('paths:imageRootPath') + '/' + rootFolder + '/' + method + '.json'
     data =
       parameters: process.parameters.params
       folder: process.outputFolder
     try
-      fs.statSync(path).isFile()
-      content = JSON.parse(fs.readFileSync(path,'utf8'))
+      fs.statSync(paramPath).isFile()
+      content = JSON.parse(fs.readFileSync(paramPath,'utf8'))
       if((info = _.where(content,{'parameters':data.parameters})).length > 0)
         #found some information about this method
         ioHelper = new IoHelper()
