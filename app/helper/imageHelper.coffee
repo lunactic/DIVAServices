@@ -11,6 +11,7 @@ nconf                 = require 'nconf'
 md5                   = require 'md5'
 fs                    = require 'fs'
 request               = require 'request'
+sync_request          = require 'sync-request'
 deasync               = require 'deasync'
 logger                = require '../logging/logger'
 
@@ -58,7 +59,7 @@ imageHelper = exports = module.exports = class ImageHelper
 
     imgFolder = imagePath + '/' + folder + '/original/'
     imgName = 'input' + counter
-    imgExtension = 'png'
+    imgExtension = getImageExtensionFromBase64(base64Data)
     fs.stat imgFolder + imgName, (err, stat) ->
       image =
         folder: imgFolder
@@ -97,14 +98,16 @@ imageHelper = exports = module.exports = class ImageHelper
     imagePath = nconf.get('paths:imageRootPath')
     image = {}
     sync = false
-    request(url).pipe(fs.createWriteStream(imagePath + '/temp.png')).on 'close', (cb) ->
-      base64 = fs.readFileSync imagePath + '/temp.png', 'base64'
+
+    head = sync_request('HEAD',url)
+    imgExtension = getImageExtension(head.headers['content-type'])
+    request(url).pipe(fs.createWriteStream(imagePath + '/temp.' + imgExtension)).on 'close', (cb) ->
+      base64 = fs.readFileSync imagePath + '/temp.' + imgExtension, 'base64'
       md5String = md5(base64)
       if(!folder?)
         folder = md5String
       imgFolder = imagePath + '/' + folder + '/original/'
       imgName = 'input' + counter
-      imgExtension = 'png'
       image =
         folder: imgFolder
         name: imgName
@@ -120,15 +123,15 @@ imageHelper = exports = module.exports = class ImageHelper
 
       fs.stat image.path, (err, stat) ->
         if !err?
-          fs.unlink(imagePath + '/temp.png')
+          fs.unlink(imagePath + '/temp.' + imgExtension)
           sync = true
           return
         else if err.code == 'ENOENT'
-          source = fs.createReadStream imagePath + '/temp.png'
+          source = fs.createReadStream imagePath + '/temp.' + imgExtension
           dest = fs.createWriteStream image.path
           source.pipe(dest)
           source.on 'end', () ->
-            fs.unlink(imagePath + '/temp.png')
+            fs.unlink(imagePath + '/temp.' + imgExtension)
             sync = true
             return
           source.on 'error', (err) ->
@@ -203,4 +206,17 @@ imageHelper = exports = module.exports = class ImageHelper
   @saveImageInfo: () ->
     fs.writeFileSync nconf.get('paths:imageInfoFile'),JSON.stringify(@imageInfo), 'utf8'
 
+  getImageExtension = (contentType) ->
+    switch (contentType)
+      when "image/jpeg"
+        return 'jpg'
+      when "image/tiff"
+        return 'tiff'
+      when "image/png"
+        return 'png'
 
+  getImageExtensionFromBase64 = (base64) ->
+    if(base64.indexOf('/9j/4AAQ') != -1)
+      return 'jpg'
+    if(base64.indexOf('iVBORw0KGgoAAAANSUhEU') != -1)
+      return 'png'

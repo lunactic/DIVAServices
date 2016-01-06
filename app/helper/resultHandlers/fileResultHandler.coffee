@@ -25,10 +25,11 @@ consoleResultHandler = exports = module.exports = class consoleResultHandler
               data = JSON.parse(data)
               if(!data)
                 data['status'] = 'done'
-              ImageHelper.saveImageJson(data['image'],process)
+              if(data['image']?)
+                ImageHelper.saveImageJson(data['image'],process)
+                data['outputImage'] = process.outputImageUrl
               data['inputImage'] = process.inputImageUrl
               data['resultLink'] = process.resultLink
-              data['outputImage'] = process.outputImageUrl
               data['collectionName'] = process.rootFolder
               fs.writeFileSync(self.filename,JSON.stringify(data), "utf8")
             catch error
