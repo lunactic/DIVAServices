@@ -7,6 +7,7 @@
 
 # Module dependencies
 _                     = require 'lodash'
+async                 = require 'async'
 nconf                 = require 'nconf'
 md5                   = require 'md5'
 fs                    = require 'fs'
@@ -22,14 +23,16 @@ imageHelper = exports = module.exports = class ImageHelper
 
   @imageInfo ?= JSON.parse(fs.readFileSync(nconf.get('paths:imageInfoFile'),'utf-8'))
 
+  #TODO need to rework this
   @imageExists: (md5, callback) ->
-    imagePath = nconf.get('paths:imageRootPath')
+    callback null, {imageAvailable: false}
+    #imagePath = nconf.get('paths:imageRootPath')
 
-    fs.stat imagePath + '/' + md5 + '/input.png', (err, stat) ->
-      if (!err?)
-        callback null, {imageAvailable: true}
-      else
-        callback null, {imageAvailable: false}
+    #fs.stat imagePath + '/' + md5 + '/input.png', (err, stat) ->
+    #  if (!err?)
+    #    callback null, {imageAvailable: true}
+    #  else
+    #    callback null, {imageAvailable: false}
 
   # ---
   # **saveImage**</br>
@@ -72,6 +75,7 @@ imageHelper = exports = module.exports = class ImageHelper
         return
       else if err.code == 'ENOENT'
         fs.writeFile image.path, base64Data, 'base64', (err) ->
+          sync = true
           return
         return
       else
@@ -98,53 +102,62 @@ imageHelper = exports = module.exports = class ImageHelper
     imagePath = nconf.get('paths:imageRootPath')
     image = {}
     sync = false
+    async.waterfall [
+      (callback) ->
+        self = @
+        request.head(url).on('response', (response) ->
+          imgExtension = getImageExtension(response.headers['content-type'])
+          callback null, imgExtension
+        )
+      (imgExtension, callback) ->
+        request(url).pipe(fs.createWriteStream(imagePath + '/temp.' + imgExtension)).on 'close', (cb) ->
+          base64 = fs.readFileSync imagePath + '/temp.' + imgExtension, 'base64'
+          md5String = md5(base64)
+          if(!folder?)
+            folder = md5String
+          imgFolder = imagePath + '/' + folder + '/original/'
+          imgName = 'input' + counter
+          image =
+            folder: imgFolder
+            name: imgName
+            extension: imgExtension
+            path: imgFolder + imgName + '.' + imgExtension
+            md5: md5String
+            #console.log result
+          try
+            fs.mkdirSync imagePath + '/' + folder
+            fs.mkdirSync imagePath + '/' + folder + '/original'
+          catch error
+            #we don't care for errors they are thrown when the folder exists
 
-    head = sync_request('HEAD',url)
-    imgExtension = getImageExtension(head.headers['content-type'])
-    request(url).pipe(fs.createWriteStream(imagePath + '/temp.' + imgExtension)).on 'close', (cb) ->
-      base64 = fs.readFileSync imagePath + '/temp.' + imgExtension, 'base64'
-      md5String = md5(base64)
-      if(!folder?)
-        folder = md5String
-      imgFolder = imagePath + '/' + folder + '/original/'
-      imgName = 'input' + counter
-      image =
-        folder: imgFolder
-        name: imgName
-        extension: imgExtension
-        path: imgFolder + imgName + '.' + imgExtension
-        md5: md5String
-      #console.log result
-      try
-        fs.mkdirSync imagePath + '/' + folder
-        fs.mkdirSync imagePath + '/' + folder + '/original'
-      catch error
-        #we don't care for errors they are thrown when the folder exists
+          fs.stat image.path, (err, stat) ->
+            if !err?
+              fs.unlink(imagePath + '/temp.' + imgExtension)
+              sync = true
+              callback null, image
+              return
+            else if err.code == 'ENOENT'
+              source = fs.createReadStream imagePath + '/temp.' + imgExtension
+              dest = fs.createWriteStream image.path
+              source.pipe(dest)
+              source.on 'end', () ->
+                fs.unlink(imagePath + '/temp.' + imgExtension)
+                sync = true
+                callback null, image
+                return
+              source.on 'error', (err) ->
+                console.log err
+                sync = true
+                callback null, image
+                return
+              return
+            return
+    ], (err, image) ->
+      return image
 
-      fs.stat image.path, (err, stat) ->
-        if !err?
-          fs.unlink(imagePath + '/temp.' + imgExtension)
-          sync = true
-          return
-        else if err.code == 'ENOENT'
-          source = fs.createReadStream imagePath + '/temp.' + imgExtension
-          dest = fs.createWriteStream image.path
-          source.pipe(dest)
-          source.on 'end', () ->
-            fs.unlink(imagePath + '/temp.' + imgExtension)
-            sync = true
-            return
-          source.on 'error', (err) ->
-            console.log err
-            sync = true
-            return
-          return
-      return
     while(!sync)
       require('deasync').sleep(100)
     return image
-
-
   #TODO rework this to load an image
   @loadImageMd5: (md5) ->
     imagePath = nconf.get('paths:imageRootPath')

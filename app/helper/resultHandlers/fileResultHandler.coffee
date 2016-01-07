@@ -23,7 +23,7 @@ consoleResultHandler = exports = module.exports = class consoleResultHandler
           else
             try
               data = JSON.parse(data)
-              if(!data)
+              if(!data['status'])
                 data['status'] = 'done'
               if(data['image']?)
                 ImageHelper.saveImageJson(data['image'],process)

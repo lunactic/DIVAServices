@@ -82,7 +82,7 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
           if(process.resultType == 'console')
             command += ' 1>' + process.tmpFilePath + ';mv ' + process.tmpFilePath + ' ' + process.filePath
           self.executeCommand(command, process.resultHandler, statIdentifier, process, callback)
-          return
+
         #finall callback, handling of the result and returning it
         ], (err, results) ->
           #strip the image out of the response if needed
@@ -99,7 +99,7 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
     async.waterfall [
       (callback) ->
         inputImages = req.body.images
-        if inputImages.length > 1
+        if !(req.body.images[0].collection?)
           #generte a random folder name
           @rootFolder = RandomWordGenerator.generateRandomWord()
           #save all images
@@ -109,7 +109,7 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
             process.rootFolder = @rootFolder
             image = {}
             if(inputImage.type is 'image')
-              image = ImageHelper.saveOriginalImage(inputImage.value)
+              image = ImageHelper.saveOriginalImage(inputImage.value,process.rootFolder,i)
             else if (inputImage.type is 'url')
               image = ImageHelper.saveImageUrl(inputImage.value,process.rootFolder, i)
             else if (inputImage.type is 'md5')
@@ -117,17 +117,16 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
             ImageHelper.addImageInfo(image.md5, image.path)
             process.image = image
             processes.push(process)
+        #process a collection
         else
-          #process a collection
-          if(req.body.images[0].collection?)
-            images = ImageHelper.loadCollection(req.body.images[0].collection)
-            @rootFolder = req.body.images[0].collection
-            for image in images
-              process = new Process()
-              process.req = req
-              process.rootFolder = @rootFolder
-              process.image = image
-              processes.push(process)
+          images = ImageHelper.loadCollection(req.body.images[0].collection)
+          @rootFolder = req.body.images[0].collection
+          for image in images
+            process = new Process()
+            process.req = req
+            process.rootFolder = @rootFolder
+            process.image = image
+            processes.push(process)
         callback null, processes
         return
       #receive all information for a process
@@ -140,7 +139,7 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
           process.neededParameters = serviceInfo.parameters
           process.inputParameters = req.body.inputs
           process.inputHighlighters = req.body.highlighter
-          process.parameters = parameterHelper.matchParams(process.inputParameters, process.inputHighlighters.segments,process.neededParameters,process.image.path,process.image.md5, req)
+          process.parameters = parameterHelper.matchParams(process.inputParameters, process.inputHighlighters.segments,process.neededParameters,process.image.path,process.outputFolder, process.image.md5, req)
           process.method = parameterHelper.getMethodName(req.originalUrl)
           process.filePath = ioHelper.buildFilePath(process.outputFolder, process.image.name)
           process.tmpFilePath = ioHelper.buildTempFilePath(process.outputFolder, process.image.name)
@@ -186,27 +185,15 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
       ],(err, processes) ->
         if(err?)
           requestCallback err, null
-        if processes.length == 1
-          process = processes[0]
-          if(process.results?)
-            requestCallback err,results
-          else if !immediateExecution
-            processingQueue.addElement(process)
-            requestCallback err, {'status':'planned', 'url':process.resultLink}
-            queueCallback()
-          else
+        #what to return here??
+        results = []
+        for process in processes
+          results.push({'resultLink':process.resultLink})
+          if(!process.result?)
             processingQueue.addElement(process)
             queueCallback()
-        else if processes.length > 1
-          #what to return here??
-          results = []
-          for process in processes
-            results.push({'resultLink':process.resultLink})
-            if(!process.result?)
-              processingQueue.addElement(process)
-              queueCallback()
-          message =
-            results: results
-            collection: processes[0].rootFolder
-            status: 'done'
-          requestCallback null, message
+        message =
+          results: results
+          collection: processes[0].rootFolder
+          status: 'done'
+        requestCallback null, message

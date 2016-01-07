@@ -58,8 +58,6 @@ app.use(morgan('combined',{stream: accessLogStream}))
 #setup routes
 app.use router
 
-
-
 httpsServer = https.createServer(credentials,app)
 httpServer = http.createServer(app)
 

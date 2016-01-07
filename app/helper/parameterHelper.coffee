@@ -35,7 +35,7 @@ parameterHelper = exports = module.exports = class ParameterHelper
   #   *imagePath* path to the input image
   #   *md5* md5 hash of the input image
   #   *req* the request
-  getReservedParamValue: (parameter, neededParameters, imagePath, md5, req) ->
+  getReservedParamValue: (parameter, neededParameters, imagePath,outputPath, md5, req) ->
     switch parameter
       when 'matlabPath'
         return nconf.get('paths:matlabPath')
@@ -51,7 +51,7 @@ parameterHelper = exports = module.exports = class ParameterHelper
       when 'imageRootPath'
         return nconf.get('paths:imageRootPath')
       when 'outputFolder'
-        return path.dirname(imagePath)
+        return outputPath
       when 'host'
         return req.get('host')
       when 'ocropyLanguageModelsPath'
@@ -74,7 +74,7 @@ parameterHelper = exports = module.exports = class ParameterHelper
   #   *imagePath* path to the input image
   #   *md5* md5 hash of the input image
   #   *req* incoming request
-  matchParams: (inputParameters, inputHighlighter, neededParameters,imagePath, md5,  req) ->
+  matchParams: (inputParameters, inputHighlighter, neededParameters,imagePath,outputPath, md5,  req) ->
     params = {}
     data = {}
     for parameter of neededParameters
@@ -84,7 +84,7 @@ parameterHelper = exports = module.exports = class ParameterHelper
         if parameter is 'highlighter'
           params[neededParameters[parameter]] = this.getHighlighterParamValues(neededParameters[parameter], inputHighlighter)
         else
-          data[parameter] = this.getReservedParamValue(parameter, neededParameters, imagePath, md5, req)
+          data[parameter] = this.getReservedParamValue(parameter, neededParameters, imagePath,outputPath, md5, req)
       else
         value = this.getParamValue(parameter, inputParameters)
         if value?
