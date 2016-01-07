@@ -110,11 +110,16 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
             image = {}
             if(inputImage.type is 'image')
               image = ImageHelper.saveOriginalImage(inputImage.value,process.rootFolder,i)
+              ImageHelper.addImageInfo(image.md5, image.path)
             else if (inputImage.type is 'url')
               image = ImageHelper.saveImageUrl(inputImage.value,process.rootFolder, i)
+              ImageHelper.addImageInfo(image.md5, image.path)
             else if (inputImage.type is 'md5')
               image = ImageHelper.loadImageMd5(inputImage.value)
-            ImageHelper.addImageInfo(image.md5, image.path)
+              rootFolder = image.folder.split(path.sep)[image.folder.split(path.sep).length-2]
+              #Overwrite the root folder
+              process.rootFolder = rootFolder
+              @rootFolder = rootFolder
             process.image = image
             processes.push(process)
         #process a collection
@@ -175,7 +180,7 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
         return
       (processes, callback) ->
         for process in processes
-          if(process.data?)
+          if(process.result?)
             if(!process.requireOutputImage)
               delete process.data['image']
           else

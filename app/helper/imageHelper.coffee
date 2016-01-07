@@ -8,12 +8,12 @@
 # Module dependencies
 _                     = require 'lodash'
 async                 = require 'async'
-nconf                 = require 'nconf'
-md5                   = require 'md5'
-fs                    = require 'fs'
-request               = require 'request'
-sync_request          = require 'sync-request'
 deasync               = require 'deasync'
+fs                    = require 'fs'
+md5                   = require 'md5'
+nconf                 = require 'nconf'
+path                  = require 'path'
+request               = require 'request'
 logger                = require '../logging/logger'
 
 # expose imageHelper
@@ -23,16 +23,14 @@ imageHelper = exports = module.exports = class ImageHelper
 
   @imageInfo ?= JSON.parse(fs.readFileSync(nconf.get('paths:imageInfoFile'),'utf-8'))
 
-  #TODO need to rework this
   @imageExists: (md5, callback) ->
-    callback null, {imageAvailable: false}
-    #imagePath = nconf.get('paths:imageRootPath')
+    filtered = @imageInfo.filter (item) ->
+      return item.md5 == md5
 
-    #fs.stat imagePath + '/' + md5 + '/input.png', (err, stat) ->
-    #  if (!err?)
-    #    callback null, {imageAvailable: true}
-    #  else
-    #    callback null, {imageAvailable: false}
+    if(filtered.length > 0)
+      callback null, {imageAvailable: true}
+    else
+      callback null, {imageAvailable: false}
 
   # ---
   # **saveImage**</br>
@@ -158,16 +156,25 @@ imageHelper = exports = module.exports = class ImageHelper
     while(!sync)
       require('deasync').sleep(100)
     return image
-  #TODO rework this to load an image
+
+#TODO rework this to load an image
   @loadImageMd5: (md5) ->
-    imagePath = nconf.get('paths:imageRootPath')
-    imgFolder = imagePath + '/' + md5 + '/'
+
+    filtered = @imageInfo.filter (item) ->
+      return item.md5 == md5
+
+
+    imagePath = filtered[0].file
     image = {}
     sync = false
-    fs.stat imagePath + '/' + md5 + '/input.png', (err,stat) ->
+    extension = path.extname(imagePath)
+    filename = path.basename(imagePath,extension)
+    fs.stat imagePath, (err,stat) ->
       image =
-        folder: imgFolder
-        path: imgFolder + 'input.png'
+        folder: path.dirname(imagePath)
+        name: filename
+        extension: extension
+        path: imagePath
         md5: md5
       sync = true
       return

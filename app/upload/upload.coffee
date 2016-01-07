@@ -8,9 +8,11 @@ upload = exports = module.exports = class Upload
   @uploadUrl: (url, callback) ->
     randomFolder = RandomWordGenerator.generateRandomWord()
     image = ImageHelper.saveImageUrl(url,randomFolder,0)
+    ImageHelper.addImageInfo(image.md5, image.path)
     callback null, image
 
   @uploadBase64: (base64, callback) ->
     randomFolder = RandomWordGenerator.generateRandomWord()
     image = ImageHelper.saveOriginalImage(base64,randomFolder,0)
+    ImageHelper.addImageInfo(image.md5, image.path)
     callback null, image
