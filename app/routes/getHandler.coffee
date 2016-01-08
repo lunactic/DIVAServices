@@ -13,6 +13,7 @@ nconf              = require 'nconf'
 path               = require 'path'
 Statistics         = require '../statistics/statistics'
 ParameterHelper    = require '../helper/parameterHelper'
+Process            = require '../processingQueue/process'
 IoHelper           = require '../helper/ioHelper'
 ImageHelper        = require '../helper/imageHelper'
 ServicesInfoHelper = require '../helper/servicesInfoHelper'
@@ -51,21 +52,40 @@ getHandler = exports = module.exports = class GetHandler
     serviceInfo = ServicesInfoHelper.getServiceInfo(req.path)
     queryParams = req.query
     neededParameters = serviceInfo.parameters
-    #perform parameter matching
-    highlighter = {}
-    if queryParams.highlighter?
-      highlighter = JSON.parse(queryParams.highlighter)
+    #locate the image folder
+    ImageHelper.imageExists(queryParams.md5, (err, data) ->
+      if(err?)
+        error =
+          status: 404
+          statusText: 'Error loading the image'
 
-    paramMatching = parameterHelper.matchParams(queryParams, highlighter, neededParameters, queryParams.md5,queryParams.md5, req)
-    imgFolder = nconf.get('paths:imageRootPath') + path.sep + paramMatching.data['inputImage'] + '/'
-    ioHelper.loadResult(imgFolder, req.path, paramMatching.params,false, (err, data) ->
-      if(queryParams.requireOutputImage == 'false')
-        delete data['image']
-      if(!data.hasOwnProperty('status'))
-        data['status'] = 'done'
-      callback null, data
+      if(data.imageAvailable)
+        image = ImageHelper.loadImageMd5(queryParams.md5)
+        highlighter = {}
+        if queryParams.highlighter?
+          highlighter = JSON.parse(queryParams.highlighter)
+
+        process = new Process()
+        process.image = image
+        process.parameters = parameterHelper.matchParams(queryParams,highlighter,neededParameters,image.path,process.image.path, process.image.md5)
+        process.method = parameterHelper.getMethodName(req.path)
+        process.rootFolder = image.folder.split(path.sep)[image.folder.split(path.sep).length-2]
+
+        parameterHelper.loadParamInfo process,process.rootFolder, process.method
+        data = ioHelper.loadResult process.filePath
+        if(queryParams.requireOutputImage is 'false' && data['image']?)
+          delete data['image']
+        if(!data.hasOwnProperty('status'))
+          data['status'] = 'done'
+        callback null, data
+      else
+        err =
+          status: 404
+          statusText: 'This result is not available'
+        callback err, null
+        #return error message that image is not available
     )
-    return
+
 
   buildResultFilePath = (paramMatching, req, callback) ->
     #replace / with _

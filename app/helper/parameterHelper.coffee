@@ -163,7 +163,6 @@ parameterHelper = exports = module.exports = class ParameterHelper
     paramPath = nconf.get('paths:imageRootPath') + '/' + rootFolder + '/' + method + '.json'
     data =
       parameters: process.parameters.params
-      folder: process.outputFolder
     try
       fs.statSync(paramPath).isFile()
       content = JSON.parse(fs.readFileSync(paramPath,'utf8'))

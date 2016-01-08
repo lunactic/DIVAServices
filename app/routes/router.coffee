@@ -51,7 +51,11 @@ router.get '*', (req, res, next) ->
 sendResponse = (res, err, response) ->
   if err?
     res.status err.status or 500
-    res.json err.statusText
+    error =
+      status: err.status
+      message: err.statusText
+
+    res.json error
     logger.log 'error', err.statusText
   else
     res.status 200

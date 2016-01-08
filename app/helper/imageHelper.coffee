@@ -17,8 +17,6 @@ request               = require 'request'
 logger                = require '../logging/logger'
 
 # expose imageHelper
-#TODO: create a structure to find an image based on its md5 hash
-
 imageHelper = exports = module.exports = class ImageHelper
 
   @imageInfo ?= JSON.parse(fs.readFileSync(nconf.get('paths:imageInfoFile'),'utf-8'))
@@ -157,7 +155,6 @@ imageHelper = exports = module.exports = class ImageHelper
       require('deasync').sleep(100)
     return image
 
-#TODO rework this to load an image
   @loadImageMd5: (md5) ->
 
     filtered = @imageInfo.filter (item) ->
