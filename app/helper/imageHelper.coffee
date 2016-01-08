@@ -155,29 +155,33 @@ imageHelper = exports = module.exports = class ImageHelper
       require('deasync').sleep(100)
     return image
 
-  @loadImageMd5: (md5) ->
-
+  #Loads all images given an md5 hash
+  @loadImagesMd5: (md5) ->
     filtered = @imageInfo.filter (item) ->
       return item.md5 == md5
 
-
-    imagePath = filtered[0].file
-    image = {}
+    images = []
     sync = false
-    extension = path.extname(imagePath)
-    filename = path.basename(imagePath,extension)
-    fs.stat imagePath, (err,stat) ->
+
+    for item,i in filtered
+      imagePath = filtered[i].file
+      image = {}
+      extension = path.extname(imagePath)
+      filename = path.basename(imagePath,extension)
+      fs.stat imagePath, (err,stat) ->
       image =
-        folder: path.dirname(imagePath)
-        name: filename
-        extension: extension
-        path: imagePath
-        md5: md5
-      sync = true
-      return
+          folder: path.dirname(imagePath)
+          name: filename
+          extension: extension
+          path: imagePath
+          md5: md5
+      images.push image
+    sync = true
+    return images
+
     while(!sync)
       require('deasync').sleep(100)
-    return image
+    return images
 
   @loadCollection: (collectionName) ->
     imagePath = nconf.get('paths:imageRootPath')

@@ -28,7 +28,6 @@ ioHelper = exports = module.exports = class IoHelper
     folders = _.filter folders,  (folder) ->
       _.contains folder,service
 
-    #TODO check
 
     if(folders.length > 0)
       numbers = _.invoke folders, String::split, '_'

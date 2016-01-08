@@ -115,7 +115,8 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
               image = ImageHelper.saveImageUrl(inputImage.value,process.rootFolder, i)
               ImageHelper.addImageInfo(image.md5, image.path)
             else if (inputImage.type is 'md5')
-              image = ImageHelper.loadImageMd5(inputImage.value)
+              #simply take the first image that is returned
+              image = ImageHelper.loadImagesMd5(inputImage.value)[0]
               rootFolder = image.folder.split(path.sep)[image.folder.split(path.sep).length-2]
               #Overwrite the root folder
               process.rootFolder = rootFolder

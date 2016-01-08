@@ -60,25 +60,30 @@ getHandler = exports = module.exports = class GetHandler
           statusText: 'Error loading the image'
 
       if(data.imageAvailable)
-        image = ImageHelper.loadImageMd5(queryParams.md5)
+        images = ImageHelper.loadImagesMd5(queryParams.md5)
         highlighter = {}
         if queryParams.highlighter?
           highlighter = JSON.parse(queryParams.highlighter)
+        #search in the folder of each image
+        for image in images
 
-        process = new Process()
-        process.image = image
-        process.parameters = parameterHelper.matchParams(queryParams,highlighter,neededParameters,image.path,process.image.path, process.image.md5)
-        process.method = parameterHelper.getMethodName(req.path)
-        process.rootFolder = image.folder.split(path.sep)[image.folder.split(path.sep).length-2]
+          process = new Process()
+          process.image = image
+          process.parameters = parameterHelper.matchParams(queryParams,highlighter,neededParameters,image.path,process.image.path, process.image.md5)
+          process.method = parameterHelper.getMethodName(req.path)
+          process.rootFolder = image.folder.split(path.sep)[image.folder.split(path.sep).length-2]
 
-        parameterHelper.loadParamInfo process,process.rootFolder, process.method
-        data = ioHelper.loadResult process.filePath
-        if(queryParams.requireOutputImage is 'false' && data['image']?)
-          delete data['image']
-        if(!data.hasOwnProperty('status'))
-          data['status'] = 'done'
-        callback null, data
-      else
+          parameterHelper.loadParamInfo process,process.rootFolder, process.method
+          if(process.filePath?)
+            data = ioHelper.loadResult process.filePath
+            if(queryParams.requireOutputImage is 'false' && data['image']?)
+              delete data['image']
+            if(!data.hasOwnProperty('status'))
+              data['status'] = 'done'
+            callback null, data
+            return
+
+        #if the callback was not called yet, we can assume that the result
         err =
           status: 404
           statusText: 'This result is not available'
