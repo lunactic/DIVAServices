@@ -143,7 +143,6 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
         #Create an array of processes that are added to the processing queue
         outputFolder = ioHelper.getOutputFolder(@rootFolder, serviceInfo.service)
         collection.resultFile = outputFolder + path.sep + 'result.json'
-        console.log collection.resultFile
         for process in collection.processes
           process.outputFolder = outputFolder
           process.methodFolder = path.basename(process.outputFolder)

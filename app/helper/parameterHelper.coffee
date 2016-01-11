@@ -95,7 +95,22 @@ parameterHelper = exports = module.exports = class ParameterHelper
     return result
 
   buildGetUrl: (process) ->
-    getUrl = 'http://' + nconf.get('server:rootUrl') + '/static/' + process.rootFolder + '/' + process.outputFolder.split('/')[process.outputFolder.split('/').length - 1] + '/' + process.image.name + '.json'
+    getUrl = 'http://' + nconf.get('server:rootUrl') + process.req.originalUrl
+
+    #append md5
+    getUrl += '?md5=' + process.image.md5
+
+    #append highlighter
+    if(process.inputHighlighters?)
+      getUrl += '&highlighter=' + JSON.stringify(process.inputHighlighters['segments'])
+
+    filtered = _.filter(process.parameters.params, (value,key) ->
+      return !key in ['rectangle','circle','polygon']
+    )
+    #append other parameters
+    for key,value of filtered
+      getUrl += '&' + key + '=' + value
+
     return getUrl
 
   # ---
@@ -176,7 +191,6 @@ parameterHelper = exports = module.exports = class ParameterHelper
         #found no information about that method
         return
     catch error
-      console.log error
       #no information found
       return
 # ---
