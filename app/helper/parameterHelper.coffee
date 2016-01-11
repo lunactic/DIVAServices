@@ -169,12 +169,14 @@ parameterHelper = exports = module.exports = class ParameterHelper
       if((info = _.where(content,{'parameters':data.parameters})).length > 0)
         #found some information about this method
         ioHelper = new IoHelper()
-        process.filePath = ioHelper.buildFilePath(info[0].folder, process.image.name)
+        if(process.image?)
+          process.filePath = ioHelper.buildFilePath(info[0].folder, process.image.name)
         process.outputFolder = info[0].folder
       else
         #found no information about that method
         return
     catch error
+      console.log error
       #no information found
       return
 # ---

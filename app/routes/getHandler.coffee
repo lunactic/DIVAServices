@@ -51,45 +51,73 @@ getHandler = exports = module.exports = class GetHandler
     ioHelper = new IoHelper()
     serviceInfo = ServicesInfoHelper.getServiceInfo(req.path)
     queryParams = req.query
+
     neededParameters = serviceInfo.parameters
-    #locate the image folder
-    ImageHelper.imageExists(queryParams.md5, (err, data) ->
-      if(err?)
-        error =
-          status: 404
-          statusText: 'Error loading the image'
+    highlighter = {}
+    if queryParams.highlighter?
+      highlighter = JSON.parse(queryParams.highlighter)
 
-      if(data.imageAvailable)
-        images = ImageHelper.loadImagesMd5(queryParams.md5)
-        highlighter = {}
-        if queryParams.highlighter?
-          highlighter = JSON.parse(queryParams.highlighter)
-        #search in the folder of each image
-        for image in images
-
-          process = new Process()
-          process.image = image
-          process.parameters = parameterHelper.matchParams(queryParams,highlighter,neededParameters,image.path,process.image.path, process.image.md5)
-          process.method = parameterHelper.getMethodName(req.path)
-          process.rootFolder = image.folder.split(path.sep)[image.folder.split(path.sep).length-2]
-
-          parameterHelper.loadParamInfo process,process.rootFolder, process.method
-          if(process.filePath?)
-            data = ioHelper.loadResult process.filePath
-            if(queryParams.requireOutputImage is 'false' && data['image']?)
-              delete data['image']
-            if(!data.hasOwnProperty('status'))
-              data['status'] = 'done'
-            callback null, data
-            return
-
-        #if the callback was not called yet, we can assume that the result
+    #distinguish between loading of the result of a single image or a collection
+    if queryParams['collection']?
+      collection = queryParams['collection']
+      method = parameterHelper.getMethodName(req.path)
+      folder = nconf.get('paths:imageRootPath') + path.sep + collection
+      process = new Process()
+      process.parameters = parameterHelper.matchParams(queryParams,highlighter, neededParameters,folder,folder,"")
+      process.method = method
+      process.rootFolder = collection
+      parameterHelper.loadParamInfo process,process.rootFolder, process.method
+      if(process.outputFolder)
+        data = ioHelper.loadResult process.outputFolder + path.sep + 'result.json'
+        callback null,data
+        return
+      else
         err =
           status: 404
           statusText: 'This result is not available'
         callback err, null
-        #return error message that image is not available
-    )
+
+    else if queryParams['md5']?
+      #locate the image folder
+      ImageHelper.imageExists(queryParams.md5, (err, data) ->
+        if(err?)
+          error =
+            status: 404
+            statusText: 'Error loading the image'
+          return
+        if(data.imageAvailable)
+          images = ImageHelper.loadImagesMd5(queryParams.md5)
+          #search in the folder of each image
+          for image in images
+            process = new Process()
+            process.image = image
+            process.parameters = parameterHelper.matchParams(queryParams,highlighter,neededParameters,image.path,process.image.path, process.image.md5)
+            process.method = parameterHelper.getMethodName(req.path)
+            process.rootFolder = image.folder.split(path.sep)[image.folder.split(path.sep).length-2]
+            #use loadParamInfo to get all necessary parameters
+            parameterHelper.loadParamInfo process,process.rootFolder, process.method
+            if(process.filePath?)
+              data = ioHelper.loadResult process.filePath
+              if(queryParams.requireOutputImage is 'false' && data['image']?)
+                delete data['image']
+              if(!data.hasOwnProperty('status'))
+                data['status'] = 'done'
+              callback null, data
+              return
+
+          #if the callback was not called yet, we can assume that the result
+          err =
+            status: 404
+            statusText: 'This result is not available'
+          callback err, null
+          #return error message that image is not available
+      )
+    else
+      err =
+        status: 400
+        statusText: 'Malformed request. Parsing of the provided information was not possible'
+      callback err, null
+
 
 
   buildResultFilePath = (paramMatching, req, callback) ->
