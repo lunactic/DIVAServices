@@ -6,21 +6,22 @@
 # Copyright &copy; Marcel Würsch, GPL v3.0 licensed.
 
 # Module dependencies
-childProcess        = require 'child_process'
-async               = require 'async'
-{EventEmitter}      = require 'events'
 _                   = require 'lodash'
+async               = require 'async'
+childProcess        = require 'child_process'
+{EventEmitter}      = require 'events'
 path                = require 'path'
-ImageHelper         = require '../helper/imageHelper'
-IoHelper            = require '../helper/ioHelper'
-ParameterHelper     = require '../helper/parameterHelper'
-ServicesInfoHelper  = require '../helper/servicesInfoHelper'
-Statistics          = require '../statistics/statistics'
 logger              = require '../logging/logger'
-Process             = require '../processingQueue/process'
+Collection          = require '../processingQueue/collection'
 ConsoleResultHandler= require '../helper/resultHandlers/consoleResultHandler'
 FileResultHandler   = require '../helper/resultHandlers/fileResultHandler'
+ImageHelper         = require '../helper/imageHelper'
+IoHelper            = require '../helper/ioHelper'
+Process             = require '../processingQueue/process'
+ParameterHelper     = require '../helper/parameterHelper'
 RandomWordGenerator = require '../randomizer/randomWordGenerator'
+ServicesInfoHelper  = require '../helper/servicesInfoHelper'
+Statistics          = require '../statistics/statistics'
 
 # Expose executableHelper
 executableHelper = exports = module.exports = class ExecutableHelper extends EventEmitter
@@ -95,13 +96,14 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
     serviceInfo = ServicesInfoHelper.getServiceInfo(req.originalUrl)
     ioHelper = new IoHelper()
     parameterHelper = new ParameterHelper()
-    processes = []
+    collection = new Collection()
     async.waterfall [
       (callback) ->
         inputImages = req.body.images
         if !(req.body.images[0].collection?)
           #generte a random folder name
           @rootFolder = RandomWordGenerator.generateRandomWord()
+          collection.name = @rootFolder
           #save all images
           for inputImage,i in inputImages
             process = new Process()
@@ -121,8 +123,9 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
               #Overwrite the root folder
               process.rootFolder = rootFolder
               @rootFolder = rootFolder
+              collection.name = @rootFolder
             process.image = image
-            processes.push(process)
+            collection.processes.push(process)
         #process a collection
         else
           images = ImageHelper.loadCollection(req.body.images[0].collection)
@@ -132,14 +135,16 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
             process.req = req
             process.rootFolder = @rootFolder
             process.image = image
-            processes.push(process)
-        callback null, processes
+            collection.processes.push(process)
+        callback null, collection
         return
       #receive all information for a process
-      (processes, callback) ->
+      (collection, callback) ->
         #Create an array of processes that are added to the processing queue
         outputFolder = ioHelper.getOutputFolder(@rootFolder, serviceInfo.service)
-        for process in processes
+        collection.resultFile = outputFolder + path.sep + 'result.json'
+        console.log collection.resultFile
+        for process in collection.processes
           process.outputFolder = outputFolder
           process.methodFolder = path.basename(process.outputFolder)
           process.neededParameters = serviceInfo.parameters
@@ -168,38 +173,39 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
               resultHandler = new FileResultHandler(process.filePath);
           process.resultHandler = resultHandler
           #callback null
-        callback null, processes
+        callback null, collection
         return
       #try to load results from disk
-      (processes,callback) ->
+      (collection,callback) ->
         #try to load results for each process
-        for process in processes
+        for process in collection.processes
           data = ioHelper.loadResult process.filePath
           if(data?)
             process.result = data
-        callback null, processes
+        callback null, collection
         return
-      (processes, callback) ->
-        for process in processes
+      (collection, callback) ->
+        for process in collection.processes
           if(process.result?)
             if(!process.requireOutputImage)
               delete process.data['image']
           else
             parameterHelper.saveParamInfo(process,process.parameters,process.rootFolder,process.outputFolder, process.method)
             ioHelper.writeTempFile(process.filePath)
-        callback null, processes
-      ],(err, processes) ->
+        callback null, collection
+      ],(err, collection) ->
         if(err?)
           requestCallback err, null
         #what to return here??
         results = []
-        for process in processes
+        for process in collection.processes
           results.push({'resultLink':process.resultLink})
           if(!process.result?)
             processingQueue.addElement(process)
             queueCallback()
         message =
           results: results
-          collection: processes[0].rootFolder
+          collection: collection.name
           status: 'done'
+        ioHelper.saveResult(collection.resultFile, message)
         requestCallback null, message

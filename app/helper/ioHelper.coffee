@@ -60,24 +60,17 @@ ioHelper = exports = module.exports = class IoHelper
 
   # ---
   # **/br>
-  # Saves the results of a method execution to the disk</br>
-  # `params`
-  #   *path*  path to the image folder, where results are stored
-  #   *algorithm* the executed algorithm
-  #   *params*  the used parameter values
-  #   *result*  the execution result
-  saveResult: (filePath, result, callback) ->
+  # saves the result file to disk</br>
+  saveResult: (filePath, result) ->
     fs.stat filePath, (err, stat) ->
       #check if file exists
       #console.log 'saving file to: ' + filePath
-      fs.writeFile filePath, result,  (err) ->
+      fs.writeFile filePath, JSON.stringify(result),  (err) ->
         if err?
           error =
             status: 500
             statusText: 'Could not save result file'
           callback error, null
-        else
-          callback null, result
         return
     return
 
