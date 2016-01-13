@@ -11,6 +11,7 @@
 fs                 = require 'fs'
 nconf              = require 'nconf'
 path               = require 'path'
+Collection         = require '../processingQueue/collection'
 Statistics         = require '../statistics/statistics'
 ParameterHelper    = require '../helper/parameterHelper'
 Process            = require '../processingQueue/process'
@@ -59,16 +60,14 @@ getHandler = exports = module.exports = class GetHandler
 
     #distinguish between loading of the result of a single image or a collection
     if queryParams['collection']?
-      collection = queryParams['collection']
-      method = parameterHelper.getMethodName(req.path)
+      collection = new Collection()
+      collection.name = queryParams['collection']
+      collection.method = parameterHelper.getMethodName(req.path)
       folder = nconf.get('paths:imageRootPath') + path.sep + collection
-      process = new Process()
-      process.parameters = parameterHelper.matchParams(queryParams,highlighter, neededParameters,folder,folder,"")
-      process.method = method
-      process.rootFolder = collection
-      parameterHelper.loadParamInfo process,process.rootFolder, process.method
-      if(process.outputFolder)
-        data = ioHelper.loadResult process.outputFolder + path.sep + 'result.json'
+      collection.parameters = parameterHelper.matchParams(queryParams,highlighter, neededParameters,folder,folder,"",req)
+      parameterHelper.loadParamInfo collection,collection.name, collection.method
+      if(collection.outputFolder.length != 0)
+        data = ioHelper.loadResult collection.outputFolder + path.sep + 'result.json'
         callback null,data
         return
       else
@@ -91,7 +90,7 @@ getHandler = exports = module.exports = class GetHandler
           for image in images
             process = new Process()
             process.image = image
-            process.parameters = parameterHelper.matchParams(queryParams,highlighter,neededParameters,image.path,process.image.path, process.image.md5)
+            process.parameters = parameterHelper.matchParams(queryParams,highlighter,neededParameters,image.path,process.image.path, process.image.md5, req)
             process.method = parameterHelper.getMethodName(req.path)
             process.rootFolder = image.folder.split(path.sep)[image.folder.split(path.sep).length-2]
             #use loadParamInfo to get all necessary parameters

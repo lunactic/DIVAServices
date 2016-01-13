@@ -101,7 +101,7 @@ parameterHelper = exports = module.exports = class ParameterHelper
     getUrl += '?md5=' + process.image.md5
 
     #append highlighter
-    if(process.inputHighlighters?)
+    if(!_.isEmpty(process.inputHighlighters))
       getUrl += '&highlighter=' + JSON.stringify(process.inputHighlighters['segments'])
 
     filtered = _.filter(process.parameters.params, (value,key) ->
@@ -113,7 +113,28 @@ parameterHelper = exports = module.exports = class ParameterHelper
 
     return getUrl
 
-  # ---
+  buildGetUrlCollection: (collection) ->
+    #get the first process for parameter information
+    process = collection.processes[0]
+
+    getUrl = 'http://' + nconf.get('server:rootUrl') + process.req.originalUrl
+
+    #append collection name
+    getUrl += '?collection=' + collection.name
+    #append highlighter
+    if(!_.isEmpty(process.inputHighlighters))
+      getUrl += '&highlighter=' + JSON.stringify(process.inputHighlighters['segments'])
+
+    filtered = _.filter(process.parameters.params, (value,key) ->
+      return !key in ['rectangle','circle','polygon']
+    )
+    #append other parameters
+    for key,value of filtered
+      getUrl += '&' + key + '=' + value
+
+    return getUrl
+
+# ---
   # **getHighlighterParamValues**</br>
   # Gets Parameter values for highlighters.
   # The values will be as follow:

@@ -67,12 +67,7 @@ ioHelper = exports = module.exports = class IoHelper
       #console.log 'saving file to: ' + filePath
       fs.writeFile filePath, JSON.stringify(result),  (err) ->
         if err?
-          error =
-            status: 500
-            statusText: 'Could not save result file'
-          callback error, null
-        return
-    return
+          logger.log 'error', err
 
 
   writeTempFile: (filePath) ->

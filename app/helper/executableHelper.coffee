@@ -10,6 +10,7 @@ _                   = require 'lodash'
 async               = require 'async'
 childProcess        = require 'child_process'
 {EventEmitter}      = require 'events'
+nconf               = require 'nconf'
 path                = require 'path'
 logger              = require '../logging/logger'
 Collection          = require '../processingQueue/collection'
@@ -97,14 +98,14 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
     ioHelper = new IoHelper()
     parameterHelper = new ParameterHelper()
     collection = new Collection()
+    collection.method = parameterHelper.getMethodName(req.originalUrl)
     async.waterfall [
       (callback) ->
         inputImages = req.body.images
         if !(req.body.images[0].collection?)
           #generte a random folder name
           @rootFolder = RandomWordGenerator.generateRandomWord()
-          collection.name = @rootFolder
-          #save all images
+
           for inputImage,i in inputImages
             process = new Process()
             process.req = req
@@ -128,21 +129,31 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
             collection.processes.push(process)
         #process a collection
         else
-          images = ImageHelper.loadCollection(req.body.images[0].collection)
-          @rootFolder = req.body.images[0].collection
-          for image in images
-            process = new Process()
-            process.req = req
-            process.rootFolder = @rootFolder
-            process.image = image
-            collection.processes.push(process)
+          collection.name = req.body.images[0].collection
+          folder = nconf.get('paths:imageRootPath') + path.sep + collection.name
+          collection.parameters = parameterHelper.matchParams(req.body.inputs, req.body.highlighter.segments,serviceInfo.parameters,folder,folder, "", req)
+          parameterHelper.loadParamInfo collection,collection.name, collection.method
+          if(collection.outputFolder.length != 0)
+            collection.data = ioHelper.loadResult collection.outputFolder + path.sep + 'result.json'
+          #images = ImageHelper.loadCollection(req.body.images[0].collection)
+          #@rootFolder = req.body.images[0].collection
+          #for image in images
+          #  process = new Process()
+          #  process.req = req
+          #  process.rootFolder = @rootFolder
+          #  process.image = image
+          #  collection.processes.push(process)
         callback null, collection
         return
-      #receive all information for a process
       (collection, callback) ->
+        #immediate callback if collection.data is available
+        if(collection.data?)
+          callback null,collection
+
         #Create an array of processes that are added to the processing queue
         outputFolder = ioHelper.getOutputFolder(@rootFolder, serviceInfo.service)
-        collection.resultFile = outputFolder + path.sep + 'result.json'
+        collection.outputFolder = outputFolder
+        collection.resultFile = collection.outputFolder + path.sep + 'result.json'
         for process in collection.processes
           process.outputFolder = outputFolder
           process.methodFolder = path.basename(process.outputFolder)
@@ -150,10 +161,11 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
           process.inputParameters = req.body.inputs
           process.inputHighlighters = req.body.highlighter
           process.parameters = parameterHelper.matchParams(process.inputParameters, process.inputHighlighters.segments,process.neededParameters,process.image.path,process.outputFolder, process.image.md5, req)
-          process.method = parameterHelper.getMethodName(req.originalUrl)
+          process.method = collection.method
           process.filePath = ioHelper.buildFilePath(process.outputFolder, process.image.name)
           process.tmpFilePath = ioHelper.buildTempFilePath(process.outputFolder, process.image.name)
           #NOTE: this might change process.filePath and process.outputFolder
+          #TODO move this ahead of filePath creation so that they don't get created
           parameterHelper.loadParamInfo process,process.rootFolder,process.method
           if(req.body.requireOutputImage?)
             process.requireOutputImage = req.body.requireOutputImage
@@ -176,6 +188,9 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
         return
       #try to load results from disk
       (collection,callback) ->
+        #immediate callback if collection.data is available
+        if(collection.data?)
+          callback null,collection
         #try to load results for each process
         for process in collection.processes
           data = ioHelper.loadResult process.filePath
@@ -186,8 +201,8 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
       (collection, callback) ->
         for process in collection.processes
           if(process.result?)
-            if(!process.requireOutputImage)
-              delete process.data['image']
+            if(!process.requireOutputImage && process.result.hasOwnProperty('image'))
+              delete process.result['image']
           else
             parameterHelper.saveParamInfo(process,process.parameters,process.rootFolder,process.outputFolder, process.method)
             ioHelper.writeTempFile(process.filePath)
@@ -195,8 +210,11 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
       ],(err, collection) ->
         if(err?)
           requestCallback err, null
-        #what to return here??
         results = []
+        if(collection.data?)
+          requestCallback null, collection.data
+          return
+
         for process in collection.processes
           results.push({'resultLink':process.resultLink})
           if(!process.result?)
@@ -205,6 +223,9 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
         message =
           results: results
           collection: collection.name
+          resultLink: parameterHelper.buildGetUrlCollection(collection)
           status: 'done'
+        #if process results were loaded from disk no need to save here
+        #check if collection.resultFile folder exists
         ioHelper.saveResult(collection.resultFile, message)
         requestCallback null, message
