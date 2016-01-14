@@ -27,6 +27,8 @@ consoleResultHandler = exports = module.exports = class consoleResultHandler
               if(data['image']?)
                 ImageHelper.saveImageJson(data['image'],process)
                 data['outputImage'] = process.outputImageUrl
+                delete data['image']
+
               data['inputImage'] = process.inputImageUrl
               data['resultLink'] = process.resultLink
               data['collectionName'] = process.rootFolder

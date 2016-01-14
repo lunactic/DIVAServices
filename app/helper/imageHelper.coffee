@@ -206,6 +206,7 @@ imageHelper = exports = module.exports = class ImageHelper
     catch error
       logger.log 'error', 'Tried to load collection: ' + collectionName + ' which does not exist.'
       return []
+
   @getInputImageUrl: (folder, filename, extension) ->
     rootUrl = nconf.get('server:rootUrl')
     outputUrl = 'http://' + rootUrl + '/static/' + folder + '/original/' + filename + '.' + extension
