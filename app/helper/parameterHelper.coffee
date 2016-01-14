@@ -195,8 +195,8 @@ parameterHelper = exports = module.exports = class ParameterHelper
       content.push data
       fs.writeFileSync(methodPath, JSON.stringify(content))
 
-  loadParamInfo: (process, rootFolder, method) ->
-    paramPath = nconf.get('paths:imageRootPath') + '/' + rootFolder + '/' + method + '.json'
+  loadParamInfo: (process) ->
+    paramPath = nconf.get('paths:imageRootPath') + '/' + process.rootFolder + '/' + process.method + '.json'
     data =
       parameters: process.parameters.params
     try
@@ -206,7 +206,7 @@ parameterHelper = exports = module.exports = class ParameterHelper
         #found some information about this method
         ioHelper = new IoHelper()
         if(process.image?)
-          process.filePath = ioHelper.buildFilePath(info[0].folder, process.image.name)
+          process.resultFile = ioHelper.buildFilePath(info[0].folder, process.image.name)
         process.outputFolder = info[0].folder
       else
         #found no information about that method

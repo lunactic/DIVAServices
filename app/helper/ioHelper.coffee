@@ -45,30 +45,30 @@ ioHelper = exports = module.exports = class IoHelper
     return path + '/' + fileName + '_temp.json'
 
   # ---
-  # **loadResult**</br>
-  # Loads existing results from the disk</br>
+  # **loadFile**</br>
+  # Loads existing file from the disk</br>
   # `params`
-  #   *filePath* path to the result file
-  loadResult: (filePath) ->
-    logger.log "info",'load from file  ' + filePath
+  #   *filePath* path to the file
+  loadFile: (filePath) ->
     try
-      fs.statSync(filePath)
-      content = JSON.parse(fs.readFileSync(filePath,'utf8'))
-      return content
+      stats = fs.statSync(filePath)
+      if stats.isFile()
+        content = JSON.parse(fs.readFileSync(filePath,'utf8'))
+        return content
+      else
+        return null
     catch error
+      logger.log 'error', 'Could not read file: ' + filePath
       return null
 
   # ---
   # **/br>
-  # saves the result file to disk</br>
-  saveResult: (filePath, result) ->
+  # saves the a file to disk</br>
+  saveFile: (filePath, content) ->
     fs.stat filePath, (err, stat) ->
-      #check if file exists
-      #console.log 'saving file to: ' + filePath
-      fs.writeFile filePath, JSON.stringify(result),  (err) ->
+      fs.writeFile filePath, JSON.stringify(content),  (err) ->
         if err?
           logger.log 'error', err
-
 
   writeTempFile: (filePath) ->
     try
@@ -82,3 +82,10 @@ ioHelper = exports = module.exports = class IoHelper
         logger.log 'error', error
 
     return
+
+  checkFileExists: (filePath) ->
+    try
+      stats = fs.statSync(filePath)
+      return stats.isFile()
+    catch error
+      return false

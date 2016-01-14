@@ -15,6 +15,7 @@ Collection         = require '../processingQueue/collection'
 Statistics         = require '../statistics/statistics'
 ParameterHelper    = require '../helper/parameterHelper'
 Process            = require '../processingQueue/process'
+ResultHelper       = require '../helper/resultHelper'
 IoHelper           = require '../helper/ioHelper'
 ImageHelper        = require '../helper/imageHelper'
 ServicesInfoHelper = require '../helper/servicesInfoHelper'
@@ -67,7 +68,7 @@ getHandler = exports = module.exports = class GetHandler
       collection.parameters = parameterHelper.matchParams(queryParams,highlighter, neededParameters,folder,folder,"",req)
       parameterHelper.loadParamInfo collection,collection.name, collection.method
       if(collection.outputFolder.length != 0)
-        data = ioHelper.loadResult collection.outputFolder + path.sep + 'result.json'
+        data = ResultHelper.loadResult collection
         callback null,data
         return
       else
@@ -94,14 +95,13 @@ getHandler = exports = module.exports = class GetHandler
             process.method = parameterHelper.getMethodName(req.path)
             process.rootFolder = image.folder.split(path.sep)[image.folder.split(path.sep).length-2]
             #use loadParamInfo to get all necessary parameters
-            parameterHelper.loadParamInfo process,process.rootFolder, process.method
-            if(process.filePath?)
-              data = ioHelper.loadResult process.filePath
-              if(queryParams.requireOutputImage is 'false' && data['image']?)
-                delete data['image']
-              if(!data.hasOwnProperty('status'))
-                data['status'] = 'done'
-              callback null, data
+            if(ResultHelper.checkProcessResultAvailable(process))
+              process.result = ResultHelper.loadResult process
+              if(queryParams.requireOutputImage is 'false' && process.result['image']?)
+                delete process.result['image']
+              if(!process.result.hasOwnProperty('status'))
+                process.result['status'] = 'done'
+              callback null, process.result
               return
 
           #if the callback was not called yet, we can assume that the result

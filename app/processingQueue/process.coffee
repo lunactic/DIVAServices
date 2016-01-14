@@ -15,8 +15,8 @@ process = exports = module.exports = class Process
   @executablePath: ""
   @resultHandler: null
   @resultType: ""
-  @filePath: ""
-  @tmpFilePath: ""
+  @resultFile: ""
+  @tmpResultFile: ""
   @requireOutputImage: true
   @inputImageUrl: ""
   @outputImageUrl: ""
