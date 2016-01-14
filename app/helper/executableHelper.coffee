@@ -105,13 +105,14 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
         inputImages = req.body.images
         if !(req.body.images[0].collection?)
           #generte a random folder name
-          @rootFolder = RandomWordGenerator.generateRandomWord()
+          rootFolder = RandomWordGenerator.generateRandomWord()
+          collection.name = rootFolder
           # TODO:   check if an image exists, and if yes: send a JSON back with 'status':'imageExists'
           #load all images
           for inputImage,i in inputImages
             process = new Process()
             process.req = req
-            process.rootFolder = @rootFolder
+            process.rootFolder = rootFolder
             image = {}
             if(inputImage.type is 'image')
               image = ImageHelper.saveOriginalImage(inputImage.value,process.rootFolder,i)
@@ -125,8 +126,7 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
               rootFolder = image.folder.split(path.sep)[image.folder.split(path.sep).length-2]
               #Overwrite the root folder
               process.rootFolder = rootFolder
-              @rootFolder = rootFolder
-              collection.name = @rootFolder
+              collection.name = rootFolder
               #TODO Refactor this part
               folder = nconf.get('paths:imageRootPath') + path.sep + collection.name
               collection.parameters = parameterHelper.matchParams(req.body.inputs, req.body.highlighter.segments,serviceInfo.parameters,folder,folder, "", req)
@@ -149,7 +149,7 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
           callback null,collection
 
         #Create an array of processes that are added to the processing queue
-        outputFolder = ioHelper.getOutputFolder(@rootFolder, serviceInfo.service)
+        outputFolder = ioHelper.getOutputFolder(collection.name, serviceInfo.service)
         collection.outputFolder = outputFolder
         collection.resultFile = collection.outputFolder + path.sep + 'result.json'
         for process in collection.processes

@@ -95,6 +95,7 @@ getHandler = exports = module.exports = class GetHandler
             process.method = parameterHelper.getMethodName(req.path)
             process.rootFolder = image.folder.split(path.sep)[image.folder.split(path.sep).length-2]
             #use loadParamInfo to get all necessary parameters
+            #TODO Is this needed in the future, when everything is starting from the point of a collection?
             if(ResultHelper.checkProcessResultAvailable(process))
               process.result = ResultHelper.loadResult process
               if(queryParams.requireOutputImage is 'false' && process.result['image']?)
