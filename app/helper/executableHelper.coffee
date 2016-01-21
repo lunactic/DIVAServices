@@ -96,7 +96,7 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
     ioHelper = new IoHelper()
     parameterHelper = new ParameterHelper()
     collection = new Collection()
-    collection.method = parameterHelper.getMethodName(req.originalUrl)
+    collection.method = serviceInfo.service
     async.waterfall [
       (callback) ->
         inputImages = req.body.images

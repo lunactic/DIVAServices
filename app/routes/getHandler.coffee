@@ -94,7 +94,7 @@ getHandler = exports = module.exports = class GetHandler
             process.image = image
             params = prepareQueryParams(process,queryParams)
             process.parameters = parameterHelper.matchParams(queryParams,params,neededParameters,image.path,process.image.path, process.image.md5, req)
-            process.method = parameterHelper.getMethodName(req.path)
+            process.method = serviceInfo.service
             process.rootFolder = image.folder.split(path.sep)[image.folder.split(path.sep).length-2]
             #TODO Is this needed in the future, when everything is starting from the point of a collection?
             if(ResultHelper.checkProcessResultAvailable(process))

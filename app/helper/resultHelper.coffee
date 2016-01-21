@@ -34,14 +34,18 @@ resultHelper = exports = module.exports = class ResultHelper
   @saveResult: (info) ->
     @ioHelper.saveFile(info.resultFile, info.result)
 
-  @loadAvailableResults: (folder) ->
+  @loadAvailableResults: (folder, image) ->
     files = @ioHelper.readdir(folder)
+    results = []
     if(files?)
       files = _.filter(files, (file) ->
         return file.endsWith('.json')
       )
       for file in files
-        content = @ioHelper.loadFile(folder + path.sep + file)
-        parameters = content.parameters
-
-
+        methodResults = @ioHelper.loadFile(folder + path.sep + file)
+        for methodResult in methodResults
+          processResult = @ioHelper.loadFile(methodResult.folder + path.sep + image.name + '.json')
+          processResult['method'] = file.split('.')[0]
+          processResult['parameters'] = methodResult.parameters
+          results.push(processResult)
+    return results

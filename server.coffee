@@ -24,7 +24,6 @@ https         = require 'https'
 morgan        = require 'morgan'
 logger        = require './app/logging/logger'
 router        = require './app/routes/router'
-sysPath       = require 'path'
 Statistics    = require './app/statistics/statistics'
 ImageHelper   = require './app/helper/imageHelper'
 

@@ -40,9 +40,19 @@ router.get '/image/results/:md5', (req, res)->
   ImageHelper.imageExists req.params.md5, (err, response) ->
     if(response.imageAvailable)
       images = ImageHelper.loadImagesMd5(req.params.md5)
+      response = []
       for image in images
-        logger.log 'info', image
-      sendResponse res, null, '{}'
+        availableResults = ResultHelper.loadAvailableResults(image.rootFolder, image)
+        for result in availableResults
+          message =
+            resultLink: result.resultLink
+            method: result.method
+            collectionName: result.collectionName
+            parameters: result.parameters
+          response.push message
+
+      response['status'] = 'done'
+      sendResponse res, null, response
     else
       err =
         status: 404
