@@ -65,25 +65,7 @@ getHandler = exports = module.exports = class GetHandler
       collection = new Collection()
       collection.name = queryParams['collection']
       collection.method = parameterHelper.getMethodName(req.path)
-      #TODO Refactor this out
-      collection.inputParameters = _.clone(queryParams)
-      _.unset(collection.inputParameters,'md5')
-      _.unset(collection.inputParameters,'highlighter')
-      _.unset(collection.inputParameters,'highlighterType')
-      _.unset(collection.inputParameters,'collection')
-
-      params = {}
-      if(queryParams.highlighter?)
-        params = JSON.parse(queryParams.highlighter)
-
-      if(queryParams.highlighter?)
-        collection.inputHighlighters =
-          type: queryParams.highlighterType
-          segments: String(params)
-          closed: 'true'
-      else
-        collection.inputHighlighters = {}
-
+      params = prepareQueryParams(collection, queryParams)
       folder = nconf.get('paths:imageRootPath') + path.sep + collection
       collection.parameters = parameterHelper.matchParams(queryParams,params, neededParameters,folder,folder,"",req)
       if(ResultHelper.checkCollectionResultAvailable(collection))
@@ -110,27 +92,10 @@ getHandler = exports = module.exports = class GetHandler
           for image in images
             process = new Process()
             process.image = image
-            process.inputParameters = _.clone(queryParams)
-            #TODO Refactor this out
-            _.unset(process.inputParameters,'md5')
-            _.unset(process.inputParameters,'highlighter')
-            _.unset(process.inputParameters,'highlighterType')
-            params = {}
-            if(queryParams.highlighter?)
-              params = JSON.parse(queryParams.highlighter)
-
+            params = prepareQueryParams(process,queryParams)
             process.parameters = parameterHelper.matchParams(queryParams,params,neededParameters,image.path,process.image.path, process.image.md5, req)
             process.method = parameterHelper.getMethodName(req.path)
             process.rootFolder = image.folder.split(path.sep)[image.folder.split(path.sep).length-2]
-            if(queryParams.highlighter?)
-              process.inputHighlighters =
-                type: queryParams.highlighterType
-                segments: String(params)
-                closed: 'true'
-            else
-              process.inputHighlighters = {}
-
-            #use loadParamInfo to get all necessary parameters
             #TODO Is this needed in the future, when everything is starting from the point of a collection?
             if(ResultHelper.checkProcessResultAvailable(process))
               process.result = ResultHelper.loadResult process
@@ -155,24 +120,22 @@ getHandler = exports = module.exports = class GetHandler
       callback err, null
 
 
+  prepareQueryParams = (proc, queryParams) ->
+    proc.inputParameters = _.clone(queryParams)
+    _.unset(proc.inputParameters,'md5')
+    _.unset(proc.inputParameters,'highlighter')
+    _.unset(proc.inputParameters,'highlighterType')
+    _.unset(proc.inputParameters,'collection')
+    params = {}
+    if(queryParams.highlighter?)
+      params = JSON.parse(queryParams.highlighter)
 
-  buildResultFilePath = (paramMatching, req, callback) ->
-    #replace / with _
-    algorithm = req.path.replace(/\//g, '_')
-    params = paramMatching.params.join('_').replace RegExp(' ', 'g'), '_'
-    filename = algorithm + '_' + params + '.json'
-    folder = nconf.get('paths:imageRootPath') + path.sep + paramMatching.data[0]
-    fs.stat folder + path.sep + filename, (err, stat) ->
-      #check if file exists
-      #console.log err
-      if !err?
-        fs.readFile folder + path.sep + filename, 'utf8', (err, data) ->
-          if err?
-            callback err, null
-          else
-            callback null, JSON.parse(data)
-      else
-        error =
-          status: 404
-          statusText: 'Result not found'
-        callback error, null
+    if(queryParams.highlighter?)
+      proc.inputHighlighters =
+        type: queryParams.highlighterType
+        segments: String(params)
+        closed: 'true'
+    else
+      proc.inputHighlighters = {}
+
+    return params

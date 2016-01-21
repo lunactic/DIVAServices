@@ -131,7 +131,7 @@ parameterHelper = exports = module.exports = class ParameterHelper
 
     return getUrl
 
-# ---
+  # ---
   # **getHighlighterParamValues**</br>
   # Gets Parameter values for highlighters.
   # The values will be as follow:
@@ -223,7 +223,7 @@ parameterHelper = exports = module.exports = class ParameterHelper
     catch error
       #no information found
       return
-# ---
+  # ---
   # **checkReservedParameters**</br>
   # Checks if a parameter is in the list of reserverd words as defined in server.NODE_ENV.json</br>
   # `params`
@@ -231,5 +231,6 @@ parameterHelper = exports = module.exports = class ParameterHelper
   checkReservedParameters = (parameter) ->
     reservedParameters = nconf.get('reservedWords')
     return parameter in reservedParameters
+
 
 
