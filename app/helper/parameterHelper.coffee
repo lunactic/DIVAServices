@@ -211,7 +211,6 @@ parameterHelper = exports = module.exports = class ParameterHelper
     try
       fs.statSync(paramPath).isFile()
       content = JSON.parse(fs.readFileSync(paramPath,'utf8'))
-
       if((info = _.filter(content,{'parameters':data.parameters, 'highlighters':data.highlighters})).length > 0)
         #found some information about this method
         ioHelper = new IoHelper()
