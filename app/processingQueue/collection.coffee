@@ -5,6 +5,8 @@ collection = exports = module.exports = class Collection
     @name = ""
     @outputLink = ""
     @outputFolder = ""
+    @inputParameters = {}
+    @inputHighlighters = {}
     @parameters = null
     @processes = []
     @result = null

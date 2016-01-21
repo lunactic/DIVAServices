@@ -13,6 +13,7 @@ PostHandler = require './postHandler'
 logger      = require '../logging/logger'
 Upload      = require '../upload/upload'
 ImageHelper = require '../helper/imageHelper'
+ResultHelper= require '../helper/resultHelper'
 
 getHandler = new GetHandler()
 postHandler = new PostHandler()
@@ -31,9 +32,22 @@ router.post '*', (req, res, next) ->
   postHandler.handleRequest req, (err, response) ->
     sendResponse res, err, response
 
-router.get '/image/:md5', (req,res) ->
+router.get '/image/check/:md5', (req,res) ->
   ImageHelper.imageExists req.params.md5, (err, response) ->
     sendResponse res, err, response
+
+router.get '/image/results/:md5', (req, res)->
+  ImageHelper.imageExists req.params.md5, (err, response) ->
+    if(response.imageAvailable)
+      images = ImageHelper.loadImagesMd5(req.params.md5)
+      for image in images
+        logger.log 'info', image
+      sendResponse res, null, '{}'
+    else
+      err =
+        status: 404
+        statusText: 'This result is not available'
+      send response res, err, null
 
 # Set up the routing for GET requests
 router.get '*', (req, res, next) ->

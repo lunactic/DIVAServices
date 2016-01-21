@@ -43,8 +43,8 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
     # get exectuable type
     execType = getExecutionType programType
     # return the command line call
-    dataPath = _.valuesIn(data).join(' ')
-    paramsPath = _.valuesIn(params).join(' ')
+    dataPath = _.values(data).join(' ')
+    paramsPath = _.values(params).join(' ')
     return execType + ' ' + executablePath + ' ' + dataPath+ ' ' + paramsPath
 
   # ---
@@ -88,9 +88,6 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
 
         #finall callback, handling of the result and returning it
         ], (err, results) ->
-          #strip the image out of the response if needed
-          if(!process.requireOutputImage)
-            delete results['image']
           #start next execution
           self.emit('processingFinished')
 
@@ -130,6 +127,8 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
               #TODO Refactor this part
               folder = nconf.get('paths:imageRootPath') + path.sep + collection.name
               collection.parameters = parameterHelper.matchParams(req.body.inputs, req.body.highlighter.segments,serviceInfo.parameters,folder,folder, "", req)
+              collection.inputParameters = _.clone(req.body.inputs)
+              collection.inputHighlighters = _.clone(req.body.highlighter)
               if(ResultHelper.checkCollectionResultAvailable(collection))
                 collection.result = ResultHelper.loadResult(collection)
             process.image = image
@@ -159,6 +158,8 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
           process.neededParameters = serviceInfo.parameters
           process.method = collection.method
           process.parameters = parameterHelper.matchParams(process.inputParameters, process.inputHighlighters.segments,process.neededParameters,process.image.path,process.outputFolder, process.image.md5, req)
+          if(process.parameters.data.outputImage?)
+            process.parameters.data.outputImage = ImageHelper.getOutputImage(process.image, process.outputFolder)
           if(ResultHelper.checkProcessResultAvailable(process))
             process.result = ResultHelper.loadResult(process)
           else
@@ -181,15 +182,11 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
                 process.parameters.data['resultFile'] = process.resultFile
                 resultHandler = new FileResultHandler(process.resultFile);
             process.resultHandler = resultHandler
-          callback null, collection
-          return
+        callback null, collection
         return
       (collection, callback) ->
         for process in collection.processes
-          if(process.result?)
-            if(!process.requireOutputImage && process.result.hasOwnProperty('image'))
-              delete process.result['image']
-          else
+          if(!(process.result?))
             parameterHelper.saveParamInfo(process,process.parameters,process.rootFolder,process.outputFolder, process.method)
             ioHelper.writeTempFile(process.resultFile)
         callback null, collection

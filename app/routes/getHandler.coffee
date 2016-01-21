@@ -8,6 +8,7 @@
 # /data/json/segmentation/textline/hist/info.json.
 #
 # Copyright &copy; Marcel Würsch, GPL v3.0 licensed.
+_                  = require 'lodash'
 fs                 = require 'fs'
 nconf              = require 'nconf'
 path               = require 'path'
@@ -64,10 +65,28 @@ getHandler = exports = module.exports = class GetHandler
       collection = new Collection()
       collection.name = queryParams['collection']
       collection.method = parameterHelper.getMethodName(req.path)
+      #TODO Refactor this out
+      collection.inputParameters = _.clone(queryParams)
+      _.unset(collection.inputParameters,'md5')
+      _.unset(collection.inputParameters,'highlighter')
+      _.unset(collection.inputParameters,'highlighterType')
+      _.unset(collection.inputParameters,'collection')
+
+      params = {}
+      if(queryParams.highlighter?)
+        params = JSON.parse(queryParams.highlighter)
+
+      if(queryParams.highlighter?)
+        collection.inputHighlighters =
+          type: queryParams.highlighterType
+          segments: String(params)
+          closed: 'true'
+      else
+        collection.inputHighlighters = {}
+
       folder = nconf.get('paths:imageRootPath') + path.sep + collection
-      collection.parameters = parameterHelper.matchParams(queryParams,highlighter, neededParameters,folder,folder,"",req)
-      parameterHelper.loadParamInfo collection,collection.name, collection.method
-      if(collection.outputFolder.length != 0)
+      collection.parameters = parameterHelper.matchParams(queryParams,params, neededParameters,folder,folder,"",req)
+      if(ResultHelper.checkCollectionResultAvailable(collection))
         data = ResultHelper.loadResult collection
         callback null,data
         return
@@ -91,9 +110,26 @@ getHandler = exports = module.exports = class GetHandler
           for image in images
             process = new Process()
             process.image = image
-            process.parameters = parameterHelper.matchParams(queryParams,highlighter,neededParameters,image.path,process.image.path, process.image.md5, req)
+            process.inputParameters = _.clone(queryParams)
+            #TODO Refactor this out
+            _.unset(process.inputParameters,'md5')
+            _.unset(process.inputParameters,'highlighter')
+            _.unset(process.inputParameters,'highlighterType')
+            params = {}
+            if(queryParams.highlighter?)
+              params = JSON.parse(queryParams.highlighter)
+
+            process.parameters = parameterHelper.matchParams(queryParams,params,neededParameters,image.path,process.image.path, process.image.md5, req)
             process.method = parameterHelper.getMethodName(req.path)
             process.rootFolder = image.folder.split(path.sep)[image.folder.split(path.sep).length-2]
+            if(queryParams.highlighter?)
+              process.inputHighlighters =
+                type: queryParams.highlighterType
+                segments: String(params)
+                closed: 'true'
+            else
+              process.inputHighlighters = {}
+
             #use loadParamInfo to get all necessary parameters
             #TODO Is this needed in the future, when everything is starting from the point of a collection?
             if(ResultHelper.checkProcessResultAvailable(process))

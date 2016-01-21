@@ -24,7 +24,6 @@ imageHelper = exports = module.exports = class ImageHelper
   @imageExists: (md5, callback) ->
     filtered = @imageInfo.filter (item) ->
       return item.md5 == md5
-
     if(filtered.length > 0)
       callback null, {imageAvailable: true}
     else
@@ -60,7 +59,9 @@ imageHelper = exports = module.exports = class ImageHelper
     imgName = 'input' + counter
     imgExtension = getImageExtensionFromBase64(base64Data)
     fs.stat imgFolder + imgName, (err, stat) ->
+      #TODO Create an image class
       image =
+        rootFolder: path.join(path.dirname(imgFolder),'..')
         folder: imgFolder
         name: imgName
         extension: imgExtension
@@ -114,10 +115,11 @@ imageHelper = exports = module.exports = class ImageHelper
           imgFolder = imagePath + '/' + folder + '/original/'
           imgName = 'input' + counter
           image =
+            rootFolder: path.join(path.dirname(imgFolder),'..')
             folder: imgFolder
             name: imgName
             extension: imgExtension
-            path: imgFolder + imgName + '.' + imgExtension
+            path: imgFolder + imgName + '.' +imgExtension
             md5: md5String
             #console.log result
           try
@@ -170,6 +172,7 @@ imageHelper = exports = module.exports = class ImageHelper
       filename = path.basename(imagePath,extension)
       fs.stat imagePath, (err,stat) ->
       image =
+          rootFolder: path.join(path.dirname(imagePath),'..')
           folder: path.dirname(imagePath)
           name: filename
           extension: extension
@@ -207,6 +210,9 @@ imageHelper = exports = module.exports = class ImageHelper
       logger.log 'error', 'Tried to load collection: ' + collectionName + ' which does not exist.'
       return []
 
+  @getOutputImage: (image, folder) ->
+    return folder + path.sep + image.name + '.' + image.extension
+
   @getInputImageUrl: (folder, filename, extension) ->
     rootUrl = nconf.get('server:rootUrl')
     outputUrl = 'http://' + rootUrl + '/static/' + folder + '/original/' + filename + '.' + extension
@@ -227,6 +233,8 @@ imageHelper = exports = module.exports = class ImageHelper
 
   @saveImageInfo: () ->
     fs.writeFileSync nconf.get('paths:imageInfoFile'),JSON.stringify(@imageInfo), 'utf8'
+
+
 
   getImageExtension = (contentType) ->
     switch (contentType)
