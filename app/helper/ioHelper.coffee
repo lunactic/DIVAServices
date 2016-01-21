@@ -26,12 +26,12 @@ ioHelper = exports = module.exports = class IoHelper
 
     #filter for folders matching the service name
     folders = _.filter folders,  (folder) ->
-      _.contains folder,service
+      _.includes folder,service
 
 
     if(folders.length > 0)
-      numbers = _.invoke folders, String::split, '_'
-      numbers = _.pluck(numbers, 1)
+      numbers = _.invokeMap folders, String::split, '_'
+      numbers = _.map(numbers, 1)
       maxNumber = parseInt(_.max(numbers),10)
       return rootPath + '/' + service + '_' + (maxNumber + 1)
     else
@@ -89,3 +89,10 @@ ioHelper = exports = module.exports = class IoHelper
       return stats.isFile()
     catch error
       return false
+
+  readdir: (path) ->
+    try
+      files = fs.readdirSync(path)
+      return files
+    catch error
+      return null

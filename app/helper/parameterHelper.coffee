@@ -58,10 +58,8 @@ parameterHelper = exports = module.exports = class ParameterHelper
         return nconf.get('paths:ocropyLanguageModelsPath')
       when 'startUp'
         return neededParameters['startUp']
-      when 'resultFile'
-        return '##resultFile##'
       when 'outputImage'
-        return path.dirname(imagePath) + '/output.png'
+        return '##outputImage##'
       when 'noisingXmlFile'
         return nconf.get('paths:noisingXmlPath')
   # ---
@@ -103,14 +101,12 @@ parameterHelper = exports = module.exports = class ParameterHelper
     #append highlighter
     if(!_.isEmpty(process.inputHighlighters))
       getUrl += '&highlighter=' + JSON.stringify(process.inputHighlighters['segments'])
+      getUrl += '&highlighterType=' + process.inputHighlighters['type']
 
-    filtered = _.filter(process.parameters.params, (value,key) ->
-      return !key in ['rectangle','circle','polygon']
-    )
-    #append other parameters
-    for key,value of filtered
-      getUrl += '&' + key + '=' + value
-
+     #append other parameters
+    for key in _.keys(process.parameters.params)
+      if !(key in ['rectangle','circle','polygon'])
+        getUrl += '&' + key + '=' + process.parameters.params[key]
     return getUrl
 
   buildGetUrlCollection: (collection) ->
@@ -124,6 +120,7 @@ parameterHelper = exports = module.exports = class ParameterHelper
     #append highlighter
     if(!_.isEmpty(process.inputHighlighters))
       getUrl += '&highlighter=' + JSON.stringify(process.inputHighlighters['segments'])
+      getUrl += '&highlighterType=' + process.inputHighlighters['type']
 
     filtered = _.filter(process.parameters.params, (value,key) ->
       return !key in ['rectangle','circle','polygon']
@@ -182,13 +179,24 @@ parameterHelper = exports = module.exports = class ParameterHelper
     methodPath = nconf.get('paths:imageRootPath') + '/'+ rootFolder + '/' + method + '.json'
     content = []
     data =
-      parameters: parameters.params
+      highlighters: _.clone(process.inputHighlighters)
+      parameters: _.clone(process.inputParameters)
       folder: outputFolder
+
+
+    #make strings of everything
+    _.forIn(data.parameters, (value,key) ->
+      data.parameters[key] = String(value)
+    )
+    _.forIn(data.highlighters, (value,key) ->
+      data.highlighters[key] = String(value)
+    )
+
     try
       fs.statSync(methodPath).isFile()
       content = JSON.parse(fs.readFileSync(methodPath,'utf8'))
       #only save the information if its not already present
-      if(_.where(content,data).length == 0)
+      if(_.filter(content,{'parameters':data.parameters, 'highlighters':data.highlighters}).length == 0)
         content.push data
         fs.writeFileSync(methodPath, JSON.stringify(content))
     catch error
@@ -198,11 +206,16 @@ parameterHelper = exports = module.exports = class ParameterHelper
   loadParamInfo: (process) ->
     paramPath = nconf.get('paths:imageRootPath') + '/' + process.rootFolder + '/' + process.method + '.json'
     data =
-      parameters: process.parameters.params
+      highlighters: process.inputHighlighters
+      parameters: process.inputParameters
     try
       fs.statSync(paramPath).isFile()
       content = JSON.parse(fs.readFileSync(paramPath,'utf8'))
-      if((info = _.where(content,{'parameters':data.parameters})).length > 0)
+      #info = _.filter(content, (item) ->
+      #  return item.highlighters is data.highlighters and item.parameters is data.parameters
+      #)
+
+      if((info = _.filter(content,{'parameters':data.parameters, 'highlighters':data.highlighters})).length > 0)
         #found some information about this method
         ioHelper = new IoHelper()
         if(process.image?)
