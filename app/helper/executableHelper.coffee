@@ -91,7 +91,7 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
           #start next execution
           self.emit('processingFinished')
 
-  preprocessing: (req,processingQueue,immediateExecution, requestCallback, queueCallback) ->
+  preprocess: (req,processingQueue,immediateExecution, requestCallback, queueCallback) ->
     serviceInfo = ServicesInfoHelper.getServiceInfo(req.originalUrl)
     ioHelper = new IoHelper()
     parameterHelper = new ParameterHelper()
@@ -110,25 +110,9 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
             process = new Process()
             process.req = req
             process.rootFolder = rootFolder
-            image = {}
-            if(inputImage.type is 'image')
-              image = ImageHelper.saveOriginalImage(inputImage.value,process.rootFolder,i)
-              ImageHelper.addImageInfo(image.md5, image.path)
-            else if (inputImage.type is 'url')
-              image = ImageHelper.saveImageUrl(inputImage.value,process.rootFolder, i)
-              ImageHelper.addImageInfo(image.md5, image.path)
-            else if (inputImage.type is 'md5')
-              #simply take the first image that is returned
-              image = ImageHelper.loadImagesMd5(inputImage.value)[0]
-              rootFolder = image.folder.split(path.sep)[image.folder.split(path.sep).length-2]
-              #Overwrite the root folder
-              process.rootFolder = rootFolder
-              collection.name = rootFolder
-              #TODO Refactor this part
-              folder = nconf.get('paths:imageRootPath') + path.sep + collection.name
-              collection.parameters = parameterHelper.matchParams(req.body.inputs, req.body.highlighter.segments,serviceInfo.parameters,folder,folder, "", req)
-              collection.inputParameters = _.clone(req.body.inputs)
-              collection.inputHighlighters = _.clone(req.body.highlighter)
+            image = ImageHelper.saveImage(inputImage, process, i)
+            if(inputImage.type is 'md5')
+              ImageHelper.handleMd5(image, process, collection, serviceInfo, parameterHelper, req)
               if(ResultHelper.checkCollectionResultAvailable(collection))
                 collection.result = ResultHelper.loadResult(collection)
             process.image = image

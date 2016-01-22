@@ -14,12 +14,26 @@ md5                   = require 'md5'
 nconf                 = require 'nconf'
 path                  = require 'path'
 request               = require 'request'
+ParameterHelper       = require '../helper/parameterHelper'
 logger                = require '../logging/logger'
 
 # expose imageHelper
 imageHelper = exports = module.exports = class ImageHelper
 
   @imageInfo ?= JSON.parse(fs.readFileSync(nconf.get('paths:imageInfoFile'),'utf-8'))
+
+
+  @saveImage: (inputImage, process, counter) ->
+    switch inputImage.type
+      when 'image'
+        image = @saveOriginalImage(inputImage.value,process.rootFolder,counter)
+        @addImageInfo(image.md5, image.path)
+      when 'url'
+        image = @saveImageUrl(inputImage.value,process.rootFolder, counter)
+        @addImageInfo(image.md5, image.path)
+      when 'md5'
+        image = @loadImagesMd5(inputImage.value)[0]
+    return image
 
   @imageExists: (md5, callback) ->
     filtered = @imageInfo.filter (item) ->
@@ -234,7 +248,16 @@ imageHelper = exports = module.exports = class ImageHelper
   @saveImageInfo: () ->
     fs.writeFileSync nconf.get('paths:imageInfoFile'),JSON.stringify(@imageInfo), 'utf8'
 
-
+  @handleMd5: (image, process, collection, serviceInfo, parameterHelper,req) ->
+    rootFolder = image.folder.split(path.sep)[image.folder.split(path.sep).length-2]
+    #Overwrite the root folder
+    process.rootFolder = rootFolder
+    collection.name = rootFolder
+    folder = nconf.get('paths:imageRootPath') + path.sep + collection.name
+    collection.parameters = parameterHelper.matchParams(req.body.inputs, req.body.highlighter.segments,serviceInfo.parameters,folder,folder, "", req)
+    collection.inputParameters = _.clone(req.body.inputs)
+    collection.inputHighlighters = _.clone(req.body.highlighter)
+    return
 
   getImageExtension = (contentType) ->
     switch (contentType)
