@@ -40,12 +40,12 @@ router.get '/image/results/:md5', (req, res)->
   ImageHelper.imageExists req.params.md5, (err, response) ->
     if(response.imageAvailable)
       response = ResultHelper.loadResultsForMd5(req.params.md5)
-      sendResponse res, null, response
     else
       err =
         status: 404
         statusText: 'This result is not available'
-      send response res, err, null
+
+    sendResponse res, err, response
 
 # Set up the routing for GET requests
 router.get '*', (req, res, next) ->
@@ -60,22 +60,29 @@ router.get '*', (req, res, next) ->
 #   *res* response object from the express framework
 #   *err* possible error message. If set a HTTP 500 will be returned
 #   *response* the JSON response. If set a HTTP 200 will be returned
-sendResponse = (res, err, response) ->
-  if err?
-    res.status err.status or 500
-    error =
-      status: err.status
-      message: err.statusText
-
-    res.json error
-    logger.log 'error', err.statusText
+sendResponse = (res,err, response) ->
+  if(err?)
+    sendError(res,err)
   else
-    res.status 200
-    #parse an unparsed json string to get a correct response
-    try
-      res.json JSON.parse(response)
-    catch error
-      res.json response
+    send200(res,response)
+
+
+send200 = (res, response) ->
+  res.status 200
+  #parse an unparsed json string to get a correct response
+  try
+    res.json JSON.parse(response)
+  catch error
+    res.json response
+
+sendError = (res, err) ->
+  res.status err.status or 500
+  error =
+    status: err.status
+    message: err.statusText
+
+  res.json error
+
 
 # Expose router
 module.exports = router
