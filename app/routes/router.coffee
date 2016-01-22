@@ -30,7 +30,7 @@ router.post '/upload', (req, res) ->
 # Set up the routing for POST requests
 router.post '*', (req, res, next) ->
   postHandler.handleRequest req, (err, response) ->
-    response['status'] = 202
+    response['statusCode'] = 202
     sendResponse res, err, response
 
 router.get '/image/check/:md5', (req,res) ->
@@ -43,7 +43,7 @@ router.get '/image/results/:md5', (req, res)->
       response = ResultHelper.loadResultsForMd5(req.params.md5)
     else
       err =
-        status: 404
+        statusCode: 404
         statusText: 'This result is not available'
 
     sendResponse res, err, response
@@ -69,7 +69,7 @@ sendResponse = (res,err, response) ->
 
 
 send200 = (res, response) ->
-  res.status response.status or 200
+  res.status response.statusCode or 200
   #parse an unparsed json string to get a correct response
   try
     res.json JSON.parse(response)
@@ -77,9 +77,9 @@ send200 = (res, response) ->
     res.json response
 
 sendError = (res, err) ->
-  res.status err.status or 500
+  res.status err.statusCode or 500
   error =
-    status: err.status
+    status: err.statusCode
     message: err.statusText
 
   res.json error

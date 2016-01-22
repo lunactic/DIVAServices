@@ -135,6 +135,6 @@ getHandler = exports = module.exports = class GetHandler
 
     createError = (status, message) ->
       err =
-        status: status
+        statusCode: status
         statusText: message
       return err
