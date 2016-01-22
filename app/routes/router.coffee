@@ -30,6 +30,7 @@ router.post '/upload', (req, res) ->
 # Set up the routing for POST requests
 router.post '*', (req, res, next) ->
   postHandler.handleRequest req, (err, response) ->
+    response['status'] = 202
     sendResponse res, err, response
 
 router.get '/image/check/:md5', (req,res) ->
@@ -68,7 +69,7 @@ sendResponse = (res,err, response) ->
 
 
 send200 = (res, response) ->
-  res.status 200
+  res.status response.status or 200
   #parse an unparsed json string to get a correct response
   try
     res.json JSON.parse(response)

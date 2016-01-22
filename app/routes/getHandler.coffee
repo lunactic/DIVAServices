@@ -73,18 +73,15 @@ getHandler = exports = module.exports = class GetHandler
         callback null,data
         return
       else
-        err =
-          status: 404
-          statusText: 'This result is not available'
+        err = createError(404,'This result is not available')
         callback err, null
 
     else if queryParams['md5']?
       #locate the image folder
       ImageHelper.imageExists(queryParams.md5, (err, data) ->
         if(err?)
-          error =
-            status: 404
-            statusText: 'Error loading the image'
+          error = createError(404,'Image no available')
+          callback error, null
           return
         if(data.imageAvailable)
           images = ImageHelper.loadImagesMd5(queryParams.md5)
@@ -107,16 +104,12 @@ getHandler = exports = module.exports = class GetHandler
               return
 
           #if the callback was not called yet, we can assume that the result
-          err =
-            status: 404
-            statusText: 'This result is not available'
+          err = createError(404,'This result is not available')
           callback err, null
           #return error message that image is not available
       )
     else
-      err =
-        status: 400
-        statusText: 'Malformed request. Parsing of the provided information was not possible'
+      err = createError(400, 'Malformed request. Parsing of the provided information was not possible')
       callback err, null
 
 
@@ -139,3 +132,9 @@ getHandler = exports = module.exports = class GetHandler
       proc.inputHighlighters = {}
 
     return params
+
+    createError = (status, message) ->
+      err =
+        status: status
+        statusText: message
+      return err
