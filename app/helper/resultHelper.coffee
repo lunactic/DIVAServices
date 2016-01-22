@@ -1,13 +1,14 @@
 _               = require 'lodash'
 path            = require 'path'
-ParameterHelper = require './parameterHelper'
+ImageHelper     = require './imageHelper'
 IoHelper        = require './ioHelper'
+ParameterHelper = require './parameterHelper'
+
 
 resultHelper = exports = module.exports = class ResultHelper
 
   @parameterHelper = new ParameterHelper()
   @ioHelper = new IoHelper()
-
 
   @checkCollectionResultAvailable: (collection) ->
     collection.rootFolder = collection.name
@@ -49,3 +50,19 @@ resultHelper = exports = module.exports = class ResultHelper
           processResult['parameters'] = methodResult.parameters
           results.push(processResult)
     return results
+
+  @loadResultsForMd5: (md5) ->
+    images = ImageHelper.loadImagesMd5(md5)
+    response = []
+    for image in images
+      availableResults = @loadAvailableResults(image.rootFolder, image)
+      for result in availableResults
+        message =
+          resultLink: result.resultLink
+          method: result.method
+          collectionName: result.collectionName
+          parameters: result.parameters
+        response.push message
+
+    response['status'] = 'done'
+    return response

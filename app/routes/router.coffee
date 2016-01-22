@@ -39,19 +39,7 @@ router.get '/image/check/:md5', (req,res) ->
 router.get '/image/results/:md5', (req, res)->
   ImageHelper.imageExists req.params.md5, (err, response) ->
     if(response.imageAvailable)
-      images = ImageHelper.loadImagesMd5(req.params.md5)
-      response = []
-      for image in images
-        availableResults = ResultHelper.loadAvailableResults(image.rootFolder, image)
-        for result in availableResults
-          message =
-            resultLink: result.resultLink
-            method: result.method
-            collectionName: result.collectionName
-            parameters: result.parameters
-          response.push message
-
-      response['status'] = 'done'
+      response = ResultHelper.loadResultsForMd5(req.params.md5)
       sendResponse res, null, response
     else
       err =
