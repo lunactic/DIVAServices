@@ -7,7 +7,8 @@ queueHandler = exports = module.exports = class QueueHandler
   @processingQueue = null
 
   constructor: () ->
-    @processingQueue = new ProcessingQueue()
+    if(not @processingQueue?)
+      @processingQueue = new ProcessingQueue()
     @executableHelper = new ExecutableHelper()
     self = @
     @executableHelper.on 'processingFinished', () ->

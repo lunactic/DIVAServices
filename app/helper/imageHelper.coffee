@@ -97,7 +97,6 @@ imageHelper = exports = module.exports = class ImageHelper
 
   @saveImageJson: (image,process) ->
     base64Data = image.replace(/^data:image\/png;base64,/, "")
-    console.log 'name: ' + process.image.name + ' - ext: ' + process.image.extension
     fs.writeFileSync(process.outputFolder + '/' + process.image.name + '.' + process.image.extension,base64Data, 'base64')
   # ---
   # **saveImageUrl**</br>
@@ -136,7 +135,6 @@ imageHelper = exports = module.exports = class ImageHelper
             extension: imgExtension
             path: imgFolder + imgName + '.' +imgExtension
             md5: md5String
-            #console.log result
           try
             fs.mkdirSync imagePath + '/' + folder
             fs.mkdirSync imagePath + '/' + folder + '/original'
@@ -159,7 +157,7 @@ imageHelper = exports = module.exports = class ImageHelper
                 callback null, image
                 return
               source.on 'error', (err) ->
-                console.log err
+                logger.log 'error', err
                 sync = true
                 callback null, image
                 return

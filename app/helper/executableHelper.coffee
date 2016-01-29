@@ -16,6 +16,7 @@ logger              = require '../logging/logger'
 Collection          = require '../processingQueue/collection'
 ConsoleResultHandler= require '../helper/resultHandlers/consoleResultHandler'
 FileResultHandler   = require '../helper/resultHandlers/fileResultHandler'
+IiifManifestParser  = require '../parsers/iiifManifestParser'
 ImageHelper         = require '../helper/imageHelper'
 IoHelper            = require '../helper/ioHelper'
 Process             = require '../processingQueue/process'
@@ -100,25 +101,8 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
     async.waterfall [
       (callback) ->
         inputImages = req.body.images
-        if !(req.body.images[0].type is 'collection')
-          #generte a random folder name
-          rootFolder = RandomWordGenerator.generateRandomWord()
-          collection.name = rootFolder
-          # TODO:   check if an image exists, and if yes: send a JSON back with 'status':'imageExists'
-          #load all images
-          for inputImage,i in inputImages
-            process = new Process()
-            process.req = req
-            process.rootFolder = rootFolder
-            image = ImageHelper.saveImage(inputImage, process, i)
-            if(inputImage.type is 'md5')
-              ImageHelper.handleMd5(image, process, collection, serviceInfo, parameterHelper, req)
-              if(ResultHelper.checkCollectionResultAvailable(collection))
-                collection.result = ResultHelper.loadResult(collection)
-            process.image = image
-            collection.processes.push(process)
-        #process a collection
-        else
+        if (req.body.images[0].type is 'collection')
+          #process a collection
           collection.name = req.body.images[0].value
           folder = nconf.get('paths:imageRootPath') + path.sep + collection.name
           collection.inputParameters = _.clone(req.body.inputs)
@@ -135,7 +119,37 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
               process.rootFolder = collection.name
               process.image = image
               collection.processes.push(process)
-        callback null, collection
+          callback null, collection
+        else if(req.body.images[0].type is 'iiif')
+          iifManifestParser = new IiifManifestParser(req.body.images[0].value)
+          iifManifestParser.initialize().then ->
+            images = iifManifestParser.getAllImages(0)
+            metadata = iifManifestParser.getMetadata()
+            label = iifManifestParser.getLabel()
+            description = iifManifestParser.getDescription()
+            for image in images
+
+            logger.log 'info', images
+            callback null, collection
+        else
+          #process regular
+          #generte a random folder name
+          rootFolder = RandomWordGenerator.generateRandomWord()
+          collection.name = rootFolder
+          # TODO:   check if an image exists, and if yes: send a JSON back with 'status':'imageExists'
+          #load all images
+          for inputImage,i in inputImages
+            process = new Process()
+            process.req = req
+            process.rootFolder = rootFolder
+            image = ImageHelper.saveImage(inputImage, process, i)
+            if(inputImage.type is 'md5')
+              ImageHelper.handleMd5(image, process, collection, serviceInfo, parameterHelper, req)
+              if(ResultHelper.checkCollectionResultAvailable(collection))
+                collection.result = ResultHelper.loadResult(collection)
+            process.image = image
+            collection.processes.push(process)
+          callback null, collection
         return
       (collection, callback) ->
         #immediate callback if collection.result is available
