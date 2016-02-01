@@ -121,15 +121,24 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
               collection.processes.push(process)
           callback null, collection
         else if(req.body.images[0].type is 'iiif')
+          rootFolder = RandomWordGenerator.generateRandomWord()
+          collection.name = rootFolder
           iifManifestParser = new IiifManifestParser(req.body.images[0].value)
           iifManifestParser.initialize().then ->
             images = iifManifestParser.getAllImages(0)
             metadata = iifManifestParser.getMetadata()
             label = iifManifestParser.getLabel()
             description = iifManifestParser.getDescription()
-            for image in images
+            for inputImage,i in images
+              logger.log 'info', image
+              image = ImageHelper.saveImageUrl inputImage, collection.name, i
+              ImageHelper.addImageInfo image.md5, image.path
+              process = new Process()
+              process.req = req
+              process.rootFolder = collection.name
+              process.image = image
+              collection.processes.push(process)
 
-            logger.log 'info', images
             callback null, collection
         else
           #process regular
