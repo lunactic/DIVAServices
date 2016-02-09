@@ -96,6 +96,7 @@ imageHelper = exports = module.exports = class ImageHelper
     return image
 
   @saveImageJson: (image,process) ->
+    process.image.extension = getImageExtensionFromBase64(image)
     base64Data = image.replace(/^data:image\/png;base64,/, "")
     fs.writeFileSync(process.outputFolder + '/' + process.image.name + '.' + process.image.extension,base64Data, 'base64')
   # ---

@@ -17,12 +17,12 @@ queueHandler = exports = module.exports = class QueueHandler
   executeRequestImmediately: (req, cb) ->
     self = @
     tempProcessingQueue = new ProcessingQueue()
-    @executableHelper.preprocess req, tempProcessingQueue, true,cb, () ->
+    @executableHelper.preprocess req, tempProcessingQueue, cb, () ->
       self.executableHelper.executeRequest tempProcessingQueue.getNext()
 
-  addRequestToQueue: (req) ->
+  addRequestToQueue: (req, cb) ->
     self = @
-    @executableHelper.preprocess req,@processingQueue,false, () ->
+    @executableHelper.preprocess req, @processingQueue, cb, () ->
       self.executeRequest()
 
   requestAvailable: () ->
@@ -32,9 +32,10 @@ queueHandler = exports = module.exports = class QueueHandler
     return @processingQueue.getNext()
 
   getQueueSize:() ->
-    return @processingQueue.getSize
+    return @processingQueue.getSize()
 
   executeRequest: () ->
     #TODO: Replace getNumberOfCurrentExecutions() with some form of available computing time
-    if(Statistics.getNumberOfCurrentExecutions() < 5 && @requestAvailable())
+
+    if(Statistics.getNumberOfCurrentExecutions() < 2 && @requestAvailable())
       @executableHelper.executeRequest(@getNextRequest())

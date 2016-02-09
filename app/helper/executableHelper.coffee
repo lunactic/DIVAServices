@@ -58,6 +58,7 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
     exec = childProcess.exec
     logger.log "info", 'executing command: ' + command
     child = exec(command, { maxBuffer: 1024 * 48828 }, (error, stdout, stderr) ->
+      Statistics.endRecording(statIdentifier, process.req.originalUrl)
       resultHandler.handleResult(error, stdout, stderr, statIdentifier,process, callback)
     )
 
@@ -92,7 +93,7 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
           #start next execution
           self.emit('processingFinished')
 
-  preprocess: (req,processingQueue,immediateExecution, requestCallback, queueCallback) ->
+  preprocess: (req,processingQueue, requestCallback, queueCallback) ->
     serviceInfo = ServicesInfoHelper.getServiceInfo(req.originalUrl)
     ioHelper = new IoHelper()
     parameterHelper = new ParameterHelper()
@@ -121,25 +122,35 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
               collection.processes.push(process)
           callback null, collection
         else if(req.body.images[0].type is 'iiif')
-          rootFolder = RandomWordGenerator.generateRandomWord()
+          url = req.body.images[0].value
+          if(url.endsWith('.json'))
+            rootFolder = url.split('/')
+            rootFolder.pop()
+            rootFolder = rootFolder.pop()
+            #strip it away
+          else
+            rootFolder = url.substr(url.lastIndexOf('/') + 1)
           collection.name = rootFolder
-          iifManifestParser = new IiifManifestParser(req.body.images[0].value)
-          iifManifestParser.initialize().then ->
-            images = iifManifestParser.getAllImages(0)
-            metadata = iifManifestParser.getMetadata()
-            label = iifManifestParser.getLabel()
-            description = iifManifestParser.getDescription()
-            for inputImage,i in images
-              logger.log 'info', image
-              image = ImageHelper.saveImageUrl inputImage, collection.name, i
-              ImageHelper.addImageInfo image.md5, image.path
-              process = new Process()
-              process.req = req
-              process.rootFolder = collection.name
-              process.image = image
-              collection.processes.push(process)
+          if(ResultHelper.checkCollectionResultAvailable(collection))
+            collection.result = ResultHelper.loadResult(collection)
+          else
+            iifManifestParser = new IiifManifestParser(req.body.images[0].value)
+            iifManifestParser.initialize().then ->
+              images = iifManifestParser.getAllImages(0)
+              metadata = iifManifestParser.getMetadata()
+              label = iifManifestParser.getLabel()
+              description = iifManifestParser.getDescription()
+              for inputImage,i in images
+                if i<10
+                  image = ImageHelper.saveImageUrl inputImage, collection.name, i
+                  ImageHelper.addImageInfo image.md5, image.path
+                  process = new Process()
+                  process.req = req
+                  process.rootFolder = collection.name
+                  process.image = image
+                  collection.processes.push(process)
 
-            callback null, collection
+          callback null, collection
         else
           #process regular
           #generte a random folder name
@@ -190,7 +201,6 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
             process.executablePath = serviceInfo.executablePath
             process.resultType =  serviceInfo.output
             process.inputImageUrl = ImageHelper.getInputImageUrl(process.rootFolder, process.image.name, process.image.extension)
-            process.outputImageUrl = ImageHelper.getOutputImageUrl(process.rootFolder + '/' + process.methodFolder, process.image.name, process.image.extension )
             process.resultLink = parameterHelper.buildGetUrl(process)
             resultHandler = null
             switch serviceInfo.output

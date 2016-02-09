@@ -29,6 +29,7 @@ consoleResultHandler = exports = module.exports = class consoleResultHandler
                 data['status'] = 'done'
                 if(data['image']?)
                   ImageHelper.saveImageJson(data['image'],process)
+                  process.outputImageUrl = ImageHelper.getOutputImageUrl(process.rootFolder + '/' + process.methodFolder, process.image.name, process.image.extension )
                   data['outputImage'] = process.outputImageUrl
                   delete data['image']
 
