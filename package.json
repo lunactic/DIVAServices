@@ -36,6 +36,7 @@
     "nconf": "^0.7.1",
     "request": "^2.58.0",
     "serve-favicon": "^2.3.0",
+    "sequest": "^0.9.0",
     "socket.io": "^1.3.5",
     "sync-request": "2.1.0",
     "underscore": "^1.8.3",

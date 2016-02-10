@@ -14,6 +14,8 @@ logger      = require '../logging/logger'
 Upload      = require '../upload/upload'
 ImageHelper = require '../helper/imageHelper'
 ResultHelper= require '../helper/resultHelper'
+RemoteExecution = require '../remoteExecution/remoteExecution'
+
 
 getHandler = new GetHandler()
 postHandler = new PostHandler()
@@ -26,6 +28,11 @@ router.post '/upload', (req, res) ->
   else if(req.body.url?)
     Upload.uploadUrl req.body.url, (err,result) ->
       res.json {md5: result.md5}
+
+router.post '/remote', (req, res) ->
+  remoteExecution = new RemoteExecution('diuf-cluster','wuerschm')
+  remoteExecution.sshAuth()
+  remoteExecution.uploadFile('/data/images/woozygrowingbrahmanbull/original/input0.png')
 
 # Set up the routing for POST requests
 router.post '*', (req, res, next) ->
