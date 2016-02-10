@@ -101,6 +101,8 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
     collection.method = serviceInfo.service
     async.waterfall [
       (callback) ->
+        #TODO Add collection exist check to here
+
         if (req.body.images[0].type is 'collection')
           preprocessCollection(collection, req, serviceInfo, parameterHelper, callback)
         else if(req.body.images[0].type is 'iiif')
