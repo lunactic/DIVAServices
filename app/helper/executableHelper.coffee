@@ -101,75 +101,12 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
     collection.method = serviceInfo.service
     async.waterfall [
       (callback) ->
-        inputImages = req.body.images
         if (req.body.images[0].type is 'collection')
-          #process a collection
-          collection.name = req.body.images[0].value
-          folder = nconf.get('paths:imageRootPath') + path.sep + collection.name
-          collection.inputParameters = _.clone(req.body.inputs)
-          collection.inputHighlighters = _.clone(req.body.highlighter)
-          collection.parameters = parameterHelper.matchParams(req.body.inputs, req.body.highlighter.segments,serviceInfo.parameters,folder,folder, "", req)
-          if(ResultHelper.checkCollectionResultAvailable(collection))
-            collection.result = ResultHelper.loadResult(collection)
-          else
-            #if results not available, load images and create processes
-            images = ImageHelper.loadCollection(collection.name)
-            for image in images
-              process = new Process()
-              process.req = req
-              process.rootFolder = collection.name
-              process.image = image
-              collection.processes.push(process)
-          callback null, collection
+          preprocessCollection(collection, req, serviceInfo, parameterHelper, callback)
         else if(req.body.images[0].type is 'iiif')
-          url = req.body.images[0].value
-          if(url.endsWith('.json'))
-            rootFolder = url.split('/')
-            rootFolder.pop()
-            rootFolder = rootFolder.pop()
-            #strip it away
-          else
-            rootFolder = url.substr(url.lastIndexOf('/') + 1)
-          collection.name = rootFolder
-          if(ResultHelper.checkCollectionResultAvailable(collection))
-            collection.result = ResultHelper.loadResult(collection)
-          else
-            iifManifestParser = new IiifManifestParser(req.body.images[0].value)
-            iifManifestParser.initialize().then ->
-              images = iifManifestParser.getAllImages(0)
-              metadata = iifManifestParser.getMetadata()
-              label = iifManifestParser.getLabel()
-              description = iifManifestParser.getDescription()
-              for inputImage,i in images
-                if i<10
-                  image = ImageHelper.saveImageUrl inputImage, collection.name, i
-                  ImageHelper.addImageInfo image.md5, image.path
-                  process = new Process()
-                  process.req = req
-                  process.rootFolder = collection.name
-                  process.image = image
-                  collection.processes.push(process)
-
-          callback null, collection
+          preprocessIiif(collection, req, callback)
         else
-          #process regular
-          #generte a random folder name
-          rootFolder = RandomWordGenerator.generateRandomWord()
-          collection.name = rootFolder
-          # TODO:   check if an image exists, and if yes: send a JSON back with 'status':'imageExists'
-          #load all images
-          for inputImage,i in inputImages
-            process = new Process()
-            process.req = req
-            process.rootFolder = rootFolder
-            image = ImageHelper.saveImage(inputImage, process, i)
-            if(inputImage.type is 'md5')
-              ImageHelper.handleMd5(image, process, collection, serviceInfo, parameterHelper, req)
-              if(ResultHelper.checkCollectionResultAvailable(collection))
-                collection.result = ResultHelper.loadResult(collection)
-            process.image = image
-            collection.processes.push(process)
-          callback null, collection
+          preprocessRegular(collection, req, serviceInfo, parameterHelper, callback)
         return
       (collection, callback) ->
         #immediate callback if collection.result is available
@@ -240,3 +177,74 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
         collection.result = message
         ResultHelper.saveResult(collection)
         requestCallback null, collection.result
+
+  preprocessCollection = (collection, req, serviceInfo, parameterHelper, callback) ->
+    #process a collection
+    collection.name = req.body.images[0].value
+    folder = nconf.get('paths:imageRootPath') + path.sep + collection.name
+    collection.inputParameters = _.clone(req.body.inputs)
+    collection.inputHighlighters = _.clone(req.body.highlighter)
+    collection.parameters = parameterHelper.matchParams(req.body.inputs, req.body.highlighter.segments,serviceInfo.parameters,folder,folder, "", req)
+    if(ResultHelper.checkCollectionResultAvailable(collection))
+      collection.result = ResultHelper.loadResult(collection)
+    else
+      #if results not available, load images and create processes
+      images = ImageHelper.loadCollection(collection.name)
+      for image in images
+        process = new Process()
+        process.req = req
+        process.rootFolder = collection.name
+        process.image = image
+        collection.processes.push(process)
+    callback null, collection
+
+  preprocessIiif = (collection, req, callback) ->
+    url = req.body.images[0].value
+    if(url.endsWith('.json'))
+      rootFolder = url.split('/')
+      rootFolder.pop()
+      rootFolder = rootFolder.pop()
+    else
+      rootFolder = url.substr(url.lastIndexOf('/') + 1)
+    collection.name = rootFolder
+    if(ResultHelper.checkCollectionResultAvailable(collection))
+      collection.result = ResultHelper.loadResult(collection)
+      callback null,collection
+    else
+      iifManifestParser = new IiifManifestParser(req.body.images[0].value)
+      iifManifestParser.initialize().then ->
+        images = iifManifestParser.getAllImages(0)
+        metadata = iifManifestParser.getMetadata()
+        label = iifManifestParser.getLabel()
+        description = iifManifestParser.getDescription()
+        for inputImage,i in images
+          image = ImageHelper.saveImageUrl inputImage, collection.name, i
+          ImageHelper.addImageInfo image.md5, image.path
+          process = new Process()
+          process.req = req
+          process.rootFolder = collection.name
+          process.image = image
+          collection.processes.push(process)
+        callback null, collection
+
+  preprocessRegular = (collection, req, serviceInfo, parameterHelper, callback) ->
+    inputImages = req.body.images
+    #generte a random folder name
+    rootFolder = RandomWordGenerator.generateRandomWord()
+    collection.name = rootFolder
+    # TODO:   check if an image exists, and if yes: send a JSON back with 'status':'imageExists'
+    #load all images
+    for inputImage,i in inputImages
+      process = new Process()
+      process.req = req
+      process.rootFolder = rootFolder
+      image = ImageHelper.saveImage(inputImage, process, i)
+      if(inputImage.type is 'md5')
+        ImageHelper.handleMd5(image, process, collection, serviceInfo, parameterHelper, req)
+        if(ResultHelper.checkCollectionResultAvailable(collection))
+          collection.result = ResultHelper.loadResult(collection)
+          callback null, collection
+          return
+      process.image = image
+      collection.processes.push(process)
+    callback null, collection
