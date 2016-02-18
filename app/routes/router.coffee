@@ -31,9 +31,14 @@ router.post '/upload', (req, res) ->
 
 router.post '/remote', (req, res) ->
   remoteExecution = new RemoteExecution('diuf-cluster','wuerschm')
-  remoteExecution.sshAuth()
-  remoteExecution.uploadFile('/data/images/woozygrowingbrahmanbull/original/input0.png')
+  #remoteExecution.uploadFile('/data/images/woozygrowingbrahmanbull/original/input0.png')
+  remoteExecution.executeJob()
 
+router.post '/jobs/:jobId', (req, res, next) ->
+  logger.log 'info', 'job: ' + req.params.jobId + ' finished!'
+  logger.log 'info', req.body
+  res.status '200'
+  res.send()
 # Set up the routing for POST requests
 router.post '*', (req, res, next) ->
   postHandler.handleRequest req, (err, response) ->
