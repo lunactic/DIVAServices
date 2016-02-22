@@ -22,6 +22,7 @@ IoHelper            = require '../helper/ioHelper'
 Process             = require '../processingQueue/process'
 ParameterHelper     = require '../helper/parameterHelper'
 RandomWordGenerator = require '../randomizer/randomWordGenerator'
+RemoteExecution     = require '../remoteExecution/remoteExecution'
 ResultHelper        = require '../helper/resultHelper'
 ServicesInfoHelper  = require '../helper/servicesInfoHelper'
 Statistics          = require '../statistics/statistics'
@@ -48,7 +49,20 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
     paramsPath = _.values(params).join(' ')
     return execType + ' ' + executablePath + ' ' + dataPath+ ' ' + paramsPath
 
-  # ---
+  buildRemoteCommand = (process) ->
+    params = _.values(process.parameters.params).join(' ')
+    paths = _.clone(process.parameters.data)
+    _.forIn(paths, (value, key) ->
+      switch key
+        when 'inputImage','outputImage','resultFile'
+          extension = path.extname(value)
+          filename = path.basename(value,extension)
+          paths[key] = process.rootFolder + '/' + filename + extension
+    )
+    dataPaths = _.values(paths).join(' ')
+    return 'qsub -o ' + process.rootFolder + ' -e ' + process.rootFolder + ' ' + process.executablePath + ' ' + dataPaths + params
+
+# ---
   # **executeCommand**</br>
   # Executes a command using the [childProcess](https://nodejs.org/api/child_process.html) module
   # Returns the data as received from the stdout.</br>
@@ -59,7 +73,7 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
     logger.log "info", 'executing command: ' + command
     child = exec(command, { maxBuffer: 1024 * 48828 }, (error, stdout, stderr) ->
       Statistics.endRecording(statIdentifier, process.req.originalUrl)
-      resultHandler.handleResult(error, stdout, stderr, statIdentifier,process, callback)
+      resultHandler.handleResult(error, stdout, stderr ,process, callback)
     )
 
   # ---
@@ -78,20 +92,44 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
 
   executeRequest: (process) ->
       self = @
-      async.waterfall [
-        (callback) ->
-          statIdentifier = Statistics.startRecording(process.req.originalUrl)
-          #fill executable path with parameter values
-          command = buildCommand(process.executablePath, process.programType, process.parameters.data, process.parameters.params)
-          #if we have a console output, pipe the stdout to a file but keep stderr for error handling
-          if(process.resultType == 'console')
-            command += ' 1>' + process.tmpResultFile + ';mv ' + process.tmpResultFile + ' ' + process.resultFile
-          self.executeCommand(command, process.resultHandler, statIdentifier, process, callback)
+      if process.resultType == 'remote'
+        #exeute remote
+        executeRemote(process, self)
+      else
+        #execute local
+        executeLocal(process, self)
+
+
+  executeLocal = (process, self) ->
+    async.waterfall [
+      (callback) ->
+        process.id = Statistics.startRecording(process.req.originalUrl,process)
+        #fill executable path with parameter values
+        command = buildCommand(process.executablePath, process.programType, process.parameters.data, process.parameters.params)
+        #if we have a console output, pipe the stdout to a file but keep stderr for error handling
+        if(process.resultType == 'console')
+          command += ' 1>' + process.tmpResultFile + ';mv ' + process.tmpResultFile + ' ' + process.resultFile
+        self.executeCommand(command, process.resultHandler, process.id, process, callback)
 
         #finall callback, handling of the result and returning it
-        ], (err, results) ->
-          #start next execution
-          self.emit('processingFinished')
+    ], (err, results) ->
+      #start next execution
+      self.emit('processingFinished')
+
+
+  executeRemote = (process, self) ->
+    remoteExecution = new RemoteExecution(nconf.get('remoteServer:ip'),nconf.get('remoteServer:user'))
+    async.waterfall [
+      (callback) ->
+        remoteExecution.uploadFile(process.image.path, process.rootFolder, callback)
+      (callback) ->
+        command = buildRemoteCommand(process)
+        process.id = Statistics.startRecording(process.req.originalUrl, process)
+        command += ' ' + process.id + ' ' + process.rootFolder + ' > /dev/null'
+        remoteExecution.executeCommand(command, callback)
+    ], (err) ->
+      self.emit('processingFinished')
+
 
   preprocess: (req,processingQueue, requestCallback, queueCallback) ->
     serviceInfo = ServicesInfoHelper.getServiceInfo(req.originalUrl)
@@ -144,7 +182,7 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
             switch serviceInfo.output
               when 'console'
                 resultHandler = new ConsoleResultHandler(process.resultFile);
-              when 'file'
+              when 'file','remote'
                 process.parameters.data['resultFile'] = process.resultFile
                 resultHandler = new FileResultHandler(process.resultFile);
             process.resultHandler = resultHandler
@@ -193,7 +231,7 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
       images = ImageHelper.loadCollection(collection.name)
       for image in images
         process = new Process()
-        process.req = req
+        process.req = _.clone(req)
         process.rootFolder = collection.name
         process.image = image
         collection.processes.push(process)
@@ -222,7 +260,7 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
           image = ImageHelper.saveImageUrl inputImage, collection.name, i
           ImageHelper.addImageInfo image.md5, image.path
           process = new Process()
-          process.req = req
+          process.req = _.clone(req)
           process.rootFolder = collection.name
           process.image = image
           collection.processes.push(process)
@@ -237,7 +275,7 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
     #load all images
     for inputImage,i in inputImages
       process = new Process()
-      process.req = req
+      process.req = _.clone(req)
       process.rootFolder = rootFolder
       image = ImageHelper.saveImage(inputImage, process, i)
       if(inputImage.type is 'md5')

@@ -9,17 +9,24 @@ remoteExecution = exports = module.exports = class RemoteExecution
     @serverUrl = serverUrl
     @userName = user
     @sequest = sequest @userName + '@' + @serverUrl
+    @sequest.pipe(process.stdout)
 
 
-  uploadFile: (localFile) ->
+  uploadFile: (localFile, remoteFolder, callback) ->
+    @sequest.write('mkdir -p ' + remoteFolder)
     extension = path.extname(localFile)
     filename = path.basename(localFile,extension)
-    writer = sequest.put(@userName + '@' + @serverUrl, '/home/wuerschm/' + filename + extension)
+    writer = sequest.put(@userName + '@' + @serverUrl, remoteFolder + '/' + filename + extension)
     fs.createReadStream(localFile).pipe(writer)
     writer.on('close',() ->
-      console.log 'finished writing'
+      logger.log 'info', 'remote file written'
+      callback null
     )
 
-  executeJob: () ->
-    @sequest.write('./job.sh')
+  executeCommand: (command, callback) ->
+    logger.log 'info', 'running remote command: ' + command
+    @sequest.write(command)
+    callback null
 
+  cleanUp: (process) ->
+    @sequest.write('rm -rf ' + process.rootFolder + '/')

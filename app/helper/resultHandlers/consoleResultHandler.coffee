@@ -10,13 +10,13 @@ consoleResultHandler = exports = module.exports = class consoleResultHandler
   constructor: (filePath) ->
     @file = filePath
 
-  handleResult: (error, stdout, stderr, statIdentifier,process, callback) ->
+  handleResult: (error, stdout, stderr, process, callback) ->
     self = @
     if stderr.length > 0
       err =
         statusText: stderr
         status: 500
-      callback err, null, statIdentifier
+      callback err, null, process.id
     else
       fs.stat self.file, (err, stat) ->
         if !err?
@@ -39,6 +39,6 @@ consoleResultHandler = exports = module.exports = class consoleResultHandler
                 fs.writeFileSync(self.file,JSON.stringify(data), "utf8")
               catch error
                 logger.log 'error', error
-              callback null, data, statIdentifier
+              callback null, data, process.id
         else
           callback err, null, null

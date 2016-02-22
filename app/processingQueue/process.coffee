@@ -1,6 +1,7 @@
 #Class representing a process to be executed
 
 process = exports = module.exports = class Process
+  @id: ""
   @req: null
   @method: ""
   @image: null

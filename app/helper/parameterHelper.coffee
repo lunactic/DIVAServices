@@ -122,12 +122,15 @@ parameterHelper = exports = module.exports = class ParameterHelper
       getUrl += '&highlighter=' + JSON.stringify(process.inputHighlighters['segments'])
       getUrl += '&highlighterType=' + process.inputHighlighters['type']
 
+
     filtered = _.filter(process.parameters.params, (value,key) ->
       return !key in ['rectangle','circle','polygon']
     )
     #append other parameters
-    for key,value of filtered
-      getUrl += '&' + key + '=' + value
+    if(filtered.length > 0)
+      _.forIn(filtered, (value, key) ->
+        getUrl += '&' + key + '=' + value
+      )
 
     return getUrl
 

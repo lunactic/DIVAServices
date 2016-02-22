@@ -11,7 +11,7 @@ consoleResultHandler = exports = module.exports = class consoleResultHandler
   @filename: ''
   constructor: (filepath) ->
     @filename = filepath
-  handleResult: (error, stdout, stderr, statIdentifier,process, callback) ->
+  handleResult: (error, stdout, stderr, process, callback) ->
     self = @
     fs.stat @filename, (err, stat) ->
       #check if file exists
@@ -35,6 +35,6 @@ consoleResultHandler = exports = module.exports = class consoleResultHandler
               fs.writeFileSync(self.filename,JSON.stringify(data), "utf8")
             catch error
               console.log error
-            callback null, data, statIdentifier
+            callback null, data, process.id
       else
         callback err, null, null

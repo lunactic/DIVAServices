@@ -7,15 +7,16 @@
 # Copyright &copy; Marcel Würsch, GPL v3.0 licensed.
 
 # Require Express Router
+nconf       = require 'nconf'
 router      = require('express').Router()
 GetHandler  = require './getHandler'
 PostHandler = require './postHandler'
 logger      = require '../logging/logger'
 Upload      = require '../upload/upload'
 ImageHelper = require '../helper/imageHelper'
-ResultHelper= require '../helper/resultHelper'
 RemoteExecution = require '../remoteExecution/remoteExecution'
-
+ResultHelper= require '../helper/resultHelper'
+Statistics  = require '../statistics/statistics'
 
 getHandler = new GetHandler()
 postHandler = new PostHandler()
@@ -29,14 +30,15 @@ router.post '/upload', (req, res) ->
     Upload.uploadUrl req.body.url, (err,result) ->
       res.json {md5: result.md5}
 
-router.post '/remote', (req, res) ->
-  remoteExecution = new RemoteExecution('diuf-cluster','wuerschm')
-  #remoteExecution.uploadFile('/data/images/woozygrowingbrahmanbull/original/input0.png')
-  remoteExecution.executeJob()
-
 router.post '/jobs/:jobId', (req, res, next) ->
-  logger.log 'info', 'job: ' + req.params.jobId + ' finished!'
-  logger.log 'info', req.body
+  process = Statistics.getProcess(req.params.jobId)
+  Statistics.endRecording(req.params.jobId, process.req.originalUrl)
+  remoteExecution = new RemoteExecution(nconf.get('remoteServer:ip'),nconf.get('remoteServer:user'))
+  remoteExecution.cleanUp(process)
+  process.result = req.body
+  ResultHelper.saveResult(process)
+  process.resultHandler.handleResult(null, null, null,process, (error,data,processId) ->
+  )
   res.status '200'
   res.send()
 # Set up the routing for POST requests

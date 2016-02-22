@@ -29,13 +29,18 @@ statistics = exports = module.exports = class Statistics
     executionInfo = @currentExecutions.filter (x) -> x.path == reqPath
     return executionInfo.length > 0
 
-  @startRecording: (reqPath) ->
+  @getProcess: (rand) ->
+    execution = @currentExecutions.filter (x) -> x.rand == rand
+    return execution[0].process
+
+  @startRecording: (reqPath, job) ->
     @startTime = process.hrtime()
-    rand = Math.random()
+    rand = Math.random().toString(36).substring(2)
     @currentExecutions.push({
       rand : rand
       startTime: @startTime
       path: reqPath
+      process: job
     })
     return rand
 

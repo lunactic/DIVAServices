@@ -23,6 +23,10 @@
   "images": {
     "storeResponse": false
   },
+  "remoteServer":{
+    "user":"wuerschm",
+    "ip": "diuf-cluster"
+  },
   "paths": {
     "imageRootPath": "/data/images",
     "matlabPath": "/usr/local/bin/matlab",
