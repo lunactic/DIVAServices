@@ -38,6 +38,13 @@
     "servicesInfoFile":"/data/json/services.json",
     "noisingXmlPath": "/data/noise/scripts/realistic.xml"
   },
+  "remotePaths": {
+    "matlabPath": "/opt/matlab/R2012b/bin/matlab",
+    "matlabScriptsPath": "data/matlab",
+    "jsonPath":"data/json",
+    "ocropyLanguageModelsPath": "data/ocropyLanguageModels",
+    "noisingXmlPath": "/data/noise/scripts/realistic.xml"
+  },
   "reservedWords" :[
     "inputImage",
     "inputImageUrl",

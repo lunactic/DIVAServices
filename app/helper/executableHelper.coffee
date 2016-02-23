@@ -58,9 +58,17 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
           extension = path.extname(value)
           filename = path.basename(value,extension)
           paths[key] = process.rootFolder + '/' + filename + extension
+        when 'outputFolder'
+          paths[key] = process.rootFolder + '/'
     )
+
+    _.forOwn(_.intersection(_.keys(paths),_.keys(nconf.get('remotePaths'))), (value,key) ->
+      paths[value] = nconf.get('remotePaths:'+value)
+    )
+
+
     dataPaths = _.values(paths).join(' ')
-    return 'qsub -o ' + process.rootFolder + ' -e ' + process.rootFolder + ' ' + process.executablePath + ' ' + dataPaths + params
+    return 'qsub -o ' + process.rootFolder + ' -e ' + process.rootFolder + ' ' + process.executablePath + ' ' + dataPaths + ' ' + params
 
 # ---
   # **executeCommand**</br>

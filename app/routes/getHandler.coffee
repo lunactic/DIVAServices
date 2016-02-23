@@ -17,7 +17,6 @@ Statistics         = require '../statistics/statistics'
 ParameterHelper    = require '../helper/parameterHelper'
 Process            = require '../processingQueue/process'
 ResultHelper       = require '../helper/resultHelper'
-IoHelper           = require '../helper/ioHelper'
 ImageHelper        = require '../helper/imageHelper'
 ServicesInfoHelper = require '../helper/servicesInfoHelper'
 
@@ -51,7 +50,6 @@ getHandler = exports = module.exports = class GetHandler
 
   getWithQuery = (req, callback) ->
     parameterHelper = new ParameterHelper()
-    ioHelper = new IoHelper()
     serviceInfo = ServicesInfoHelper.getServiceInfo(req.path)
     queryParams = req.query
 
@@ -111,7 +109,6 @@ getHandler = exports = module.exports = class GetHandler
     else
       err = createError(400, 'Malformed request. Parsing of the provided information was not possible')
       callback err, null
-
 
   prepareQueryParams = (proc, queryParams) ->
     proc.inputParameters = _.clone(queryParams)
