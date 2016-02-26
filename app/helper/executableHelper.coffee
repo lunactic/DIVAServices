@@ -29,6 +29,7 @@ Statistics          = require '../statistics/statistics'
 
 # Expose executableHelper
 executableHelper = exports = module.exports = class ExecutableHelper extends EventEmitter
+  @remoteExecution = new RemoteExecution(nconf.get('remoteServer:ip'),nconf.get('remoteServer:user'))
 
   # ---
   # **constructor**</br>
@@ -92,7 +93,7 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
   getExecutionType = (programType) ->
     switch programType
       when 'java'
-        return 'java -Djava.awt.headless=true -jar'
+        return 'java -Djava.awt.headless=true -Xmx4096m -jar'
       when 'coffeescript'
         return 'coffee'
       else
@@ -126,15 +127,14 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
 
 
   executeRemote = (process, self) ->
-    remoteExecution = new RemoteExecution(nconf.get('remoteServer:ip'),nconf.get('remoteServer:user'))
     async.waterfall [
       (callback) ->
-        remoteExecution.uploadFile(process.image.path, process.rootFolder, callback)
+        @remoteExecution.uploadFile(process.image.path, process.rootFolder, callback)
       (callback) ->
         command = buildRemoteCommand(process)
         process.id = Statistics.startRecording(process.req.originalUrl, process)
         command += ' ' + process.id + ' ' + process.rootFolder + ' > /dev/null'
-        remoteExecution.executeCommand(command, callback)
+        @remoteExecution.executeCommand(command, callback)
     ], (err) ->
       self.emit('processingFinished')
 
@@ -234,6 +234,7 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
     collection.parameters = parameterHelper.matchParams(req.body.inputs, req.body.highlighter.segments,serviceInfo.parameters,folder,folder, "", req)
     if(ResultHelper.checkCollectionResultAvailable(collection))
       collection.result = ResultHelper.loadResult(collection)
+      callback null, collection
     else
       #if results not available, load images and create processes
       images = ImageHelper.loadCollection(collection.name)
@@ -243,7 +244,7 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
         process.rootFolder = collection.name
         process.image = image
         collection.processes.push(process)
-    callback null, collection
+      callback null, collection
 
   preprocessIiif = (collection, req, callback) ->
     url = req.body.images[0].value
