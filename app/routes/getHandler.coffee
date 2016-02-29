@@ -50,7 +50,7 @@ getHandler = exports = module.exports = class GetHandler
 
   getWithQuery = (req, callback) ->
     parameterHelper = new ParameterHelper()
-    serviceInfo = ServicesInfoHelper.getServiceInfo(req.path)
+    serviceInfo = ServicesInfoHelper.getServiceInfoByPath(req.path)
     queryParams = req.query
 
     neededParameters = serviceInfo.parameters

@@ -140,7 +140,7 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
 
 
   preprocess: (req,processingQueue, requestCallback, queueCallback) ->
-    serviceInfo = ServicesInfoHelper.getServiceInfo(req.originalUrl)
+    serviceInfo = ServicesInfoHelper.getServiceInfoByPath(req.originalUrl)
     ioHelper = new IoHelper()
     parameterHelper = new ParameterHelper()
     collection = new Collection()

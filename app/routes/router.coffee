@@ -14,9 +14,11 @@ PostHandler = require './postHandler'
 logger      = require '../logging/logger'
 Upload      = require '../upload/upload'
 ImageHelper = require '../helper/imageHelper'
+IoHelper    = require '../helper/ioHelper'
 RemoteExecution = require '../remoteExecution/remoteExecution'
 ResultHelper= require '../helper/resultHelper'
 Statistics  = require '../statistics/statistics'
+ServiceHelper = require '../helper/servicesInfoHelper'
 
 getHandler = new GetHandler()
 postHandler = new PostHandler()
@@ -51,6 +53,15 @@ router.get '/image/check/:md5', (req,res) ->
   ImageHelper.imageExists req.params.md5, (err, response) ->
     sendResponse res, err, response
 
+router.get '/collections/:collection/:execution', (req, res) ->
+  #zip folder
+  ioHelper = new IoHelper()
+  filename = ioHelper.zipFolder(nconf.get('paths:imageRootPath') + '/' + req.params.collection + '/' + req.params.execution)
+
+  res.status '200'
+  res.json ({zipLink: 'http://' + nconf.get('server:rootUrl') + '/static/' +  filename})
+  res.send()
+    
 router.get '/image/results/:md5', (req, res)->
   ImageHelper.imageExists req.params.md5, (err, response) ->
     if(response.imageAvailable)
