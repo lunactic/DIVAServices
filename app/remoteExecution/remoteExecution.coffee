@@ -1,6 +1,6 @@
-logger  = require '../logging/logger'
-fs      = require 'fs'
-path    = require 'path'
+logger = require '../logging/logger'
+fs = require 'fs'
+path = require 'path'
 sequest = require 'sequest'
 
 remoteExecution = exports = module.exports = class RemoteExecution
@@ -11,29 +11,23 @@ remoteExecution = exports = module.exports = class RemoteExecution
 
 
   uploadFile: (localFile, remoteFolder, callback) ->
-    #TODO ADD TRY CATCH / RETRY?
-    try
-      seq = sequest(@userName + '@' + @serverUrl,{readyTimeout: 99999})
-      seq.write('mkdir -p ' + remoteFolder)
+    seq = sequest.connect(@userName + '@' + @serverUrl, {readyTimeout: 99999})
+    seq 'mkdir -p ' + remoteFolder, (e, stdout) ->
       extension = path.extname(localFile)
-      filename = path.basename(localFile,extension)
-      writer = sequest.put(@userName + '@' + @serverUrl, remoteFolder + '/' + filename + extension)
+      filename = path.basename(localFile, extension)
+      writer = seq.put(remoteFolder + '/' + filename + extension)
       fs.createReadStream(localFile).pipe(writer)
-      writer.on('close',() ->
-        logger.log 'info', 'remote file written'
+      writer.on('close', () ->
         callback null
+        return
       )
-    catch error
-      logger.log('error', error, 'remoteExecution:uploadFile')
 
   executeCommand: (command, callback) ->
-    try
-      seq = sequest(@userName + '@' + @serverUrl,{readyTimeout: 99999})
-      logger.log 'info', 'running remote command: ' + command
-      seq.write(command)
-      callback null
-    catch error
-      logger.log('error', error, 'remoteExecution:executeCommand')
+    seq = sequest.connect(@userName + '@' + @serverUrl, {readyTimeout: 99999})
+    seq command
+    callback null
 
   cleanUp: (process) ->
-    @sequest.write('rm -rf ' + process.rootFolder + '/')
+    seq = sequest.connect(@userName + '@' + @serverUrl, {readyTimeout: 99999})
+    seq 'rm -rf ' + process.rootFolder + '/'
+

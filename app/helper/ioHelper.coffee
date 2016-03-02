@@ -92,7 +92,6 @@ ioHelper = exports = module.exports = class IoHelper
   saveFile: (filePath, content, callback) ->
     try
       fs.writeFileSync filePath, JSON.stringify(content)
-      console.log 'file saved'
       if callback?
         callback null
     catch error

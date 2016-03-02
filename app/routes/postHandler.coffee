@@ -18,6 +18,8 @@
 
 # module requirements
 QueueHandler        = require '../processingQueue/queueHandler'
+ServicesInfoHelper  = require '../helper/servicesInfoHelper'
+logger              = require '../logging/logger'
 #Expose postHandler
 postHandler = exports = module.exports = class PostHandler
 
@@ -30,5 +32,16 @@ postHandler = exports = module.exports = class PostHandler
   # `params`
   #   *req* the incoming request
   handleRequest: (req, cb) ->
-    #If mean-execution time < 60s directly execute
-    @queueHandler.addRequestToQueue(req,cb)
+    serviceInfo = ServicesInfoHelper.getServiceInfoByPath(req.originalUrl)
+
+    if(serviceInfo.execute is'remote')
+      #execute remote
+      @queueHandler.addRemoteRequestToQueue(req, cb)
+    else if(serviceInfo.execute is 'local')
+      @queueHandler.addLocalRequestToQueue(req,cb)
+    else
+      logger.log 'error', 'error in definition for method: ' + req.originalUrl
+      error =
+        statusCode: 500
+        statusText: 'error in method definition'
+      callback(error, null)

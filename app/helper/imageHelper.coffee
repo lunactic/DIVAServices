@@ -269,7 +269,7 @@ imageHelper = exports = module.exports = class ImageHelper
         return 'png'
 
   getImageExtensionFromBase64 = (base64) ->
-    if(base64.indexOf('/9j/4AAQ') != -1)
+    if(base64.indexOf('/9j/4AAQ') != -1 or base64.indexOf('_9j_4AA') != -1)
       return 'jpg'
     if(base64.indexOf('iVBORw0KGgoAAAANSUhEU') != -1)
       return 'png'

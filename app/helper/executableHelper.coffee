@@ -101,17 +101,8 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
       else
         return ''
 
-  executeRequest: (process) ->
-      self = @
-      if process.resultType == 'remote'
-        #exeute remote
-        executeRemote(process, self)
-      else
-        #execute local
-        executeLocal(process, self)
-
-
-  executeLocal = (process, self) ->
+  executeLocalRequest: (process) ->
+    self = @
     async.waterfall [
       (callback) ->
         process.id = Statistics.startRecording(process.req.originalUrl,process)
@@ -122,13 +113,14 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
           command += ' 1>' + process.tmpResultFile + ';mv ' + process.tmpResultFile + ' ' + process.resultFile
         self.executeCommand(command, process.resultHandler, process.id, process, callback)
 
-        #finall callback, handling of the result and returning it
-    ], (err, results) ->
-      #start next execution
-      self.emit('processingFinished')
+      #finall callback, handling of the result and returning it
+      ], (err, results) ->
+        #start next execution
+        self.emit('processingFinished')
 
 
-  executeRemote = (process, self) ->
+  executeRemoteRequest: (process) ->
+    self = @
     async.waterfall [
       (callback) ->
         self.remoteExecution.uploadFile(process.image.path, process.rootFolder, callback)
@@ -138,7 +130,9 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
         command += ' ' + process.id + ' ' + process.rootFolder + ' > /dev/null'
         self.remoteExecution.executeCommand(command, callback)
     ], (err) ->
-      self.emit('processingFinished')
+      if err?
+        console.log 'error', err
+      #self.emit('processingFinished')
 
 
   preprocess: (req,processingQueue, requestCallback, queueCallback) ->
@@ -192,7 +186,7 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
             switch serviceInfo.output
               when 'console'
                 resultHandler = new ConsoleResultHandler(process.resultFile);
-              when 'file','remote'
+              when 'file'
                 process.parameters.data['resultFile'] = process.resultFile
                 resultHandler = new FileResultHandler(process.resultFile);
             process.resultHandler = resultHandler
