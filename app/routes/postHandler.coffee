@@ -18,14 +18,11 @@
 
 # module requirements
 QueueHandler        = require '../processingQueue/queueHandler'
-ExecutableHelper    = require '../helper/executableHelper'
-Statistics          = require '../statistics/statistics'
 #Expose postHandler
 postHandler = exports = module.exports = class PostHandler
 
   constructor: () ->
     @queueHandler = new QueueHandler()
-    @executableHelper = new ExecutableHelper()
 
   # ---
   # **handleRequest**</br>

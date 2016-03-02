@@ -89,12 +89,15 @@ ioHelper = exports = module.exports = class IoHelper
   # ---
   # **/br>
   # saves the a file to disk</br>
-  saveFile: (filePath, content) ->
-    fs.stat filePath, (err, stat) ->
-      fs.writeFile filePath, JSON.stringify(content),  (err) ->
-        if err?
-          logger.log 'error', err
-
+  saveFile: (filePath, content, callback) ->
+    try
+      fs.writeFileSync filePath, JSON.stringify(content)
+      console.log 'file saved'
+      if callback?
+        callback null
+    catch error
+      logger.log 'error', error
+    return
   writeTempFile: (filePath) ->
     try
       stats = fs.statSync filePath

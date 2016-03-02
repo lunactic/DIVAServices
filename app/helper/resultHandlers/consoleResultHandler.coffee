@@ -36,6 +36,7 @@ consoleResultHandler = exports = module.exports = class consoleResultHandler
                 data['inputImage'] = process.inputImageUrl
                 data['resultLink'] = process.resultLink
                 data['collectionName'] = process.rootFolder
+                data['resultZipLink'] = 'http://192.168.56.101:8080/collections/' + process.rootFolder + '/' + process.methodFolder
                 fs.writeFileSync(self.file,JSON.stringify(data), "utf8")
               catch error
                 logger.log 'error', error

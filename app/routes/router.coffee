@@ -20,6 +20,9 @@ ResultHelper= require '../helper/resultHelper'
 Statistics  = require '../statistics/statistics'
 ServiceHelper = require '../helper/servicesInfoHelper'
 
+async       = require 'async'
+
+
 getHandler = new GetHandler()
 postHandler = new PostHandler()
 
@@ -35,14 +38,19 @@ router.post '/upload', (req, res) ->
 router.post '/jobs/:jobId', (req, res, next) ->
   process = Statistics.getProcess(req.params.jobId)
   Statistics.endRecording(req.params.jobId, process.req.originalUrl)
-  remoteExecution = new RemoteExecution(nconf.get('remoteServer:ip'),nconf.get('remoteServer:user'))
-  remoteExecution.cleanUp(process)
-  process.result = req.body
-  ResultHelper.saveResult(process)
-  process.resultHandler.handleResult(null, null, null,process, (error,data,processId) ->
-  )
-  res.status '200'
-  res.send()
+  #remoteExecution = new RemoteExecution(nconf.get('remoteServer:ip'),nconf.get('remoteServer:user'))
+  #remoteExecution.cleanUp(process)
+  async.waterfall [
+    (callback) ->
+      process.result = req.body
+      ResultHelper.saveResult(process, callback)
+    (callback) ->
+      process.resultHandler.handleResult(null, null, null,process, (error,data,processId) ->
+        callback null
+      )
+  ], (err) ->
+    res.status '200'
+    res.send()
 # Set up the routing for POST requests
 router.post '*', (req, res, next) ->
   postHandler.handleRequest req, (err, response) ->

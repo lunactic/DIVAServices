@@ -32,8 +32,8 @@ resultHelper = exports = module.exports = class ResultHelper
   @loadResult: (info) ->
     return @ioHelper.loadFile(info.resultFile)
 
-  @saveResult: (info) ->
-    @ioHelper.saveFile(info.resultFile, info.result)
+  @saveResult: (info, callback) ->
+    @ioHelper.saveFile(info.resultFile, info.result, callback)
 
   @loadAvailableResults: (folder, image) ->
     files = @ioHelper.readdir(folder)

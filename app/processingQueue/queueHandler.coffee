@@ -1,3 +1,5 @@
+
+logger              = require '../logging/logger'
 Statistics          = require '../statistics/statistics'
 ProcessingQueue     = require './processingQueue'
 ExecutableHelper    = require '../helper/executableHelper'
@@ -35,7 +37,7 @@ queueHandler = exports = module.exports = class QueueHandler
     return @processingQueue.getSize()
 
   executeRequest: () ->
+    logger.log 'info', 'executing request! requests left in queue: ' + @getQueueSize()
     #TODO: Replace getNumberOfCurrentExecutions() with some form of available computing time
-
     if(Statistics.getNumberOfCurrentExecutions() < 2 && @requestAvailable())
       @executableHelper.executeRequest(@getNextRequest())

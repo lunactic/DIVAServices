@@ -29,11 +29,13 @@ Statistics          = require '../statistics/statistics'
 
 # Expose executableHelper
 executableHelper = exports = module.exports = class ExecutableHelper extends EventEmitter
-  @remoteExecution = new RemoteExecution(nconf.get('remoteServer:ip'),nconf.get('remoteServer:user'))
 
   # ---
   # **constructor**</br>
   constructor: ->
+    @remoteExecution = new RemoteExecution(nconf.get('remoteServer:ip'),nconf.get('remoteServer:user'))
+
+
   # ---
   # **buildCommand**</br>
   # Builds the command line executable command</br>
@@ -129,12 +131,12 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
   executeRemote = (process, self) ->
     async.waterfall [
       (callback) ->
-        @remoteExecution.uploadFile(process.image.path, process.rootFolder, callback)
+        self.remoteExecution.uploadFile(process.image.path, process.rootFolder, callback)
       (callback) ->
         command = buildRemoteCommand(process)
         process.id = Statistics.startRecording(process.req.originalUrl, process)
         command += ' ' + process.id + ' ' + process.rootFolder + ' > /dev/null'
-        @remoteExecution.executeCommand(command, callback)
+        self.remoteExecution.executeCommand(command, callback)
     ], (err) ->
       self.emit('processingFinished')
 
