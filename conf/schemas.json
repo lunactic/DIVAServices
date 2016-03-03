@@ -192,7 +192,12 @@
             "maxLength": 25
           },
           "highlighter": {
-            "enum": ["polygon", "rectangle", "circle", "line"]
+            "type": "object",
+            "properties":{
+              "type":{
+                "enum":["polygon", "rectangle", "circle", "line"]
+              }
+            }
           },
           "description": {
             "type": "string",

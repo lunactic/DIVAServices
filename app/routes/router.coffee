@@ -7,20 +7,20 @@
 # Copyright &copy; Marcel Würsch, GPL v3.0 licensed.
 
 # Require Express Router
-nconf       = require 'nconf'
-router      = require('express').Router()
-GetHandler  = require './getHandler'
+nconf = require 'nconf'
+router = require('express').Router()
+GetHandler = require './getHandler'
 PostHandler = require './postHandler'
-logger      = require '../logging/logger'
-Upload      = require '../upload/upload'
+logger = require '../logging/logger'
+Upload = require '../upload/upload'
 ImageHelper = require '../helper/imageHelper'
-IoHelper    = require '../helper/ioHelper'
+IoHelper = require '../helper/ioHelper'
 RemoteExecution = require '../remoteExecution/remoteExecution'
-ResultHelper= require '../helper/resultHelper'
-Statistics  = require '../statistics/statistics'
+ResultHelper = require '../helper/resultHelper'
+Statistics = require '../statistics/statistics'
 ServiceHelper = require '../helper/servicesInfoHelper'
 
-async       = require 'async'
+async = require 'async'
 
 
 getHandler = new GetHandler()
@@ -29,10 +29,10 @@ postHandler = new PostHandler()
 # Set up special route for image uploading
 router.post '/upload', (req, res) ->
   if(req.body.image?)
-    Upload.uploadBase64 req.body.image, (err,result) ->
+    Upload.uploadBase64 req.body.image, (err, result) ->
       res.json {md5: result.md5}
   else if(req.body.url?)
-    Upload.uploadUrl req.body.url, (err,result) ->
+    Upload.uploadUrl req.body.url, (err, result) ->
       res.json {md5: result.md5}
 
 router.post '/jobs/:jobId', (req, res, next) ->
@@ -45,7 +45,7 @@ router.post '/jobs/:jobId', (req, res, next) ->
       process.result = req.body
       ResultHelper.saveResult(process, callback)
     (callback) ->
-      process.resultHandler.handleResult(null, null, null,process, (error,data,processId) ->
+      process.resultHandler.handleResult(null, null, null, process, (error, data, processId) ->
         callback null
       )
   ], (err) ->
@@ -57,19 +57,19 @@ router.post '*', (req, res, next) ->
     response['statusCode'] = 202
     sendResponse res, err, response
 
-router.get '/image/check/:md5', (req,res) ->
+router.get '/image/check/:md5', (req, res) ->
   ImageHelper.imageExists req.params.md5, (err, response) ->
     sendResponse res, err, response
 
 router.get '/collections/:collection/:execution', (req, res) ->
-  #zip folder
+#zip folder
   ioHelper = new IoHelper()
   filename = ioHelper.zipFolder(nconf.get('paths:imageRootPath') + '/' + req.params.collection + '/' + req.params.execution)
 
   res.status '200'
-  res.json ({zipLink: 'http://' + nconf.get('server:rootUrl') + '/static/' +  filename})
+  res.json ({zipLink: 'http://' + nconf.get('server:rootUrl') + '/static/' + filename})
   res.send()
-    
+
 router.get '/image/results/:md5', (req, res)->
   ImageHelper.imageExists req.params.md5, (err, response) ->
     if(response.imageAvailable)
@@ -80,6 +80,34 @@ router.get '/image/results/:md5', (req, res)->
         statusText: 'This result is not available'
 
     sendResponse res, err, response
+
+#Info routes
+router.get '/info/inputs', (req, res) ->
+  ioHelper = new IoHelper()
+  inputs = ioHelper.loadFile('conf/algorithmInputs.json')
+
+  sendResponse res, null, inputs
+
+router.get '/info/outputs', (req, res) ->
+  ioHelper = new IoHelper()
+  outputs = ioHelper.loadFile('conf/algorithmOutputs.json')
+  sendResponse res, null, outputs,
+
+router.get '/info/general', (req, res) ->
+  ioHelper = new IoHelper()
+  general = ioHelper.loadFile('conf/generalAlgorithmInfos.json')
+
+  sendResponse res, null, general
+
+router.get '/info/additional', (req, res) ->
+  ioHelper = new IoHelper()
+  additional = ioHelper.loadFile('conf/additionalAlgorithmInfos.json')
+  sendResponse res, null, additional
+
+router.get '/info/languages', (req, res) ->
+  ioHelper = new IoHelper()
+  languages = ioHelper.loadFile('conf/algorithmProgrammingLanguages.json')
+  sendResponse res, null, languages
 
 # Set up the routing for GET requests
 router.get '*', (req, res, next) ->
@@ -94,11 +122,11 @@ router.get '*', (req, res, next) ->
 #   *res* response object from the express framework
 #   *err* possible error message. If set a HTTP 500 will be returned
 #   *response* the JSON response. If set a HTTP 200 will be returned
-sendResponse = (res,err, response) ->
+sendResponse = (res, err, response) ->
   if(err?)
-    sendError(res,err)
+    sendError(res, err)
   else
-    send200(res,response)
+    send200(res, response)
 
 
 send200 = (res, response) ->
