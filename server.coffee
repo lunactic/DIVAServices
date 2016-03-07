@@ -13,6 +13,9 @@ if not process.env.NODE_ENV? or process.env.NODE_ENV not in ['dev', 'test', 'pro
 
 nconf = require 'nconf'
 nconf.add 'server', type: 'file', file: './conf/server.' + process.env.NODE_ENV + '.json'
+nconf.add 'schemas', type: 'file', file: './conf/schemas.json'
+
+
 
 bodyParser    = require 'body-parser'
 cookieParser  = require 'cookie-parser'

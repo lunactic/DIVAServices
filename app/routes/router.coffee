@@ -17,6 +17,7 @@ ImageHelper = require '../helper/imageHelper'
 IoHelper = require '../helper/ioHelper'
 RemoteExecution = require '../remoteExecution/remoteExecution'
 ResultHelper = require '../helper/resultHelper'
+schemaValidator = require '../validator/schemaValidator'
 Statistics = require '../statistics/statistics'
 ServiceHelper = require '../helper/servicesInfoHelper'
 
@@ -51,6 +52,18 @@ router.post '/jobs/:jobId', (req, res, next) ->
   ], (err) ->
     res.status '200'
     res.send()
+
+router.post '/validate/:schema', (req, res, next) ->
+  switch req.params.schema
+    when 'host'
+      validate(req, res, 'parser:root:hostSchema')
+    when 'hostAlgorithm'
+      validate(req, res, 'parser:root:algorithmSchema')
+    when 'response'
+      validate(req, res, 'parser:details:responseSchema')
+    when 'detailsAlgorithm'
+      validate(req, res, 'parser:details:algorithmSchema')
+
 # Set up the routing for POST requests
 router.post '*', (req, res, next) ->
   postHandler.handleRequest req, (err, response) ->
@@ -145,6 +158,13 @@ sendError = (res, err) ->
 
   res.json error
 
+validate = (req,res, schema) ->
+  schemaValidator.validate(req.body, schema, (error) ->
+    if error
+      sendError(res, error)
+    else
+      send200(res, {status: 'valid'})
+  )
 
 # Expose router
 module.exports = router
