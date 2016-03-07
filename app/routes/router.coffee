@@ -56,13 +56,13 @@ router.post '/jobs/:jobId', (req, res, next) ->
 router.post '/validate/:schema', (req, res, next) ->
   switch req.params.schema
     when 'host'
-      validate(req, res, 'parser:root:hostSchema')
+      validate(req, res, 'hostSchema')
     when 'hostAlgorithm'
-      validate(req, res, 'parser:root:algorithmSchema')
+      validate(req, res, 'algorithmSchema')
     when 'response'
-      validate(req, res, 'parser:details:responseSchema')
+      validate(req, res, 'responseSchema')
     when 'detailsAlgorithm'
-      validate(req, res, 'parser:details:algorithmSchema')
+      validate(req, res, 'algorithmSchema')
 
 # Set up the routing for POST requests
 router.post '*', (req, res, next) ->
