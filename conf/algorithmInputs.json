@@ -138,21 +138,21 @@
           }
         }
       }
-    },
-    "inputImage":{
-      "infoText":"Path to the input image"
-    },
-    "outputImage":{
-      "infoText":"Path where to save the output image"
-    },
-    "resultFile":{
-      "infoText":"Path where to save the resulting json file (if output = file)"
-    },
-    "inputFileExtension":{
-      "infoText":"Extension of the input file"
-    },
-    "outputFolder":{
-      "infoText":"Folder for saving results"
     }
+  },
+  "inputImage":{
+    "infoText":"Path to the input image"
+  },
+  "outputImage":{
+    "infoText":"Path where to save the output image"
+  },
+  "resultFile":{
+    "infoText":"Path where to save the resulting json file (if output = file)"
+  },
+  "inputFileExtension":{
+    "infoText":"Extension of the input file"
+  },
+  "outputFolder":{
+    "infoText":"Folder for saving results"
   }
 }
