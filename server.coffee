@@ -18,10 +18,7 @@ nconf.add 'generalAlgorithmSchema', type: 'file', file: './conf/schemas/generalA
 nconf.add 'hostSchema', type: 'file', file: './conf/schemas/hostSchema.json'
 nconf.add 'responseSchema', type: 'file', file: './conf/schemas/responseSchema.json'
 
-
-
 bodyParser    = require 'body-parser'
-cookieParser  = require 'cookie-parser'
 express       = require 'express'
 favicon       = require 'serve-favicon'
 fs            = require 'fs'
