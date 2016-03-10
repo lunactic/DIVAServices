@@ -6,20 +6,23 @@
 # Copyright &copy; Marcel Würsch, GPL v3.0 licensed.
 
 # Module dependecies
+
+_       = require 'lodash'
 archiver = require 'archiver'
 fs      = require 'fs'
 nconf   = require 'nconf'
 path    = require 'path'
-_       = require 'lodash'
+unzip   = require 'unzip'
 logger  = require '../logging/logger'
 
 
 # expose IoHelper
 ioHelper = exports = module.exports = class IoHelper
 
+  unzipFolder: (zipFile, folder) ->
+
+
   zipFolder: (folder) ->
-    #zip folder
-    #save zip this way: /data/images/:collection/:execution.zip
     archive = archiver('zip',{})
     folders = folder.split(path.sep)
 

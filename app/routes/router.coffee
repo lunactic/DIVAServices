@@ -105,11 +105,11 @@ router.get '/info/outputs', (req, res) ->
   outputs = ioHelper.loadFile('conf/algorithmOutputs.json')
   sendResponse res, null, outputs,
 
-router.get '/info/general', (req, res) ->
-  ioHelper = new IoHelper()
-  general = ioHelper.loadFile('conf/generalAlgorithmInfos.json')
+    router.get '/info/general', (req, res) ->
+      ioHelper = new IoHelper()
+      general = ioHelper.loadFile('conf/generalAlgorithmInfos.json')
 
-  sendResponse res, null, general
+      sendResponse res, null, general
 
 router.get '/info/additional', (req, res) ->
   ioHelper = new IoHelper()
@@ -156,7 +156,7 @@ sendError = (res, err) ->
     message: err.statusText
   res.json error
 
-validate = (req,res, schema) ->
+validate = (req, res, schema) ->
   schemaValidator.validate(req.body, schema, (error) ->
     if error
       sendError(res, error)
