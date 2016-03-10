@@ -1,8 +1,10 @@
 {
   "highlighter": {
+    "infoText": "Indicating that this method requires a defined region of some sort on the input",
     "type": "object",
     "properties": {
       "type": {
+        "infoText": "Available highlighter types",
         "type": "enum",
         "values": [
           "polygon",
@@ -16,18 +18,19 @@
     "allowMultiple": false
   },
   "number": {
+    "infoText": "A parameter requiring a number value",
     "type": "object",
     "properties": {
       "name": {
         "type": "string",
-        "infoText": "Name of the variable",
+        "infoText": "Name of the parameter",
         "minLength": 3,
         "maxLength": 25,
         "required": true
       },
       "description": {
         "type": "string",
-        "infoText": "Description of the variable",
+        "infoText": "Description of the parameter",
         "minLength": 3,
         "maxLength": 255,
         "required": false
@@ -36,22 +39,27 @@
         "type": "object",
         "properties": {
           "required": {
+            "infoText":"Boolean defining whether or not this parameter needs to be set",
             "type": "boolean",
             "required": true
           },
           "default": {
+            "infoText": "Default value for this parameter",
             "type": "number",
             "required": true
           },
           "min": {
+            "infoText": "Minimum value of this parameter",
             "type": "number",
             "required": false
           },
           "max": {
+            "infoText": "Maximum value of this parameter",
             "type": "number",
             "required": false
           },
           "steps": {
+            "infoText": "Step size between values",
             "type": "number",
             "required": false
           }
@@ -60,18 +68,19 @@
     }
   },
   "text": {
+    "infoText": "A parameter requiring textual input",
     "type": "object",
     "properties": {
       "name": {
         "type": "string",
-        "infoText": "Name of the variable",
+        "infoText": "Name of the parameter",
         "minLength": 3,
         "maxLength": 25,
         "required": true
       },
       "description": {
         "type": "string",
-        "infoText": "Description of the variable",
+        "infoText": "Description of the parameter",
         "minLength": 3,
         "maxLength": 255,
         "required": false
@@ -80,18 +89,22 @@
         "type": "object",
         "properties": {
           "required": {
+            "infoText":"Boolean defining whether or not this parameter needs to be set",
             "type": "boolean",
             "required": true
           },
           "default": {
-            "type": "number",
+            "infoText": "Default value for this parameter",
+            "type": "string",
             "required": true
           },
           "min": {
+            "infoText": "Minimal string length of this parameter",
             "type": "number",
             "required": false
           },
           "max": {
+            "infoText": "Maximal string length of this parameter",
             "type": "number",
             "required": false
           }
@@ -100,18 +113,19 @@
     }
   },
   "select": {
+    "infoText":"list of values from which one can be selected",
     "type": "object",
     "properties": {
       "name": {
         "type": "string",
-        "infoText": "Name of the variable",
+        "infoText": "Name of the parameter",
         "minLength": 3,
         "maxLength": 25,
         "required": true
       },
       "description": {
         "type": "string",
-        "infoText": "Description of the variable",
+        "infoText": "Description of the parameter",
         "minLength": 3,
         "maxLength": 255,
         "required": false
@@ -120,10 +134,12 @@
         "type": "object",
         "properties": {
           "required": {
+            "infoText":"Boolean defining whether or not this parameter needs to be set",
             "type": "boolean",
             "required": true
           },
           "values": {
+            "infoText": "The possible values",
             "type": "array",
             "minItems": 1,
             "uniqueItems": true,
@@ -133,6 +149,7 @@
             "required": true
           },
           "default": {
+            "infoText": "The 0-based index of the default value",
             "type": "number",
             "required": true
           }
