@@ -36,7 +36,10 @@ getHandler = exports = module.exports = class GetHandler
     else
       fs.readFile nconf.get('paths:jsonPath') + req.originalUrl + '/info.json', 'utf8', (err, data) ->
         if err
-          callback err
+          error = 
+            statusCode: 404
+            statusText: 'undefined route'
+          callback error
         else
           data = data.replace(new RegExp('\\$BASEURL\\$','g'),nconf.get('server:rootUrl'))
           data = JSON.parse data
