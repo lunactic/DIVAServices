@@ -154,7 +154,6 @@ sendError = (res, err) ->
   error =
     status: err.statusCode
     message: err.statusText
-
   res.json error
 
 validate = (req,res, schema) ->
