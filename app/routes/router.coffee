@@ -78,7 +78,6 @@ router.get '/collections/:collection/:execution', (req, res) ->
 #zip folder
   ioHelper = new IoHelper()
   filename = ioHelper.zipFolder(nconf.get('paths:imageRootPath') + '/' + req.params.collection + '/' + req.params.execution)
-
   res.status '200'
   res.json ({zipLink: 'http://' + nconf.get('server:rootUrl') + '/static/' + filename})
   res.send()
