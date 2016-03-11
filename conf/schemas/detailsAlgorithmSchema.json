@@ -185,7 +185,6 @@
     "required": [
       "name",
       "description",
-      "url",
       "input"
     ],
     "properties": {
