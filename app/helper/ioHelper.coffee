@@ -21,12 +21,15 @@ logger    = require '../logging/logger'
 # expose IoHelper
 ioHelper = exports = module.exports = class IoHelper
 
-  unzipFolder: (zipFile, folder) ->
+  unzipFolder: (zipFile, folder, callback) ->
     mkdirp(folder, (err) ->
       if(err)
         logger.log 'error', err
       else
-        fs.createReadStream(zipFile).pipe(unzip.Extract({path: folder}))
+        reader = fs.createReadStream(zipFile)
+        reader.pipe(unzip.Extract({path: folder}))
+        reader.on 'close', ->
+          callback null
     )
 
   zipFolder: (folder) ->

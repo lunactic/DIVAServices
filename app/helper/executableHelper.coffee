@@ -143,6 +143,7 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
     collection.method = serviceInfo.service
     async.waterfall [
       (callback) ->
+        #STEP 1
         #TODO Add collection exist check to here
         if (req.body.images?  and req.body.images[0].type is 'collection')
           preprocessCollection(collection, req, serviceInfo, parameterHelper, callback)
@@ -152,10 +153,10 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
           preprocessRegular(collection, req, serviceInfo, parameterHelper,ioHelper, callback)
         return
       (collection, callback) ->
+        #STEP 2
         #immediate callback if collection.result is available
         if(collection.result?)
           callback null,collection
-
         #Create an array of processes that are added to the processing queue
         outputFolder = ioHelper.getOutputFolder(collection.name, serviceInfo.service)
         collection.outputFolder = outputFolder
@@ -166,7 +167,7 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
           process.inputHighlighters = _.clone(req.body.highlighter)
           process.neededParameters = serviceInfo.parameters
           process.method = collection.method
-          process.parameters = parameterHelper.matchParams(process.inputParameters, process.inputHighlighters.segments,process.neededParameters,process.image.path,process.outputFolder, process.image.md5, req)
+          process.parameters = parameterHelper.matchParams(process,req)
           if(process.parameters.data.outputImage?)
             process.parameters.data.outputImage = ImageHelper.getOutputImage(process.image, process.outputFolder)
           if(ResultHelper.checkProcessResultAvailable(process))
@@ -193,12 +194,14 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
         callback null, collection
         return
       (collection, callback) ->
+        #STEP 3
         for process in collection.processes
           if(!(process.result?))
             parameterHelper.saveParamInfo(process,process.parameters,process.rootFolder,process.outputFolder, process.method)
             ioHelper.writeTempFile(process.resultFile)
         callback null, collection
       ],(err, collection) ->
+        #FINISH
         if(err?)
           requestCallback err, null
         results = []
@@ -304,8 +307,10 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
         (callback) ->
           ioHelper.downloadFile(dataUrl, nconf.get('paths:imageRootPath') + path.sep + process.rootFolder, callback)
         (zipFile, callback) ->
-          ioHelper.unzipFolder(zipFile, nconf.get('paths:imageRootPath') + path.sep + process.rootFolder + path.sep + 'original')
-
+          ioHelper.unzipFolder(zipFile, nconf.get('paths:imageRootPath') + path.sep + process.rootFolder + path.sep + 'original', callback)
       ], (error) ->
+        process.inputFolder = nconf.get('paths:imageRootPath') + path.sep + process.rootFolder + path.sep + 'original'
+        collection.processes.push(process)
+        #TODO add the callback call here
         #finished
       
