@@ -144,12 +144,12 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
     async.waterfall [
       (callback) ->
         #TODO Add collection exist check to here
-        if (req.body.images[0].type is 'collection')
+        if (req.body.images?  and req.body.images[0].type is 'collection')
           preprocessCollection(collection, req, serviceInfo, parameterHelper, callback)
-        else if(req.body.images[0].type is 'iiif')
-          preprocessIiif(collection, req, callback)
+        else if(req.body.images?  and req.body.images[0].type is 'iiif')
+          preprocessIiif(collection, req, ioHelper, callback)
         else
-          preprocessRegular(collection, req, serviceInfo, parameterHelper, callback)
+          preprocessRegular(collection, req, serviceInfo, parameterHelper,ioHelper, callback)
         return
       (collection, callback) ->
         #immediate callback if collection.result is available
@@ -185,10 +185,10 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
             resultHandler = null
             switch serviceInfo.output
               when 'console'
-                resultHandler = new ConsoleResultHandler(process.resultFile);
+                resultHandler = new ConsoleResultHandler(process.resultFile)
               when 'file'
                 process.parameters.data['resultFile'] = process.resultFile
-                resultHandler = new FileResultHandler(process.resultFile);
+                resultHandler = new FileResultHandler(process.resultFile)
             process.resultHandler = resultHandler
         callback null, collection
         return
@@ -242,7 +242,7 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
         collection.processes.push(process)
       callback null, collection
 
-  preprocessIiif = (collection, req, callback) ->
+  preprocessIiif = (collection, req, ioHelper, callback) ->
     url = req.body.images[0].value
     if(url.endsWith('.json'))
       rootFolder = url.split('/')
@@ -251,6 +251,7 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
     else
       rootFolder = url.substr(url.lastIndexOf('/') + 1)
     collection.name = rootFolder
+    ioHelper.createCollectionFolders(collection.name)
     if(ResultHelper.checkCollectionResultAvailable(collection))
       collection.result = ResultHelper.loadResult(collection)
       callback null,collection
@@ -271,24 +272,40 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
           collection.processes.push(process)
         callback null, collection
 
-  preprocessRegular = (collection, req, serviceInfo, parameterHelper, callback) ->
-    inputImages = req.body.images
+  preprocessRegular = (collection, req, serviceInfo, parameterHelper, ioHelper, callback) ->
     #generte a random folder name
     rootFolder = RandomWordGenerator.generateRandomWord()
+    ioHelper.createCollectionFolders(rootFolder)
     collection.name = rootFolder
     # TODO:   check if an image exists, and if yes: send a JSON back with 'status':'imageExists'
     #load all images
-    for inputImage,i in inputImages
+    if req.body.images?
+      inputImages = req.body.images
+      for inputImage,i in inputImages
+        process = new Process()
+        process.req = _.clone(req)
+        process.rootFolder = rootFolder
+        image = ImageHelper.saveImage(inputImage, process, i)
+        if(inputImage.type is 'md5')
+          ImageHelper.handleMd5(image, process, collection, serviceInfo, parameterHelper, req)
+          if(ResultHelper.checkCollectionResultAvailable(collection))
+            collection.result = ResultHelper.loadResult(collection)
+            callback null, collection
+            return
+        process.image = image
+        collection.processes.push(process)
+      callback null, collection
+    else if req.body.data?
+      dataUrl = req.body.data.url;
       process = new Process()
       process.req = _.clone(req)
       process.rootFolder = rootFolder
-      image = ImageHelper.saveImage(inputImage, process, i)
-      if(inputImage.type is 'md5')
-        ImageHelper.handleMd5(image, process, collection, serviceInfo, parameterHelper, req)
-        if(ResultHelper.checkCollectionResultAvailable(collection))
-          collection.result = ResultHelper.loadResult(collection)
-          callback null, collection
-          return
-      process.image = image
-      collection.processes.push(process)
-    callback null, collection
+      async.waterfall [
+        (callback) ->
+          ioHelper.downloadFile(dataUrl, nconf.get('paths:imageRootPath') + path.sep + process.rootFolder, callback)
+        (zipFile, callback) ->
+          ioHelper.unzipFolder(zipFile, nconf.get('paths:imageRootPath') + path.sep + process.rootFolder + path.sep + 'original')
+
+      ], (error) ->
+        #finished
+      

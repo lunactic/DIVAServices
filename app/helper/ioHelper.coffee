@@ -6,21 +6,28 @@
 # Copyright &copy; Marcel Würsch, GPL v3.0 licensed.
 
 # Module dependecies
-
-_       = require 'lodash'
-archiver = require 'archiver'
-fs      = require 'fs'
-nconf   = require 'nconf'
-path    = require 'path'
-unzip   = require 'unzip'
-logger  = require '../logging/logger'
+_         = require 'lodash'
+archiver  = require 'archiver'
+fs        = require 'fs'
+http      = require 'http'
+mkdirp    = require 'mkdirp'
+nconf     = require 'nconf'
+path      = require 'path'
+unzip     = require 'unzip2'
+url       = require 'url'
+logger    = require '../logging/logger'
 
 
 # expose IoHelper
 ioHelper = exports = module.exports = class IoHelper
 
   unzipFolder: (zipFile, folder) ->
-
+    mkdirp(folder, (err) ->
+      if(err)
+        logger.log 'error', err
+      else
+        fs.createReadStream(zipFile).pipe(unzip.Extract({path: folder}))
+    )
 
   zipFolder: (folder) ->
     archive = archiver('zip',{})
@@ -113,6 +120,26 @@ ioHelper = exports = module.exports = class IoHelper
 
     return
 
+  downloadFile: (fileUrl, localFolder, callback) ->
+    filename = path.basename(url.parse(fileUrl).pathname)
+    file = fs.createWriteStream(localFolder + path.sep + filename)
+    request = http.get(fileUrl, (response) ->
+      response.pipe(file)
+      response.on('end', () ->
+              callback null, localFolder + path.sep + filename
+      )
+    )
+    
+  createCollectionFolders: (collection) ->
+    rootFolder = nconf.get('paths:imageRootPath') + path.sep + collection
+    mkdirp(rootFolder, (err) ->
+      if(err)
+        logger.log 'error', err
+    )
+    mkdirp(rootFolder + path.sep + 'original', (err) ->
+      if(err)
+        logger.log 'error', err
+    )
   checkFileExists: (filePath) ->
     try
       stats = fs.statSync(filePath)

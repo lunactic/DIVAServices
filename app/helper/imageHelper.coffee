@@ -63,13 +63,8 @@ imageHelper = exports = module.exports = class ImageHelper
       counter = ''
     image = {}
     sync = false
-    try
-      fs.mkdirSync imagePath + '/' + folder
-      fs.mkdirSync imagePath + '/' + folder + '/original'
-    catch error
-    #we don't care for errors they are thrown when the folder exists
-
-    imgFolder = imagePath + '/' + folder + '/original/'
+    
+    imgFolder = imagePath + path.sep + folder + path.sep + 'original' + path.sep
     imgName = 'input' + counter
     imgExtension = getImageExtensionFromBase64(base64Data)
     fs.stat imgFolder + imgName, (err, stat) ->
@@ -136,11 +131,6 @@ imageHelper = exports = module.exports = class ImageHelper
             extension: imgExtension
             path: imgFolder + imgName + '.' +imgExtension
             md5: md5String
-          try
-            fs.mkdirSync imagePath + '/' + folder
-            fs.mkdirSync imagePath + '/' + folder + '/original'
-          catch error
-            #we don't care for errors they are thrown when the folder exists
 
           fs.stat image.path, (err, stat) ->
             if !err?
