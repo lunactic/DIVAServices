@@ -11,6 +11,7 @@ process = exports = module.exports = class Process
   @neededParameters: null
   @inputParameters: null
   @inputHighlighters: null
+  @inputFolder: ""
   @parameters: null
   @programType: ""
   @executablePath: ""

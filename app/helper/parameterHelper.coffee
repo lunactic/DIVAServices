@@ -35,29 +35,32 @@ parameterHelper = exports = module.exports = class ParameterHelper
   #   *imagePath* path to the input image
   #   *md5* md5 hash of the input image
   #   *req* the request
-  getReservedParamValue: (parameter, neededParameters, imagePath,outputPath, md5, req) ->
+  getReservedParamValue: (parameter, process,md5, req) ->
+
     switch parameter
       when 'matlabPath'
         return nconf.get('paths:matlabPath')
       when 'matlabScriptsPath'
         return nconf.get('paths:matlabScriptsPath')
       when 'inputFileExtension'
-        return path.extname(imagePath).slice(1)
+        return path.extname(process.image.path).slice(1)
+      when 'inputFolder'
+        return process.inputFolder
       when 'inputImage'
-        return imagePath
+        return process.image.path
       when 'inputImageUrl'
         imageHelper = new ImageHelper()
-        return imageHelper.getInputImageUrl(md5)
+        return imageHelper.getInputImageUrl(process.image.md5)
       when 'imageRootPath'
         return nconf.get('paths:imageRootPath')
       when 'outputFolder'
-        return outputPath
+        return process.outputFolder
       when 'host'
         return req.get('host')
       when 'ocropyLanguageModelsPath'
         return nconf.get('paths:ocropyLanguageModelsPath')
       when 'startUp'
-        return neededParameters['startUp']
+        return process.neededParameters['startUp']
       when 'outputImage'
         return '##outputImage##'
       when 'noisingXmlFile'
@@ -66,13 +69,9 @@ parameterHelper = exports = module.exports = class ParameterHelper
   # **matchParams**</br>
   # Matches the received parameter values to the needed parameters</br>
   # `params`
-  #   *inputParameters* The received parameters and its values
-  #   *inputHighlighter* The received input highlighter
-  #   *neededParameters*  The needed parameteres
-  #   *imagePath* path to the input image
-  #   *md5* md5 hash of the input image
+  #   *process* the process information
   #   *req* incoming request
-  matchParams: (inputParameters, inputHighlighter, neededParameters,imagePath,outputPath, md5,  req) ->
+  matchParams: (process, md5,  req) ->
     params = {}
     data = {}
     for parameter of neededParameters
@@ -80,11 +79,11 @@ parameterHelper = exports = module.exports = class ParameterHelper
       if checkReservedParameters parameter
         #check if highlighter
         if parameter is 'highlighter'
-          params[neededParameters[parameter]] = this.getHighlighterParamValues(neededParameters[parameter], inputHighlighter)
+          params[neededParameters[parameter]] = this.getHighlighterParamValues(process.neededParameters[parameter], process.inputHighlighters.segments)
         else
-          data[parameter] = this.getReservedParamValue(parameter, neededParameters, imagePath,outputPath, md5, req)
+          data[parameter] = this.getReservedParamValue(parameter, process, req)
       else
-        value = this.getParamValue(parameter, inputParameters)
+        value = this.getParamValue(parameter, process.inputParameters)
         if value?
           params[parameter] = value
     result =

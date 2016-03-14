@@ -47,6 +47,7 @@
   },
   "reservedWords" :[
     "inputImage",
+    "inputFolder",
     "inputImageUrl",
     "outputImage",
     "resultFile",
