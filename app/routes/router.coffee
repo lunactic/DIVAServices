@@ -65,10 +65,17 @@ router.post '/validate/:schema', (req, res, next) ->
       validate(req, res, 'algorithmSchema')
 
 router.post '/management/algorithms', (req, res, next) ->
+  ioHelper = new IoHelper()
   #add a new algorithm
   #get route address
   route = AlgorithmManagement.generateUrl(req.body)
   AlgorithmManagement.generateFolders(route)
+  ioHelper.downloadFile(req.body.file, '/data/executables/'+route, (err, filename) ->
+    ioHelper.unzipFolder(filename, '/data/executables/'+route, () ->
+      logger.log 'info', 'file extracted'
+      ioHelper.deleteFile(filename)
+    )
+  )
   logger.log 'info', route
   res.status '200'
   res.send()

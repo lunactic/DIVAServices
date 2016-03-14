@@ -21,6 +21,9 @@ logger    = require '../logging/logger'
 # expose IoHelper
 ioHelper = exports = module.exports = class IoHelper
 
+  deleteFile: (file) ->
+    fs.unlink(file)
+
   unzipFolder: (zipFile, folder, callback) ->
     mkdirp(folder, (err) ->
       if(err)
