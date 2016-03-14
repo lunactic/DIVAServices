@@ -15,11 +15,11 @@ logger = require '../logging/logger'
 Upload = require '../upload/upload'
 ImageHelper = require '../helper/imageHelper'
 IoHelper = require '../helper/ioHelper'
-RemoteExecution = require '../remoteExecution/remoteExecution'
 ResultHelper = require '../helper/resultHelper'
 schemaValidator = require '../validator/schemaValidator'
 Statistics = require '../statistics/statistics'
-ServiceHelper = require '../helper/servicesInfoHelper'
+AlgorithmManagement = require '../management/algorithmManagement'
+
 
 async = require 'async'
 
@@ -63,6 +63,15 @@ router.post '/validate/:schema', (req, res, next) ->
       validate(req, res, 'responseSchema')
     when 'detailsAlgorithm'
       validate(req, res, 'algorithmSchema')
+
+router.post '/management/algorithms', (req, res, next) ->
+  #add a new algorithm
+  #get route address
+  route = AlgorithmManagement.generateUrl(req.body)
+  AlgorithmManagement.generateFolders(route)
+  logger.log 'info', route
+  res.status '200'
+  res.send()
 
 # Set up the routing for POST requests
 router.post '*', (req, res, next) ->
