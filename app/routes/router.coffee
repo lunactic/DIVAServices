@@ -72,11 +72,12 @@ router.post '/management/algorithms', (req, res, next) ->
   AlgorithmManagement.generateFolders(route)
   ioHelper.downloadFile(req.body.file, '/data/executables/'+route, (err, filename) ->
     ioHelper.unzipFolder(filename, '/data/executables/'+route, () ->
-      logger.log 'info', 'file extracted'
       ioHelper.deleteFile(filename)
+      AlgorithmManagement.createInfoFile(req.body, '/data/json/'+route)
+      AlgorithmManagement.updateServicesFile(req.body, route)
+      AlgorithmManagement.updateRootInfoFile(req.body, route)
     )
   )
-  logger.log 'info', route
   res.status '200'
   res.send()
 
