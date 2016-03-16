@@ -70,18 +70,23 @@ router.post '/management/algorithms', (req, res, next) ->
   ioHelper = new IoHelper()
   #add a new algorithm
   #get route address
-  route = AlgorithmManagement.generateUrl(req.body)
-  AlgorithmManagement.generateFolders(route)
-  ioHelper.downloadFile(req.body.file, '/data/executables/'+route, (err, filename) ->
-    ioHelper.unzipFolder(filename, '/data/executables/'+route, () ->
-      ioHelper.deleteFile(filename)
-      AlgorithmManagement.createInfoFile(req.body, '/data/json/'+route)
-      AlgorithmManagement.updateServicesFile(req.body, route)
-      AlgorithmManagement.updateRootInfoFile(req.body, route)
-    )
+  schemaValidator.validate(req.body, 'createSchema', (error) ->
+    if(error)
+      sendError(res, error)
+    else
+      route = AlgorithmManagement.generateUrl(req.body)
+      AlgorithmManagement.generateFolders(route)
+      ioHelper.downloadFile(req.body.file, '/data/executables/'+route, (err, filename) ->
+        ioHelper.unzipFolder(filename, '/data/executables/'+route, () ->
+          ioHelper.deleteFile(filename)
+          AlgorithmManagement.createInfoFile(req.body, '/data/json/'+route)
+          AlgorithmManagement.updateServicesFile(req.body, route)
+          AlgorithmManagement.updateRootInfoFile(req.body, route)
+          res.status '200'
+          res.send()
+        )
+      )
   )
-  res.status '200'
-  res.send()
 
 # Set up the routing for POST requests
 router.post '*', (req, res, next) ->
@@ -172,6 +177,7 @@ sendError = (res, err) ->
   res.status err.statusCode or 500
   error =
     status: err.statusCode
+    type: err.errorType
     message: err.statusText
   res.json error
 

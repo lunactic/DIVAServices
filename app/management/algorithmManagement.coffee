@@ -9,18 +9,12 @@ ServicesInfoHelper = require '../helper/servicesInfoHelper'
 algorithmManagement = exports = module.exports = class AlgorithmManagement
 
   @generateUrl: (newAlgorithm) ->
-    newAlgorithm.name.trim()
     return newAlgorithm.namespace + '/' + newAlgorithm.name.replace(/\s/g, '').toLowerCase()
 
   @generateFolders: (route) ->
-    mkdirp('/data/executables/' + route, (err) ->
-      if(err)
-        logger.log 'error', err
-    )
-    mkdirp('/data/json/' + route, (err) ->
-      if(err)
-        logger.log 'error', err
-    )
+    mkdirp.sync('/data/executables/' + route)
+    mkdirp.sync('/data/json/' + route)
+    return
 
   @createInfoFile: (newAlgorithm, folder) ->
     ioHelper = new IoHelper()
@@ -48,7 +42,7 @@ algorithmManagement = exports = module.exports = class AlgorithmManagement
       name: newAlgorithm.name
       description: newAlgorithm.description
       type: newAlgorithm.namespace
-      url: 'http://$BASEURL$' + route
+      url: 'http://$BASEURL$/' + route
     fileContent.push(newEntry)
     ioHelper.saveFile(nconf.get('paths:jsonPath') + path.sep + 'info.json', fileContent, (err) ->
       return

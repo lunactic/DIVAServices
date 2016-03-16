@@ -9,6 +9,7 @@ schemaValidator.validate = (input, schema, callback) ->
   if errors.length
     error =
       statusCode: 500
+      errorType: 'validation error'
       statusText: errors[0].stack
     callback error
   else
