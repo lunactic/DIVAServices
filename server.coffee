@@ -17,6 +17,8 @@ nconf.add 'detailsAlgorithmSchema', type: 'file', file: './conf/schemas/detailsA
 nconf.add 'generalAlgorithmSchema', type: 'file', file: './conf/schemas/generalAlgorithmSchema.json'
 nconf.add 'hostSchema', type: 'file', file: './conf/schemas/hostSchema.json'
 nconf.add 'responseSchema', type: 'file', file: './conf/schemas/responseSchema.json'
+nconf.add 'createSchema', type: 'file', file: './conf/schemas/createAlgorithmSchema.json'
+
 
 bodyParser    = require 'body-parser'
 express       = require 'express'

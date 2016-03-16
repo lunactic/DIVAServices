@@ -1,0 +1,301 @@
+{
+  "createSchema": {
+    "id": "createSchema",
+    "$schema": "http://json-schema.org/schema#",
+    "description": "schema for algorithm creation",
+    "definitions": {
+      "name": {
+        "type": "string",
+        "minLength": 3,
+        "maxLength": 25
+      },
+      "highlighter": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "enum": [
+              "polygon",
+              "rectangle",
+              "circle",
+              "line"
+            ]
+          }
+        }
+      },
+      "description": {
+        "type": "string",
+        "minLength": 3,
+        "maxLength": 255
+      },
+      "number": {
+        "type": "object",
+        "required": [
+          "name",
+          "options"
+        ],
+        "properties": {
+          "name": {
+            "$ref": "#/definitions/name"
+          },
+          "description": {
+            "$ref": "#/definitions/description"
+          },
+          "options": {
+            "type": "object",
+            "required": [
+              "required",
+              "default"
+            ],
+            "properties": {
+              "required": {
+                "type": "boolean"
+              },
+              "default": {
+                "type": "number"
+              },
+              "min": {
+                "type": "number"
+              },
+              "max": {
+                "type": "number"
+              },
+              "steps": {
+                "type": "number"
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      },
+      "text": {
+        "type": "object",
+        "required": [
+          "name",
+          "options"
+        ],
+        "properties": {
+          "name": {
+            "$ref": "#/definitions/name"
+          },
+          "description": {
+            "$ref": "#/definitions/description"
+          },
+          "options": {
+            "type": "object",
+            "required": [
+              "required",
+              "default"
+            ],
+            "properties": {
+              "required": {
+                "type": "boolean"
+              },
+              "default": {
+                "type": "string"
+              },
+              "min": {
+                "type": "number"
+              },
+              "max": {
+                "type": "number"
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      },
+      "select": {
+        "type": "object",
+        "required": [
+          "name",
+          "options"
+        ],
+        "properties": {
+          "name": {
+            "$ref": "#/definitions/name"
+          },
+          "description": {
+            "$ref": "#/definitions/description"
+          },
+          "options": {
+            "type": "object",
+            "required": [
+              "required",
+              "values",
+              "default"
+            ],
+            "properties": {
+              "required": {
+                "type": "boolean"
+              },
+              "values": {
+                "type": "array",
+                "minItems": 1,
+                "uniqueItems": true,
+                "items": {
+                  "type": "string"
+                },
+                "additionalItems": false
+              },
+              "default": {
+                "type": "number"
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      },
+      "checkbox": {
+        "type": "object",
+        "required": [
+          "name",
+          "options"
+        ],
+        "properties": {
+          "name": {
+            "$ref": "#/definitions/name"
+          },
+          "description": {
+            "$ref": "#/definitions/description"
+          },
+          "options": {
+            "type": "object",
+            "required": [
+              "required",
+              "default"
+            ],
+            "properties": {
+              "required": {
+                "type": "boolean"
+              },
+              "default": {
+                "type": "number"
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "type": "object",
+    "required": [
+      "name",
+      "description",
+      "input",
+      "namespace",
+      "output",
+      "file",
+      "language",
+      "executable"
+    ],
+    "properties": {
+      "name": {
+        "type": "string",
+        "minLength": 2,
+        "maxLength": 50
+      },
+      "description": {
+        "type": "string",
+        "minLength": 5
+      },
+      "namespace":{
+        "type":"string",
+        "minLength": 3,
+        "maxLength": 20
+      },
+      "url": {
+        "type": "string",
+        "format": "uri"
+      },
+      "info": {
+        "type": "object",
+        "properties": {
+          "author": {
+            "type": "string",
+            "minLenght": 5,
+            "maxLength": 50
+          },
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "website": {
+            "type": "string",
+            "format": "uri"
+          },
+          "DOI": {
+            "type": "string"
+          },
+          "exptectedRuntime": {
+            "type": "string"
+          },
+          "purpose": {
+            "type": "string"
+          },
+          "license": {
+            "type": "string"
+          }
+        }
+      },
+      "input": {
+        "type": "array",
+        "items": {
+          "description": "Input types",
+          "type": "object",
+          "properties": {
+            "highlighter": {
+              "$ref": "#/definitions/highlighter"
+            },
+            "number": {
+              "$ref": "#/definitions/number"
+            },
+            "text": {
+              "$ref": "#/definitions/text"
+            },
+            "select": {
+              "$ref": "#/definitions/select"
+            },
+            "checkbox": {
+              "$ref": "#/definitions/checkbox"
+            },
+            "inputImage":{
+              "type":"object"
+            },
+            "outputImage":{
+              "type":"object"
+            },
+            "resultFile":{
+              "type":"object"
+            },
+            "inputFileExtension":{
+              "type":"object"
+            },
+            "outputFolder":{
+              "type":"object"
+            }
+          },
+          "additionalProperties": false
+        },
+        "additionalItems": false
+      },
+      "output":{
+        "type":"string"
+      },
+      "file":{
+        "type":"string",
+        "format":"uri"
+      },
+      "language":{
+        "type":"string"
+      },
+      "executable":{
+        "type":"string"
+      }
+    },
+    "additionalProperties": false
+  }
+}

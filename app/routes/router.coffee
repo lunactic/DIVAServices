@@ -63,6 +63,8 @@ router.post '/validate/:schema', (req, res, next) ->
       validate(req, res, 'responseSchema')
     when 'detailsAlgorithm'
       validate(req, res, 'algorithmSchema')
+    when 'create'
+      validate(req, res, 'createSchema')
 
 router.post '/management/algorithms', (req, res, next) ->
   ioHelper = new IoHelper()
