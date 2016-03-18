@@ -71,10 +71,10 @@ parameterHelper = exports = module.exports = class ParameterHelper
   # `params`
   #   *process* the process information
   #   *req* incoming request
-  matchParams: (process, md5,  req) ->
+  matchParams: (process, req) ->
     params = {}
     data = {}
-    for parameter of neededParameters
+    for parameter of process.neededParameters
       #build parameters
       if checkReservedParameters parameter
         #check if highlighter

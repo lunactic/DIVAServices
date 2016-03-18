@@ -62,7 +62,7 @@ router.post '/validate/:schema', (req, res, next) ->
     when 'response'
       validate(req, res, 'responseSchema')
     when 'detailsAlgorithm'
-      validate(req, res, 'algorithmSchema')
+      validate(req, res, 'detailsAlgorithmSchema')
     when 'create'
       validate(req, res, 'createSchema')
 

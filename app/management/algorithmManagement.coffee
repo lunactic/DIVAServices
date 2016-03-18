@@ -24,6 +24,8 @@ algorithmManagement = exports = module.exports = class AlgorithmManagement
     )
     _.unset(data, 'output')
     _.unset(data, 'file')
+    _.unset(data, 'language')
+    _.unset(data, 'executable')
     _.remove(data.input, (input) ->
       return _.includes(reservedWords, _.keys(input)[0])
     )
@@ -56,9 +58,9 @@ algorithmManagement = exports = module.exports = class AlgorithmManagement
       _.set(parameters,_.get(newAlgorithm, 'input[' + key + '].'+inputType+'.name', inputType),'')
     )
     newServiceEntry =
-      service: newAlgorithm.name
-      path: route
-      executablePath: '/data/executables' + route + path.sep + newAlgorithm.executable
+      service: newAlgorithm.name.replace(/\s/g, '').toLowerCase()
+      path: '/'+route
+      executablePath: '/data/executables/' + route + path.sep + newAlgorithm.executable
       programType: newAlgorithm.language
       allowParallel: true
       output: newAlgorithm.output

@@ -68,7 +68,13 @@ getHandler = exports = module.exports = class GetHandler
       collection.method = parameterHelper.getMethodName(req.path)
       params = prepareQueryParams(collection, queryParams)
       folder = nconf.get('paths:imageRootPath') + path.sep + collection
-      collection.parameters = parameterHelper.matchParams(queryParams,params, neededParameters,folder,folder,"",req)
+      collection.neededParameters = neededParameters
+      collection.inputParameters = queryParams
+      collection.image =
+        path: folder
+        md5:  ""
+      collection.outputFolder = folder
+      collection.parameters = parameterHelper.matchParams(collection,req)
       if(ResultHelper.checkCollectionResultAvailable(collection))
         data = ResultHelper.loadResult collection
         callback null,data
@@ -91,7 +97,7 @@ getHandler = exports = module.exports = class GetHandler
             process = new Process()
             process.image = image
             params = prepareQueryParams(process,queryParams)
-            process.parameters = parameterHelper.matchParams(queryParams,params,neededParameters,image.path,process.image.path, process.image.md5, req)
+            process.parameters = parameterHelper.matchParams(process, req)
             process.method = serviceInfo.service
             process.rootFolder = image.folder.split(path.sep)[image.folder.split(path.sep).length-2]
             #TODO Is this needed in the future, when everything is starting from the point of a collection?

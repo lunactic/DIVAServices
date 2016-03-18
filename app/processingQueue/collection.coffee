@@ -7,7 +7,9 @@ collection = exports = module.exports = class Collection
     @outputFolder = ""
     @inputParameters = {}
     @inputHighlighters = {}
+    @neededParameters = {}
     @parameters = null
+    @image = {}
     @processes = []
     @result = null
     @resultFile = ""

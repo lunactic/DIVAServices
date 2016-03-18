@@ -1,6 +1,6 @@
 {
-  "algorithmSchema": {
-    "id": "algorithmSchema",
+  "detailsAlgorithmSchema": {
+    "id": "detailsAlgorithmSchema",
     "$schema": "http://json-schema.org/schema#",
     "description": "schema for an algorithm details view entry",
     "definitions": {
@@ -10,17 +10,7 @@
         "maxLength": 25
       },
       "highlighter": {
-        "type": "object",
-        "properties": {
-          "type": {
-            "enum": [
-              "polygon",
-              "rectangle",
-              "circle",
-              "line"
-            ]
-          }
-        }
+        "enum": ["polygon", "rectangle", "circle", "line"]
       },
       "description": {
         "type": "string",
