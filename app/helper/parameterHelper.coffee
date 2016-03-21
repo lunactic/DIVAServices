@@ -5,9 +5,12 @@
 # Copyright &copy; Marcel Würsch, GPL v3.0 licensed.
 
 # Module dependencies
+fs      = require 'fs'
 nconf   = require 'nconf'
 path    = require 'path'
+_       = require 'lodash'
 ImageHelper = require './imageHelper'
+IoHelper    = require './ioHelper'
 
 # expose parameterHelper
 parameterHelper = exports = module.exports = class ParameterHelper
@@ -32,58 +35,55 @@ parameterHelper = exports = module.exports = class ParameterHelper
   #   *imagePath* path to the input image
   #   *md5* md5 hash of the input image
   #   *req* the request
-  getReservedParamValue: (parameter, neededParameters, imagePath, md5, req) ->
+  getReservedParamValue: (parameter, process, req) ->
+
     switch parameter
       when 'matlabPath'
         return nconf.get('paths:matlabPath')
       when 'matlabScriptsPath'
         return nconf.get('paths:matlabScriptsPath')
       when 'inputFileExtension'
-        return path.extname(imagePath).slice(1)
+        return path.extname(process.image.path).slice(1)
+      when 'inputFolder'
+        return process.inputFolder
       when 'inputImage'
-        return imagePath
+        return process.image.path
       when 'inputImageUrl'
         imageHelper = new ImageHelper()
-        return imageHelper.getInputImageUrl(md5)
+        return imageHelper.getInputImageUrl(process.image.md5)
       when 'imageRootPath'
         return nconf.get('paths:imageRootPath')
       when 'outputFolder'
-        return path.dirname(imagePath)
+        return process.outputFolder
       when 'host'
         return req.get('host')
       when 'ocropyLanguageModelsPath'
         return nconf.get('paths:ocropyLanguageModelsPath')
       when 'startUp'
-        return neededParameters['startUp']
-      when 'resultFile'
-        return '##resultFile##'
+        return process.neededParameters['startUp']
       when 'outputImage'
-        return path.dirname(imagePath) + '/output.png'
+        return '##outputImage##'
       when 'noisingXmlFile'
         return nconf.get('paths:noisingXmlPath')
   # ---
   # **matchParams**</br>
   # Matches the received parameter values to the needed parameters</br>
   # `params`
-  #   *inputParameters* The received parameters and its values
-  #   *inputHighlighter* The received input highlighter
-  #   *neededParameters*  The needed parameteres
-  #   *imagePath* path to the input image
-  #   *md5* md5 hash of the input image
+  #   *process* the process information
   #   *req* incoming request
-  matchParams: (inputParameters, inputHighlighter, neededParameters,imagePath, md5,  req) ->
+  matchParams: (process, req) ->
     params = {}
     data = {}
-    for parameter of neededParameters
+    for parameter of process.neededParameters
       #build parameters
       if checkReservedParameters parameter
         #check if highlighter
         if parameter is 'highlighter'
-          params[neededParameters[parameter]] = this.getHighlighterParamValues(neededParameters[parameter], inputHighlighter)
+          params[process.neededParameters[parameter]] = this.getHighlighterParamValues(process.neededParameters[parameter], process.inputHighlighters.segments)
         else
-          data[parameter] = this.getReservedParamValue(parameter, neededParameters, imagePath, md5, req)
+          data[parameter] = this.getReservedParamValue(parameter, process, req)
       else
-        value = this.getParamValue(parameter, inputParameters)
+        value = this.getParamValue(parameter, process.inputParameters)
         if value?
           params[parameter] = value
     result =
@@ -91,16 +91,46 @@ parameterHelper = exports = module.exports = class ParameterHelper
       data: data
     return result
 
-  buildGetUrl: (method, imagePath, neededParameters, parameterValues, inputHighlighters) ->
-    getUrl = 'http://' + nconf.get('server:rootUrl') + method + '?'
-    i = 0
-    for key, value of neededParameters
-      if(!checkReservedParameters(key))
-        getUrl += key + '=' + parameterValues[i] + '&'
-        i++
-      else if(key is 'highlighter')
-        getUrl += key + '=' + JSON.stringify(inputHighlighters['segments']) + '&'
-    getUrl += 'md5=' + imagePath
+  buildGetUrl: (process) ->
+    getUrl = 'http://' + nconf.get('server:rootUrl') + process.req.originalUrl
+
+    #append md5
+    getUrl += '?md5=' + process.image.md5
+
+    #append highlighter
+    if(!_.isEmpty(process.inputHighlighters))
+      getUrl += '&highlighter=' + JSON.stringify(process.inputHighlighters['segments'])
+      getUrl += '&highlighterType=' + process.inputHighlighters['type']
+
+     #append other parameters
+    for key in _.keys(process.parameters.params)
+      if !(key in ['rectangle','circle','polygon'])
+        getUrl += '&' + key + '=' + process.parameters.params[key]
+    return getUrl
+
+  buildGetUrlCollection: (collection) ->
+    #get the first process for parameter information
+    process = collection.processes[0]
+
+    getUrl = 'http://' + nconf.get('server:rootUrl') + process.req.originalUrl
+
+    #append collection name
+    getUrl += '?collection=' + collection.name
+    #append highlighter
+    if(!_.isEmpty(process.inputHighlighters))
+      getUrl += '&highlighter=' + JSON.stringify(process.inputHighlighters['segments'])
+      getUrl += '&highlighterType=' + process.inputHighlighters['type']
+
+
+    filtered = _.filter(process.parameters.params, (value,key) ->
+      return !key in ['rectangle','circle','polygon']
+    )
+    #append other parameters
+    if(filtered.length > 0)
+      _.forIn(filtered, (value, key) ->
+        getUrl += '&' + key + '=' + value
+      )
+
     return getUrl
 
   # ---
@@ -116,8 +146,7 @@ parameterHelper = exports = module.exports = class ParameterHelper
   # `params`
   #   *neededHighlighter* required highlighter as defined by the method
   #   *inputHighlighter*  received highlighter with its value from the request
-  getHighlighterParamValues: (neededHighlighter, inputHighlighter, callback) ->
-    # TODO: Is this actually needed?
+  getHighlighterParamValues: (neededHighlighter, inputHighlighter) ->
     switch neededHighlighter
       when 'rectangle'
         merged = []
@@ -137,6 +166,65 @@ parameterHelper = exports = module.exports = class ParameterHelper
         return merged.join(' ')
 
 
+  getMethodName: (algorithm) ->
+    return algorithm.replace(/\//g, '')
+
+  saveParamInfo: (process, parameters, rootFolder,outputFolder,method ) ->
+    if process.result?
+      return
+
+    try
+      fs.mkdirSync(outputFolder)
+    catch error
+      #no need to handle the error
+
+    methodPath = nconf.get('paths:imageRootPath') + '/'+ rootFolder + '/' + method + '.json'
+    content = []
+    data =
+      highlighters: _.clone(process.inputHighlighters)
+      parameters: _.clone(process.inputParameters)
+      folder: outputFolder
+
+
+    #make strings of everything
+    _.forIn(data.parameters, (value,key) ->
+      data.parameters[key] = String(value)
+    )
+    _.forIn(data.highlighters, (value,key) ->
+      data.highlighters[key] = String(value)
+    )
+
+    try
+      fs.statSync(methodPath).isFile()
+      content = JSON.parse(fs.readFileSync(methodPath,'utf8'))
+      #only save the information if its not already present
+      if(_.filter(content,{'parameters':data.parameters, 'highlighters':data.highlighters}).length == 0)
+        content.push data
+        fs.writeFileSync(methodPath, JSON.stringify(content))
+    catch error
+      content.push data
+      fs.writeFileSync(methodPath, JSON.stringify(content))
+
+  loadParamInfo: (process) ->
+    paramPath = nconf.get('paths:imageRootPath') + '/' + process.rootFolder + '/' + process.method + '.json'
+    data =
+      highlighters: process.inputHighlighters
+      parameters: process.inputParameters
+    try
+      fs.statSync(paramPath).isFile()
+      content = JSON.parse(fs.readFileSync(paramPath,'utf8'))
+      if((info = _.filter(content,{'parameters':data.parameters, 'highlighters':data.highlighters})).length > 0)
+        #found some information about this method
+        ioHelper = new IoHelper()
+        if(process.image?)
+          process.resultFile = ioHelper.buildFilePath(info[0].folder, process.image.name)
+        process.outputFolder = info[0].folder
+      else
+        #found no information about that method
+        return
+    catch error
+      #no information found
+      return
   # ---
   # **checkReservedParameters**</br>
   # Checks if a parameter is in the list of reserverd words as defined in server.NODE_ENV.json</br>
@@ -145,3 +233,6 @@ parameterHelper = exports = module.exports = class ParameterHelper
   checkReservedParameters = (parameter) ->
     reservedParameters = nconf.get('reservedWords')
     return parameter in reservedParameters
+
+
+

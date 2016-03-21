@@ -1,7 +1,7 @@
-# ImageHelper
+# InputHelper
 # =======
 #
-# **ImageHelper** provides helper methods for handling images
+# **InputHelper** provides helper methods for handling non image input
 #
 # Copyright &copy; Marcel Würsch, GPL v3.0 licensed.
 
@@ -9,8 +9,8 @@
 nconf   = require 'nconf'
 md5     = require 'md5'
 fs      = require 'fs'
-request = require 'request'
-# expose imageHelper
+
+# expose inputHelper
 inputHelper = exports = module.exports = class InputHelper
 
   saveInput: (input, callback) ->

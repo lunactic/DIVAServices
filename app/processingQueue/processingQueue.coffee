@@ -1,6 +1,4 @@
-processingQueue = exports = module.exports = class processingQueue
-
-  @queue = []
+processingQueue = exports = module.exports = class localProcessingQueue
 
   constructor: () ->
     @queue = []

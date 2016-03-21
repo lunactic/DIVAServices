@@ -1,0 +1,24 @@
+{
+  "author":{
+    "type":"string",
+    "minLength":5,
+    "maxLength":50
+  },
+  "email":{
+    "type":"string",
+    "format":"email"
+  },
+  "website":{
+    "type":"string",
+    "format":"uri"
+  },
+  "DOI":{
+    "type":"string"
+  },
+  "purpose":{
+    "type":"string"
+  },
+  "license":{
+    "type":"string"
+  }
+}

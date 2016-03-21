@@ -1,39 +1,60 @@
+
+logger              = require '../logging/logger'
 Statistics          = require '../statistics/statistics'
 ProcessingQueue     = require './processingQueue'
 ExecutableHelper    = require '../helper/executableHelper'
 
 queueHandler = exports = module.exports = class QueueHandler
 
-  @processingQueue = null
+  @localProcessingQueue = null
+  @remoteProcessingQueue = null
 
   constructor: () ->
-    @processingQueue = new ProcessingQueue()
+    if(not @localProcessingQueue?)
+      @localProcessingQueue = new ProcessingQueue()
+    if(not @remoteProcessingQueue?)
+      @remoteProcessingQueue = new ProcessingQueue()
+
     @executableHelper = new ExecutableHelper()
     self = @
     @executableHelper.on 'processingFinished', () ->
-      self.executeRequest()
+      self.executeLocalRequest()
 
-  executeRequestImmediately: (req, requestCallback) ->
+  addLocalRequestToQueue: (req, cb) ->
     self = @
-    tempProcessingQueue = new ProcessingQueue()
-    @executableHelper.preprocessing req, tempProcessingQueue, true, requestCallback, () ->
-      self.executableHelper.executeRequest(tempProcessingQueue.getNext(), requestCallback)
+    @executableHelper.preprocess req, @localProcessingQueue, cb, () ->
+      self.executeLocalRequest()
 
-  addRequestToQueue: (req,requestCallback) ->
+  addRemoteRequestToQueue: (req, cb) ->
     self = @
-    @executableHelper.preprocessing req,@processingQueue,false, requestCallback, () ->
-      self.executeRequest()
+    @executableHelper.preprocess req, @remoteProcessingQueue, cb, () ->
+      #TODO: ADD SPECIAL REMOTE PREPROCESSING HERE
+      self.executeRemoteRequest()
 
-  requestAvailable: () ->
-    return @processingQueue.getSize() > 0
+  localRequestAvailable: () ->
+    return @localProcessingQueue.getSize() > 0
 
-  getNextRequest: () ->
-    return @processingQueue.getNext()
+  remoteRequestAvailable: () ->
+    return @remoteProcessingQueue.getSize() > 0
 
-  getQueueSize:() ->
-    return @processingQueue.getSize
+  getNextLocalRequest: () ->
+    return @localProcessingQueue.getNext()
 
-  executeRequest: () ->
+  getNextRemoteRequest: () ->
+    return @remoteProcessingQueue.getNext()
+
+  getLocalQueueSize:() ->
+    return @localProcessingQueue.getSize()
+
+  getRemoteQueueSize: () ->
+    return @remoteProcessingQueue.getSize()
+
+  executeLocalRequest: () ->
     #TODO: Replace getNumberOfCurrentExecutions() with some form of available computing time
-    if(Statistics.getNumberOfCurrentExecutions() < 5 && @requestAvailable())
-      @executableHelper.executeRequest(@getNextRequest())
+    if(Statistics.getNumberOfCurrentExecutions() < 2 && @localRequestAvailable())
+      @executableHelper.executeLocalRequest(@getNextLocalRequest())
+
+  executeRemoteRequest: () ->
+    logger.log 'info', 'execute remote request'
+    if(@remoteRequestAvailable())
+      @executableHelper.executeRemoteRequest(@getNextRemoteRequest())
