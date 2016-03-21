@@ -157,6 +157,7 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
         #immediate callback if collection.result is available
         if(collection.result?)
           callback null,collection
+          return
         #Create an array of processes that are added to the processing queue
         outputFolder = ioHelper.getOutputFolder(collection.name, serviceInfo.service)
         collection.outputFolder = outputFolder
