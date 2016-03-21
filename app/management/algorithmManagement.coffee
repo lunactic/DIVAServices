@@ -26,9 +26,10 @@ algorithmManagement = exports = module.exports = class AlgorithmManagement
     _.unset(data, 'file')
     _.unset(data, 'language')
     _.unset(data, 'executable')
-    _.remove(data.input, (input) ->
-      return _.includes(reservedWords, _.keys(input)[0])
+    data.input = _.remove(data.input, (input) ->
+      return not _.includes(reservedWords, _.keys(input)[0])
     )
+
     ioHelper.saveFile(folder + path.sep + 'info.json', data, (err) ->
       if(err)
         logger.log 'error', err
