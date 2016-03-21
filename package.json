@@ -16,7 +16,7 @@
   "scripts": {},
   "dependencies": {
     "archiver": "~0.21.0",
-    "async": "~1.5.2",
+    "async": "~2.0.0-rc.1",
     "auto-reload-brunch": "^2.0.0",
     "body-parser": "~1.15.0",
     "coffeelint-brunch": "^2.0.0",
@@ -30,7 +30,7 @@
     "lodash": "~4.6.1",
     "log4js": "^0.6.26",
     "jsonschema":"1.1.0",
-    "md5": "~2.0.0",
+    "md5": "~2.1.0",
     "manifesto.js":"^0.1.20",
     "mkdirp":"0.5.1",
     "mongoose": "^4.0.6",
