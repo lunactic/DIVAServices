@@ -1,8 +1,0 @@
-{
-  "name": "Inverting",
-  "description": "Inverting an image",
-  "url": "http://$BASEURL$/imageanalysis/binarization/invert",
-  "info":{},
-  "input": []
-}
-

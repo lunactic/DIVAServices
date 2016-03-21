@@ -23,6 +23,10 @@
   "images": {
     "storeResponse": false
   },
+  "remoteServer":{
+    "user":"wuerschm",
+    "ip": "diuf-cluster"
+  },
   "paths": {
     "imageRootPath": "/data/images",
     "textualRootPath": "/data/textual",
@@ -30,12 +34,21 @@
     "matlabScriptsPath": "/data/matlab",
     "jsonPath":"/data/json",
     "ocropyLanguageModelsPath": "/data/ocropyLanguageModels",
+    "imageInfoFile": "/data/images/imageInfo.json",
     "statisticsFile":"/data/statistics.json",
     "servicesInfoFile":"/data/json/services.json",
     "noisingXmlPath": "/data/noise/scripts/realistic.xml"
   },
+  "remotePaths": {
+    "matlabPath": "/opt/matlab/R2012b/bin/matlab",
+    "matlabScriptsPath": "data/matlab",
+    "jsonPath":"data/json",
+    "ocropyLanguageModelsPath": "data/ocropyLanguageModels",
+    "noisingXmlPath": "/data/noise/scripts/realistic.xml"
+  },
   "reservedWords" :[
     "inputImage",
+    "inputFolder",
     "inputImageUrl",
     "outputImage",
     "resultFile",

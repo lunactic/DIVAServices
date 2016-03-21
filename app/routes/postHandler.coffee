@@ -17,16 +17,14 @@
 # Copyright &copy; Marcel Würsch, GPL v3.0 licensed.
 
 # module requirements
-logger              = require '../logging/logger'
 QueueHandler        = require '../processingQueue/queueHandler'
-ExecutableHelper    = require '../helper/executableHelper'
-Statistics          = require '../statistics/statistics'
+ServicesInfoHelper  = require '../helper/servicesInfoHelper'
+logger              = require '../logging/logger'
 #Expose postHandler
 postHandler = exports = module.exports = class PostHandler
 
   constructor: () ->
     @queueHandler = new QueueHandler()
-    @executableHelper = new ExecutableHelper()
 
   # ---
   # **handleRequest**</br>
@@ -34,13 +32,16 @@ postHandler = exports = module.exports = class PostHandler
   # `params`
   #   *req* the incoming request
   handleRequest: (req, cb) ->
+    serviceInfo = ServicesInfoHelper.getServiceInfoByPath(req.originalUrl)
 
-    #only needed in debugging
-    if(req.originalUrl.startsWith('/services'))
-      req.originalUrl = req.originalUrl.replace('/services','')
-
-    #If mean-execution time < 60s directly execute
-    if (Statistics.getMeanExecutionTime(req.originalUrl) < 60)
-      @queueHandler.executeRequestImmediately(req,cb)
+    if(serviceInfo.execute is'remote')
+      #execute remote
+      @queueHandler.addRemoteRequestToQueue(req, cb)
+    else if(serviceInfo.execute is 'local')
+      @queueHandler.addLocalRequestToQueue(req,cb)
     else
-      @queueHandler.addRequestToQueue(req,cb)
+      logger.log 'error', 'error in definition for method: ' + req.originalUrl
+      error =
+        statusCode: 500
+        statusText: 'error in method definition'
+      callback(error, null)

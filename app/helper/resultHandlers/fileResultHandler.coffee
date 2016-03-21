@@ -5,16 +5,16 @@
 
 fs = require 'fs'
 logger = require '../../logging/logger'
+ImageHelper = require '../imageHelper'
 
-consoleResultHandler = exports = module.exports = class consoleResultHandler
+fileResultHandler = exports = module.exports = class FileResultHandler
   @filename: ''
   constructor: (filepath) ->
     @filename = filepath
-  handleResult: (error, stdout, stderr, statIdentifier,process, callback) ->
+  handleResult: (error, stdout, stderr, process, callback) ->
     self = @
     fs.stat @filename, (err, stat) ->
       #check if file exists
-      console.log err
       if !err?
         fs.readFile self.filename, 'utf8', (err, data) ->
           if err?
@@ -22,15 +22,20 @@ consoleResultHandler = exports = module.exports = class consoleResultHandler
           else
             try
               data = JSON.parse(data)
-              if(!data)
-                data['status'] = 'done'
+              data['status'] = 'done'
+              if(data['image']?)
+                ImageHelper.saveImageJson(data['image'],process)
+                process.outputImageUrl = ImageHelper.getOutputImageUrl(process.rootFolder + '/' + process.methodFolder, process.image.name, process.image.extension )
+                data['outputImage'] = process.outputImageUrl
+                delete data['image']
+
               data['inputImage'] = process.inputImageUrl
               data['resultLink'] = process.resultLink
-              if(process.outputImageUrl?)
-                data['outputImage'] = process.outputImageUrl
+              data['collectionName'] = process.rootFolder
+              data['resultZipLink'] = 'http://192.168.56.101:8080/collections/' + process.rootFolder + '/' + process.methodFolder
               fs.writeFileSync(self.filename,JSON.stringify(data), "utf8")
             catch error
               console.log error
-            callback null, data, statIdentifier
+            callback null, data, process.id
       else
         callback err, null, null

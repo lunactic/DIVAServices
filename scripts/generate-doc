@@ -1,6 +1,0 @@
-#!/bin/bash
-
-set -e #exit on errors
-
-echo 'parsing'
-find ./ -name '*.coffee' ! -path "./node_modules/*" | xargs ./node_modules/docco/bin/docco -l linear -c ./scripts/custom.css -o ./doc ./*.coffee

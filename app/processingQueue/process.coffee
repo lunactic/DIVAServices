@@ -1,20 +1,27 @@
 #Class representing a process to be executed
 
 process = exports = module.exports = class Process
+  @id: ""
   @req: null
-  @imageHelper: null
+  @method: ""
+  @image: null
+  @rootFolder: ""
+  @outputFolder: ""
+  @methodFolder: ""
+  @neededParameters: null
+  @inputParameters: null
+  @inputHighlighters: null
+  @inputFolder: ""
   @parameters: null
-  @results: ""
   @programType: ""
   @executablePath: ""
   @resultHandler: null
   @resultType: ""
-  @filePath: ""
-  @tmpFilePath: ""
+  @resultFile: ""
+  @tmpResultFile: ""
   @requireOutputImage: true
   @inputImageUrl: ""
   @outputImageUrl: ""
+  @result: null
   @resultLink: ""
-
-  constructor: () ->
-    @requireOutputImage = true
+  @data: null

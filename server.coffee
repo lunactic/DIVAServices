@@ -13,9 +13,14 @@ if not process.env.NODE_ENV? or process.env.NODE_ENV not in ['dev', 'test', 'pro
 
 nconf = require 'nconf'
 nconf.add 'server', type: 'file', file: './conf/server.' + process.env.NODE_ENV + '.json'
+nconf.add 'detailsAlgorithmSchema', type: 'file', file: './conf/schemas/detailsAlgorithmSchema.json'
+nconf.add 'generalAlgorithmSchema', type: 'file', file: './conf/schemas/generalAlgorithmSchema.json'
+nconf.add 'hostSchema', type: 'file', file: './conf/schemas/hostSchema.json'
+nconf.add 'responseSchema', type: 'file', file: './conf/schemas/responseSchema.json'
+nconf.add 'createSchema', type: 'file', file: './conf/schemas/createAlgorithmSchema.json'
+
 
 bodyParser    = require 'body-parser'
-cookieParser  = require 'cookie-parser'
 express       = require 'express'
 favicon       = require 'serve-favicon'
 fs            = require 'fs'
@@ -24,24 +29,24 @@ https         = require 'https'
 morgan        = require 'morgan'
 logger        = require './app/logging/logger'
 router        = require './app/routes/router'
-sysPath       = require 'path'
 Statistics    = require './app/statistics/statistics'
+ImageHelper   = require './app/helper/imageHelper'
 
 #setup express framework
 app = express()
 
 #HTTPS settings
-privateKey = fs.readFileSync('/data/express.key','utf8')
-certificate = fs.readFileSync('/data/express.crt','utf8')
+#privateKey = fs.readFileSync('/data/express.key','utf8')
+#certificate = fs.readFileSync('/data/express.crt','utf8')
 
-credentials = {key: privateKey, cert: certificate}
+#credentials = {key: privateKey, cert: certificate}
 
 #shutdown handler
 process.on 'SIGTERM', () ->
   logger.log 'info', 'RECEIVED SIGTERM'
-  Statistics.saveStatistics () ->
-    process.exit(0)
-
+  Statistics.saveStatistics()
+  ImageHelper.saveImageInfo()
+  process.exit(0)
 
 #setup body parser
 app.use bodyParser.json(limit: '50mb')
@@ -57,17 +62,15 @@ app.use(morgan('combined',{stream: accessLogStream}))
 #setup routes
 app.use router
 
-
-
-httpsServer = https.createServer(credentials,app)
+#httpsServer = https.createServer(credentials,app)
 httpServer = http.createServer(app)
 
 httpServer.timeout = nconf.get('server:timeout')
-httpsServer.timeout = nconf.get('server:timeout')
+#httpsServer.timeout = nconf.get('server:timeout')
 
 httpServer.listen nconf.get('server:httpPort'), ->
   Statistics.loadStatistics()
   logger.log 'info', 'HTTP Server listening on port ' + nconf.get 'server:httpPort'
 
-httpsServer.listen nconf.get('server:httpsPort'), ->
-  logger.log 'info', 'HTTPS Server listening on port ' + nconf.get 'server:httpsPort'
+#httpsServer.listen nconf.get('server:httpsPort'), ->
+#  logger.log 'info', 'HTTPS Server listening on port ' + nconf.get 'server:httpsPort'

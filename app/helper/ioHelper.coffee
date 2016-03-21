@@ -6,91 +6,156 @@
 # Copyright &copy; Marcel Würsch, GPL v3.0 licensed.
 
 # Module dependecies
-fs      = require 'fs'
-_       = require 'lodash'
-logger  = require '../logging/logger'
+_         = require 'lodash'
+archiver  = require 'archiver'
+fs        = require 'fs'
+http      = require 'http'
+mkdirp    = require 'mkdirp'
+nconf     = require 'nconf'
+path      = require 'path'
+unzip     = require 'unzip2'
+url       = require 'url'
+logger    = require '../logging/logger'
 
 
 # expose IoHelper
 ioHelper = exports = module.exports = class IoHelper
 
-  buildFilePath: (path,algorithm,params) ->
-    algorithm = algorithm.replace(/\//g, '_')
-    #join params with _
-    tmpParams = JSON.parse(JSON.stringify(params))
-    values = _.valuesIn(tmpParams).join(' ').replace(RegExp(' ', 'g'), '_')
-    filename = algorithm + '_' + values + '.json'
-    return path + filename
+  deleteFile: (file) ->
+    fs.unlink(file)
 
-  buildTempFilePath: (path,algorithm,params) ->
-    algorithm = algorithm.replace(/\//g, '_')
-    #join params with _
-    tmpParams = JSON.parse(JSON.stringify(params))
-    values = _.valuesIn(tmpParams).join(' ').replace(RegExp(' ', 'g'), '_')
-    filename = algorithm + '_' + values + '_temp.json'
-    return path + filename
+  unzipFolder: (zipFile, folder, callback) ->
+    mkdirp(folder, (err) ->
+      if(err)
+        logger.log 'error', err
+      else
+        reader = fs.createReadStream(zipFile)
+        reader.pipe(unzip.Extract({path: folder}))
+        reader.on 'close', ->
+          callback null
+    )
+
+  zipFolder: (folder) ->
+    archive = archiver('zip',{})
+    folders = folder.split(path.sep)
+
+    fullFileName = nconf.get('paths:imageRootPath') + path.sep + folders[folders.length-2] + '_' + folders[folders.length-1] + '.zip'
+    fileName = folders[folders.length-2] + '_' + folders[folders.length-1] + '.zip'
+    
+    output = fs.createWriteStream(fullFileName)
+    output.on 'close', ->
+      return
+    archive.on 'error', (err) ->
+      console.log 'error: ' + err
+      return
+    archive.pipe output
+    archive.bulk([
+      expand: true
+      cwd: folder+'/'
+      src: ['*']
+    ])
+    archive.finalize()
+    return fileName
+
+  getOutputFolder: (rootFolder, service) ->
+    #check which folder is to be used
+    imagePath = nconf.get('paths:imageRootPath')
+    rootPath = imagePath + '/' + rootFolder
+    #read all folders in the current directory
+    folders = fs.readdirSync(rootPath).filter (file) ->
+      fs.statSync(path.join(rootPath,file)).isDirectory()
+
+    #filter for folders matching the service name
+    folders = _.filter folders,  (folder) ->
+      _.includes folder,service
+
+
+    if(folders.length > 0)
+      numbers = _.invokeMap folders, String::split, '_'
+      numbers = _.map(numbers, 1)
+      maxNumber = parseInt(_.max(numbers),10)
+      return rootPath + '/' + service + '_' + (maxNumber + 1)
+    else
+      return rootPath + '/' + service + '_0'
+
+  #build file Path from outputFolder name and filename
+  buildFilePath: (path, fileName) ->
+    return path + '/' + fileName + '.json'
+
+  buildTempFilePath: (path, fileName) ->
+    return path + '/' + fileName + '_temp.json'
 
   # ---
-  # **loadResult**</br>
-  # Loads existing results from the disk</br>
+  # **loadFile**</br>
+  # Loads existing file from the disk</br>
   # `params`
-  #   *path* path to the image folder, where results are stored
-  #   *algorithm* the executed algorithm
-  #   *params* the used parameter values
-  loadResult: (path, algorithm, params, post, callback) ->
-    filePath = @buildFilePath(path,algorithm,params)
-    logger.log "info",'load from file  ' + filePath
-
-    fs.stat filePath, (err, stat) ->
-      #check if file exists
-      if !err?
-        fs.readFile filePath, 'utf8', (err, data) ->
-          if err?
-            callback err, null
-          else
-            data = JSON.parse(data)
-            callback null, data
+  #   *filePath* path to the file
+  loadFile: (filePath) ->
+    try
+      stats = fs.statSync(filePath)
+      if stats.isFile()
+        content = JSON.parse(fs.readFileSync(filePath,'utf8'))
+        return content
       else
-        if(post)
-          callback null, null
-        else
-          logger.log 'error', err
-          callback err,null
+        return null
+    catch error
+      logger.log 'error', 'Could not read file: ' + filePath
+      return null
+
   # ---
   # **/br>
-  # Saves the results of a method execution to the disk</br>
-  # `params`
-  #   *path*  path to the image folder, where results are stored
-  #   *algorithm* the executed algorithm
-  #   *params*  the used parameter values
-  #   *result*  the execution result
-  saveResult: (filePath, result, callback) ->
-    fs.stat filePath, (err, stat) ->
-      #check if file exists
-      #console.log 'saving file to: ' + filePath
-      fs.writeFile filePath, result,  (err) ->
-        if err?
-          error =
-            status: 500
-            statusText: 'Could not save result file'
-          callback error, null
-        else
-          callback null, result
-        return
+  # saves the a file to disk</br>
+  saveFile: (filePath, content, callback) ->
+    try
+      fs.writeFileSync filePath, JSON.stringify(content, null, '\t')
+      if callback?
+        callback null
+    catch error
+      logger.log 'error', error
+    return
+  writeTempFile: (filePath) ->
+    try
+      stats = fs.statSync filePath
+        #check if file exists
+        #console.log 'saving file to: ' + filePath
+    catch error
+      try
+        fs.writeFileSync filePath, JSON.stringify({status :'planned'})
+      catch error
+        logger.log 'error', error
+
     return
 
+  downloadFile: (fileUrl, localFolder, callback) ->
+    filename = path.basename(url.parse(fileUrl).pathname)
+    file = fs.createWriteStream(localFolder + path.sep + filename)
+    request = http.get(fileUrl, (response) ->
+      response.pipe(file)
+      response.on('end', () ->
+              callback null, localFolder + path.sep + filename
+      )
+    )
+    
+  createCollectionFolders: (collection) ->
+    rootFolder = nconf.get('paths:imageRootPath') + path.sep + collection
+    mkdirp(rootFolder, (err) ->
+      if(err)
+        logger.log 'error', err
+    )
+    mkdirp(rootFolder + path.sep + 'original', (err) ->
+      if(err)
+        logger.log 'error', err
+    )
+  checkFileExists: (filePath) ->
+    try
+      stats = fs.statSync(filePath)
+      return stats.isFile()
+    catch error
+      return false
 
-  writeTempFile: (filePath, callback) ->
-    fs.stat filePath, (err, stat) ->
-      #check if file exists
-      #console.log 'saving file to: ' + filePath
-      fs.writeFile filePath, JSON.stringify({status :'planned'}),  (err) ->
-        if err?
-          error =
-            status: 500
-            statusText: 'Could not save result file'
-          callback error, null
-        else
-          callback null, null
-        return
-    return
+  readdir: (path) ->
+    try
+      files = fs.readdirSync(path)
+      return files
+    catch error
+      return null
