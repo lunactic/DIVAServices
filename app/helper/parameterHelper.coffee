@@ -35,7 +35,7 @@ parameterHelper = exports = module.exports = class ParameterHelper
   #   *imagePath* path to the input image
   #   *md5* md5 hash of the input image
   #   *req* the request
-  getReservedParamValue: (parameter, process,md5, req) ->
+  getReservedParamValue: (parameter, process, req) ->
 
     switch parameter
       when 'matlabPath'
@@ -79,7 +79,7 @@ parameterHelper = exports = module.exports = class ParameterHelper
       if checkReservedParameters parameter
         #check if highlighter
         if parameter is 'highlighter'
-          params[neededParameters[parameter]] = this.getHighlighterParamValues(process.neededParameters[parameter], process.inputHighlighters.segments)
+          params[process.neededParameters[parameter]] = this.getHighlighterParamValues(process.neededParameters[parameter], process.inputHighlighters.segments)
         else
           data[parameter] = this.getReservedParamValue(parameter, process, req)
       else
