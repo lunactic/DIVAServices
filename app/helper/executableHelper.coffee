@@ -45,34 +45,34 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
   #   *inputParameters* The received parameters and its values
   #   *neededParameters*  The list of needed parameters
   #   *programType* The program type
-  buildCommand = (executablePath, programType, data, params) ->
+  buildCommand = (executablePath, programType, params) ->
     # get exectuable type
     execType = getExecutionType programType
     # return the command line call
-    dataPath = _.values(data).join(' ')
+    #dataPath = _.values(data).join(' ')
     paramsPath = _.values(params).join(' ')
-    return execType + ' ' + executablePath + ' ' + dataPath+ ' ' + paramsPath
+    return execType + ' ' + executablePath + ' ' + paramsPath
 
   buildRemoteCommand = (process) ->
-    params = _.values(process.parameters.params).join(' ')
-    paths = _.clone(process.parameters.data)
-    _.forIn(paths, (value, key) ->
+    params = _.clone(process.parameters.params)
+    #paths = _.clone(process.parameters.data)
+    _.forIn(params, (value, key) ->
       switch key
         when 'inputImage','outputImage','resultFile'
           extension = path.extname(value)
           filename = path.basename(value,extension)
-          paths[key] = process.rootFolder + '/' + filename + extension
+          params[key] = process.rootFolder + '/' + filename + extension
         when 'outputFolder'
-          paths[key] = process.rootFolder + '/'
+          params[key] = process.rootFolder + '/'
     )
 
-    _.forOwn(_.intersection(_.keys(paths),_.keys(nconf.get('remotePaths'))), (value,key) ->
-      paths[value] = nconf.get('remotePaths:'+value)
+    _.forOwn(_.intersection(_.keys(params),_.keys(nconf.get('remotePaths'))), (value,key) ->
+      params[value] = nconf.get('remotePaths:'+value)
     )
 
 
-    dataPaths = _.values(paths).join(' ')
-    return 'qsub -o ' + process.rootFolder + ' -e ' + process.rootFolder + ' ' + process.executablePath + ' ' + dataPaths + ' ' + params
+    paramsPath = _.values(params).join(' ')
+    return 'qsub -o ' + process.rootFolder + ' -e ' + process.rootFolder + ' ' + process.executablePath + ' ' + paramsPath
 
 # ---
   # **executeCommand**</br>
@@ -108,7 +108,7 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
       (callback) ->
         process.id = Statistics.startRecording(process.req.originalUrl,process)
         #fill executable path with parameter values
-        command = buildCommand(process.executablePath, process.programType, process.parameters.data, process.parameters.params)
+        command = buildCommand(process.executablePath, process.programType, process.parameters.params)
         #if we have a console output, pipe the stdout to a file but keep stderr for error handling
         if(process.resultType == 'console')
           command += ' 1>' + process.tmpResultFile + ';mv ' + process.tmpResultFile + ' ' + process.resultFile
@@ -170,27 +170,31 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
           process.neededParameters = serviceInfo.parameters
           process.method = collection.method
           process.parameters = parameterHelper.matchParams(process,req)
-          if(process.parameters.data.outputImage?)
-            process.parameters.data.outputImage = ImageHelper.getOutputImage(process.image, process.outputFolder)
+          if(process.parameters.params.outputImage?)
+            process.parameters.params.outputImage = ImageHelper.getOutputImage(process.image, process.outputFolder)
           if(ResultHelper.checkProcessResultAvailable(process))
             process.result = ResultHelper.loadResult(process)
           else
             process.methodFolder = path.basename(process.outputFolder)
-            process.resultFile = ioHelper.buildFilePath(process.outputFolder, process.image.name)
-            process.tmpResultFile = ioHelper.buildTempFilePath(process.outputFolder, process.image.name)
+            if(process.image?)
+              process.resultFile = ioHelper.buildFilePath(process.outputFolder, process.image.name)
+              process.tmpResultFile = ioHelper.buildTempFilePath(process.outputFolder, process.image.name)
+              process.inputImageUrl = ImageHelper.getInputImageUrl(process.rootFolder, process.image.name, process.image.extension)
+            else
+              process.resultFile = ioHelper.buildFilePath(process.outputFolder,process.methodFolder)
+              process.tmpResultFile = ioHelper.buildTempFilePath(process.outputFolder,process.methodFolder)
             if(req.body.requireOutputImage?)
               process.requireOutputImage = req.body.requireOutputImage
             process.programType = serviceInfo.programType
             process.executablePath = serviceInfo.executablePath
             process.resultType =  serviceInfo.output
-            process.inputImageUrl = ImageHelper.getInputImageUrl(process.rootFolder, process.image.name, process.image.extension)
             process.resultLink = parameterHelper.buildGetUrl(process)
             resultHandler = null
             switch serviceInfo.output
               when 'console'
                 resultHandler = new ConsoleResultHandler(process.resultFile)
               when 'file'
-                process.parameters.data['resultFile'] = process.resultFile
+                process.parameters.params['resultFile'] = process.resultFile
                 resultHandler = new FileResultHandler(process.resultFile)
             process.resultHandler = resultHandler
         callback null, collection
@@ -305,13 +309,19 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
       process = new Process()
       process.req = _.clone(req)
       process.rootFolder = rootFolder
+      process.hasImage = false
       async.waterfall [
         (callback) ->
           ioHelper.downloadFile(dataUrl, nconf.get('paths:imageRootPath') + path.sep + process.rootFolder, callback)
         (zipFile, callback) ->
           ioHelper.unzipFolder(zipFile, nconf.get('paths:imageRootPath') + path.sep + process.rootFolder + path.sep + 'original', callback)
       ], (error) ->
-        process.inputFolder = nconf.get('paths:imageRootPath') + path.sep + process.rootFolder + path.sep + 'original'
-        collection.processes.push(process)
-        #TODO add the callback call here
-        #finished
+        if(error)
+          logger.log 'error', error
+          callback error, null
+        else
+          process.inputFolder = nconf.get('paths:imageRootPath') + path.sep + process.rootFolder + path.sep + 'original'
+          collection.processes.push(process)
+          callback null, collection
+          #TODO add the callback call here
+          #finished

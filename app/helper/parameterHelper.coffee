@@ -73,29 +73,32 @@ parameterHelper = exports = module.exports = class ParameterHelper
   #   *req* incoming request
   matchParams: (process, req) ->
     params = {}
-    data = {}
+    outputParams = {}
     for parameter of process.neededParameters
       #build parameters
       if checkReservedParameters parameter
         #check if highlighter
         if parameter is 'highlighter'
           params[process.neededParameters[parameter]] = this.getHighlighterParamValues(process.neededParameters[parameter], process.inputHighlighters.segments)
+          outputParams[process.neededParameters[parameter]] = params[process.neededParameters[parameter]]
         else
-          data[parameter] = this.getReservedParamValue(parameter, process, req)
+          params[parameter] = this.getReservedParamValue(parameter, process, req)
       else
         value = this.getParamValue(parameter, process.inputParameters)
         if value?
           params[parameter] = value
+          outputParams[parameter] = value
     result =
       params: params
-      data: data
+      outputParams: outputParams
     return result
 
   buildGetUrl: (process) ->
     getUrl = 'http://' + nconf.get('server:rootUrl') + process.req.originalUrl
 
     #append md5
-    getUrl += '?md5=' + process.image.md5
+    if(process.image?)
+      getUrl += '?md5=' + process.image.md5
 
     #append highlighter
     if(!_.isEmpty(process.inputHighlighters))
@@ -103,7 +106,7 @@ parameterHelper = exports = module.exports = class ParameterHelper
       getUrl += '&highlighterType=' + process.inputHighlighters['type']
 
      #append other parameters
-    for key in _.keys(process.parameters.params)
+    for key in _.keys(process.parameters.outputParams)
       if !(key in ['rectangle','circle','polygon'])
         getUrl += '&' + key + '=' + process.parameters.params[key]
     return getUrl
