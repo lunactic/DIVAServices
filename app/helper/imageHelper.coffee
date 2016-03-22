@@ -52,6 +52,7 @@ imageHelper = exports = module.exports = class ImageHelper
     #code for saving an image
     imagePath = nconf.get('paths:imageRootPath')
     base64Data = image.replace(/^data:image\/png;base64,/, "")
+    base64Data = base64Data.replace(/^data:image\/jpeg;base64,/, "")
     md5String = md5(base64Data)
     @md5 = md5String
     self = @
