@@ -99,7 +99,8 @@ parameterHelper = exports = module.exports = class ParameterHelper
     #append md5
     if(process.image?)
       getUrl += '?md5=' + process.image.md5
-
+    else
+      getUrl += '?rootFolder=' + process.rootFolder
     #append highlighter
     if(!_.isEmpty(process.inputHighlighters))
       getUrl += '&highlighter=' + JSON.stringify(process.inputHighlighters['segments'])
@@ -221,6 +222,8 @@ parameterHelper = exports = module.exports = class ParameterHelper
         ioHelper = new IoHelper()
         if(process.image?)
           process.resultFile = ioHelper.buildFilePath(info[0].folder, process.image.name)
+        else
+          process.resultFile = ioHelper.buildFilePath(info[0].folder, path.basename(info[0].folder))
         process.outputFolder = info[0].folder
       else
         #found no information about that method

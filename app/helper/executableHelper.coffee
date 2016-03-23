@@ -286,7 +286,7 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
     rootFolder = RandomWordGenerator.generateRandomWord()
     ioHelper.createCollectionFolders(rootFolder)
     collection.name = rootFolder
-    # TODO:   check if an image exists, and if yes: send a JSON back with 'status':'imageExists'
+    # TODO: check if an image exists, and if yes: send a JSON back with 'status':'imageExists'
     #load all images
     if req.body.images?
       inputImages = req.body.images

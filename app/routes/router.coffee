@@ -7,21 +7,19 @@
 # Copyright &copy; Marcel Würsch, GPL v3.0 licensed.
 
 # Require Express Router
-nconf = require 'nconf'
-router = require('express').Router()
+AlgorithmManagement = require '../management/algorithmManagement'
+async = require 'async'
 GetHandler = require './getHandler'
-PostHandler = require './postHandler'
-logger = require '../logging/logger'
-Upload = require '../upload/upload'
 ImageHelper = require '../helper/imageHelper'
 IoHelper = require '../helper/ioHelper'
+logger = require '../logging/logger'
+nconf = require 'nconf'
+PostHandler = require './postHandler'
 ResultHelper = require '../helper/resultHelper'
+router = require('express').Router()
 schemaValidator = require '../validator/schemaValidator'
 Statistics = require '../statistics/statistics'
-AlgorithmManagement = require '../management/algorithmManagement'
-
-
-async = require 'async'
+Upload = require '../upload/upload'
 
 
 getHandler = new GetHandler()
@@ -33,8 +31,13 @@ router.post '/upload', (req, res) ->
     Upload.uploadBase64 req.body.image, (err, result) ->
       res.json {md5: result.md5}
   else if(req.body.url?)
-    Upload.uploadUrl req.body.url, (err, result) ->
-      res.json {md5: result.md5}
+    if(req.body.url.endsWith('zip'))
+      Upload.uploadZip(req.body.url, (err, result) ->
+        res.json {collection: result}
+      )
+    else
+      Upload.uploadUrl req.body.url, (err, result) ->
+        res.json {md5: result.md5}
 
 router.post '/jobs/:jobId', (req, res, next) ->
   process = Statistics.getProcess(req.params.jobId)
@@ -104,7 +107,6 @@ router.get '/collections/:collection/:execution', (req, res) ->
   filename = ioHelper.zipFolder(nconf.get('paths:imageRootPath') + '/' + req.params.collection + '/' + req.params.execution)
   res.status '200'
   res.json ({zipLink: 'http://' + nconf.get('server:rootUrl') + '/static/' + filename})
-  res.send()
 
 router.get '/image/results/:md5', (req, res)->
   ImageHelper.imageExists req.params.md5, (err, response) ->

@@ -109,13 +109,26 @@ getHandler = exports = module.exports = class GetHandler
                 process.result['status'] = 'done'
               callback null, process.result
               return
-
           #if the callback was not called yet, we can assume that the result
           err = createError(404,'This result is not available')
           callback err, null
           #return error message that image is not available
       )
-    else
+    else if queryParams['rootFolder']
+      #try to load results
+      process = new Process()
+      params = prepareQueryParams(process,queryParams)
+      process.parameters = parameterHelper.matchParams(process, req)
+      process.method = serviceInfo.service
+      process.rootFolder = queryParams['rootFolder']
+      if(ResultHelper.checkProcessResultAvailable(process))
+        process.result = ResultHelper.loadResult process
+        if(queryParams.requireOutputImage is 'false' && process.result['image']?)
+          delete process.result['image']
+        if(!process.result.hasOwnProperty('status'))
+          process.result['status'] = 'done'
+        callback null, process.result
+        return
       err = createError(400, 'Malformed request. Parsing of the provided information was not possible')
       callback err, null
 
@@ -125,6 +138,7 @@ getHandler = exports = module.exports = class GetHandler
     _.unset(proc.inputParameters,'highlighter')
     _.unset(proc.inputParameters,'highlighterType')
     _.unset(proc.inputParameters,'collection')
+    _.unset(proc.inputParameters, 'rootFolder')
     params = {}
     if(queryParams.highlighter?)
       params = JSON.parse(queryParams.highlighter)
@@ -139,8 +153,8 @@ getHandler = exports = module.exports = class GetHandler
 
     return params
 
-    createError = (status, message) ->
-      err =
-        statusCode: status
-        statusText: message
-      return err
+  createError = (status, message) ->
+    err =
+      statusCode: status
+      statusText: message
+    return err

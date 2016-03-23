@@ -11,6 +11,7 @@ AdmZip   = require 'adm-zip'
 archiver  = require 'archiver'
 fs        = require 'fs'
 http      = require 'http'
+https     = require 'https'
 mkdirp    = require 'mkdirp'
 nconf     = require 'nconf'
 path      = require 'path'
@@ -51,7 +52,7 @@ ioHelper = exports = module.exports = class IoHelper
     archive.bulk([
       expand: true
       cwd: folder+'/'
-      src: ['*']
+      src: ['*','**/*']
     ])
     archive.finalize()
     return fileName
@@ -128,12 +129,22 @@ ioHelper = exports = module.exports = class IoHelper
   downloadFile: (fileUrl, localFolder, callback) ->
     filename = path.basename(url.parse(fileUrl).pathname)
     file = fs.createWriteStream(localFolder + path.sep + filename)
-    request = http.get(fileUrl, (response) ->
-      response.pipe(file)
-      response.on('end', () ->
-              callback null, localFolder + path.sep + filename
-      )
-    )
+    switch(url.parse(fileUrl).protocol)
+      when 'http:'
+        request = http.get(fileUrl, (response) ->
+          response.pipe(file)
+          response.on('end', () ->
+            callback null, localFolder + path.sep + filename
+          )
+        )
+      when 'https:'
+        request = https.get(fileUrl, (response) ->
+          response.pipe(file)
+          response.on('end', () ->
+            callback null, localFolder + path.sep + filename
+          )
+        )
+
     
   createCollectionFolders: (collection) ->
     rootFolder = nconf.get('paths:imageRootPath') + path.sep + collection
