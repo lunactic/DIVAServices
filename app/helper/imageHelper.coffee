@@ -227,8 +227,8 @@ imageHelper = exports = module.exports = class ImageHelper
     outputUrl = 'http://' + rootUrl + '/static/' + folder + '/' + filename + '.' + extension
     return outputUrl
 
-  @addImageInfo: (md5,file) ->
-    @imageInfo.push {md5:md5, file:file}
+  @addImageInfo: (md5,file, collection) ->
+    @imageInfo.push {md5:md5, file:file, collection: collection}
     @saveImageInfo()
 
   @getImageInfo: (md5) ->
@@ -236,7 +236,7 @@ imageHelper = exports = module.exports = class ImageHelper
       return info.md5 == md5
 
   @saveImageInfo: () ->
-    fs.writeFileSync nconf.get('paths:imageInfoFile'),JSON.stringify(@imageInfo), 'utf8'
+    fs.writeFileSync nconf.get('paths:imageInfoFile'),JSON.stringify(@imageInfo, null, '\t'), 'utf8'
 
   @handleMd5: (image, process, collection, serviceInfo, parameterHelper,req) ->
     rootFolder = image.folder.split(path.sep)[image.folder.split(path.sep).length-2]

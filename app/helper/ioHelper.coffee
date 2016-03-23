@@ -7,7 +7,6 @@
 
 # Module dependecies
 _         = require 'lodash'
-AdmZip   = require 'adm-zip'
 archiver  = require 'archiver'
 fs        = require 'fs'
 http      = require 'http'
@@ -15,6 +14,7 @@ https     = require 'https'
 mkdirp    = require 'mkdirp'
 nconf     = require 'nconf'
 path      = require 'path'
+unzip     = require 'unzip2'
 url       = require 'url'
 logger    = require '../logging/logger'
 
@@ -29,10 +29,11 @@ ioHelper = exports = module.exports = class IoHelper
     mkdirp(folder, (err) ->
       if(err)
         logger.log 'error', err
+        callback err
       else
-        zip = new AdmZip(zipFile)
-        zip.extractAllTo(folder, true)
-        callback null
+        reader = fs.createReadStream(zipFile)
+        reader.pipe(unzip.Extract({path: folder})).on 'close', ->
+          callback null
     )
 
   zipFolder: (folder) ->

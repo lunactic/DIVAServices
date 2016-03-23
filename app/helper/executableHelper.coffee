@@ -273,7 +273,7 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
         description = iifManifestParser.getDescription()
         for inputImage,i in images
           image = ImageHelper.saveImageUrl inputImage, collection.name, i
-          ImageHelper.addImageInfo image.md5, image.path
+          ImageHelper.addImageInfo image.md5, image.path, collection.name
           process = new Process()
           process.req = _.clone(req)
           process.rootFolder = collection.name
