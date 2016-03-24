@@ -51,6 +51,7 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
     # return the command line call
     #dataPath = _.values(data).join(' ')
     paramsPath = ""
+    params = _.values(params).join(' ').split(' ')
     for param in _.values(params)
       paramsPath += '"' + param + '" '
 
@@ -303,6 +304,7 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
         process.rootFolder = rootFolder
         image = ImageHelper.saveImage(inputImage, process, i)
         if(inputImage.type is 'md5')
+          ioHelper.deleteCollectionFolders(collection.name)
           ImageHelper.handleMd5(image, process, collection, serviceInfo, parameterHelper, req)
           if(ResultHelper.checkCollectionResultAvailable(collection))
             collection.result = ResultHelper.loadResult(collection)

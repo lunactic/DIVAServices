@@ -157,6 +157,18 @@ ioHelper = exports = module.exports = class IoHelper
       if(err)
         logger.log 'error', err
     )
+  deleteCollectionFolders: (collection) ->
+    rootFolder = nconf.get('paths:imageRootPath') + path.sep + collection
+    fs.stat(rootFolder + path.sep + 'original', (err, stat) ->
+      if(!err?)
+        fs.rmdirSync(rootFolder + path.sep + 'original')
+    )
+    fs.stat(rootFolder, (err,stat) ->
+      if(!err?)
+        fs.rmdirSync(rootFolder)
+    )
+    return
+    
   checkFileExists: (filePath) ->
     try
       stats = fs.statSync(filePath)
