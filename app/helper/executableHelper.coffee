@@ -14,12 +14,12 @@ nconf               = require 'nconf'
 path                = require 'path'
 logger              = require '../logging/logger'
 Collection          = require '../processingQueue/collection'
-ConsoleResultHandler= require '../helper/resultHandlers/consoleResultHandler'
-FileResultHandler   = require '../helper/resultHandlers/fileResultHandler'
+ConsoleResultHandler= require './resultHandlers/consoleResultHandler'
+FileResultHandler   = require './resultHandlers/fileResultHandler'
 IiifManifestParser  = require '../parsers/iiifManifestParser'
 ImageHelper         = require '../helper/imageHelper'
-InputHelper         = require '../helper/inputHelper'
 IoHelper            = require '../helper/ioHelper'
+NoResultHandler     = require './resultHandlers/noResultHandler'
 Process             = require '../processingQueue/process'
 ParameterHelper     = require '../helper/parameterHelper'
 RandomWordGenerator = require '../randomizer/randomWordGenerator'
@@ -163,7 +163,7 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
           callback null,collection
           return
         #Create an array of processes that are added to the processing queue
-        outputFolder = ioHelper.getOutputFolder(collection.name, serviceInfo.service)
+        outputFolder = ioHelper.getOutputFolder(collection.name, serviceInfo.service, serviceInfo.uniqueOnCollection)
         collection.outputFolder = outputFolder
         collection.resultFile = collection.outputFolder + path.sep + 'result.json'
         for process in collection.processes
@@ -199,6 +199,9 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
               when 'file'
                 process.parameters.params['resultFile'] = process.resultFile
                 resultHandler = new FileResultHandler(process.resultFile)
+              when 'none'
+                delete process['resultLink']
+                resultHandler = new NoResultHandler(process.resultFile)
             process.resultHandler = resultHandler
         callback null, collection
         return
@@ -218,7 +221,8 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
           requestCallback null, collection.result
           return
         for process in collection.processes
-          results.push({'resultLink':process.resultLink})
+          if(process.resultLink?)
+            results.push({'resultLink':process.resultLink})
           if(!process.result?)
             processingQueue.addElement(process)
             queueCallback()

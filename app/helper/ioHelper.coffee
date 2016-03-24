@@ -58,7 +58,7 @@ ioHelper = exports = module.exports = class IoHelper
     archive.finalize()
     return fileName
 
-  getOutputFolder: (rootFolder, service) ->
+  getOutputFolder: (rootFolder, service, unique) ->
     #check which folder is to be used
     imagePath = nconf.get('paths:imageRootPath')
     rootPath = imagePath + '/' + rootFolder
@@ -71,7 +71,7 @@ ioHelper = exports = module.exports = class IoHelper
       _.includes folder,service
 
 
-    if(folders.length > 0)
+    if(folders.length > 0 and not unique)
       numbers = _.invokeMap folders, String::split, '_'
       numbers = _.map(numbers, 1)
       maxNumber = parseInt(_.max(numbers),10)
