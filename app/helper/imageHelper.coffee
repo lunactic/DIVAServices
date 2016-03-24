@@ -190,29 +190,52 @@ imageHelper = exports = module.exports = class ImageHelper
       require('deasync').sleep(100)
     return images
 
-  @loadCollection: (collectionName) ->
-    imagePath = nconf.get('paths:imageRootPath')
-    imgFolder = imagePath + '/' + collectionName + '/'
-    images = []
-    try
-      fs.statSync(imgFolder)
-      fs.statSync(imgFolder + '/original/')
-      files = fs.readdirSync imgFolder + '/original/'
-      for file in files
-        base64 = fs.readFileSync imgFolder + '/original/' +file, 'base64'
-        md5String = md5(base64)
-        filename = file.split('.')
-        image =
-          folder: imagePath + '/' + collectionName + '/'
-          name: filename[0]
-          extension: filename[1]
-          path: imgFolder + 'original/'+ file
-          md5: md5String
-        images.push(image)
-      return images
-    catch error
-      logger.log 'error', 'Tried to load collection: ' + collectionName + ' which does not exist.'
-      return []
+  @loadCollection: (collectionName, newCollection) ->
+    if(!newCollection)
+      filtered = _.filter(@imageInfo, (image) ->
+        return image.collection is collectionName
+      )
+      if(filtered.length > 0)
+        images = []
+        imagePath = nconf.get('paths:imageRootPath')
+        imgFolder = imagePath + '/' + collectionName + '/'
+        for item in filtered
+          filename = path.basename(item.file).split('.')[0]
+          extension = path.extname(item.file).replace('.','')
+          image =
+            folder: imagePath + '/' + collectionName + '/'
+            name: filename
+            extension: extension
+            path: item.file
+            md5: item.md5
+          images.push(image)
+        return images
+      else
+        logger.log 'error', 'Tried to load collection: ' + collectionName + ' which does not exist.'
+        return []
+    else
+      imagePath = nconf.get('paths:imageRootPath')
+      imgFolder = imagePath + '/' + collectionName + '/'
+      images = []
+      try
+        fs.statSync(imgFolder)
+        fs.statSync(imgFolder + '/original/')
+        files = fs.readdirSync imgFolder + '/original/'
+        for file in files
+          base64 = fs.readFileSync imgFolder + '/original/' +file, 'base64'
+          md5String = md5(base64)
+          filename = file.split('.')
+          image =
+            folder: imagePath + '/' + collectionName + '/'
+            name: filename[0]
+            extension: filename[1]
+            path: imgFolder + 'original/'+ file
+            md5: md5String
+          images.push(image)
+        return images
+      catch error
+        logger.log 'error', 'Tried to load collection: ' + collectionName + ' which does not exist.'
+        return []
 
   @getOutputImage: (image, folder) ->
     return folder + path.sep + image.name + '.' + image.extension

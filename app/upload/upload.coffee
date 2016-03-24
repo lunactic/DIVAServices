@@ -27,7 +27,7 @@ upload = exports = module.exports = class Upload
     ioHelper.createCollectionFolders(collectionName)
     ioHelper.downloadFile(url,nconf.get('paths:imageRootPath') + path.sep + collectionName,(err, filename) ->
       ioHelper.unzipFolder(filename, nconf.get('paths:imageRootPath') + path.sep + collectionName + path.sep + 'original', () ->
-        images = ImageHelper.loadCollection(collectionName)
+        images = ImageHelper.loadCollection(collectionName, true)
         for image in images
           ImageHelper.addImageInfo(image.md5, image.path, collectionName)
         callback null, collectionName

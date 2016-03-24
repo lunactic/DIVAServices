@@ -14,6 +14,7 @@ ImageHelper = require '../helper/imageHelper'
 IoHelper = require '../helper/ioHelper'
 logger = require '../logging/logger'
 nconf = require 'nconf'
+path = require 'path'
 PostHandler = require './postHandler'
 ResultHelper = require '../helper/resultHelper'
 router = require('express').Router()
@@ -96,6 +97,21 @@ router.post '*', (req, res, next) ->
   postHandler.handleRequest req, (err, response) ->
     response['statusCode'] = 202
     sendResponse res, err, response
+
+#load all images from a collection
+router.get '/image/:collection', (req, res) ->
+  collection = req.params.collection
+  images = ImageHelper.loadCollection(collection, false)
+  imgs = []
+  for image in images
+    imgs.push('image': {
+      md5: image.md5
+      url: ImageHelper.getOutputImageUrl(collection + path.sep + 'original', image.name, image.extension)
+    })
+  response =
+    collection: collection
+    images: imgs
+  sendResponse(res, null, response)
 
 router.get '/image/check/:md5', (req, res) ->
   ImageHelper.imageExists req.params.md5, (err, response) ->

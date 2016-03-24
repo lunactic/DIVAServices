@@ -242,7 +242,7 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
       callback null, collection
     else
       #if results not available, load images and create processes
-      images = ImageHelper.loadCollection(collection.name)
+      images = ImageHelper.loadCollection(collection.name, false)
       for image in images
         process = new Process()
         process.req = _.clone(req)
