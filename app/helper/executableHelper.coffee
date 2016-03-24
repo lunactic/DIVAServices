@@ -50,7 +50,10 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
     execType = getExecutionType programType
     # return the command line call
     #dataPath = _.values(data).join(' ')
-    paramsPath = _.values(params).join(' ')
+    paramsPath = ""
+    for param in _.values(params)
+      paramsPath += '"' + param + '" '
+
     return execType + ' ' + executablePath + ' ' + paramsPath
 
   buildRemoteCommand = (process) ->
