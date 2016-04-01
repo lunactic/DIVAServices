@@ -27,10 +27,10 @@ imageHelper = exports = module.exports = class ImageHelper
     switch inputImage.type
       when 'image'
         image = @saveOriginalImage(inputImage.value,process.rootFolder,counter)
-        @addImageInfo(image.md5, image.path)
+        @addImageInfo(image.md5, image.path, process.rootFolder)
       when 'url'
         image = @saveImageUrl(inputImage.value,process.rootFolder, counter)
-        @addImageInfo(image.md5, image.path)
+        @addImageInfo(image.md5, image.path, process.rootFolder)
       when 'md5'
         image = @loadImagesMd5(inputImage.value)[0]
     return image
@@ -257,6 +257,11 @@ imageHelper = exports = module.exports = class ImageHelper
   @getImageInfo: (md5) ->
     return _.find @imageInfo, (info) ->
       return info.md5 == md5
+
+  @addImageInfoCollection: (collection) ->
+    images = @loadCollection(collection, true)
+    for image in images
+      @addImageInfo(image.md5, image.path, collection)
 
   @saveImageInfo: () ->
     fs.writeFileSync nconf.get('paths:imageInfoFile'),JSON.stringify(@imageInfo, null, '\t'), 'utf8'

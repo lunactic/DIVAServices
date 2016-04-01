@@ -105,6 +105,8 @@ getHandler = exports = module.exports = class GetHandler
               process.result = ResultHelper.loadResult process
               if(queryParams.requireOutputImage is 'false' && process.result['image']?)
                 delete process.result['image']
+              if(!process.result?)
+                process.result = {status: 'planned'}
               if(!process.result.hasOwnProperty('status'))
                 process.result['status'] = 'done'
               callback null, process.result

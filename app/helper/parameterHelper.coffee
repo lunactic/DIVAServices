@@ -176,7 +176,6 @@ parameterHelper = exports = module.exports = class ParameterHelper
   saveParamInfo: (process, parameters, rootFolder,outputFolder,method ) ->
     if process.result?
       return
-
     try
       fs.mkdirSync(outputFolder)
     catch error

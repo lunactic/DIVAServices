@@ -14,6 +14,7 @@ https     = require 'https'
 mkdirp    = require 'mkdirp'
 nconf     = require 'nconf'
 path      = require 'path'
+rmdir     = require 'rimraf'
 unzip     = require 'unzip2'
 url       = require 'url'
 logger    = require '../logging/logger'
@@ -53,7 +54,7 @@ ioHelper = exports = module.exports = class IoHelper
     archive.bulk([
       expand: true
       cwd: folder+'/'
-      src: ['*','**/*']
+      src: ['*.png','**/*.png']
     ])
     archive.finalize()
     return fileName
@@ -157,17 +158,15 @@ ioHelper = exports = module.exports = class IoHelper
       if(err)
         logger.log 'error', err
     )
+
   deleteCollectionFolders: (collection) ->
     rootFolder = nconf.get('paths:imageRootPath') + path.sep + collection
-    fs.stat(rootFolder + path.sep + 'original', (err, stat) ->
-      if(!err?)
-        fs.rmdirSync(rootFolder + path.sep + 'original')
+    rmdir(rootFolder, (err) ->
+      if(err)
+        logger.log 'error', err
+        return
+      return
     )
-    fs.stat(rootFolder, (err,stat) ->
-      if(!err?)
-        fs.rmdirSync(rootFolder)
-    )
-    return
     
   checkFileExists: (filePath) ->
     try

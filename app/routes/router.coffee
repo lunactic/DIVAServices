@@ -29,8 +29,11 @@ postHandler = new PostHandler()
 # Set up special route for image uploading
 router.post '/upload', (req, res) ->
   if(req.body.image?)
-    Upload.uploadBase64 req.body.image, (err, result) ->
+    Upload.uploadBase64Image req.body.image, (err, result) ->
       res.json {md5: result.md5}
+  else if(req.body.zip?)
+    Upload.uploadBase64Zip req.body.zip, (err, result) ->
+      res.json {collection: result}
   else if(req.body.url?)
     if(req.body.url.endsWith('zip'))
       Upload.uploadZip(req.body.url, (err, result) ->
