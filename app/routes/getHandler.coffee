@@ -66,8 +66,8 @@ getHandler = exports = module.exports = class GetHandler
       collection = new Collection()
       collection.name = queryParams['collection']
       collection.method = parameterHelper.getMethodName(req.path)
-      params = prepareQueryParams(collection, queryParams)
-      folder = nconf.get('paths:imageRootPath') + path.sep + collection
+      prepareQueryParams(collection, queryParams)
+      folder = nconf.get('paths:imageRootPath') + path.sep + collection.name
       collection.neededParameters = neededParameters
       collection.inputParameters = queryParams
       collection.image =
@@ -96,7 +96,7 @@ getHandler = exports = module.exports = class GetHandler
           for image in images
             process = new Process()
             process.image = image
-            params = prepareQueryParams(process,queryParams)
+            prepareQueryParams(process,queryParams)
             process.parameters = parameterHelper.matchParams(process, req)
             process.method = serviceInfo.service
             process.rootFolder = image.folder.split(path.sep)[image.folder.split(path.sep).length-2]
@@ -119,7 +119,7 @@ getHandler = exports = module.exports = class GetHandler
     else if queryParams['rootFolder']
       #try to load results
       process = new Process()
-      params = prepareQueryParams(process,queryParams)
+      prepareQueryParams(process,queryParams)
       process.parameters = parameterHelper.matchParams(process, req)
       process.method = serviceInfo.service
       process.rootFolder = queryParams['rootFolder']
@@ -153,7 +153,7 @@ getHandler = exports = module.exports = class GetHandler
     else
       proc.inputHighlighters = {}
 
-    return params
+    return
 
   createError = (status, message) ->
     err =
