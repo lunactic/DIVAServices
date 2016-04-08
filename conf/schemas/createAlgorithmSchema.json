@@ -276,6 +276,8 @@
             },
             "outputFolder":{
               "type":"object"
+            },"host":{
+              "type":"object"
             }
           },
           "additionalProperties": false

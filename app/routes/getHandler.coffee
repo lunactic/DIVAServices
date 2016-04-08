@@ -120,6 +120,8 @@ getHandler = exports = module.exports = class GetHandler
       #try to load results
       process = new Process()
       prepareQueryParams(process,queryParams)
+      process.neededParameters = serviceInfo.parameters
+      prepareNeededParameters(process)
       process.parameters = parameterHelper.matchParams(process, req)
       process.method = serviceInfo.service
       process.rootFolder = queryParams['rootFolder']
@@ -154,6 +156,11 @@ getHandler = exports = module.exports = class GetHandler
       proc.inputHighlighters = {}
 
     return
+  prepareNeededParameters = (process) ->
+    for reservedWord in nconf.get('reservedWords')
+      _.unset(process.neededParameters, reservedWord)
+    return
+
 
   createError = (status, message) ->
     err =

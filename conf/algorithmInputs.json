@@ -171,5 +171,8 @@
   },
   "outputFolder":{
     "infoText":"Folder for saving results"
+  },
+  "host":{
+    "infoText":"Base Url of the server"
   }
 }

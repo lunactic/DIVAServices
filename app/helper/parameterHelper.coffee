@@ -183,11 +183,16 @@ parameterHelper = exports = module.exports = class ParameterHelper
 
     methodPath = nconf.get('paths:imageRootPath') + '/'+ rootFolder + '/' + method + '.json'
     content = []
-    data =
-      highlighters: _.clone(process.inputHighlighters)
-      parameters: _.clone(process.inputParameters)
-      folder: outputFolder
-
+    if(process.inputHighlighters?)
+      data =
+        highlighters: _.clone(process.inputHighlighters)
+        parameters: _.clone(process.inputParameters)
+        folder: outputFolder
+    else
+      data =
+        highlighters: {}
+        parameters: _.clone(process.inputParameters)
+        folder: outputFolder
 
     #make strings of everything
     _.forIn(data.parameters, (value,key) ->
