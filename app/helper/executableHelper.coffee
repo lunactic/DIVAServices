@@ -15,6 +15,7 @@ path                = require 'path'
 logger              = require '../logging/logger'
 Collection          = require '../processingQueue/collection'
 ConsoleResultHandler= require './resultHandlers/consoleResultHandler'
+DockerManagement    = require '../docker/dockerManagement'
 FileResultHandler   = require './resultHandlers/fileResultHandler'
 IiifManifestParser  = require '../parsers/iiifManifestParser'
 ImageHelper         = require '../helper/imageHelper'
@@ -35,7 +36,6 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
   # **constructor**</br>
   constructor: ->
     @remoteExecution = new RemoteExecution(nconf.get('remoteServer:ip'),nconf.get('remoteServer:user'))
-
 
   # ---
   # **buildCommand**</br>
@@ -139,6 +139,11 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
         console.log 'error', err
       #self.emit('processingFinished')
 
+  executeDockerRequest: (process) ->
+    process.id = Statistics.startRecording(process.req.originalUrl,process)
+    process.remoteResultUrl = 'http://' + nconf.get('docker:reportHost') + '/jobs/' + process.id
+    serviceInfo = ServicesInfoHelper.getServiceInfoByPath(process.req.originalUrl)
+    DockerManagement.runDockerImage(process, serviceInfo.image_name)
 
   preprocess: (req,processingQueue, requestCallback, queueCallback) ->
     serviceInfo = ServicesInfoHelper.getServiceInfoByPath(req.originalUrl)

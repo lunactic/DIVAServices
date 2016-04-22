@@ -1,24 +1,34 @@
 {
   "author":{
+    "infoText":"Author of the method",
     "type":"string",
     "minLength":5,
     "maxLength":50
   },
   "email":{
+    "infoText":"Contact email address",
     "type":"string",
     "format":"email"
   },
   "website":{
+    "infoText":"Project website",
     "type":"string",
     "format":"uri"
   },
   "DOI":{
+    "infoText":"DOI of a related paper to cite when using this method",
     "type":"string"
   },
   "purpose":{
+    "infoText":"Purpose of this method",
     "type":"string"
   },
   "license":{
+    "infoText":"License of this method",
+    "type":"string"
+  },
+  "type":{
+    "infoText":"Type of this method  (e.g. OCR, binarization,...)",
     "type":"string"
   }
 }

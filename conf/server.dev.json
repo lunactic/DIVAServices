@@ -13,12 +13,29 @@
     ],
     "level": "DEBUG"
   },
+  "docker":{
+    "host":"diufpc51",
+    "port":"2375",
+    "reportHost":"134.21.72.48:8080",
+    "replacePaths":[
+      "inputImage",
+      "inputFolder",
+      "outputFolder",
+      "resultFile"
+    ],
+    "paths":{
+      "inputImage":"/data/inputImage.png",
+      "inputFolder":"/data",
+      "outputFolder":"/data",
+      "resultFile":"/data/result.json"
+    }
+  },
   "server": {
     "timeout": 600000,
     "httpPort": 8080,
     "httpsPort": 8443,
     "maxFileSize": 20971520,
-    "rootUrl":"192.168.56.101:8080"
+    "rootUrl":"134.21.72.48:8080"
   },
   "images": {
     "storeResponse": false

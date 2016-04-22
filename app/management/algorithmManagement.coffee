@@ -9,7 +9,7 @@ ServicesInfoHelper = require '../helper/servicesInfoHelper'
 algorithmManagement = exports = module.exports = class AlgorithmManagement
 
   @generateUrl: (newAlgorithm) ->
-    return newAlgorithm.namespace + '/' + newAlgorithm.name.replace(/\s/g, '').toLowerCase()
+    return newAlgorithm.info.type + '/' + newAlgorithm.name.replace(/\s/g, '').toLowerCase()
 
   @generateFolders: (route) ->
     mkdirp.sync('/data/executables/' + route)
@@ -51,6 +51,8 @@ algorithmManagement = exports = module.exports = class AlgorithmManagement
       return
     )
 
+
+  #TODO MAKE CHANGES FOR DOCKER OR CREATE A SEPERATE METHOD
   @updateServicesFile: (newAlgorithm, route) ->
     newContent = _.cloneDeep(ServicesInfoHelper.fileContent)
     parameters = {}
@@ -64,8 +66,9 @@ algorithmManagement = exports = module.exports = class AlgorithmManagement
       executablePath: '/data/executables/' + route + path.sep + newAlgorithm.executable
       programType: newAlgorithm.language
       allowParallel: true
-      output: newAlgorithm.output
-      execute: 'local'
+      output: 'file'
+      execute: 'docker'
+      image_name: newAlgorithm.image_name
       parameters: parameters
     newContent.services.push(newServiceEntry)
     ServicesInfoHelper.update(newContent)

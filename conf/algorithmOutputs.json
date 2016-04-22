@@ -1,1 +1,8 @@
-["file", "console", "none"]
+  {
+    "file":{
+      "infoText":"Store output into a file. Requires to use a outputFile parameter!"
+    },
+    "console":{
+      "infoText":"Returns output to the standard output"
+    }
+  }

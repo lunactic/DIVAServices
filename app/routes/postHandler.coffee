@@ -34,14 +34,17 @@ postHandler = exports = module.exports = class PostHandler
   handleRequest: (req, cb) ->
     serviceInfo = ServicesInfoHelper.getServiceInfoByPath(req.originalUrl)
 
-    if(serviceInfo.execute is'remote')
-      #execute remote
-      @queueHandler.addRemoteRequestToQueue(req, cb)
-    else if(serviceInfo.execute is 'local')
-      @queueHandler.addLocalRequestToQueue(req,cb)
-    else
-      logger.log 'error', 'error in definition for method: ' + req.originalUrl
-      error =
-        statusCode: 500
-        statusText: 'error in method definition'
-      callback(error, null)
+    switch serviceInfo.execute
+      when 'remote'
+        #execute remote
+        @queueHandler.addRemoteRequestToQueue(req, cb)
+      when 'local'
+        @queueHandler.addLocalRequestToQueue(req,cb)
+      when 'docker'
+        @queueHandler.addDockerRequestToQueue(req,cb)
+      else
+        logger.log 'error', 'error in definition for method: ' + req.originalUrl
+        error =
+          statusCode: 500
+          statusText: 'error in method definition'
+        callback(error, null)

@@ -9,6 +9,7 @@
 # Require Express Router
 AlgorithmManagement = require '../management/algorithmManagement'
 async = require 'async'
+DockerManagement = require '../docker/dockerManagement'
 GetHandler = require './getHandler'
 ImageHelper = require '../helper/imageHelper'
 IoHelper = require '../helper/ioHelper'
@@ -81,19 +82,43 @@ router.post '/management/algorithms', (req, res, next) ->
     if(error)
       sendError(res, error)
     else
+#      route = AlgorithmManagement.generateUrl(req.body)
+#      #local
+#      AlgorithmManagement.generateFolders(route)
+#      ioHelper.downloadFile(req.body.file, '/data/executables/'+route, (err, filename) ->
+#        ioHelper.unzipFolder(filename, '/data/executables/'+route, () ->
+#          ioHelper.deleteFile(filename)
+#          AlgorithmManagement.createInfoFile(req.body, '/data/json/'+route)
+#          AlgorithmManagement.updateServicesFile(req.body, route)
+#          AlgorithmManagement.updateRootInfoFile(req.body, route)
+#          res.status '200'
+#          res.send()
+#        )
+#      )
+#      #docker
       route = AlgorithmManagement.generateUrl(req.body)
       AlgorithmManagement.generateFolders(route)
       ioHelper.downloadFile(req.body.file, '/data/executables/'+route, (err, filename) ->
-        ioHelper.unzipFolder(filename, '/data/executables/'+route, () ->
-          ioHelper.deleteFile(filename)
-          AlgorithmManagement.createInfoFile(req.body, '/data/json/'+route)
-          AlgorithmManagement.updateServicesFile(req.body, route)
-          AlgorithmManagement.updateRootInfoFile(req.body, route)
-          res.status '200'
-          res.send()
-        )
+        #create docker file
+        DockerManagement.createDockerFile(req.body, '/data/executables/'+route)
+        #create bash script
+        DockerManagement.createBashScript(req.body, '/data/executables/'+route)
+
+        #create a tar from zip
+        DockerManagement.buildImage('/data/executables/'+route, req.body.image_name, (err, response) ->
+          if(err?)
+            #return error message
+          else
+            #AlgorithmManagement.createInfoFile(req.body, '/data/json/'+route)
+            AlgorithmManagement.updateServicesFile(req.body, route)
+            #AlgorithmManagement.updateRootInfoFile(req.body, route)
+            #update servicesFile
+            response =
+              statusCode: 200
+              message: 'algo created'
+            send200(res, response)
+        ))
       )
-  )
 
 # Set up the routing for POST requests
 router.post '*', (req, res, next) ->
@@ -150,20 +175,24 @@ router.get '/info/outputs', (req, res) ->
   outputs = ioHelper.loadFile('conf/algorithmOutputs.json')
   sendResponse res, null, outputs,
 
-    router.get '/info/general', (req, res) ->
-      ioHelper = new IoHelper()
-      general = ioHelper.loadFile('conf/generalAlgorithmInfos.json')
-
-      sendResponse res, null, general
+router.get '/info/general', (req, res) ->
+  ioHelper = new IoHelper()
+  general = ioHelper.loadFile('conf/generalAlgorithmInfos.json')
+  sendResponse res, null, general
 
 router.get '/info/additional', (req, res) ->
   ioHelper = new IoHelper()
   additional = ioHelper.loadFile('conf/additionalAlgorithmInfos.json')
   sendResponse res, null, additional
 
-router.get '/info/languages', (req, res) ->
+router.get '/info/environments', (req, res) ->
   ioHelper = new IoHelper()
-  languages = ioHelper.loadFile('conf/algorithmProgrammingLanguages.json')
+  environments = ioHelper.loadFile('conf/algorithmEnvironments.json')
+  sendResponse res, null, environments
+
+router.get '/info/language', (req, res) ->
+  ioHelper = new IoHelper()
+  languages = ioHelper.loadFile('conf/algorithmLanguages.json')
   sendResponse res, null, languages
 
 # Set up the routing for GET requests

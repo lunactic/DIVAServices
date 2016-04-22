@@ -1,0 +1,8 @@
+{
+  "java": {
+    "infoText": "Java"
+  },
+  "coffeescript": {
+    "infoText": "CoffeeScript"
+  }
+}

@@ -12,12 +12,5 @@
     "minLength":5,
     "maxLength":255,
     "required":true
-  },
-  "type":{
-    "type":"string",
-    "infoText":"Type of the method (e.g. OCR or binarization)",
-    "minLength":2,
-    "maxLength":50,
-    "required": false
   }
 }

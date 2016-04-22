@@ -11,6 +11,9 @@
       },
       "highlighter": {
         "type": "object",
+        "required":[
+          "type"
+        ],
         "properties": {
           "type": {
             "enum": [
@@ -186,11 +189,12 @@
       "name",
       "description",
       "input",
-      "namespace",
       "output",
       "file",
       "language",
-      "executable"
+      "executable",
+      "base_image",
+      "image_name"
     ],
     "properties": {
       "name": {
@@ -202,22 +206,25 @@
         "type": "string",
         "minLength": 5
       },
-      "namespace":{
-        "type":"string",
-        "minLength": 3,
-        "maxLength": 20
-      },
       "url": {
         "type": "string",
         "format": "uri"
       },
       "info": {
         "type": "object",
+        "required":[
+          "type"
+        ],
         "properties": {
           "author": {
             "type": "string",
             "minLenght": 5,
             "maxLength": 50
+          },
+          "type":{
+            "type":"string",
+            "minLength":3,
+            "maxLength":50
           },
           "email": {
             "type": "string",
@@ -295,6 +302,12 @@
         "type":"string"
       },
       "executable":{
+        "type":"string"
+      },
+      "base_image":{
+        "type":"string"
+      },
+      "image_name":{
         "type":"string"
       }
     },

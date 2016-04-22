@@ -25,3 +25,4 @@ process = exports = module.exports = class Process
   @result: null
   @resultLink: ""
   @data: null
+  @remoteResultUrl: ""
