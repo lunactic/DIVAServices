@@ -47,8 +47,6 @@ router.post '/upload', (req, res) ->
 router.post '/jobs/:jobId', (req, res, next) ->
   process = Statistics.getProcess(req.params.jobId)
   Statistics.endRecording(req.params.jobId, process.req.originalUrl)
-  #remoteExecution = new RemoteExecution(nconf.get('remoteServer:ip'),nconf.get('remoteServer:user'))
-  #remoteExecution.cleanUp(process)
   async.waterfall [
     (callback) ->
       process.result = req.body
@@ -103,15 +101,14 @@ router.post '/management/algorithms', (req, res, next) ->
         DockerManagement.createDockerFile(req.body, '/data/executables/'+route)
         #create bash script
         DockerManagement.createBashScript(req.body, '/data/executables/'+route)
-
+        AlgorithmManagement.createInfoFile(req.body, '/data/json/'+route)
+        AlgorithmManagement.updateServicesFile(req.body, route)
+        AlgorithmManagement.updateRootInfoFile(req.body, route)
         #create a tar from zip
         DockerManagement.buildImage('/data/executables/'+route, req.body.image_name, (err, response) ->
           if(err?)
             #return error message
           else
-            #AlgorithmManagement.createInfoFile(req.body, '/data/json/'+route)
-            AlgorithmManagement.updateServicesFile(req.body, route)
-            #AlgorithmManagement.updateRootInfoFile(req.body, route)
             #update servicesFile
             response =
               statusCode: 200

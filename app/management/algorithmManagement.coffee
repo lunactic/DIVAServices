@@ -26,7 +26,12 @@ algorithmManagement = exports = module.exports = class AlgorithmManagement
     _.unset(data, 'file')
     _.unset(data, 'language')
     _.unset(data, 'executable')
+    _.unset(data, 'base_image')
+    _.unset(data, 'image_name')
     data.input = _.remove(data.input, (input) ->
+      logger.log 'info', input
+      logger.log 'info', _.keys(input)[0]
+      logger.log 'info', _.includes(reservedWords, _.keys(input)[0])
       return not _.includes(reservedWords, _.keys(input)[0])
     )
 

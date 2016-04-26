@@ -28,14 +28,13 @@ fileResultHandler = exports = module.exports = class FileResultHandler
                 process.outputImageUrl = ImageHelper.getOutputImageUrl(process.rootFolder + '/' + process.methodFolder, process.image.name, process.image.extension )
                 data['outputImage'] = process.outputImageUrl
                 delete data['image']
-
               data['inputImage'] = process.inputImageUrl
               data['resultLink'] = process.resultLink
               data['collectionName'] = process.rootFolder
               data['resultZipLink'] = 'http://192.168.56.101:8080/collections/' + process.rootFolder + '/' + process.methodFolder
               fs.writeFileSync(self.filename,JSON.stringify(data), "utf8")
             catch error
-              console.log error
+              logger.log 'error', error
             callback null, data, process.id
       else
         callback err, null, null

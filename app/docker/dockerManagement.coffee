@@ -87,8 +87,10 @@ dockerManagement = exports = module.exports = class DockerManagement
     command = "./script.sh " + process.inputImageUrl + " " + process.remoteResultUrl
     logger.log 'info', command
     @docker.run(imageName,['bash', '-c', command], process.stdout, (err, data, container) ->
-      logger.log 'info', data.statusCode
-    )
+      if(data.StatusCode is 0)
+        logger.log 'info', 'docker execution returned StatusCode: ' + data.StatusCode
+        container.remove( (err, data) -> )
+      )
     #command = 'docker run --rm ' + imageName + ' ' + process.inputImageUrl + ' ' + process.remoteResultUrl + ' '+ paramsPath
     #logger.log 'info', 'run docker command: ' + command
     #child = exec(command, { maxBuffer: 1024 * 48828 }, (error, stdout, stderr) ->
