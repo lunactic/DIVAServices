@@ -1,12 +1,53 @@
-_ = require 'lodash'
-IoHelper = require '../helper/ioHelper'
-logger = require '../logging/logger'
-mkdirp = require 'mkdirp'
-nconf = require 'nconf'
-path = require 'path'
-ServicesInfoHelper = require '../helper/servicesInfoHelper'
+_                   = require 'lodash'
+crypto              = require 'crypto'
+IoHelper            = require '../helper/ioHelper'
+logger              = require '../logging/logger'
+mkdirp              = require 'mkdirp'
+nconf               = require 'nconf'
+path                = require 'path'
+ServicesInfoHelper  = require '../helper/servicesInfoHelper'
 
 algorithmManagement = exports = module.exports = class AlgorithmManagement
+
+  @ioHelper = new IoHelper()
+
+
+  @updateStatus: (identifier, status, message) ->
+    content = @ioHelper.loadFile(nconf.get('paths:algorithmStatusFile'))
+    currentInfo = {}
+    if(_.find(content, {'identifier':identifier})?)
+      currentInfo = _.find(content, {'identifier':identifier})
+    else
+      currentInfo =
+        identifier: identifier
+        statusCode: -1
+        statusMessage: ''
+      content.push currentInfo
+    switch status
+      when 'creating'
+        currentInfo.statusCode = 100
+        currentInfo.statusMessage = 'Building Algorithm Image'
+      when 'testing'
+        currentInfo.statusCode = 110
+        currentInfo.statusMessage = 'Testing Algorithm'
+      when 'ok'
+        currentInfo.statusCode = 200
+        currentInfo.statusMessage = 'Algorithm is Available'
+      when 'error'
+        currentInfo.statusCode = 500
+        currentInfo.statusMessage = 'Error: ' + message
+    @ioHelper.saveFile(nconf.get('paths:algorithmStatusFile'), content, () ->)
+
+
+  @getStatus: (identifier) ->
+    content = @ioHelper.loadFile(nconf.get('paths:algorithmStatusFile'))
+    return _.find(content, {'identifier':identifier})
+
+
+  @createIdentifier: () ->
+    current_date = (new Date).valueOf().toString()
+    random = Math.random().toString()
+    return crypto.createHash('sha1').update(current_date + random).digest 'hex'
 
   @generateUrl: (newAlgorithm) ->
     return newAlgorithm.info.type + '/' + newAlgorithm.name.replace(/\s/g, '').toLowerCase()
@@ -17,7 +58,6 @@ algorithmManagement = exports = module.exports = class AlgorithmManagement
     return
 
   @createInfoFile: (newAlgorithm, folder) ->
-    ioHelper = new IoHelper()
     data = _.cloneDeep(newAlgorithm)
     reservedWords = _.remove(nconf.get('reservedWords'), (word) ->
       return not (word is 'highlighter')
@@ -35,7 +75,7 @@ algorithmManagement = exports = module.exports = class AlgorithmManagement
       return not _.includes(reservedWords, _.keys(input)[0])
     )
 
-    ioHelper.saveFile(folder + path.sep + 'info.json', data, (err) ->
+    @ioHelper.saveFile(folder + path.sep + 'info.json', data, (err) ->
       if(err)
         logger.log 'error', err
       else
@@ -44,15 +84,14 @@ algorithmManagement = exports = module.exports = class AlgorithmManagement
 
 
   @updateRootInfoFile: (newAlgorithm, route) ->
-    ioHelper = new IoHelper()
-    fileContent = ioHelper.loadFile(nconf.get('paths:jsonPath') + path.sep + 'info.json')
+    fileContent = @ioHelper.loadFile(nconf.get('paths:jsonPath') + path.sep + 'info.json')
     newEntry =
       name: newAlgorithm.name
       description: newAlgorithm.description
       type: newAlgorithm.namespace
       url: 'http://$BASEURL$/' + route
     fileContent.push(newEntry)
-    ioHelper.saveFile(nconf.get('paths:jsonPath') + path.sep + 'info.json', fileContent, (err) ->
+    @ioHelper.saveFile(nconf.get('paths:jsonPath') + path.sep + 'info.json', fileContent, (err) ->
       return
     )
 

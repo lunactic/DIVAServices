@@ -72,7 +72,7 @@ router.post '/validate/:schema', (req, res, next) ->
     when 'create'
       validate(req, res, 'createSchema')
 
-router.post '/management/algorithms', (req, res, next) ->
+router.post '/algorithms', (req, res, next) ->
   ioHelper = new IoHelper()
   #add a new algorithm
   #get route address
@@ -80,27 +80,17 @@ router.post '/management/algorithms', (req, res, next) ->
     if(error)
       sendError(res, error)
     else
-#      route = AlgorithmManagement.generateUrl(req.body)
-#      #local
-#      AlgorithmManagement.generateFolders(route)
-#      ioHelper.downloadFile(req.body.file, '/data/executables/'+route, (err, filename) ->
-#        ioHelper.unzipFolder(filename, '/data/executables/'+route, () ->
-#          ioHelper.deleteFile(filename)
-#          AlgorithmManagement.createInfoFile(req.body, '/data/json/'+route)
-#          AlgorithmManagement.updateServicesFile(req.body, route)
-#          AlgorithmManagement.updateRootInfoFile(req.body, route)
-#          res.status '200'
-#          res.send()
-#        )
-#      )
-#      #docker
+      #docker
       route = AlgorithmManagement.generateUrl(req.body)
+      identifier = AlgorithmManagement.createIdentifier()
+      AlgorithmManagement.updateStatus(identifier,'creating')
       AlgorithmManagement.generateFolders(route)
       ioHelper.downloadFile(req.body.file, '/data/executables/'+route, (err, filename) ->
         #create docker file
         DockerManagement.createDockerFile(req.body, '/data/executables/'+route)
         #create bash script
         DockerManagement.createBashScript(req.body, '/data/executables/'+route)
+        #update servicesFile
         AlgorithmManagement.createInfoFile(req.body, '/data/json/'+route)
         AlgorithmManagement.updateServicesFile(req.body, route)
         AlgorithmManagement.updateRootInfoFile(req.body, route)
@@ -109,11 +99,12 @@ router.post '/management/algorithms', (req, res, next) ->
           if(err?)
             #return error message
           else
-            #update servicesFile
+            AlgorithmManagement.updateStatus(identifier,'ok')
             response =
               statusCode: 200
-              message: 'algo created'
-            send200(res, response)
+              identifier: identifier
+              message: 'Algorithm created'
+            sendResponse(res, response)
         ))
       )
 
@@ -122,6 +113,12 @@ router.post '*', (req, res, next) ->
   postHandler.handleRequest req, (err, response) ->
     response['statusCode'] = 202
     sendResponse res, err, response
+
+
+router.get '/algorithms/:identifier', (req, res) ->
+  identifier = req.params.identifier
+  status = AlgorithmManagement.getStatus(identifier)
+  send200(res, status)
 
 #load all images from a collection
 router.get '/image/:collection', (req, res) ->
@@ -209,10 +206,18 @@ sendResponse = (res, err, response) ->
   if(err?)
     sendError(res, err)
   else
-    send200(res, response)
+    sendWithStatus(res, response)
 
 
 send200 = (res, response) ->
+  res.status = 200
+  try
+    res.json JSON.parse(response)
+  catch error
+    res.json response
+
+
+sendWithStatus = (res, response) ->
   res.status response.statusCode or 200
   #parse an unparsed json string to get a correct response
   try

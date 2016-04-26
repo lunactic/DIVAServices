@@ -115,6 +115,7 @@ ioHelper = exports = module.exports = class IoHelper
     catch error
       logger.log 'error', error
     return
+  
   writeTempFile: (filePath) ->
     try
       stats = fs.statSync filePath
