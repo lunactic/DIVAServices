@@ -12,16 +12,20 @@ algorithmManagement = exports = module.exports = class AlgorithmManagement
   @ioHelper = new IoHelper()
 
 
-  @updateStatus: (identifier, status, message) ->
+
+  @updateStatus: (identifier, status,route, message) ->
     content = @ioHelper.loadFile(nconf.get('paths:algorithmStatusFile'))
     currentInfo = {}
-    if(_.find(content, {'identifier':identifier})?)
+    if(identifier? and _.find(content, {'identifier':identifier})?)
       currentInfo = _.find(content, {'identifier':identifier})
+    else if(route? and _.find(content, {'route':route})?)
+      currentInfo = _.find(content,{'route':route})
     else
       currentInfo =
         identifier: identifier
         statusCode: -1
         statusMessage: ''
+        route: route
       content.push currentInfo
     switch status
       when 'creating'
@@ -69,9 +73,6 @@ algorithmManagement = exports = module.exports = class AlgorithmManagement
     _.unset(data, 'base_image')
     _.unset(data, 'image_name')
     data.input = _.remove(data.input, (input) ->
-      logger.log 'info', input
-      logger.log 'info', _.keys(input)[0]
-      logger.log 'info', _.includes(reservedWords, _.keys(input)[0])
       return not _.includes(reservedWords, _.keys(input)[0])
     )
 

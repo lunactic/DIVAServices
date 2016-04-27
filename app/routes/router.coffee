@@ -10,6 +10,7 @@
 AlgorithmManagement = require '../management/algorithmManagement'
 async = require 'async'
 DockerManagement = require '../docker/dockerManagement'
+ExecutableHelper    = require '../helper/executableHelper'
 GetHandler = require './getHandler'
 ImageHelper = require '../helper/imageHelper'
 IoHelper = require '../helper/ioHelper'
@@ -17,6 +18,7 @@ logger = require '../logging/logger'
 nconf = require 'nconf'
 path = require 'path'
 PostHandler = require './postHandler'
+ProcessingQueue = require '../processingQueue/processingQueue'
 ResultHelper = require '../helper/resultHelper'
 router = require('express').Router()
 schemaValidator = require '../validator/schemaValidator'
@@ -46,18 +48,25 @@ router.post '/upload', (req, res) ->
 
 router.post '/jobs/:jobId', (req, res, next) ->
   process = Statistics.getProcess(req.params.jobId)
-  Statistics.endRecording(req.params.jobId, process.req.originalUrl)
-  async.waterfall [
-    (callback) ->
-      process.result = req.body
-      ResultHelper.saveResult(process, callback)
-    (callback) ->
-      process.resultHandler.handleResult(null, null, null, process, (error, data, processId) ->
-        callback null
-      )
-  ], (err) ->
+  if(process.type is 'test')
+    #handle test
+    logger.log 'info', 'test execution sucessful'
+    AlgorithmManagement.updateStatus(null, 'ok', process.req.originalUrl)
     res.status '200'
     res.send()
+  else
+    Statistics.endRecording(req.params.jobId, process.req.originalUrl)
+    async.waterfall [
+      (callback) ->
+        process.result = req.body
+        ResultHelper.saveResult(process, callback)
+      (callback) ->
+        process.resultHandler.handleResult(null, null, null, process, (error, data, processId) ->
+          callback null
+        )
+    ], (err) ->
+      res.status '200'
+      res.send()
 
 router.post '/validate/:schema', (req, res, next) ->
   switch req.params.schema
@@ -83,7 +92,7 @@ router.post '/algorithms', (req, res, next) ->
       #docker
       route = AlgorithmManagement.generateUrl(req.body)
       identifier = AlgorithmManagement.createIdentifier()
-      AlgorithmManagement.updateStatus(identifier,'creating')
+      AlgorithmManagement.updateStatus(identifier,'creating', '/'+route)
       AlgorithmManagement.generateFolders(route)
       ioHelper.downloadFile(req.body.file, '/data/executables/'+route, (err, filename) ->
         #create docker file
@@ -91,6 +100,7 @@ router.post '/algorithms', (req, res, next) ->
         #create bash script
         DockerManagement.createBashScript(req.body, '/data/executables/'+route)
         #update servicesFile
+        #TODO Perform that step only after the execution is successful
         AlgorithmManagement.createInfoFile(req.body, '/data/json/'+route)
         AlgorithmManagement.updateServicesFile(req.body, route)
         AlgorithmManagement.updateRootInfoFile(req.body, route)
@@ -99,7 +109,28 @@ router.post '/algorithms', (req, res, next) ->
           if(err?)
             #return error message
           else
-            AlgorithmManagement.updateStatus(identifier,'ok')
+            AlgorithmManagement.updateStatus(identifier, 'testing')
+            executableHelper = new ExecutableHelper()
+            tempQueue = new ProcessingQueue()
+            req =
+              originalUrl: '/'+route
+              body:
+                images:[
+                  {
+                    type:'md5'
+                    value:'55799f62663c7dd0eb3924b38366e879'
+                  }
+                ]
+                highlighter: {}
+                inputs: {}
+
+            executableHelper.preprocess req,  tempQueue, 'test',
+            (err, response) ->
+              logger.log 'info', response
+            ,
+            () ->
+              executableHelper.executeDockerRequest(tempQueue.getNext())
+            #execute the algorithm once
             response =
               statusCode: 200
               identifier: identifier

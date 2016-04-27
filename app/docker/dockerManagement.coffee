@@ -19,13 +19,21 @@ dockerManagement = exports = module.exports = class DockerManagement
     archive = archiver('tar')
     self = @
     output.on 'close', () ->
-      self.docker.buildImage(inputFolder+path.sep+'archive.tar', {t: imageName}, (err, response) ->
+      self.docker.buildImage(inputFolder+path.sep+'archive.tar', {t: imageName, q: true}, (err, response) ->
+        id = -1
         if(err?)
           logger.log 'error', err
           callback err, null
         else
-          logger.log 'info', response
-          callback null, response
+          response.on('data', (data) ->
+            json = JSON.parse(data)
+            id = json.stream.split(':')[1].replace('\n','')
+          )
+          response.on('end', () ->
+            logger.log 'info', 'sucessfully built'
+            callback null, id
+          )
+
       )
     archive.pipe(output)
     archive.bulk([
@@ -87,10 +95,14 @@ dockerManagement = exports = module.exports = class DockerManagement
     command = "./script.sh " + process.inputImageUrl + " " + process.remoteResultUrl
     logger.log 'info', command
     @docker.run(imageName,['bash', '-c', command], process.stdout, (err, data, container) ->
-      if(data.StatusCode is 0)
+      if(err?)
+        logger.log 'error', err
+      logger.log 'info', data
+      if(data? and data.StatusCode is 0)
         logger.log 'info', 'docker execution returned StatusCode: ' + data.StatusCode
         container.remove( (err, data) -> )
       )
+      #TODO ADD ERROR HANDLING
     #command = 'docker run --rm ' + imageName + ' ' + process.inputImageUrl + ' ' + process.remoteResultUrl + ' '+ paramsPath
     #logger.log 'info', 'run docker command: ' + command
     #child = exec(command, { maxBuffer: 1024 * 48828 }, (error, stdout, stderr) ->

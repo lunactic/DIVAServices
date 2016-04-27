@@ -11,6 +11,12 @@
           "rectangle",
           "circle",
           "line"
+        ],
+        "keys":[
+          "Polygon",
+          "Rectangle",
+          "Circle",
+          "Line"
         ]
       }
     },

@@ -1,8 +1,7 @@
-
-logger              = require '../logging/logger'
-Statistics          = require '../statistics/statistics'
-ProcessingQueue     = require './processingQueue'
-ExecutableHelper    = require '../helper/executableHelper'
+logger = require '../logging/logger'
+Statistics = require '../statistics/statistics'
+ProcessingQueue = require './processingQueue'
+ExecutableHelper = require '../helper/executableHelper'
 
 queueHandler = exports = module.exports = class QueueHandler
 
@@ -24,18 +23,18 @@ queueHandler = exports = module.exports = class QueueHandler
 
   addLocalRequestToQueue: (req, cb) ->
     self = @
-    @executableHelper.preprocess req, @localProcessingQueue, cb, () ->
+    @executableHelper.preprocess req, @localProcessingQueue, 'regular', cb, () ->
       self.executeLocalRequest()
 
   addRemoteRequestToQueue: (req, cb) ->
     self = @
-    @executableHelper.preprocess req, @remoteProcessingQueue, cb, () ->
-      #TODO: ADD SPECIAL REMOTE PREPROCESSING HERE
+    @executableHelper.preprocess req, @remoteProcessingQueue, 'regular', cb, () ->
+#TODO: ADD SPECIAL REMOTE PREPROCESSING HERE
       self.executeRemoteRequest()
 
   addDockerRequestToQueue: (req, cb) ->
     self = @
-    @executableHelper.preprocess req, @dockerProcessingQueue, cb, () ->
+    @executableHelper.preprocess req, @dockerProcessingQueue, 'regular', cb, () ->
       self.executeDockerRequest()
 
 
@@ -63,7 +62,7 @@ queueHandler = exports = module.exports = class QueueHandler
       @executableHelper.executeDockerRequest(@getNextDockerRequest())
 
   executeLocalRequest: () ->
-    #TODO: Replace getNumberOfCurrentExecutions() with some form of available computing time
+#TODO: Replace getNumberOfCurrentExecutions() with some form of available computing time
     if(Statistics.getNumberOfCurrentExecutions() < 2 && @localRequestAvailable())
       @executableHelper.executeLocalRequest(@getNextLocalRequest())
 

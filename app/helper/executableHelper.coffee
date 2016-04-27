@@ -145,7 +145,7 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
     serviceInfo = ServicesInfoHelper.getServiceInfoByPath(process.req.originalUrl)
     DockerManagement.runDockerImage(process, serviceInfo.image_name)
 
-  preprocess: (req,processingQueue, requestCallback, queueCallback) ->
+  preprocess: (req,processingQueue, executionType, requestCallback, queueCallback) ->
     serviceInfo = ServicesInfoHelper.getServiceInfoByPath(req.originalUrl)
     ioHelper = new IoHelper()
     parameterHelper = new ParameterHelper()
@@ -160,7 +160,7 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
         else if(req.body.images?  and req.body.images[0].type is 'iiif')
           preprocessIiif(collection, req, ioHelper, callback)
         else
-          preprocessRegular(collection, req, serviceInfo, parameterHelper,ioHelper, callback)
+          preprocessRegular(collection, req, serviceInfo, parameterHelper,ioHelper, executionType, callback)
         return
       (collection, callback) ->
         #STEP 2
@@ -260,6 +260,7 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
         process = new Process()
         process.req = _.clone(req)
         process.rootFolder = collection.name
+        process.type = 'regular'
         process.image = image
         collection.processes.push(process)
       callback null, collection
@@ -290,11 +291,12 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
           process = new Process()
           process.req = _.clone(req)
           process.rootFolder = collection.name
+          process.type = 'regular'
           process.image = image
           collection.processes.push(process)
         callback null, collection
 
-  preprocessRegular = (collection, req, serviceInfo, parameterHelper, ioHelper, callback) ->
+  preprocessRegular = (collection, req, serviceInfo, parameterHelper, ioHelper, executionType, callback) ->
     #generte a random folder name
     rootFolder = RandomWordGenerator.generateRandomWord()
     ioHelper.createCollectionFolders(rootFolder)
@@ -307,6 +309,7 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
         process = new Process()
         process.req = _.clone(req)
         process.rootFolder = rootFolder
+        process.type = executionType
         image = ImageHelper.saveImage(inputImage, process, i)
         if(inputImage.type is 'md5')
           ioHelper.deleteCollectionFolders(collection.name)
@@ -323,6 +326,7 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
       process = new Process()
       process.req = _.clone(req)
       process.rootFolder = rootFolder
+      process.type = executionType
       process.hasImage = false
       async.waterfall [
         (callback) ->

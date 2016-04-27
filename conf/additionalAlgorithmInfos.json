@@ -3,32 +3,39 @@
     "infoText":"Author of the method",
     "type":"string",
     "minLength":5,
-    "maxLength":50
+    "maxLength":50,
+    "required":true
   },
   "email":{
     "infoText":"Contact email address",
     "type":"string",
-    "format":"email"
+    "format":"email",
+    "required":true
   },
   "website":{
     "infoText":"Project website",
     "type":"string",
-    "format":"uri"
+    "format":"uri",
+    "required":false
   },
   "DOI":{
     "infoText":"DOI of a related paper to cite when using this method",
-    "type":"string"
+    "type":"string",
+    "required":false
   },
   "purpose":{
     "infoText":"Purpose of this method",
-    "type":"string"
+    "type":"string",
+    "required":false
   },
   "license":{
     "infoText":"License of this method",
-    "type":"string"
+    "type":"string",
+    "required":false
   },
   "type":{
     "infoText":"Type of this method  (e.g. OCR, binarization,...)",
-    "type":"string"
+    "type":"string",
+    "required":true
   }
 }
