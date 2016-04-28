@@ -117,8 +117,8 @@ router.post '/algorithms', (req, res, next) ->
               body:
                 images:[
                   {
-                    type:'md5'
-                    value:'55799f62663c7dd0eb3924b38366e879'
+                    type:'url'
+                    value:'https://placeholdit.imgix.net/~text?txtsize=33&txt=350%C3%97150&w=350&h=150'
                   }
                 ]
                 highlighter: {}
@@ -135,7 +135,7 @@ router.post '/algorithms', (req, res, next) ->
               statusCode: 200
               identifier: identifier
               message: 'Algorithm created'
-            sendResponse(res, response)
+            sendResponse(res, null, response)
         ))
       )
 
