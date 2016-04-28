@@ -188,6 +188,9 @@ router.get '/image/results/:md5', (req, res)->
 
     sendResponse res, err, response
 
+router.delete '/algorithms/:identifier', (req, res) ->
+  logger.log 'info', 'removing algorithm: ' + req.params.identifier
+
 #Info routes
 router.get '/info/inputs', (req, res) ->
   ioHelper = new IoHelper()
