@@ -101,10 +101,6 @@ dockerManagement = exports = module.exports = class DockerManagement
         logger.log 'info', 'docker execution returned StatusCode: ' + data.StatusCode
         container.remove( (err, data) -> )
       )
-    #command = 'docker run --rm ' + imageName + ' ' + process.inputImageUrl + ' ' + process.remoteResultUrl + ' '+ paramsPath
-    #logger.log 'info', 'run docker command: ' + command
-    #child = exec(command, { maxBuffer: 1024 * 48828 }, (error, stdout, stderr) ->
-    #)
 
   getDockerInput = (input) ->
     return nconf.get('docker:paths:'+input)
