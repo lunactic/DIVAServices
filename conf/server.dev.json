@@ -14,9 +14,9 @@
     "level": "DEBUG"
   },
   "docker":{
-    "host":"diufpc51",
+    "host":"localhost",
     "port":"2375",
-    "reportHost":"134.21.72.48:8080",
+    "reportHost":"172.17.0.1:8080",
     "replacePaths":[
       "inputImage",
       "inputFolder",
@@ -35,7 +35,7 @@
     "httpPort": 8080,
     "httpsPort": 8443,
     "maxFileSize": 20971520,
-    "rootUrl":"134.21.72.48:8080"
+    "rootUrl":"localhost:8080"
   },
   "images": {
     "storeResponse": false

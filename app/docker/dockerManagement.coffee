@@ -87,7 +87,6 @@ dockerManagement = exports = module.exports = class DockerManagement
 
   @runDockerImage: (process, imageName) ->
     params = process.parameters.params
-    exec = childProcess.exec
     paramsPath = ""
     params = _.values(params).join(' ').split(' ')
     for param in _.values(params)
@@ -102,7 +101,6 @@ dockerManagement = exports = module.exports = class DockerManagement
         logger.log 'info', 'docker execution returned StatusCode: ' + data.StatusCode
         container.remove( (err, data) -> )
       )
-      #TODO ADD ERROR HANDLING
     #command = 'docker run --rm ' + imageName + ' ' + process.inputImageUrl + ' ' + process.remoteResultUrl + ' '+ paramsPath
     #logger.log 'info', 'run docker command: ' + command
     #child = exec(command, { maxBuffer: 1024 * 48828 }, (error, stdout, stderr) ->
