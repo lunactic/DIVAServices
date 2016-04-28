@@ -149,7 +149,7 @@ router.post '*', (req, res, next) ->
 router.get '/algorithms/:identifier', (req, res) ->
   identifier = req.params.identifier
   status = AlgorithmManagement.getStatus(identifier)
-  send200(res, status)
+  sendResponse res, null, status
 
 #load all images from a collection
 router.get '/image/:collection', (req, res) ->

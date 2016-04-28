@@ -45,7 +45,14 @@ algorithmManagement = exports = module.exports = class AlgorithmManagement
 
   @getStatus: (identifier) ->
     content = @ioHelper.loadFile(nconf.get('paths:algorithmStatusFile'))
-    return _.find(content, {'identifier':identifier})
+    status = _.find(content, {'identifier':identifier})
+    if(status?)
+      return status
+    else
+      return {
+        statusCode: 404,
+        statusText: 'Algorithm with ' + identifier + ' not available'
+      }
 
 
   @createIdentifier: () ->
