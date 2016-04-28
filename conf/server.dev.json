@@ -53,9 +53,11 @@
     "jsonPath":"/data/json",
     "ocropyLanguageModelsPath": "/data/ocropyLanguageModels",
     "imageInfoFile": "/data/images/imageInfo.json",
+    "rootInfoFile":"/data/json/info.json",
     "statisticsFile":"/data/statistics.json",
     "servicesInfoFile":"/data/json/services.json",
-    "noisingXmlPath": "/data/noise/scripts/realistic.xml"
+    "noisingXmlPath": "/data/noise/scripts/realistic.xml",
+    "executablePath":"/data/executables"
   },
   "remotePaths": {
     "matlabPath": "/opt/matlab/R2012b/bin/matlab",
