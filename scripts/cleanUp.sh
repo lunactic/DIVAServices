@@ -35,7 +35,7 @@ statisticsFile=($(cat conf/server.dev.json | jq -r '.paths.statisticsFile'))
 echo "[]" > $statisticsFile
 
 servicesInfoFile=($(cat conf/server.dev.json | jq -r '.paths.servicesInfoFile'))
-echo "[]" > $servicesInfoFile
+echo '{"services":[]}' > $servicesInfoFile
 
 rootInfoFile=($(cat conf/server.dev.json | jq -r '.paths.rootInfoFile'))
 echo "[]" > $rootInfoFile
