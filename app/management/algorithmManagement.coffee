@@ -34,6 +34,10 @@ algorithmManagement = exports = module.exports = class AlgorithmManagement
       when 'error'
         currentInfo.status.statusCode = 500
         currentInfo.status.statusMessage = 'Error: ' + message
+      when 'delete'
+        currentInfo.status.statusCode = 410
+        currentInfo.status.statusMessage = 'This Algorithm is no longer available'
+
     @ioHelper.saveFile(nconf.get('paths:servicesInfoFile'), content)
     return
 
@@ -84,19 +88,26 @@ algorithmManagement = exports = module.exports = class AlgorithmManagement
       else
         return
     )
-
+  @deleteInfoFile: (folder) ->
+    @ioHelper.deleteFile(folder + path.sep + 'info.json')
 
   @updateRootInfoFile: (newAlgorithm, route) ->
-    fileContent = @ioHelper.loadFile(nconf.get('paths:jsonPath') + path.sep + 'info.json')
+    fileContent = @ioHelper.loadFile(nconf.get('paths:rootInfoFile'))
     newEntry =
       name: newAlgorithm.name
       description: newAlgorithm.description
       type: newAlgorithm.namespace
       url: 'http://$BASEURL$/' + route
     fileContent.push(newEntry)
-    @ioHelper.saveFile(nconf.get('paths:jsonPath') + path.sep + 'info.json', fileContent, (err) ->
+    @ioHelper.saveFile(nconf.get('paths:rootInfoFile'), fileContent, (err) ->
       return
     )
+  @removeFromRootInfoFile: (route) ->
+    fileContent = @ioHelper.loadFile(nconf.get('paths:rootInfoFile'))
+    _.remove(fileContent, (entry) ->
+      entry.url == 'http://$BASEURL$'+route
+    )
+    @ioHelper.saveFile(nconf.get('paths:rootInfoFile'), fileContent)
 
 
   #TODO MAKE CHANGES FOR DOCKER OR CREATE A SEPERATE METHOD

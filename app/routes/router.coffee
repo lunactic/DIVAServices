@@ -22,6 +22,7 @@ ProcessingQueue = require '../processingQueue/processingQueue'
 ResultHelper = require '../helper/resultHelper'
 router = require('express').Router()
 schemaValidator = require '../validator/schemaValidator'
+ServicesInfoHelper  = require '../helper/servicesInfoHelper'
 Statistics = require '../statistics/statistics'
 Upload = require '../upload/upload'
 
@@ -190,6 +191,12 @@ router.get '/image/results/:md5', (req, res)->
     sendResponse res, err, response
 
 router.delete '/algorithms/:identifier', (req, res) ->
+  #set algorithm status to deleted
+  serviceInfo = ServicesInfoHelper.getServiceInfoByIdentifier(req.params.identifier)
+  AlgorithmManagement.updateStatus(req.params.identifier, 'delete')
+  #remove /route/info.json file
+  AlgorithmManagement.deleteInfoFile('/data/json'+serviceInfo.path)
+  AlgorithmManagement.removeFromRootInfoFile(serviceInfo.path)
   logger.log 'info', 'removing algorithm: ' + req.params.identifier
 
 #Info routes

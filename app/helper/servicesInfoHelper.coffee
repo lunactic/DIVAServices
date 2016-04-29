@@ -24,6 +24,13 @@ servicesInfoHelper = exports = module.exports = class ServicesInfoHelper
     )
     return serviceInfo[0]
 
+  @getServiceInfoByIdentifier: (identifier) ->
+    serviceInfo = @fileContent.services.filter((item) ->
+      item.identifier = identifier
+    )
+    return serviceInfo[0]
+
+
   @update: (newData) ->
     ioHelper = new IoHelper()
     ioHelper.saveFile(nconf.get('paths:servicesInfoFile'), newData, (err) ->
