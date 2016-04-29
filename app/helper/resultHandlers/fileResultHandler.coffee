@@ -18,7 +18,10 @@ fileResultHandler = exports = module.exports = class FileResultHandler
       if !err?
         fs.readFile self.filename, 'utf8', (err, data) ->
           if err?
-            callback err, null, null
+            error=
+              statusCode: 500
+              statusMessage: 'Could not read result file'
+            callback error, null, null
           else
             try
               data = JSON.parse(data)
@@ -34,6 +37,10 @@ fileResultHandler = exports = module.exports = class FileResultHandler
               data['resultZipLink'] = 'http://192.168.56.101:8080/collections/' + process.rootFolder + '/' + process.methodFolder
               fs.writeFileSync(self.filename,JSON.stringify(data), "utf8")
             catch error
+              err =
+                statusCode: 500
+                statusMessage: 'Could not parse result'
+              callback err
               logger.log 'error', error
             callback null, data, process.id
       else

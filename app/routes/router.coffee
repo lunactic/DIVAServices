@@ -57,11 +57,17 @@ router.post '/jobs/:jobId', (req, res, next) ->
       return
     (callback) ->
       process.resultHandler.handleResult(null, null, null, process, (error, data, processId) ->
-        callback null
+        if(error)
+          callback error
+        else
+          callback null
         return
       )
     ], (err) ->
-      if(process.type is 'test')
+      if(err)
+        AlgorithmManagement.updateStatus(null, 'error', process.req.originalUrl, error.statusMessage)
+        sendError(res, err)
+      else if(process.type is 'test')
         ioHelper = new IoHelper()
         schemaValidator.validate(ioHelper.loadFile(process.resultFile), 'responseSchema', (error) ->
           if error
