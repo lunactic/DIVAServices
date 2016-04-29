@@ -21,17 +21,33 @@ dockerManagement = exports = module.exports = class DockerManagement
     output.on 'close', () ->
       self.docker.buildImage(inputFolder+path.sep+'archive.tar', {t: imageName, q: true}, (err, response) ->
         id = -1
+        hasError = false
+        errorMessage = ''
         if(err?)
           logger.log 'error', err
-          callback err, null
+          errorMessage = err
+          hasError = true
         else
           response.on('data', (data) ->
-            json = JSON.parse(data)
-            id = json.stream.split(':')[1].replace('\n','')
+            if(hasError)
+              err =
+                statusCode: 500
+                statusMessage: errorMessage
+              callback err, null
+            try
+              json = JSON.parse(data.toString())
+              id = json.stream.split(':')[1].replace('\n','')
+            catch error
+              hasError = true
+              err =
+                statusCode: 500
+                statusMessage: data.toString()
+              callback err, null
           )
           response.on('end', () ->
-            logger.log 'info', 'sucessfully built'
-            callback null, id
+            if(not hasError)
+              logger.log 'info', 'sucessfully built'
+              callback null, id
           )
 
       )

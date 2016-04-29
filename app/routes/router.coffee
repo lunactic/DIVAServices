@@ -114,7 +114,7 @@ router.post '/algorithms', (req, res, next) ->
 
         DockerManagement.buildImage('/data/executables/'+route, req.body.image_name, (err, response) ->
           if(err?)
-            #return error message
+            AlgorithmManagement.updateStatus(identifier, 'error', null, err.statusMessage)
           else
             AlgorithmManagement.updateStatus(identifier, 'testing')
             executableHelper = new ExecutableHelper()
