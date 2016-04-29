@@ -40,7 +40,8 @@ algorithmManagement = exports = module.exports = class AlgorithmManagement
       when 'error'
         currentInfo.statusCode = 500
         currentInfo.statusMessage = 'Error: ' + message
-    @ioHelper.saveFile(nconf.get('paths:algorithmStatusFile'), content, () ->)
+    @ioHelper.saveFile(nconf.get('paths:algorithmStatusFile'), content)
+    return
 
 
   @getStatus: (identifier) ->

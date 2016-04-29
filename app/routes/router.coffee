@@ -105,6 +105,12 @@ router.post '/algorithms', (req, res, next) ->
         AlgorithmManagement.updateServicesFile(req.body, route)
         AlgorithmManagement.updateRootInfoFile(req.body, route)
         #create a tar from zip
+        response =
+          statusCode: 200
+          identifier: identifier
+          message: 'Started Algorithm Creation'
+        sendResponse(res, null, response)
+
         DockerManagement.buildImage('/data/executables/'+route, req.body.image_name, (err, response) ->
           if(err?)
             #return error message
@@ -131,11 +137,6 @@ router.post '/algorithms', (req, res, next) ->
             () ->
               executableHelper.executeDockerRequest(tempQueue.getNext())
             #execute the algorithm once
-            response =
-              statusCode: 200
-              identifier: identifier
-              message: 'Algorithm created'
-            sendResponse(res, null, response)
         ))
       )
 
@@ -149,7 +150,7 @@ router.post '*', (req, res, next) ->
 router.get '/algorithms/:identifier', (req, res) ->
   identifier = req.params.identifier
   status = AlgorithmManagement.getStatus(identifier)
-  sendResponse res, null, status
+  send200 res, status
 
 #load all images from a collection
 router.get '/image/:collection', (req, res) ->
@@ -255,7 +256,8 @@ sendWithStatus = (res, response) ->
   res.status response.statusCode or 200
   #parse an unparsed json string to get a correct response
   try
-    res.json JSON.parse(response)
+    response = JSON.parse(response)
+    res.json response
   catch error
     res.json response
 

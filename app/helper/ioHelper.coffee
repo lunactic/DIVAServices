@@ -111,7 +111,7 @@ ioHelper = exports = module.exports = class IoHelper
     try
       fs.writeFileSync filePath, JSON.stringify(content, null, '\t')
       if callback?
-        callback null
+        callback
     catch error
       logger.log 'error', error
     return
