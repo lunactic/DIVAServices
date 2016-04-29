@@ -46,10 +46,9 @@ dockerManagement = exports = module.exports = class DockerManagement
           )
           response.on('end', () ->
             if(not hasError)
-              logger.log 'info', 'sucessfully built'
+              logger.log 'info', 'successfully built the image'
               callback null, id
           )
-
       )
     archive.pipe(output)
     archive.bulk([
@@ -112,11 +111,11 @@ dockerManagement = exports = module.exports = class DockerManagement
     @docker.run(imageName,['bash', '-c', command], process.stdout, (err, data, container) ->
       if(err?)
         logger.log 'error', err
-      logger.log 'info', data
       if(data? and data.StatusCode is 0)
-        logger.log 'info', 'docker execution returned StatusCode: ' + data.StatusCode
         container.remove( (err, data) -> )
-      )
-
+      else if(data? and data.StatusCode is not 0)
+        logger.log 'error', 'docker execution did not finish properly! status code is: ' + data.StatusCode
+        container.remove( (err, data) -> )
+    )
   getDockerInput = (input) ->
     return nconf.get('docker:paths:'+input)

@@ -155,6 +155,10 @@
         "type": "string",
         "format": "uri"
       },
+      "outputImage":{
+        "type":"string",
+        "format":"uri"
+      },
       "resultLink": {
         "type": "string",
         "format": "uri"

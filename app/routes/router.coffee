@@ -49,25 +49,31 @@ router.post '/upload', (req, res) ->
 
 router.post '/jobs/:jobId', (req, res, next) ->
   process = Statistics.getProcess(req.params.jobId)
-  if(process.type is 'test')
-    #handle test
-    logger.log 'info', 'test execution sucessful'
-    AlgorithmManagement.updateStatus(null, 'ok', process.req.originalUrl)
-    res.status '200'
-    res.send()
-  else
-    Statistics.endRecording(req.params.jobId, process.req.originalUrl)
-    async.waterfall [
-      (callback) ->
-        process.result = req.body
-        ResultHelper.saveResult(process, callback)
-      (callback) ->
-        process.resultHandler.handleResult(null, null, null, process, (error, data, processId) ->
-          callback null
-        )
+  Statistics.endRecording(req.params.jobId, process.req.originalUrl)
+  async.waterfall [
+    (callback) ->
+      process.result = req.body
+      ResultHelper.saveResult(process, callback)
+      return
+    (callback) ->
+      process.resultHandler.handleResult(null, null, null, process, (error, data, processId) ->
+        callback null
+        return
+      )
     ], (err) ->
-      res.status '200'
-      res.send()
+      if(process.type is 'test')
+        ioHelper = new IoHelper()
+        schemaValidator.validate(ioHelper.loadFile(process.resultFile), 'responseSchema', (error) ->
+          if error
+            AlgorithmManagement.updateStatus(null, 'error', process.req.originalUrl, error)
+            sendError(res, error)
+          else
+            AlgorithmManagement.updateStatus(null, 'ok', process.req.originalUrl)
+            send200(res, {status: 'valid'})
+        )
+      else
+        res.status '200'
+        res.send()
 
 router.post '/validate/:schema', (req, res, next) ->
   switch req.params.schema
