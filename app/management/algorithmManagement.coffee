@@ -14,39 +14,33 @@ algorithmManagement = exports = module.exports = class AlgorithmManagement
 
 
   @updateStatus: (identifier, status,route, message) ->
-    content = @ioHelper.loadFile(nconf.get('paths:algorithmStatusFile'))
+    content = @ioHelper.loadFile(nconf.get('paths:servicesInfoFile'))
     currentInfo = {}
-    if(identifier? and _.find(content, {'identifier':identifier})?)
-      currentInfo = _.find(content, {'identifier':identifier})
-    else if(route? and _.find(content, {'route':route})?)
-      currentInfo = _.find(content,{'route':route})
-    else
-      currentInfo =
-        identifier: identifier
-        statusCode: -1
-        statusMessage: ''
-        route: route
-      content.push currentInfo
+    if(identifier? and _.find(content.services, {'identifier':identifier})?)
+      currentInfo = _.find(content.services, {'identifier':identifier})
+    else if(route? and _.find(content.services, {'path':route})?)
+      currentInfo = _.find(content.services,{'path':route})
+
     switch status
       when 'creating'
-        currentInfo.statusCode = 100
-        currentInfo.statusMessage = 'Building Algorithm Image'
+        currentInfo.status.statusCode = 100
+        currentInfo.status.statusMessage = 'Building Algorithm Image'
       when 'testing'
-        currentInfo.statusCode = 110
-        currentInfo.statusMessage = 'Testing Algorithm'
+        currentInfo.status.statusCode = 110
+        currentInfo.status.statusMessage = 'Testing Algorithm'
       when 'ok'
-        currentInfo.statusCode = 200
-        currentInfo.statusMessage = 'Algorithm is Available'
+        currentInfo.status.statusCode = 200
+        currentInfo.status.statusMessage = 'Algorithm is Available'
       when 'error'
-        currentInfo.statusCode = 500
-        currentInfo.statusMessage = 'Error: ' + message
-    @ioHelper.saveFile(nconf.get('paths:algorithmStatusFile'), content)
+        currentInfo.status.statusCode = 500
+        currentInfo.status.statusMessage = 'Error: ' + message
+    @ioHelper.saveFile(nconf.get('paths:servicesInfoFile'), content)
     return
 
 
   @getStatus: (identifier) ->
-    content = @ioHelper.loadFile(nconf.get('paths:algorithmStatusFile'))
-    status = _.find(content, {'identifier':identifier})
+    content = @ioHelper.loadFile(nconf.get('paths:servicesInfoFile'))
+    status = _.find(content.services, {'identifier':identifier}).status
     if(status?)
       return status
     else
@@ -106,7 +100,7 @@ algorithmManagement = exports = module.exports = class AlgorithmManagement
 
 
   #TODO MAKE CHANGES FOR DOCKER OR CREATE A SEPERATE METHOD
-  @updateServicesFile: (newAlgorithm, route) ->
+  @updateServicesFile: (newAlgorithm, identifier, route) ->
     newContent = _.cloneDeep(ServicesInfoHelper.fileContent)
     parameters = {}
     _.forEach(newAlgorithm.input, (input, key) ->
@@ -115,6 +109,7 @@ algorithmManagement = exports = module.exports = class AlgorithmManagement
     )
     newServiceEntry =
       service: newAlgorithm.name.replace(/\s/g, '').toLowerCase()
+      identifier: identifier
       path: '/'+route
       executablePath: '/data/executables/' + route + path.sep + newAlgorithm.executable
       programType: newAlgorithm.language
@@ -123,6 +118,10 @@ algorithmManagement = exports = module.exports = class AlgorithmManagement
       execute: 'docker'
       image_name: newAlgorithm.image_name
       parameters: parameters
+      status:
+        statusCode: -1
+        statusMessage: ''
+
     newContent.services.push(newServiceEntry)
     ServicesInfoHelper.update(newContent)
     ServicesInfoHelper.reload()

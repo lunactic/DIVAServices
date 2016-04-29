@@ -92,7 +92,6 @@ router.post '/algorithms', (req, res, next) ->
       #docker
       route = AlgorithmManagement.generateUrl(req.body)
       identifier = AlgorithmManagement.createIdentifier()
-      AlgorithmManagement.updateStatus(identifier,'creating', '/'+route)
       AlgorithmManagement.generateFolders(route)
       ioHelper.downloadFile(req.body.file, '/data/executables/'+route, (err, filename) ->
         #create docker file
@@ -102,8 +101,9 @@ router.post '/algorithms', (req, res, next) ->
         #update servicesFile
         #TODO Perform that step only after the execution is successful
         AlgorithmManagement.createInfoFile(req.body, '/data/json/'+route)
-        AlgorithmManagement.updateServicesFile(req.body, route)
+        AlgorithmManagement.updateServicesFile(req.body,identifier, route)
         AlgorithmManagement.updateRootInfoFile(req.body, route)
+        AlgorithmManagement.updateStatus(identifier,'creating', '/'+route)
         #create a tar from zip
         response =
           statusCode: 200

@@ -100,8 +100,6 @@ mkdir -p $executableFolder
 
 
 header "Creating Files"
-ALGO=($(jq -r '.paths.algorithmStatusFile'  conf/server.dev.json))
-echo "[]" > $ALGO
 imageInfoFile=($(cat conf/server.dev.json | jq -r '.paths.imageInfoFile'))
 echo "[]" > $imageInfoFile
 statisticsFile=($(cat conf/server.dev.json | jq -r '.paths.statisticsFile'))

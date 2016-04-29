@@ -46,7 +46,6 @@
   },
   "paths": {
     "imageRootPath": "/data/images",
-    "algorithmStatusFile": "/data/json/algorithmStatus.json",
     "textualRootPath": "/data/textual",
     "matlabPath": "/usr/local/bin/matlab",
     "matlabScriptsPath": "/data/matlab",
