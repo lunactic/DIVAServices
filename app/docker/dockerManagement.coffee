@@ -58,6 +58,14 @@ dockerManagement = exports = module.exports = class DockerManagement
     ])
     archive.finalize()
 
+  @removeImage: (imageName, callback) ->
+    @docker.getImage(imageName).remove( (err,data) ->
+      if(err?)
+        logger.log 'error', err
+      logger.log 'info', data
+      callback null
+    )
+
   @createDockerFile: (algorithmInfos, outputFolder) ->
     content = "FROM " + algorithmInfos.base_image + "\n" +
       "MAINTAINER marcel.wuersch@unifr.ch\n" +

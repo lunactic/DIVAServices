@@ -209,7 +209,11 @@ router.delete '/algorithms/:identifier', (req, res) ->
   #remove /route/info.json file
   AlgorithmManagement.deleteInfoFile('/data/json'+serviceInfo.path)
   AlgorithmManagement.removeFromRootInfoFile(serviceInfo.path)
-  logger.log 'info', 'removing algorithm: ' + req.params.identifier
+  DockerManagement.removeImage(serviceInfo.image_name, (error) ->
+    if(not error?)
+      res.status(200).end()
+      logger.log 'info', 'removing algorithm: ' + req.params.identifier
+  )
 
 #Info routes
 router.get '/info/inputs', (req, res) ->
