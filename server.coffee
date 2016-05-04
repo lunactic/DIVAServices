@@ -20,6 +20,7 @@ nconf.add 'responseSchema', type: 'file', file: './conf/schemas/responseSchema.j
 nconf.add 'createSchema', type: 'file', file: './conf/schemas/createAlgorithmSchema.json'
 
 
+algorithmRouter = require './app/routes/algorithmRouter'
 bodyParser    = require 'body-parser'
 express       = require 'express'
 favicon       = require 'serve-favicon'
@@ -28,7 +29,7 @@ http          = require 'http'
 https         = require 'https'
 morgan        = require 'morgan'
 logger        = require './app/logging/logger'
-router        = require './app/routes/router'
+router        = require './app/routes/standardRouter'
 Statistics    = require './app/statistics/statistics'
 ImageHelper   = require './app/helper/imageHelper'
 
@@ -48,6 +49,7 @@ process.on 'SIGTERM', () ->
   ImageHelper.saveImageInfo()
   process.exit(0)
 
+
 #setup body parser
 app.use bodyParser.json(limit: '50mb')
 app.use bodyParser.urlencoded(extended: true, limit: '50mb')
@@ -60,7 +62,11 @@ accessLogStream = fs.createWriteStream(__dirname + '/logs/access.log',{flags:'a'
 app.use favicon(__dirname + '/images/favicon/favicon.ico')
 app.use(morgan('combined',{stream: accessLogStream}))
 #setup routes
+
 app.use router
+app.use algorithmRouter
+
+
 
 #httpsServer = https.createServer(credentials,app)
 httpServer = http.createServer(app)

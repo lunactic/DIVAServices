@@ -94,133 +94,18 @@ router.post '/validate/:schema', (req, res, next) ->
     when 'create'
       validate(req, res, 'createSchema')
 
-router.post '/algorithms', (req, res, next) ->
-  ioHelper = new IoHelper()
-  #add a new algorithm
-  #get route address
-  schemaValidator.validate(req.body, 'createSchema', (error) ->
-    if(error)
-      sendError(res, error)
-    else
-      #docker
-      route = AlgorithmManagement.generateUrl(req.body)
-      #check if we can find the route already
-      status = AlgorithmManagement.getStatusByRoute('/'+route)
-      if(status?)
-        if(status.status.statusCode == 410)
-          ioHelper.downloadFile(req.body.file, '/data/executables/' + route, (err, filename) ->
-            #create docker file
-            DockerManagement.createDockerFile(req.body, '/data/executables/' + route)
-            #create bash script
-            DockerManagement.createBashScript(req.body, '/data/executables/' + route)
-            #update servicesFile
-            AlgorithmManagement.createInfoFile(req.body, '/data/json/' + route)
-            AlgorithmManagement.updateRootInfoFile(req.body, route)
-            AlgorithmManagement.updateStatus(status.identifier, 'creating', '/' + route)
-            #create a tar from zip
-            response =
-              statusCode: 200
-              identifier: status.identifier
-              statusMessage: 'Started Algorithm Creation'
-            sendResponse res, null, response
-
-            DockerManagement.buildImage('/data/executables/' + route, req.body.image_name, (err, response) ->
-              if(err?)
-                AlgorithmManagement.updateStatus(status.identifier, 'error', null, err.statusMessage)
-              else
-                AlgorithmManagement.updateStatus(status.identifier, 'testing')
-                executableHelper = new ExecutableHelper()
-                tempQueue = new ProcessingQueue()
-                req =
-                  originalUrl: '/' + route
-                  body:
-                    images: [
-                      {
-                        type: 'url'
-                        value: 'https://placeholdit.imgix.net/~text?txtsize=33&txt=350%C3%97150&w=350&h=150'
-                      }
-                    ]
-                    highlighter: {}
-                    inputs: {}
-
-                executableHelper.preprocess req, tempQueue, 'test',
-                  (err, response) ->
-                    logger.log 'info', response
-                ,
-                  () ->
-                    #execute the algorithm once
-                    executableHelper.executeDockerRequest(tempQueue.getNext())
-            ))
-        else
-          response =
-            statusCode: status.status.statusCode
-            identifier: status.identifier
-            statusMessage: status.status.statusMessage
-          sendResponse res, null, response
-      else
-        identifier = AlgorithmManagement.createIdentifier()
-        AlgorithmManagement.generateFolders(route)
-        ioHelper.downloadFile(req.body.file, '/data/executables/' + route, (err, filename) ->
-          #create docker file
-          DockerManagement.createDockerFile(req.body, '/data/executables/' + route)
-          #create bash script
-          DockerManagement.createBashScript(req.body, '/data/executables/' + route)
-          #update servicesFile
-          AlgorithmManagement.createInfoFile(req.body, '/data/json/' + route)
-          AlgorithmManagement.updateServicesFile(req.body, identifier, route)
-          AlgorithmManagement.updateRootInfoFile(req.body, route)
-          AlgorithmManagement.updateStatus(identifier, 'creating', '/' + route)
-          #create a tar from zip
-          response =
-            statusCode: 200
-            identifier: identifier
-            message: 'Started Algorithm Creation'
-          sendResponse(res, null, response)
-
-          DockerManagement.buildImage('/data/executables/' + route, req.body.image_name, (err, response) ->
-            if(err?)
-              AlgorithmManagement.updateStatus(identifier, 'error', null, err.statusMessage)
-            else
-              AlgorithmManagement.updateStatus(identifier, 'testing')
-              executableHelper = new ExecutableHelper()
-              tempQueue = new ProcessingQueue()
-              req =
-                originalUrl: '/' + route
-                body:
-                  images: [
-                    {
-                      type: 'url'
-                      value: 'https://placeholdit.imgix.net/~text?txtsize=33&txt=350%C3%97150&w=350&h=150'
-                    }
-                  ]
-                  highlighter: {}
-                  inputs: {}
-
-              executableHelper.preprocess req, tempQueue, 'test',
-                (err, response) ->
-                  logger.log 'info', response
-              ,
-                () ->
-                  executableHelper.executeDockerRequest(tempQueue.getNext())
-#execute the algorithm once
-          ))
-  )
 
 # Set up the routing for POST requests
 router.post '*', (req, res, next) ->
-  postHandler.handleRequest req, (err, response) ->
-    if(!err)
-      response['statusCode'] = 202
-    sendResponse res, err, response
-
-
-router.get '/algorithms/:identifier', (req, res) ->
-  identifier = req.params.identifier
-  status = AlgorithmManagement.getStatusByIdentifier(identifier)
-  if(status.statusCode? and status.statusCode == 404)
-    sendResponse(res, null, status)
+  if(unlike(req, '/algorithms'))
+    postHandler.handleRequest req, (err, response) ->
+      if(!err)
+        response['statusCode'] = 202
+      sendResponse res, err, response
   else
-    send200 res, status
+    next()
+
+
 
 #load all images from a collection
 router.get '/image/:collection', (req, res) ->
@@ -259,18 +144,7 @@ router.get '/image/results/:md5', (req, res)->
 
     sendResponse res, err, response
 
-router.delete '/algorithms/:identifier', (req, res) ->
-#set algorithm status to deleted
-  serviceInfo = ServicesInfoHelper.getServiceInfoByIdentifier(req.params.identifier)
-  AlgorithmManagement.updateStatus(req.params.identifier, 'delete')
-  #remove /route/info.json file
-  AlgorithmManagement.deleteInfoFile('/data/json' + serviceInfo.path)
-  AlgorithmManagement.removeFromRootInfoFile(serviceInfo.path)
-  DockerManagement.removeImage(serviceInfo.image_name, (error) ->
-    if(not error?)
-      res.status(200).end()
-      logger.log 'info', 'removing algorithm: ' + req.params.identifier
-  )
+
 
 #Info routes
 router.get '/info/inputs', (req, res) ->
@@ -306,10 +180,18 @@ router.get '/info/language', (req, res) ->
 
 # Set up the routing for GET requests
 router.get '*', (req, res, next) ->
-  getHandler.handleRequest req, (err, response) ->
-    sendResponse res, err, response
+  if(unlike(req, '/algorithms'))
+    getHandler.handleRequest req, (err, response) ->
+      sendResponse res, err, response
+  else
+    next()
 
 
+unlike = (req, path) ->
+  if(req.path.contains(path))
+    false
+  else
+    true
 # ---
 # **sendResponse**</br>
 # Send response back to the caller </br>
