@@ -162,7 +162,7 @@ router.post '/algorithms', (req, res, next) ->
         identifier = AlgorithmManagement.createIdentifier()
         AlgorithmManagement.generateFolders(route)
         ioHelper.downloadFile(req.body.file, '/data/executables/' + route, (err, filename) ->
-#create docker file
+          #create docker file
           DockerManagement.createDockerFile(req.body, '/data/executables/' + route)
           #create bash script
           DockerManagement.createBashScript(req.body, '/data/executables/' + route)
