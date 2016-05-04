@@ -204,7 +204,8 @@ router.post '/algorithms', (req, res, next) ->
 # Set up the routing for POST requests
 router.post '*', (req, res, next) ->
   postHandler.handleRequest req, (err, response) ->
-    response['statusCode'] = 202
+    if(!err)
+      response['statusCode'] = 202
     sendResponse res, err, response
 
 

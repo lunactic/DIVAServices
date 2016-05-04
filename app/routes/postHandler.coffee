@@ -33,18 +33,23 @@ postHandler = exports = module.exports = class PostHandler
   #   *req* the incoming request
   handleRequest: (req, cb) ->
     serviceInfo = ServicesInfoHelper.getServiceInfoByPath(req.originalUrl)
-
-    switch serviceInfo.execute
-      when 'remote'
-        #execute remote
-        @queueHandler.addRemoteRequestToQueue(req, cb)
-      when 'local'
-        @queueHandler.addLocalRequestToQueue(req,cb)
-      when 'docker'
-        @queueHandler.addDockerRequestToQueue(req,cb)
-      else
-        logger.log 'error', 'error in definition for method: ' + req.originalUrl
-        error =
-          statusCode: 500
-          statusText: 'error in method definition'
-        callback(error, null)
+    if(serviceInfo.status.statusCode == 410)
+      error  =
+        statusCode: serviceInfo.status.statusCode
+        statusText: 'This algorithm is no longer available'
+      cb error, null
+    else
+      switch serviceInfo.execute
+        when 'remote'
+          #execute remote
+          @queueHandler.addRemoteRequestToQueue(req, cb)
+        when 'local'
+          @queueHandler.addLocalRequestToQueue(req,cb)
+        when 'docker'
+          @queueHandler.addDockerRequestToQueue(req,cb)
+        else
+          logger.log 'error', 'error in definition for method: ' + req.originalUrl
+          error =
+            statusCode: 500
+            statusText: 'error in method definition'
+          cb error, null

@@ -8,17 +8,18 @@
 # /data/json/segmentation/textline/hist/info.json.
 #
 # Copyright &copy; Marcel Würsch, GPL v3.0 licensed.
-_                  = require 'lodash'
-fs                 = require 'fs'
-nconf              = require 'nconf'
-path               = require 'path'
-Collection         = require '../processingQueue/collection'
-Statistics         = require '../statistics/statistics'
-ParameterHelper    = require '../helper/parameterHelper'
-Process            = require '../processingQueue/process'
-ResultHelper       = require '../helper/resultHelper'
-ImageHelper        = require '../helper/imageHelper'
-ServicesInfoHelper = require '../helper/servicesInfoHelper'
+_                   = require 'lodash'
+AlgorithmManagement = require '../management/algorithmManagement'
+fs                  = require 'fs'
+nconf               = require 'nconf'
+path                = require 'path'
+Collection          = require '../processingQueue/collection'
+Statistics          = require '../statistics/statistics'
+ParameterHelper     = require '../helper/parameterHelper'
+Process             = require '../processingQueue/process'
+ResultHelper        = require '../helper/resultHelper'
+ImageHelper         = require '../helper/imageHelper'
+ServicesInfoHelper  = require '../helper/servicesInfoHelper'
 
 #Expose getHandler
 getHandler = exports = module.exports = class GetHandler
@@ -36,9 +37,15 @@ getHandler = exports = module.exports = class GetHandler
     else
       fs.readFile nconf.get('paths:jsonPath') + req.originalUrl + '/info.json', 'utf8', (err, data) ->
         if err
-          error = 
-            statusCode: 404
-            statusText: 'undefined route'
+          algo = AlgorithmManagement.getStatusByRoute(req.originalUrl)
+          if(algo?)
+            error = 
+              statusCode: algo.status.statusCode
+              statusText: algo.status.statusMessage
+          else
+            error =
+              statusCode: 404
+              statusText: 'This algorithm is not available'
           callback error
         else
           data = data.replace(new RegExp('\\$BASEURL\\$','g'),nconf.get('server:rootUrl'))
