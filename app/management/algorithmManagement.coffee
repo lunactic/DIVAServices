@@ -76,8 +76,9 @@ algorithmManagement = exports = module.exports = class AlgorithmManagement
 
   @createInfoFile: (newAlgorithm, folder) ->
     data = _.cloneDeep(newAlgorithm)
-    reservedWords = _.remove(nconf.get('reservedWords'), (word) ->
-      return not (word is 'highlighter')
+    reservedWords = _.clone(nconf.get('reservedWords'))
+    _.remove(reservedWords, (word) ->
+      return (word is 'highlighter')
     )
     _.unset(data, 'output')
     _.unset(data, 'file')

@@ -114,7 +114,6 @@ router.post '/algorithms', (req, res, next) ->
             #create bash script
             DockerManagement.createBashScript(req.body, '/data/executables/' + route)
             #update servicesFile
-            #TODO Perform that step only after the execution is successful
             AlgorithmManagement.createInfoFile(req.body, '/data/json/' + route)
             AlgorithmManagement.updateRootInfoFile(req.body, route)
             AlgorithmManagement.updateStatus(status.identifier, 'creating', '/' + route)
@@ -167,7 +166,6 @@ router.post '/algorithms', (req, res, next) ->
           #create bash script
           DockerManagement.createBashScript(req.body, '/data/executables/' + route)
           #update servicesFile
-          #TODO Perform that step only after the execution is successful
           AlgorithmManagement.createInfoFile(req.body, '/data/json/' + route)
           AlgorithmManagement.updateServicesFile(req.body, identifier, route)
           AlgorithmManagement.updateRootInfoFile(req.body, route)
