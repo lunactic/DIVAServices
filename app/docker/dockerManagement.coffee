@@ -62,7 +62,6 @@ dockerManagement = exports = module.exports = class DockerManagement
     @docker.getImage(imageName).remove( (err,data) ->
       if(err?)
         logger.log 'error', err
-      logger.log 'info', data
       callback null
     )
 

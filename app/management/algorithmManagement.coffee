@@ -42,7 +42,7 @@ algorithmManagement = exports = module.exports = class AlgorithmManagement
     return
 
 
-  @getStatus: (identifier) ->
+  @getStatusByIdentifier: (identifier) ->
     content = @ioHelper.loadFile(nconf.get('paths:servicesInfoFile'))
     status = _.find(content.services, {'identifier':identifier}).status
     if(status?)
@@ -53,6 +53,13 @@ algorithmManagement = exports = module.exports = class AlgorithmManagement
         statusText: 'Algorithm with ' + identifier + ' not available'
       }
 
+  @getStatusByRoute: (route) ->
+    content = @ioHelper.loadFile(nconf.get('paths:servicesInfoFile'))
+    status = _.find(content.services, ('path':route))
+    if(status?)
+      return status
+    else
+      return null
 
   @createIdentifier: () ->
     current_date = (new Date).valueOf().toString()
@@ -78,8 +85,8 @@ algorithmManagement = exports = module.exports = class AlgorithmManagement
     _.unset(data, 'executable')
     _.unset(data, 'base_image')
     _.unset(data, 'image_name')
-    data.input = _.remove(data.input, (input) ->
-      return not _.includes(reservedWords, _.keys(input)[0])
+    _.remove(data.input, (input) ->
+      return _.includes(reservedWords, _.keys(input)[0])
     )
 
     @ioHelper.saveFile(folder + path.sep + 'info.json', data, (err) ->
