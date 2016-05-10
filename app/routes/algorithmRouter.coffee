@@ -30,11 +30,13 @@ router.post '/algorithms', (req, res, next) ->
     else
       #docker
       route = AlgorithmManagement.generateUrl(req.body)
+      #TODO Generate image name
       #check if we can find the route already
       status = AlgorithmManagement.getStatusByRoute('/' + route)
+      imageName = AlgorithmManagement.generateImageName(req.body)
       if(status?)
         if(status.status.statusCode == 410)
-          ioHelper.downloadFile(req.body.file, '/data/executables/' + route, (err, filename) ->
+          ioHelper.downloadFile(req.body.method.file, '/data/executables/' + route, (err, filename) ->
             #create docker file
             DockerManagement.createDockerFile(req.body, '/data/executables/' + route)
             #create bash script
@@ -50,7 +52,7 @@ router.post '/algorithms', (req, res, next) ->
               statusMessage: 'Started Algorithm Creation'
             sendResponse res, null, response
 
-            DockerManagement.buildImage('/data/executables/' + route, req.body.image_name, (err, response) ->
+            DockerManagement.buildImage('/data/executables/' + route, imageName, (err, response) ->
               if(err?)
                 AlgorithmManagement.updateStatus(status.identifier, 'error', null, err.statusMessage)
               else
@@ -86,14 +88,14 @@ router.post '/algorithms', (req, res, next) ->
       else
         identifier = AlgorithmManagement.createIdentifier()
         AlgorithmManagement.generateFolders(route)
-        ioHelper.downloadFile(req.body.file, '/data/executables/' + route, (err, filename) ->
+        ioHelper.downloadFile(req.body.method.file, '/data/executables/' + route, (err, filename) ->
           #create docker file
           DockerManagement.createDockerFile(req.body, '/data/executables/' + route)
           #create bash script
           DockerManagement.createBashScript(req.body, '/data/executables/' + route)
           #update servicesFile
           AlgorithmManagement.createInfoFile(req.body, '/data/json/' + route)
-          AlgorithmManagement.updateServicesFile(req.body, identifier, route)
+          AlgorithmManagement.updateServicesFile(req.body, identifier, route, imageName)
           AlgorithmManagement.updateRootInfoFile(req.body, route)
           AlgorithmManagement.updateStatus(identifier, 'creating', '/' + route)
           #create a tar from zip
@@ -102,7 +104,7 @@ router.post '/algorithms', (req, res, next) ->
             identifier: identifier
             message: 'Started Algorithm Creation'
           sendResponse(res, null, response)
-          DockerManagement.buildImage('/data/executables/' + route, req.body.image_name, (err, response) ->
+          DockerManagement.buildImage('/data/executables/' + route, imageName, (err, response) ->
             if(err?)
               AlgorithmManagement.updateStatus(identifier, 'error', null, err.statusMessage)
             else

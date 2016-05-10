@@ -186,36 +186,35 @@
     },
     "type": "object",
     "required": [
-      "name",
-      "description",
-      "input",
-      "output",
-      "file",
-      "language",
-      "executable",
-      "base_image",
-      "image_name"
+     "general",
+     "input",
+     "output",
+     "method"
     ],
     "properties": {
-      "name": {
-        "type": "string",
-        "minLength": 2,
-        "maxLength": 50
-      },
-      "description": {
-        "type": "string",
-        "minLength": 5
-      },
-      "url": {
-        "type": "string",
-        "format": "uri"
-      },
-      "info": {
-        "type": "object",
+      "general":{
+        "type":"object",
         "required":[
-          "type"
+          "name",
+          "description",
+          "author",
+          "type",
+          "email"
         ],
-        "properties": {
+        "properties":{
+          "name": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 50
+          },
+          "description": {
+            "type": "string",
+            "minLength": 5
+          },
+          "url": {
+            "type": "string",
+            "format": "uri"
+          },
           "author": {
             "type": "string",
             "minLenght": 5,
@@ -235,9 +234,6 @@
             "format": "uri"
           },
           "DOI": {
-            "type": "string"
-          },
-          "exptectedRuntime": {
             "type": "string"
           },
           "purpose": {
@@ -292,23 +288,38 @@
         "additionalItems": false
       },
       "output":{
-        "type":"string"
+        "type":"object",
+        "required":[
+          "output_type"
+        ],
+        "properties":{
+          "output_type":{
+            "type":"string"
+          }
+        }
       },
-      "file":{
-        "type":"string",
-        "format":"uri"
-      },
-      "language":{
-        "type":"string"
-      },
-      "executable":{
-        "type":"string"
-      },
-      "base_image":{
-        "type":"string"
-      },
-      "image_name":{
-        "type":"string"
+      "method": {
+        "type": "object",
+        "properties": {
+          "file": {
+            "type": "string"
+          },
+          "environment": {
+            "type": "string"
+          },
+          "language": {
+            "type": "string"
+          },
+          "executable_path": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "file",
+          "environment",
+          "language",
+          "executable_path"
+        ]
       }
     },
     "additionalProperties": false

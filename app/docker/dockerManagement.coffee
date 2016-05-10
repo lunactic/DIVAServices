@@ -66,7 +66,7 @@ dockerManagement = exports = module.exports = class DockerManagement
     )
 
   @createDockerFile: (algorithmInfos, outputFolder) ->
-    content = "FROM " + algorithmInfos.base_image + "\n" +
+    content = "FROM " + algorithmInfos.method.environment + "\n" +
       "MAINTAINER marcel.wuersch@unifr.ch\n" +
       "RUN apt-get update\n" +
       "RUN apt-get install wget\n" +
@@ -81,9 +81,7 @@ dockerManagement = exports = module.exports = class DockerManagement
 
   @createBashScript: (algorithmInfos, outputFolder) ->
     content = "#!/bin/sh\n"
-    content += 'printf $1\n'
-    content += 'printf $2\n'
-
+    
     if(_.find(algorithmInfos.input,{'inputImage':{}})?)
       content += 'wget -O /data/inputImage.png $1\n'
 

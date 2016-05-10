@@ -67,12 +67,16 @@ algorithmManagement = exports = module.exports = class AlgorithmManagement
     return crypto.createHash('sha1').update(current_date + random).digest 'hex'
 
   @generateUrl: (newAlgorithm) ->
-    return newAlgorithm.info.type + '/' + newAlgorithm.name.replace(/\s/g, '').toLowerCase()
+    return newAlgorithm.general.type + '/' + newAlgorithm.general.name.replace(/\s/g, '').toLowerCase()
 
   @generateFolders: (route) ->
     mkdirp.sync('/data/executables/' + route)
     mkdirp.sync('/data/json/' + route)
     return
+
+  @generateImageName: (newAlgorithm) ->
+    #TODO complete this
+    return newAlgorithm.general.name.toLowerCase().replace(/\s/g, '_')
 
   @createInfoFile: (newAlgorithm, folder) ->
     data = _.cloneDeep(newAlgorithm)
@@ -81,11 +85,7 @@ algorithmManagement = exports = module.exports = class AlgorithmManagement
       return (word is 'highlighter')
     )
     _.unset(data, 'output')
-    _.unset(data, 'file')
-    _.unset(data, 'language')
-    _.unset(data, 'executable')
-    _.unset(data, 'base_image')
-    _.unset(data, 'image_name')
+    _.unset(data, 'method')
     _.remove(data.input, (input) ->
       return _.includes(reservedWords, _.keys(input)[0])
     )
@@ -119,7 +119,7 @@ algorithmManagement = exports = module.exports = class AlgorithmManagement
 
 
   #TODO MAKE CHANGES FOR DOCKER OR CREATE A SEPERATE METHOD
-  @updateServicesFile: (newAlgorithm, identifier, route) ->
+  @updateServicesFile: (newAlgorithm, identifier, route, imageName) ->
     newContent = _.cloneDeep(ServicesInfoHelper.fileContent)
     parameters = {}
     _.forEach(newAlgorithm.input, (input, key) ->
@@ -127,15 +127,15 @@ algorithmManagement = exports = module.exports = class AlgorithmManagement
       _.set(parameters,_.get(newAlgorithm, 'input[' + key + '].'+inputType+'.name', inputType),'')
     )
     newServiceEntry =
-      service: newAlgorithm.name.replace(/\s/g, '').toLowerCase()
+      service: newAlgorithm.general.name.replace(/\s/g, '').toLowerCase()
       identifier: identifier
       path: '/'+route
-      executablePath: '/data/executables/' + route + path.sep + newAlgorithm.executable
-      programType: newAlgorithm.language
+      executablePath: '/data/executables/' + route + path.sep + newAlgorithm.method.executable_path
+      programType: newAlgorithm.method.language
       allowParallel: true
       output: 'file'
       execute: 'docker'
-      image_name: newAlgorithm.image_name
+      image_name: imageName
       parameters: parameters
       status:
         statusCode: -1
