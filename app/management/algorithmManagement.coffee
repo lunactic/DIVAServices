@@ -102,9 +102,9 @@ algorithmManagement = exports = module.exports = class AlgorithmManagement
   @updateRootInfoFile: (newAlgorithm, route) ->
     fileContent = @ioHelper.loadFile(nconf.get('paths:rootInfoFile'))
     newEntry =
-      name: newAlgorithm.name
-      description: newAlgorithm.description
-      type: newAlgorithm.namespace
+      name: newAlgorithm.general.name
+      description: newAlgorithm.general.description
+      type: newAlgorithm.general.type
       url: 'http://$BASEURL$/' + route
     fileContent.push(newEntry)
     @ioHelper.saveFile(nconf.get('paths:rootInfoFile'), fileContent, (err) ->

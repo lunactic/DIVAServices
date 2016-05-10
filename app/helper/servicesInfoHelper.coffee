@@ -20,13 +20,13 @@ servicesInfoHelper = exports = module.exports = class ServicesInfoHelper
 
   @getServiceInfoByName: (serviceName) ->
     serviceInfo = @fileContent.services.filter((item) ->
-      item.service = serviceName
+      item.service == serviceName
     )
     return serviceInfo[0]
 
   @getServiceInfoByIdentifier: (identifier) ->
     serviceInfo = @fileContent.services.filter((item) ->
-      item.identifier = identifier
+      item.identifier == identifier
     )
     return serviceInfo[0]
 

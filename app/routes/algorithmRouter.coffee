@@ -133,6 +133,80 @@ router.post '/algorithms', (req, res, next) ->
           ))
   )
 
+router.put '/algorithms/:identifier', (req, res) ->
+  ioHelper = new IoHelper()
+  route = AlgorithmManagement.generateUrl(req.body)
+  status = AlgorithmManagement.getStatusByRoute('/' + route)
+  #perform a deletion and an addition of the new algorithm
+  serviceInfo = ServicesInfoHelper.getServiceInfoByIdentifier(req.params.identifier)
+  if(serviceInfo?)
+    AlgorithmManagement.updateStatus(req.params.identifier, 'delete')
+    #remove /route/info.json file
+    AlgorithmManagement.deleteInfoFile('/data/json' + serviceInfo.path)
+    AlgorithmManagement.removeFromRootInfoFile(serviceInfo.path)
+    DockerManagement.removeImage(serviceInfo.image_name, (error) ->
+      if(not error?)
+        schemaValidator.validate(req.body, 'createSchema', (error) ->
+          if(error)
+            sendError(res, error)
+          else
+            #docker
+            route = AlgorithmManagement.generateUrl(req.body)
+            #TODO Generate image name
+            #check if we can find the route already
+            imageName = AlgorithmManagement.generateImageName(req.body)
+            ioHelper.downloadFile(req.body.method.file, '/data/executables/' + route, (err, filename) ->
+              #create docker file
+              DockerManagement.createDockerFile(req.body, '/data/executables/' + route)
+              #create bash script
+              DockerManagement.createBashScript(req.body, '/data/executables/' + route)
+              #update servicesFile
+              AlgorithmManagement.createInfoFile(req.body, '/data/json/' + route)
+              AlgorithmManagement.updateRootInfoFile(req.body, route)
+              AlgorithmManagement.updateStatus(status.identifier, 'creating', '/' + route)
+              #create a tar from zip
+              response =
+                statusCode: 200
+                identifier: status.identifier
+                statusMessage: 'Started Algorithm Creation'
+              sendResponse res, null, response
+
+              DockerManagement.buildImage('/data/executables/' + route, imageName, (err, response) ->
+                if(err?)
+                  AlgorithmManagement.updateStatus(status.identifier, 'error', null, err.statusMessage)
+                else
+                  AlgorithmManagement.updateStatus(status.identifier, 'testing')
+                  executableHelper = new ExecutableHelper()
+                  tempQueue = new ProcessingQueue()
+                  req =
+                    originalUrl: '/' + route
+                    body:
+                      images: [
+                        {
+                          type: 'url'
+                          value: 'https://placeholdit.imgix.net/~text?txtsize=33&txt=350%C3%97150&w=350&h=150'
+                        }
+                      ]
+                      highlighter: {}
+                      inputs: {}
+
+                  executableHelper.preprocess req, tempQueue, 'test',
+                    (err, response) ->
+                      logger.log 'info', response
+                  ,
+                    () ->
+                    #execute the algorithm once
+                      executableHelper.executeDockerRequest(tempQueue.getNext())
+              ))
+        )
+    )
+  else
+    err =
+      statusCode: 404
+      statusText: 'No algorithm with this identifier found'
+      errorType: 'No algorithm found'
+    sendError(res, err)
+
 router.delete '/algorithms/:identifier', (req, res) ->
 #set algorithm status to deleted
   serviceInfo = ServicesInfoHelper.getServiceInfoByIdentifier(req.params.identifier)
