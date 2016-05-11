@@ -8,23 +8,23 @@
 
 # Require Express Router
 AlgorithmManagement = require '../management/algorithmManagement'
-async = require 'async'
-DockerManagement = require '../docker/dockerManagement'
-ExecutableHelper = require '../helper/executableHelper'
-GetHandler = require './getHandler'
-ImageHelper = require '../helper/imageHelper'
-IoHelper = require '../helper/ioHelper'
-logger = require '../logging/logger'
-nconf = require 'nconf'
-path = require 'path'
-PostHandler = require './postHandler'
-ProcessingQueue = require '../processingQueue/processingQueue'
-ResultHelper = require '../helper/resultHelper'
-router = require('express').Router()
-schemaValidator = require '../validator/schemaValidator'
-ServicesInfoHelper = require '../helper/servicesInfoHelper'
-Statistics = require '../statistics/statistics'
-Upload = require '../upload/upload'
+async               = require 'async'
+DockerManagement    = require '../docker/dockerManagement'
+ExecutableHelper    = require '../helper/executableHelper'
+GetHandler          = require './getHandler'
+ImageHelper         = require '../helper/imageHelper'
+IoHelper            = require '../helper/ioHelper'
+logger              = require '../logging/logger'
+nconf               = require 'nconf'
+path                = require 'path'
+PostHandler         = require './postHandler'
+ProcessingQueue     = require '../processingQueue/processingQueue'
+ResultHelper        = require '../helper/resultHelper'
+router              = require('express').Router()
+schemaValidator     = require '../validator/schemaValidator'
+ServicesInfoHelper  = require '../helper/servicesInfoHelper'
+Statistics          = require '../statistics/statistics'
+Upload              = require '../upload/upload'
 
 
 getHandler = new GetHandler()

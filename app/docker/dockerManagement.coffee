@@ -85,11 +85,11 @@ dockerManagement = exports = module.exports = class DockerManagement
     if(_.find(algorithmInfos.input,{'inputImage':{}})?)
       content += 'wget -O /data/inputImage.png $1\n'
 
-    switch(algorithmInfos.language)
+    switch(algorithmInfos.method.language)
       when 'java'
-        content += 'java -Djava.awt.headless=true -Xmx4096m -jar /data/' + algorithmInfos.executable + ' '
+        content += 'java -Djava.awt.headless=true -Xmx4096m -jar /data/' + algorithmInfos.method.executable_path + ' '
       when 'coffeescript'
-        content += 'coffee ' + algorithmInfos.executable + ' '
+        content += 'coffee ' + algorithmInfos.method.executable_path + ' '
     #input count starts with 4. Params 1,2,3 are fix used
     inputCount = 4
     for input, i  in algorithmInfos.input

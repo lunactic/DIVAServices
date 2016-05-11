@@ -15,8 +15,11 @@ ServicesInfoHelper = require '../helper/servicesInfoHelper'
 router.get '/algorithms/:identifier', (req, res) ->
   identifier = req.params.identifier
   status = AlgorithmManagement.getStatusByIdentifier(identifier)
-  if(status.statusCode? and status.statusCode == 404)
-    sendResponse(res, null, status)
+  if(not status?)
+    err =
+      statusCode: 404,
+      statusText: 'Algorithm with ' + identifier + ' not available'
+    sendError(res, err)
   else
     send200 res, status
 
@@ -30,55 +33,12 @@ router.post '/algorithms', (req, res, next) ->
     else
       #docker
       route = AlgorithmManagement.generateUrl(req.body)
-      #TODO Generate image name
       #check if we can find the route already
       status = AlgorithmManagement.getStatusByRoute('/' + route)
       imageName = AlgorithmManagement.generateImageName(req.body)
       if(status?)
         if(status.status.statusCode == 410)
-          ioHelper.downloadFile(req.body.method.file, '/data/executables/' + route, (err, filename) ->
-            #create docker file
-            DockerManagement.createDockerFile(req.body, '/data/executables/' + route)
-            #create bash script
-            DockerManagement.createBashScript(req.body, '/data/executables/' + route)
-            #update servicesFile
-            AlgorithmManagement.createInfoFile(req.body, '/data/json/' + route)
-            AlgorithmManagement.updateRootInfoFile(req.body, route)
-            AlgorithmManagement.updateStatus(status.identifier, 'creating', '/' + route)
-            #create a tar from zip
-            response =
-              statusCode: 200
-              identifier: status.identifier
-              statusMessage: 'Started Algorithm Creation'
-            sendResponse res, null, response
-
-            DockerManagement.buildImage('/data/executables/' + route, imageName, (err, response) ->
-              if(err?)
-                AlgorithmManagement.updateStatus(status.identifier, 'error', null, err.statusMessage)
-              else
-                AlgorithmManagement.updateStatus(status.identifier, 'testing')
-                executableHelper = new ExecutableHelper()
-                tempQueue = new ProcessingQueue()
-                req =
-                  originalUrl: '/' + route
-                  body:
-                    images: [
-                      {
-                        type: 'url'
-                        value: 'https://placeholdit.imgix.net/~text?txtsize=33&txt=350%C3%97150&w=350&h=150'
-                      }
-                    ]
-                    highlighter: {}
-                    inputs: {}
-
-                executableHelper.preprocess req, tempQueue, 'test',
-                  (err, response) ->
-                    logger.log 'info', response
-                ,
-                  () ->
-                    #execute the algorithm once
-                    executableHelper.executeDockerRequest(tempQueue.getNext())
-            ))
+          createAlgorithm(req,res, route, identifier, imageName)
         else
           response =
             statusCode: status.status.statusCode
@@ -88,53 +48,10 @@ router.post '/algorithms', (req, res, next) ->
       else
         identifier = AlgorithmManagement.createIdentifier()
         AlgorithmManagement.generateFolders(route)
-        ioHelper.downloadFile(req.body.method.file, '/data/executables/' + route, (err, filename) ->
-          #create docker file
-          DockerManagement.createDockerFile(req.body, '/data/executables/' + route)
-          #create bash script
-          DockerManagement.createBashScript(req.body, '/data/executables/' + route)
-          #update servicesFile
-          AlgorithmManagement.createInfoFile(req.body, '/data/json/' + route)
-          AlgorithmManagement.updateServicesFile(req.body, identifier, route, imageName)
-          AlgorithmManagement.updateRootInfoFile(req.body, route)
-          AlgorithmManagement.updateStatus(identifier, 'creating', '/' + route)
-          #create a tar from zip
-          response =
-            statusCode: 200
-            identifier: identifier
-            message: 'Started Algorithm Creation'
-          sendResponse(res, null, response)
-          DockerManagement.buildImage('/data/executables/' + route, imageName, (err, response) ->
-            if(err?)
-              AlgorithmManagement.updateStatus(identifier, 'error', null, err.statusMessage)
-            else
-              AlgorithmManagement.updateStatus(identifier, 'testing')
-              executableHelper = new ExecutableHelper()
-              tempQueue = new ProcessingQueue()
-              req =
-                originalUrl: '/' + route
-                body:
-                  images: [
-                    {
-                      type: 'url'
-                      value: 'https://placeholdit.imgix.net/~text?txtsize=33&txt=350%C3%97150&w=350&h=150'
-                    }
-                  ]
-                  highlighter: {}
-                  inputs: {}
-
-              executableHelper.preprocess req, tempQueue, 'test',
-                (err, response) ->
-                  logger.log 'info', response
-              ,
-                () ->
-                  #execute the algorithm once
-                  executableHelper.executeDockerRequest(tempQueue.getNext())
-          ))
+        createAlgorithm(req,res, route, identifier, imageName)
   )
 
 router.put '/algorithms/:identifier', (req, res) ->
-  ioHelper = new IoHelper()
   route = AlgorithmManagement.generateUrl(req.body)
   status = AlgorithmManagement.getStatusByRoute('/' + route)
   #perform a deletion and an addition of the new algorithm
@@ -155,49 +72,7 @@ router.put '/algorithms/:identifier', (req, res) ->
             #TODO Generate image name
             #check if we can find the route already
             imageName = AlgorithmManagement.generateImageName(req.body)
-            ioHelper.downloadFile(req.body.method.file, '/data/executables/' + route, (err, filename) ->
-              #create docker file
-              DockerManagement.createDockerFile(req.body, '/data/executables/' + route)
-              #create bash script
-              DockerManagement.createBashScript(req.body, '/data/executables/' + route)
-              #update servicesFile
-              AlgorithmManagement.createInfoFile(req.body, '/data/json/' + route)
-              AlgorithmManagement.updateRootInfoFile(req.body, route)
-              AlgorithmManagement.updateStatus(status.identifier, 'creating', '/' + route)
-              #create a tar from zip
-              response =
-                statusCode: 200
-                identifier: status.identifier
-                statusMessage: 'Started Algorithm Creation'
-              sendResponse res, null, response
-
-              DockerManagement.buildImage('/data/executables/' + route, imageName, (err, response) ->
-                if(err?)
-                  AlgorithmManagement.updateStatus(status.identifier, 'error', null, err.statusMessage)
-                else
-                  AlgorithmManagement.updateStatus(status.identifier, 'testing')
-                  executableHelper = new ExecutableHelper()
-                  tempQueue = new ProcessingQueue()
-                  req =
-                    originalUrl: '/' + route
-                    body:
-                      images: [
-                        {
-                          type: 'url'
-                          value: 'https://placeholdit.imgix.net/~text?txtsize=33&txt=350%C3%97150&w=350&h=150'
-                        }
-                      ]
-                      highlighter: {}
-                      inputs: {}
-
-                  executableHelper.preprocess req, tempQueue, 'test',
-                    (err, response) ->
-                      logger.log 'info', response
-                  ,
-                    () ->
-                    #execute the algorithm once
-                      executableHelper.executeDockerRequest(tempQueue.getNext())
-              ))
+            createAlgorithm(req,res, route, identifier, imageName)
         )
     )
   else
@@ -265,5 +140,53 @@ validate = (req, res, schema) ->
     else
       send200(res, {status: 'valid'})
   )
+
+
+createAlgorithm = (req,res, route, identifier, imageName) ->
+  ioHelper = new IoHelper()
+  ioHelper.downloadFile(req.body.method.file, '/data/executables/' + route, (err, filename) ->
+    #create docker file
+    DockerManagement.createDockerFile(req.body, '/data/executables/' + route)
+    #create bash script
+    DockerManagement.createBashScript(req.body, '/data/executables/' + route)
+    #update servicesFile
+    AlgorithmManagement.createInfoFile(req.body, '/data/json/' + route)
+    AlgorithmManagement.updateServicesFile(req.body, identifier, route, imageName)
+    AlgorithmManagement.updateRootInfoFile(req.body, route)
+    AlgorithmManagement.updateStatus(identifier, 'creating', '/' + route)
+    #create a tar from zip
+    response =
+      statusCode: 200
+      identifier: identifier
+      statusMessage: 'Started Algorithm Creation'
+    sendResponse res, null, response
+
+    DockerManagement.buildImage('/data/executables/' + route, imageName, (err, response) ->
+      if(err?)
+        AlgorithmManagement.updateStatus(identifier, 'error', null, err.statusMessage)
+      else
+        AlgorithmManagement.updateStatus(identifier, 'testing')
+        executableHelper = new ExecutableHelper()
+        tempQueue = new ProcessingQueue()
+        req =
+          originalUrl: '/' + route
+          body:
+            images: [
+              {
+                type: 'url'
+                value: 'https://placeholdit.imgix.net/~text?txtsize=33&txt=350%C3%97150&w=350&h=150'
+              }
+            ]
+            highlighter: {}
+            inputs: {}
+
+        executableHelper.preprocess req, tempQueue, 'test',
+          (err, response) ->
+            logger.log 'info', response
+        ,
+          () ->
+            #execute the algorithm once
+            executableHelper.executeDockerRequest(tempQueue.getNext())
+    ))
 
 module.exports = router

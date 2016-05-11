@@ -11,8 +11,6 @@ algorithmManagement = exports = module.exports = class AlgorithmManagement
 
   @ioHelper = new IoHelper()
 
-
-
   @updateStatus: (identifier, status,route, message) ->
     content = @ioHelper.loadFile(nconf.get('paths:servicesInfoFile'))
     currentInfo = {}
@@ -44,14 +42,11 @@ algorithmManagement = exports = module.exports = class AlgorithmManagement
 
   @getStatusByIdentifier: (identifier) ->
     content = @ioHelper.loadFile(nconf.get('paths:servicesInfoFile'))
-    status = _.find(content.services, {'identifier':identifier}).status
+    status = _.find(content.services, {'identifier':identifier})
     if(status?)
-      return status
+      return status.status
     else
-      return {
-        statusCode: 404,
-        statusText: 'Algorithm with ' + identifier + ' not available'
-      }
+      return null
 
   @getStatusByRoute: (route) ->
     content = @ioHelper.loadFile(nconf.get('paths:servicesInfoFile'))
@@ -75,7 +70,6 @@ algorithmManagement = exports = module.exports = class AlgorithmManagement
     return
 
   @generateImageName: (newAlgorithm) ->
-    #TODO complete this
     return newAlgorithm.general.name.toLowerCase().replace(/\s/g, '_')
 
   @createInfoFile: (newAlgorithm, folder) ->
@@ -120,27 +114,28 @@ algorithmManagement = exports = module.exports = class AlgorithmManagement
 
   #TODO MAKE CHANGES FOR DOCKER OR CREATE A SEPERATE METHOD
   @updateServicesFile: (newAlgorithm, identifier, route, imageName) ->
-    newContent = _.cloneDeep(ServicesInfoHelper.fileContent)
-    parameters = {}
-    _.forEach(newAlgorithm.input, (input, key) ->
-      inputType = _.keys(input)[0]
-      _.set(parameters,_.get(newAlgorithm, 'input[' + key + '].'+inputType+'.name', inputType),'')
-    )
-    newServiceEntry =
-      service: newAlgorithm.general.name.replace(/\s/g, '').toLowerCase()
-      identifier: identifier
-      path: '/'+route
-      executablePath: '/data/executables/' + route + path.sep + newAlgorithm.method.executable_path
-      programType: newAlgorithm.method.language
-      allowParallel: true
-      output: 'file'
-      execute: 'docker'
-      image_name: imageName
-      parameters: parameters
-      status:
-        statusCode: -1
-        statusMessage: ''
+    if(not @getStatusByIdentifier(identifier)? and not @getStatusByRoute(route)?)
+      newContent = _.cloneDeep(ServicesInfoHelper.fileContent)
+      parameters = {}
+      _.forEach(newAlgorithm.input, (input, key) ->
+        inputType = _.keys(input)[0]
+        _.set(parameters,_.get(newAlgorithm, 'input[' + key + '].'+inputType+'.name', inputType),'')
+      )
+      newServiceEntry =
+        service: newAlgorithm.general.name.replace(/\s/g, '').toLowerCase()
+        identifier: identifier
+        path: '/'+route
+        executablePath: '/data/executables/' + route + path.sep + newAlgorithm.method.executable_path
+        programType: newAlgorithm.method.language
+        allowParallel: true
+        output: 'file'
+        execute: 'docker'
+        image_name: imageName
+        parameters: parameters
+        status:
+          statusCode: -1
+          statusMessage: ''
 
-    newContent.services.push(newServiceEntry)
-    ServicesInfoHelper.update(newContent)
-    ServicesInfoHelper.reload()
+      newContent.services.push(newServiceEntry)
+      ServicesInfoHelper.update(newContent)
+      ServicesInfoHelper.reload()
