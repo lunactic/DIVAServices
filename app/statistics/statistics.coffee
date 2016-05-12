@@ -62,6 +62,7 @@ statistics = exports = module.exports = class Statistics
       )
     #remove the call from current executions
     @currentExecutions = @currentExecutions.filter (x) -> x.rand != rand
+    fs.writeFileSync nconf.get('paths:statisticsFile'), JSON.stringify(@currentStatistics)
     return @endTime[0]
 
   @getMeanExecutionTime: (reqPath) ->
