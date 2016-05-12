@@ -90,8 +90,8 @@ dockerManagement = exports = module.exports = class DockerManagement
         content += 'java -Djava.awt.headless=true -Xmx4096m -jar /data/' + algorithmInfos.method.executable_path + ' '
       when 'coffeescript'
         content += 'coffee ' + algorithmInfos.method.executable_path + ' '
-    #input count starts with 4. Params 1,2,3 are fix used
-    inputCount = 4
+    #input count starts with 4. Params 1,2 are fix used
+    inputCount = 3
     for input, i  in algorithmInfos.input
       #check if needs to be rewritten
       key = _.keys(algorithmInfos.input[i])[0]
@@ -108,10 +108,11 @@ dockerManagement = exports = module.exports = class DockerManagement
   @runDockerImage: (process, imageName) ->
     params = process.parameters.params
     paramsPath = ""
-    params = _.values(params).join(' ').split(' ')
-    for param in _.values(params)
-      paramsPath += '"' + param + '" '
-    command = "./script.sh " + process.inputImageUrl + " " + process.remoteResultUrl
+    #params = _.values(params).join(' ').split(' ')
+    _.forOwn(params, (value, key) ->
+      paramsPath += '"' + value + '" '
+    )
+    command = "./script.sh " + process.inputImageUrl + " " + process.remoteResultUrl + " " + paramsPath
     logger.log 'info', command
     @docker.run(imageName,['bash', '-c', command], process.stdout, (err, data, container) ->
       if(err?)

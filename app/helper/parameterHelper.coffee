@@ -56,7 +56,7 @@ parameterHelper = exports = module.exports = class ParameterHelper
       when 'outputFolder'
         return process.outputFolder
       when 'host'
-        return req.get('host')
+        return nconf.get('server:rootUrl')
       when 'ocropyLanguageModelsPath'
         return nconf.get('paths:ocropyLanguageModelsPath')
       when 'startUp'
