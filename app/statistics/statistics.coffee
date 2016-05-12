@@ -8,6 +8,7 @@
 # Copyright &copy; Marcel Würsch, GPL v3.0 Licensed.
 
 # Module dependencies
+_           = require 'lodash'
 nconf       = require 'nconf'
 fs          = require 'fs'
 logger      = require '../logging/logger'
@@ -48,21 +49,24 @@ statistics = exports = module.exports = class Statistics
     executionInfo = @currentExecutions.filter (x) -> x.rand == rand
     @endTime = process.hrtime(executionInfo[0].startTime)
     delete @currentExecutions[rand]
-    if(@currentStatistics[reqPath]?)
-      @currentStatistics[reqPath] =
-       runtime: (@currentStatistics[reqPath].runtime + @endTime[0]) / 2
-       executions: @currentStatistics[reqPath].executions+1
+    if(_.find(@currentStatistics,{'reqPath':reqPath})?)
+      stats = _.find(@currentStatistics,{'reqPath':reqPath})
+      stats.runtime = (stats.runtime + @endTime[0]) / 2
+      stats.executions = stats.executions+1
     else
-      @currentStatistics[reqPath] =
+      @currentStatistics.push({
+        reqPath: reqPath
         runtime: @endTime[0]
         executions: 1
+        }
+      )
     #remove the call from current executions
     @currentExecutions = @currentExecutions.filter (x) -> x.rand != rand
     return @endTime[0]
 
   @getMeanExecutionTime: (reqPath) ->
-    if(@currentStatistics[reqPath]?)
-      return @currentStatistics[reqPath].runtime
+    if(_.find(@currentStatistics,{'reqPath':reqPath})?)
+      return _.find(@currentStatistics,{'reqPath':reqPath}).runtime
     else
       return -1
 

@@ -52,8 +52,8 @@ getHandler = exports = module.exports = class GetHandler
           data = JSON.parse data
 
           #add statistics information if available
-          if(data['info']?)
-            data['info']['expectedRuntime'] = Statistics.getMeanExecutionTime req.originalUrl
+          if(data.general? and not data.general.expectedRuntime?)
+            data.general.expectedRuntime = Statistics.getMeanExecutionTime req.originalUrl
           callback null, data
         return
       return
