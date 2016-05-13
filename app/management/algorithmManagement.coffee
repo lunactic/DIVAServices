@@ -42,9 +42,12 @@ algorithmManagement = exports = module.exports = class AlgorithmManagement
 
   @getStatusByIdentifier: (identifier) ->
     content = @ioHelper.loadFile(nconf.get('paths:servicesInfoFile'))
-    status = _.find(content.services, {'identifier':identifier})
-    if(status?)
-      return status.status
+    info = _.find(content.services, {'identifier':identifier})
+    if(info?)
+      message =
+        status: info.status
+        statistics: info.statistics
+      return message
     else
       return null
 
@@ -135,6 +138,9 @@ algorithmManagement = exports = module.exports = class AlgorithmManagement
         status:
           statusCode: -1
           statusMessage: ''
+        statistics:
+          runtime: -1
+          executions: 0
 
       newContent.services.push(newServiceEntry)
       ServicesInfoHelper.update(newContent)

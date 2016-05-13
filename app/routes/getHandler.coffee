@@ -54,6 +54,8 @@ getHandler = exports = module.exports = class GetHandler
           #add statistics information if available
           if(data.general? and not data.general.expectedRuntime?)
             data.general.expectedRuntime = Statistics.getMeanExecutionTime req.originalUrl
+          if(data.general? and not data.general.executions?)
+            data.general.executions = Statistics.getNumberOfExecutions req.originalUrl
           callback null, data
         return
       return

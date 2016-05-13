@@ -49,35 +49,40 @@ statistics = exports = module.exports = class Statistics
     executionInfo = @currentExecutions.filter (x) -> x.rand == rand
     @endTime = process.hrtime(executionInfo[0].startTime)
     delete @currentExecutions[rand]
-    if(_.find(@currentStatistics,{'reqPath':reqPath})?)
-      stats = _.find(@currentStatistics,{'reqPath':reqPath})
-      stats.runtime = (stats.runtime + @endTime[0]) / 2
-      stats.executions = stats.executions+1
-    else
-      @currentStatistics.push({
-        reqPath: reqPath
-        runtime: @endTime[0]
-        executions: 1
-        }
-      )
+    if(_.find(@currentStatistics.services,{'path':reqPath})?)
+      stats = _.find(@currentStatistics.services,{'path':reqPath}).statistics
+      if(stats.executions == 0)
+        stats.executions = 1
+        stats.runtime = @endTime[0]
+      else
+        stats.runtime = (stats.runtime + @endTime[0]) / 2
+        stats.executions = stats.executions+1
+
     #remove the call from current executions
     @currentExecutions = @currentExecutions.filter (x) -> x.rand != rand
-    fs.writeFileSync nconf.get('paths:statisticsFile'), JSON.stringify(@currentStatistics)
+    fs.writeFileSync nconf.get('paths:servicesInfoFile'), JSON.stringify(@currentStatistics, null, '\t')
     return @endTime[0]
 
   @getMeanExecutionTime: (reqPath) ->
-    if(_.find(@currentStatistics,{'reqPath':reqPath})?)
-      return _.find(@currentStatistics,{'reqPath':reqPath}).runtime
+    if(_.find(@currentStatistics.services,{'path':reqPath})?)
+      return _.find(@currentStatistics.services,{'path':reqPath}).statistics.runtime
     else
       return -1
+
+  @getNumberOfExecutions: (reqPath) ->
+    if(_.find(@currentStatistics.services,{'path':reqPath})?)
+      return _.find(@currentStatistics.services,{'path':reqPath}).statistics.executions
+    else
+      return 0
+
 
   @loadStatistics: () ->
     if(Object.keys(@currentStatistics).length is 0)
       try
-        @currentStatistics = JSON.parse(fs.readFileSync(nconf.get('paths:statisticsFile'),'utf-8'))
+        @currentStatistics = JSON.parse(fs.readFileSync(nconf.get('paths:servicesInfoFile'),'utf-8'))
       catch error
         #Should only happen at first startup
         logger.log 'error', 'No statistics file found'
 
   @saveStatistics: () ->
-    fs.writeFileSync nconf.get('paths:statisticsFile'), JSON.stringify(@currentStatistics)
+    fs.writeFileSync nconf.get('paths:servicesInfoFile'), JSON.stringify(@currentStatistics, null, '\t')

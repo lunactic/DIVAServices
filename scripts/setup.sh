@@ -102,8 +102,6 @@ mkdir -p $executableFolder
 header "Creating Files"
 imageInfoFile=($(cat conf/server.dev.json | jq -r '.paths.imageInfoFile'))
 echo "[]" > $imageInfoFile
-statisticsFile=($(cat conf/server.dev.json | jq -r '.paths.statisticsFile'))
-echo "[]" > $statisticsFile
 servicesInfoFile=($(cat conf/server.dev.json | jq -r '.paths.servicesInfoFile'))
 echo '{"services":[]}' > $servicesInfoFile
 rootInfoFile=($(cat conf/server.dev.json | jq -r '.paths.rootInfoFile'))
