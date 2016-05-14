@@ -4,7 +4,8 @@
     "infoText":"Name of the algorithm",
     "minLength":2,
     "maxLength":50,
-    "required":true
+    "required":true,
+    "regex": "^([a-z A-Z0-9]*)$"
   },
   "description":{
     "type":"string",
