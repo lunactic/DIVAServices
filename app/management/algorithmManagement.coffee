@@ -13,7 +13,6 @@ algorithmManagement = exports = module.exports = class AlgorithmManagement
 
   @updateStatus: (identifier, status,route, message) ->
     content = @ioHelper.loadFile(nconf.get('paths:servicesInfoFile'))
-    currentInfo = {}
     if(identifier? and _.find(content.services, {'identifier':identifier})?)
       currentInfo = _.find(content.services, {'identifier':identifier})
     else if(route? and _.find(content.services, {'path':route})?)

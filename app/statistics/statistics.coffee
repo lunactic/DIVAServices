@@ -46,6 +46,7 @@ statistics = exports = module.exports = class Statistics
     return rand
 
   @endRecording: (rand, reqPath) ->
+    @currentStatistics = JSON.parse(fs.readFileSync(nconf.get('paths:servicesInfoFile'),'utf-8'))
     executionInfo = @currentExecutions.filter (x) -> x.rand == rand
     @endTime = process.hrtime(executionInfo[0].startTime)
     delete @currentExecutions[rand]
