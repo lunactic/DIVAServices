@@ -11,34 +11,6 @@ algorithmManagement = exports = module.exports = class AlgorithmManagement
 
   @ioHelper = new IoHelper()
 
-  @updateStatus: (identifier, status,route, message) ->
-    content = @ioHelper.loadFile(nconf.get('paths:servicesInfoFile'))
-    if(identifier? and _.find(content.services, {'identifier':identifier})?)
-      currentInfo = _.find(content.services, {'identifier':identifier})
-    else if(route? and _.find(content.services, {'path':route})?)
-      currentInfo = _.find(content.services,{'path':route})
-
-    switch status
-      when 'creating'
-        currentInfo.status.statusCode = 100
-        currentInfo.status.statusMessage = 'Building Algorithm Image'
-      when 'testing'
-        currentInfo.status.statusCode = 110
-        currentInfo.status.statusMessage = 'Testing Algorithm'
-      when 'ok'
-        currentInfo.status.statusCode = 200
-        currentInfo.status.statusMessage = 'Algorithm is Available'
-      when 'error'
-        currentInfo.status.statusCode = 500
-        currentInfo.status.statusMessage = 'Error: ' + message
-      when 'delete'
-        currentInfo.status.statusCode = 410
-        currentInfo.status.statusMessage = 'This Algorithm is no longer available'
-
-    @ioHelper.saveFile(nconf.get('paths:servicesInfoFile'), content)
-    return
-
-
   @getStatusByIdentifier: (identifier) ->
     content = @ioHelper.loadFile(nconf.get('paths:servicesInfoFile'))
     info = _.find(content.services, {'identifier':identifier})
@@ -113,9 +85,46 @@ algorithmManagement = exports = module.exports = class AlgorithmManagement
     )
     @ioHelper.saveFile(nconf.get('paths:rootInfoFile'), fileContent)
 
+  @updateStatus: (identifier, status,route, message) ->
+    content = @ioHelper.loadFile(nconf.get('paths:servicesInfoFile'))
+    if(identifier? and _.find(content.services, {'identifier':identifier})?)
+      currentInfo = _.find(content.services, {'identifier':identifier})
+    else if(route? and _.find(content.services, {'path':route})?)
+      currentInfo = _.find(content.services,{'path':route})
 
-  #TODO MAKE CHANGES FOR DOCKER OR CREATE A SEPERATE METHOD
+    switch status
+      when 'creating'
+        currentInfo.status.statusCode = 100
+        currentInfo.status.statusMessage = 'Building Algorithm Image'
+      when 'testing'
+        currentInfo.status.statusCode = 110
+        currentInfo.status.statusMessage = 'Testing Algorithm'
+      when 'ok'
+        currentInfo.status.statusCode = 200
+        currentInfo.status.statusMessage = 'Algorithm is Available'
+      when 'error'
+        currentInfo.status.statusCode = 500
+        currentInfo.status.statusMessage = 'Error: ' + message
+      when 'delete'
+        currentInfo.status.statusCode = 410
+        currentInfo.status.statusMessage = 'This Algorithm is no longer available'
+
+    @ioHelper.saveFile(nconf.get('paths:servicesInfoFile'), content)
+    return
+
+  @updateRoute: (identifier, newRoute) ->
+    content = @ioHelper.loadFile(nconf.get('paths:servicesInfoFile'))
+    if(identifier? and _.find(content.services, {'identifier':identifier})?)
+      currentInfo = _.find(content.services, {'identifier':identifier})
+    currentInfo.path = newRoute
+    @ioHelper.saveFile(nconf.get('paths:servicesInfoFile'), content)
+    return
+
+
+
+#TODO MAKE CHANGES FOR DOCKER OR CREATE A SEPERATE METHOD
   @updateServicesFile: (newAlgorithm, identifier, route, imageName) ->
+    ServicesInfoHelper.reload()
     if(not @getStatusByIdentifier(identifier)? and not @getStatusByRoute(route)?)
       newContent = _.cloneDeep(ServicesInfoHelper.fileContent)
       parameters = {}

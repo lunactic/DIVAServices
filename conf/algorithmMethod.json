@@ -12,16 +12,18 @@
     ],
     "required": true
   },
-  "language": {
-    "infoText": "Language which is used to run the algorithm",
+  "executableType": {
+    "infoText": "Type of the executable",
     "type": "enum",
     "values": [
       "java",
-      "coffeescript"
+      "coffeescript",
+      "bash"
     ],
     "keys": [
-      "Java",
-      "CoffeeScript"
+      "Java-JAR",
+      "CoffeeScript",
+      "Bash Script"
     ],
     "required": true
   },

@@ -76,6 +76,10 @@ dockerManagement = exports = module.exports = class DockerManagement
       "COPY . .\n" +
       'RUN ["chmod", "+x", "./script.sh"]\n' +
       'RUN unzip algorithm.zip\n'
+
+    if algorithmInfos.method.language is 'bash'
+      content += 'RUN ["chmod", "+x", "./'+ algorithmInfos.method.executable_path+'"]\n'
+
       #'ENTRYPOINT ["./script.sh"]'
     fs.writeFileSync(outputFolder + path.sep + 'Dockerfile', content)
 
@@ -90,8 +94,14 @@ dockerManagement = exports = module.exports = class DockerManagement
         content += 'java -Djava.awt.headless=true -Xmx4096m -jar /data/' + algorithmInfos.method.executable_path + ' '
       when 'coffeescript'
         content += 'coffee ' + algorithmInfos.method.executable_path + ' '
-    #input count starts with 4. Params 1,2 are fix used
+      when 'bash'
+        content += '/data/' + algorithmInfos.method.executable_path + ' '
+
+    #input count starts with 3. Params 1,2 are fix used
+
+
     inputCount = 3
+
     for input, i  in algorithmInfos.input
       #check if needs to be rewritten
       key = _.keys(algorithmInfos.input[i])[0]
@@ -102,6 +112,7 @@ dockerManagement = exports = module.exports = class DockerManagement
       inputCount++
 
     content += '1> /data/result.json \n'
+    #TODO ADD ERROR HANDLING (log 2> into error.json)
     content += 'curl -H "Content-Type: application/json" --data @/data/result.json $2'
     fs.writeFileSync(outputFolder + path.sep + "script.sh", content)
 

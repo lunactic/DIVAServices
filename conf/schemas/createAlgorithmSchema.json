@@ -307,7 +307,7 @@
           "environment": {
             "type": "string"
           },
-          "language": {
+          "executableType": {
             "type": "string"
           },
           "executable_path": {
@@ -317,7 +317,7 @@
         "required": [
           "file",
           "environment",
-          "language",
+          "executableType",
           "executable_path"
         ]
       }

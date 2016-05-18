@@ -52,12 +52,21 @@ router.post '/algorithms', (req, res, next) ->
   )
 
 router.put '/algorithms/:identifier', (req, res) ->
-  route = AlgorithmManagement.generateUrl(req.body)
-  status = AlgorithmManagement.getStatusByRoute('/' + route)
+
   #perform a deletion and an addition of the new algorithm
   serviceInfo = ServicesInfoHelper.getServiceInfoByIdentifier(req.params.identifier)
   if(serviceInfo?)
+    #build new route
+    currentRoute = serviceInfo.path
+    routeParts = currentRoute.split('/')
+    lastPart = routeParts[routeParts.length - 1]
+    if(isNaN(lastPart))
+      newRoute = currentRoute + '/1'
+    else
+      routeParts[routeParts.length - 1]++
+      newRoute = routeParts.join('/')
     AlgorithmManagement.updateStatus(req.params.identifier, 'delete')
+    AlgorithmManagement.updateRoute(req.params.identifier, newRoute)
     #remove /route/info.json file
     AlgorithmManagement.deleteInfoFile('/data/json' + serviceInfo.path)
     AlgorithmManagement.removeFromRootInfoFile(serviceInfo.path)
@@ -68,8 +77,8 @@ router.put '/algorithms/:identifier', (req, res) ->
             sendError(res, error)
           else
             #docker
+            identifier = AlgorithmManagement.createIdentifier()
             route = AlgorithmManagement.generateUrl(req.body)
-            #TODO Generate image name
             #check if we can find the route already
             imageName = AlgorithmManagement.generateImageName(req.body)
             createAlgorithm(req,res, route, identifier, imageName)
