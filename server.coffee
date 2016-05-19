@@ -63,6 +63,19 @@ app.use favicon(__dirname + '/images/favicon/favicon.ico')
 app.use(morgan('combined',{stream: accessLogStream}))
 #setup routes
 
+#setup helper for text plain
+app.use (req, res, next) ->
+  if req.is('text/*')
+    req.text = ''
+    req.setEncoding 'utf8'
+    req.on 'data', (chunk) ->
+      req.text += chunk
+      return
+    req.on 'end', next
+  else
+    next()
+  return
+
 app.use router
 app.use algorithmRouter
 

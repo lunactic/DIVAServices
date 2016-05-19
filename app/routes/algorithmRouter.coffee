@@ -52,7 +52,6 @@ router.post '/algorithms', (req, res, next) ->
   )
 
 router.put '/algorithms/:identifier', (req, res) ->
-
   #perform a deletion and an addition of the new algorithm
   serviceInfo = ServicesInfoHelper.getServiceInfoByIdentifier(req.params.identifier)
   if(serviceInfo?)
@@ -91,6 +90,14 @@ router.put '/algorithms/:identifier', (req, res) ->
       errorType: 'No algorithm found'
     sendError(res, err)
 
+router.post '/algorithms/:identifier/exceptions', (req, res, next) ->
+  AlgorithmManagement.recordException(req.params.identifier, req.text)
+  send200(res, {})
+
+router.get '/algorithms/:identifier/exceptions', (req, res) ->
+  exceptions = AlgorithmManagement.getExceptions(req.params.identifier)
+  send200(res, exceptions)
+  
 router.delete '/algorithms/:identifier', (req, res) ->
 #set algorithm status to deleted
   serviceInfo = ServicesInfoHelper.getServiceInfoByIdentifier(req.params.identifier)

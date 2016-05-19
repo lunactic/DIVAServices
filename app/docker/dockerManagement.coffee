@@ -88,8 +88,9 @@ dockerManagement = exports = module.exports = class DockerManagement
     
     if(_.find(algorithmInfos.input,{'inputImage':{}})?)
       content += 'wget -O /data/inputImage.png $1\n'
+      #content += 'wget -O /data/inputImage.png $1\n'
 
-    switch(algorithmInfos.method.language)
+    switch(algorithmInfos.method.executableType)
       when 'java'
         content += 'java -Djava.awt.headless=true -Xmx4096m -jar /data/' + algorithmInfos.method.executable_path + ' '
       when 'coffeescript'
@@ -97,10 +98,11 @@ dockerManagement = exports = module.exports = class DockerManagement
       when 'bash'
         content += '/data/' + algorithmInfos.method.executable_path + ' '
 
-    #input count starts with 3. Params 1,2 are fix used
-
-
-    inputCount = 3
+    #input count starts with 4. Params 1,2 and 3 are fix used
+    # 1: inputImageUrl
+    # 2: resultResponseUrl
+    # 3: eroorResponseUrl
+    inputCount = 4
 
     for input, i  in algorithmInfos.input
       #check if needs to be rewritten
@@ -111,19 +113,21 @@ dockerManagement = exports = module.exports = class DockerManagement
         content += '$'+inputCount+' '
       inputCount++
 
-    content += '1> /data/result.json \n'
-    #TODO ADD ERROR HANDLING (log 2> into error.json)
-    content += 'curl -H "Content-Type: application/json" --data @/data/result.json $2'
+    content += '1> /data/result.json 2> /data/error.txt \n'
+    content += 'curl -H "Content-Type: application/json" --data @/data/result.json $2 \n'
+    content += 'if [ -s "/data/error.txt" ] \n'
+    content += 'then \n'
+    content += '    curl -H "Content-Type: text/plain" --data @/data/error.txt $3 \n'
+    content += 'fi'
     fs.writeFileSync(outputFolder + path.sep + "script.sh", content)
 
   @runDockerImage: (process, imageName) ->
     params = process.parameters.params
     paramsPath = ""
-    #params = _.values(params).join(' ').split(' ')
     _.forOwn(params, (value, key) ->
       paramsPath += '"' + value + '" '
     )
-    command = "./script.sh " + process.inputImageUrl + " " + process.remoteResultUrl + " " + paramsPath
+    command = "./script.sh " + process.inputImageUrl + " " + process.remoteResultUrl + " " + process.remoteErrorUrl + " " + paramsPath
     logger.log 'info', command
     @docker.run(imageName,['bash', '-c', command], process.stdout, (err, data, container) ->
       if(err?)

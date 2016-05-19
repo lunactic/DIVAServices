@@ -94,7 +94,6 @@ router.post '/validate/:schema', (req, res, next) ->
     when 'create'
       validate(req, res, 'createSchema')
 
-
 # Set up the routing for POST requests
 router.post '*', (req, res, next) ->
   if(unlike(req, '/algorithms'))

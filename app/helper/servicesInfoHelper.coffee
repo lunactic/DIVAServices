@@ -18,7 +18,7 @@ servicesInfoHelper = exports = module.exports = class ServicesInfoHelper
       item.path == servicePath
     )
     return serviceInfo[0]
-
+  
   @getServiceInfoByName: (serviceName) ->
     @reload()
     serviceInfo = @fileContent.services.filter((item) ->

@@ -142,6 +142,7 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
   executeDockerRequest: (process) ->
     process.id = Statistics.startRecording(process.req.originalUrl,process)
     process.remoteResultUrl = 'http://' + nconf.get('docker:reportHost') + '/jobs/' + process.id
+    process.remoteErrorUrl  = 'http://' + nconf.get('docker:reportHost') + '/algorithms/' + process.algorithmIdentifier + '/exceptions/'
     serviceInfo = ServicesInfoHelper.getServiceInfoByPath(process.req.originalUrl)
     DockerManagement.runDockerImage(process, serviceInfo.image_name)
 
@@ -173,6 +174,7 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
         collection.outputFolder = outputFolder
         collection.resultFile = collection.outputFolder + path.sep + 'result.json'
         for process in collection.processes
+          process.algorithmIdentifier = serviceInfo.identifier
           process.outputFolder = outputFolder
           process.inputParameters = _.clone(req.body.inputs)
           process.inputHighlighters = _.clone(req.body.highlighter)

@@ -120,6 +120,21 @@ algorithmManagement = exports = module.exports = class AlgorithmManagement
     @ioHelper.saveFile(nconf.get('paths:servicesInfoFile'), content)
     return
 
+  @recordException: (identifier, exception) ->
+    content = @ioHelper.loadFile(nconf.get('paths:servicesInfoFile'))
+    if(identifier? and _.find(content.services, {'identifier':identifier})?)
+      currentInfo = _.find(content.services, {'identifier':identifier})
+    exception =
+      date: new Date().toJSON()
+      errorMessage: exception
+    currentInfo.exceptions.push(exception)
+    @ioHelper.saveFile(nconf.get('paths:servicesInfoFile'), content)
+
+  @getExceptions: (identifier) ->
+    content = @ioHelper.loadFile(nconf.get('paths:servicesInfoFile'))
+    if(identifier? and _.find(content.services, {'identifier':identifier})?)
+      currentInfo = _.find(content.services, {'identifier':identifier})
+    return currentInfo.exceptions
 
 
 #TODO MAKE CHANGES FOR DOCKER OR CREATE A SEPERATE METHOD
@@ -149,6 +164,7 @@ algorithmManagement = exports = module.exports = class AlgorithmManagement
         statistics:
           runtime: -1
           executions: 0
+        exceptions: []
 
       newContent.services.push(newServiceEntry)
       ServicesInfoHelper.update(newContent)
