@@ -302,7 +302,8 @@
         "type": "object",
         "properties": {
           "file": {
-            "type": "string"
+            "type": "string",
+            "format":"uri"
           },
           "environment": {
             "type": "string"
