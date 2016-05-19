@@ -27,6 +27,22 @@ Currently 16 methods are available:
 
 The necessary binaries to run the methods are currently only available upon request.
 
+Citation
+--------
+
+If you use DIVAServices in your research, please cite our DAS 2016 paper on the
+infrastructure. You can use the following BibTeX.
+
+    @proceedings{wuersch2016,
+        author = "W{\"u}rsch, Marcel and Rolf Ingold and Liwicki, Marcus",
+        journal = {Document Analysis Systems (DAS)}
+        title  = "{SDK Reinvented: Document Image Analysis Methods as RESTful Web Services}",
+        month = "April",
+        year   = "2016",
+        doi = {10.1109/DAS.2016.56}
+    }
+
+
 ----------
 ##Installation
 The installation process is described on a separate wiki page here: [Installation](https://github.com/lunactic/DIVAServices/wiki/Installation)
