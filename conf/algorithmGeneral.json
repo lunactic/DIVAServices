@@ -12,7 +12,8 @@
     "infoText":"Description of what the algorithm performs",
     "minLength":5,
     "maxLength":255,
-    "required":true
+    "required":true,
+    "multiline":true
   },
   "author":{
     "infoText":"Author of the method",
