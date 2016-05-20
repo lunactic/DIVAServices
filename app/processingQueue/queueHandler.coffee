@@ -21,18 +21,18 @@ queueHandler = exports = module.exports = class QueueHandler
     @executableHelper.on 'processingFinished', () ->
       self.executeLocalRequest()
 
-  addLocalRequestToQueue: (req, cb) ->
+  @addLocalRequestToQueue: (req, cb) ->
     self = @
     @executableHelper.preprocess req, @localProcessingQueue, 'regular', cb, () ->
       self.executeLocalRequest()
 
-  addRemoteRequestToQueue: (req, cb) ->
+  @addRemoteRequestToQueue: (req, cb) ->
     self = @
     @executableHelper.preprocess req, @remoteProcessingQueue, 'regular', cb, () ->
       #TODO: ADD SPECIAL REMOTE PREPROCESSING HERE
       self.executeRemoteRequest()
 
-  addDockerRequestToQueue: (req, cb) ->
+  @addDockerRequestToQueue: (req, cb) ->
     self = @
     @executableHelper.preprocess req, @dockerProcessingQueue, 'regular', cb, () ->
       self.executeDockerRequest()

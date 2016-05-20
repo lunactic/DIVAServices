@@ -23,9 +23,6 @@ logger              = require '../logging/logger'
 #Expose postHandler
 postHandler = exports = module.exports = class PostHandler
 
-  constructor: () ->
-    @queueHandler = new QueueHandler()
-
   # ---
   # **handleRequest**</br>
   # Handle incoming POST requests</br>
@@ -42,11 +39,11 @@ postHandler = exports = module.exports = class PostHandler
       switch serviceInfo.execute
         when 'remote'
           #execute remote
-          @queueHandler.addRemoteRequestToQueue(req, cb)
+          QueueHandler.addRemoteRequestToQueue(req, cb)
         when 'local'
-          @queueHandler.addLocalRequestToQueue(req,cb)
+          QueueHandler.addLocalRequestToQueue(req,cb)
         when 'docker'
-          @queueHandler.addDockerRequestToQueue(req,cb)
+          QueueHandler.addDockerRequestToQueue(req,cb)
         else
           logger.log 'error', 'error in definition for method: ' + req.originalUrl
           error =

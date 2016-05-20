@@ -114,10 +114,14 @@ dockerManagement = exports = module.exports = class DockerManagement
       inputCount++
 
     content += '1> /data/result.json 2> /data/error.txt \n'
-    content += 'curl -H "Content-Type: application/json" --data @/data/result.json $2 \n'
+    content += 'if [ -s "/data/result.json" ] \n'
+    content += 'then \n'
+    content += '    curl -H "Content-Type: application/json" --data @/data/result.json $2 \n'
+    content += 'fi \n'
     content += 'if [ -s "/data/error.txt" ] \n'
     content += 'then \n'
     content += '    curl -H "Content-Type: text/plain" --data @/data/error.txt $3 \n'
+    content += '    exit 1 \n'
     content += 'fi'
     fs.writeFileSync(outputFolder + path.sep + "script.sh", content)
 
@@ -130,12 +134,14 @@ dockerManagement = exports = module.exports = class DockerManagement
     command = "./script.sh " + process.inputImageUrl + " " + process.remoteResultUrl + " " + process.remoteErrorUrl + " " + paramsPath
     logger.log 'info', command
     @docker.run(imageName,['bash', '-c', command], process.stdout, (err, data, container) ->
+      logger.log 'info', data
+      logger.log 'error', err
       if(err?)
         logger.log 'error', err
       if(data? and data.StatusCode is 0)
         container.remove( (err, data) -> )
       else if(data? and data.StatusCode is not 0)
-        logger.log 'error', 'docker execution did not finish properly! status code is: ' + data.StatusCode
+        logger.log 'error', 'Execution did not finish properly! status code is: ' + data.StatusCode
         container.remove( (err, data) -> )
     )
   getDockerInput = (input) ->

@@ -90,14 +90,15 @@ router.put '/algorithms/:identifier', (req, res) ->
       errorType: 'No algorithm found'
     sendError(res, err)
 
-router.post '/algorithms/:identifier/exceptions', (req, res, next) ->
+router.post '/algorithms/:identifier/exceptions/:jobId', (req, res, next) ->
   AlgorithmManagement.recordException(req.params.identifier, req.text)
+
   send200(res, {})
 
 router.get '/algorithms/:identifier/exceptions', (req, res) ->
   exceptions = AlgorithmManagement.getExceptions(req.params.identifier)
   send200(res, exceptions)
-  
+
 router.delete '/algorithms/:identifier', (req, res) ->
 #set algorithm status to deleted
   serviceInfo = ServicesInfoHelper.getServiceInfoByIdentifier(req.params.identifier)
@@ -198,7 +199,7 @@ createAlgorithm = (req,res, route, identifier, imageName) ->
 
         executableHelper.preprocess req, tempQueue, 'test',
           (err, response) ->
-            logger.log 'info', response
+            #logger.log 'info', response
         ,
           () ->
             #execute the algorithm once
