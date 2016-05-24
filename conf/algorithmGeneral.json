@@ -1,5 +1,5 @@
 {
-  "name":{
+  "Algorithm Name":{
     "type":"string",
     "infoText":"Name of the algorithm",
     "minLength":2,
@@ -7,7 +7,7 @@
     "required":true,
     "regex": "^([a-z A-Z0-9]*)$"
   },
-  "description":{
+  "Description":{
     "type":"string",
     "infoText":"Description of what the algorithm performs",
     "minLength":5,
@@ -15,11 +15,18 @@
     "required":true,
     "multiline":true
   },
-  "author":{
+  "Contact Author":{
     "infoText":"Author of the method",
     "type":"string",
     "minLength":5,
     "maxLength":50,
+    "required":true
+  },
+  "Affiliation":{
+    "infoText":"Affiliation of the contact author",
+    "type":"string",
+    "minLength":3,
+    "maxLength":125,
     "required":true
   },
   "email":{
@@ -46,8 +53,18 @@
   },
   "license":{
     "infoText":"License of this method",
-    "type":"string",
-    "required":false
+    "type":"enum",
+    "values":[
+      "MIT",
+      "Apache",
+      "Other"
+    ],
+    "keys":[
+      "MIT",
+      "Apache",
+      "Other"
+    ],
+    "required":true
   },
   "type":{
     "infoText":"Type of this method  (e.g. OCR, binarization,...)",
