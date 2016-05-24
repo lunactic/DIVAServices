@@ -48,6 +48,7 @@ router.post '/upload', (req, res) ->
         res.json {md5: result.md5}
 
 router.post '/jobs/:jobId', (req, res, next) ->
+  logger.log 'info', 'jobs route called'
   process = Statistics.getProcess(req.params.jobId)
   Statistics.endRecording(req.params.jobId, process.req.originalUrl)
   async.waterfall [

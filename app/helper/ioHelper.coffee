@@ -126,7 +126,6 @@ ioHelper = exports = module.exports = class IoHelper
         fs.writeFileSync filePath, JSON.stringify({status :'planned'})
       catch error
         logger.log 'error', error
-
     return
 
   downloadFile: (fileUrl, localFolder, callback) ->

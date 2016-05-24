@@ -3,6 +3,7 @@ AlgorithmManagement   = require '../management/algorithmManagement'
 async                 = require 'async'
 DockerManagement      = require '../docker/dockerManagement'
 ExecutableHelper      = require '../helper/executableHelper'
+fs                    = require 'fs'
 IoHelper              = require '../helper/ioHelper'
 logger                = require '../logging/logger'
 nconf                 = require 'nconf'
@@ -10,7 +11,8 @@ path                  = require 'path'
 ProcessingQueue       = require '../processingQueue/processingQueue'
 router                = require('express').Router()
 schemaValidator       = require '../validator/schemaValidator'
-ServicesInfoHelper = require '../helper/servicesInfoHelper'
+ServicesInfoHelper    = require '../helper/servicesInfoHelper'
+QueueHandler          = require '../processingQueue/queueHandler'
 
 
 router.get '/algorithms/:identifier', (req, res) ->
@@ -93,7 +95,11 @@ router.put '/algorithms/:identifier', (req, res) ->
 
 router.post '/algorithms/:identifier/exceptions/:jobId', (req, res, next) ->
   AlgorithmManagement.recordException(req.params.identifier, req.text)
-
+  process = QueueHandler.getDockerJob(req.params.jobId)
+  content = JSON.parse(fs.readFileSync(process.resultFile))
+  content.status = 'error'
+  content['errorMessage'] = 'There was an error in processing this request'
+  fs.writeFileSync(process.resultFile, JSON.stringify(content, null, '\t'),'utf8')
   send200(res, {})
 
 router.get '/algorithms/:identifier/exceptions', (req, res) ->

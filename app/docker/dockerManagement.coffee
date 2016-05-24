@@ -136,17 +136,20 @@ dockerManagement = exports = module.exports = class DockerManagement
     @docker.run(imageName,['bash', '-c', command], process.stdout, (err, data, container) ->
       if(err?)
         logger.log 'error', err
-        callback err, null
+        if(callback?)
+          callback err, null
       if(data? and data.StatusCode is 0)
         container.remove( (err, data) ->
-          callback null, null
+          if(callback?)
+            callback null, null
         )
       else if(data? and data.StatusCode isnt 0)
         logger.log 'error', 'Execution did not finish properly! status code is: ' + data.StatusCode
         error =
           statusMessage: 'Execution did not finish properly! status code is: ' + data.StatusCode
         container.remove( (err, data) ->
-          callback error, null
+          if(callback?)
+            callback error, null
         )
     )
   getDockerInput = (input) ->

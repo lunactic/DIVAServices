@@ -32,7 +32,7 @@ logger        = require './app/logging/logger'
 router        = require './app/routes/standardRouter'
 Statistics    = require './app/statistics/statistics'
 ImageHelper   = require './app/helper/imageHelper'
-
+QueueHandler  = require './app/processingQueue/queueHandler'
 #setup express framework
 app = express()
 
@@ -49,7 +49,7 @@ process.on 'SIGTERM', () ->
   ImageHelper.saveImageInfo()
   process.exit(0)
 
-
+QueueHandler.initialize()
 #setup body parser
 app.use bodyParser.json(limit: '50mb')
 app.use bodyParser.urlencoded(extended: true, limit: '50mb')
