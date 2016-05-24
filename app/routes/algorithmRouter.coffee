@@ -1,3 +1,4 @@
+_                     = require 'lodash'
 AlgorithmManagement   = require '../management/algorithmManagement'
 async                 = require 'async'
 DockerManagement      = require '../docker/dockerManagement'
@@ -185,6 +186,29 @@ createAlgorithm = (req,res, route, identifier, imageName) ->
         AlgorithmManagement.updateStatus(identifier, 'testing')
         executableHelper = new ExecutableHelper()
         tempQueue = new ProcessingQueue()
+        inputs = {}
+        highlighter = {}
+        for input in req.body.input
+          if(not(_.keys(input)[0] in nconf.get('reservedWords')))
+            switch(_.keys(input)[0])
+              when 'select'
+                inputs[input.select.name] = input.select.options.values[input.select.options.default]
+              when 'number'
+                inputs[input.number.name] = input.number.options.default
+              when 'text'
+                inputs[input.text.name] = input.text.options.default
+              when 'highlighter'
+                switch input.highlighter.type
+                  when 'polygon'
+                    highlighter =
+                      type: 'polygon'
+                      closed: true
+                      segments:[[0,0],[0,150],[350,150],[350,0]]
+                  when 'rectangle'
+                    highlighter =
+                      type: 'rectangle'
+                      closed: true
+                      segments:[[0,0],[0,150],[350,150],[350,0]]
         req =
           originalUrl: '/' + route
           body:
@@ -194,8 +218,8 @@ createAlgorithm = (req,res, route, identifier, imageName) ->
                 value: 'https://placeholdit.imgix.net/~text?txtsize=33&txt=350%C3%97150&w=350&h=150'
               }
             ]
-            highlighter: {}
-            inputs: {}
+            highlighter: highlighter
+            inputs: inputs
 
         executableHelper.preprocess req, tempQueue, 'test',
           (err, response) ->
@@ -203,7 +227,10 @@ createAlgorithm = (req,res, route, identifier, imageName) ->
         ,
           () ->
             #execute the algorithm once
-            executableHelper.executeDockerRequest(tempQueue.getNext())
+            executableHelper.executeDockerRequest(tempQueue.getNext(), (error, data) ->
+              if(error)
+                AlgorithmManagement.updateStatus(identifier, 'error', null, error.statusMessage)
+            )
     ))
 
 module.exports = router

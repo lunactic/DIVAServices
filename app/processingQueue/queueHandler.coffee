@@ -32,6 +32,7 @@ queueHandler = exports = module.exports = class QueueHandler
       #TODO: ADD SPECIAL REMOTE PREPROCESSING HERE
       self.executeRemoteRequest()
 
+  #TODO use the callback in executeDockerRequest
   @addDockerRequestToQueue: (req, cb) ->
     self = @
     @executableHelper.preprocess req, @dockerProcessingQueue, 'regular', cb, () ->
@@ -56,6 +57,7 @@ queueHandler = exports = module.exports = class QueueHandler
   getNextRemoteRequest: () ->
     return @remoteProcessingQueue.getNext()
 
+  #TODO use the callback in executeDockerRequest
   executeDockerRequest: () ->
     logger.log 'info', 'execute docker request'
     if(@dockerRequestAvailable())

@@ -125,7 +125,7 @@ dockerManagement = exports = module.exports = class DockerManagement
     content += 'fi'
     fs.writeFileSync(outputFolder + path.sep + "script.sh", content)
 
-  @runDockerImage: (process, imageName) ->
+  @runDockerImage: (process, imageName, callback) ->
     params = process.parameters.params
     paramsPath = ""
     _.forOwn(params, (value, key) ->
@@ -134,15 +134,20 @@ dockerManagement = exports = module.exports = class DockerManagement
     command = "./script.sh " + process.inputImageUrl + " " + process.remoteResultUrl + " " + process.remoteErrorUrl + " " + paramsPath
     logger.log 'info', command
     @docker.run(imageName,['bash', '-c', command], process.stdout, (err, data, container) ->
-      logger.log 'info', data
-      logger.log 'error', err
       if(err?)
         logger.log 'error', err
+        callback err, null
       if(data? and data.StatusCode is 0)
-        container.remove( (err, data) -> )
-      else if(data? and data.StatusCode is not 0)
+        container.remove( (err, data) ->
+          callback null, null
+        )
+      else if(data? and data.StatusCode isnt 0)
         logger.log 'error', 'Execution did not finish properly! status code is: ' + data.StatusCode
-        container.remove( (err, data) -> )
+        error =
+          statusMessage: 'Execution did not finish properly! status code is: ' + data.StatusCode
+        container.remove( (err, data) ->
+          callback error, null
+        )
     )
   getDockerInput = (input) ->
     return nconf.get('docker:paths:'+input)
