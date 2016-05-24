@@ -62,7 +62,7 @@ queueHandler = exports = module.exports = class QueueHandler
     return QueueHandler.dockerProcessingQueue.getNext()
 
   getNextRemoteRequest = () ->
-    return @remoteProcessingQueue.getNext()
+    return QueueHandler.remoteProcessingQueue.getNext()
 
   #TODO use the callback in executeDockerRequest
   executeDockerRequest =  () ->
@@ -72,12 +72,12 @@ queueHandler = exports = module.exports = class QueueHandler
       QueueHandler.runningDockerJobs.push(job)
       QueueHandler.executableHelper.executeDockerRequest(job)
 
-  executeLocalRequest: () ->
+  executeLocalRequest = () ->
 #TODO: Replace getNumberOfCurrentExecutions() with some form of available computing time
-    if(Statistics.getNumberOfCurrentExecutions() < 2 && @localRequestAvailable())
-      @executableHelper.executeLocalRequest(@getNextLocalRequest())
+    if(Statistics.getNumberOfCurrentExecutions() < 2 && localRequestAvailable())
+      QueueHandler.executableHelper.executeLocalRequest(getNextLocalRequest())
 
-  executeRemoteRequest: () ->
+  executeRemoteRequest = () ->
     logger.log 'info', 'execute remote request'
-    if(@remoteRequestAvailable())
-      @executableHelper.executeRemoteRequest(@getNextRemoteRequest())
+    if(remoteRequestAvailable())
+      QueueHandler.executableHelper.executeRemoteRequest(getNextRemoteRequest())
