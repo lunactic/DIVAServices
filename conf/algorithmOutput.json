@@ -1,5 +1,6 @@
 {
   "output_type": {
+    "displayText":"Output Type",
     "infoText": "What type of output the algorithm produces",
     "type": "enum",
     "values": [

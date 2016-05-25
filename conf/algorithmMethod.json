@@ -1,5 +1,6 @@
 {
   "environment": {
+    "displayText":"Environment",
     "infoText": "Necessary environment to run the algorithm",
     "type": "enum",
     "values": [
@@ -13,6 +14,7 @@
     "required": true
   },
   "executableType": {
+    "displayText":"Executable Type",
     "infoText": "Type of the executable",
     "type": "enum",
     "values": [
@@ -28,8 +30,9 @@
     "required": true
   },
   "executable_path":{
+    "displayText":"Executable Path",
+    "infoText":"Relative path to the executbale inside the zip file",
     "type": "string",
-    "infoText": "",
     "minLength": 1,
     "maxLength": 255,
     "required": true
