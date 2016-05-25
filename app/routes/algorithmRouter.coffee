@@ -191,7 +191,6 @@ createAlgorithm = (req,res, route, identifier, imageName) ->
       else
         AlgorithmManagement.updateStatus(identifier, 'testing')
         executableHelper = new ExecutableHelper()
-        tempQueue = new ProcessingQueue()
         inputs = {}
         highlighter = {}
         for input in req.body.input
@@ -227,13 +226,15 @@ createAlgorithm = (req,res, route, identifier, imageName) ->
             highlighter: highlighter
             inputs: inputs
 
-        executableHelper.preprocess req, tempQueue, 'test',
+        executableHelper.preprocess req, QueueHandler.dockerProcessingQueue, 'test',
           (err, response) ->
             #logger.log 'info', response
         ,
           () ->
+            job = QueueHandler.dockerProcessingQueue.getNext()
+            QueueHandler.runningDockerJobs.push(job)
             #execute the algorithm once
-            executableHelper.executeDockerRequest(tempQueue.getNext(), (error, data) ->
+            executableHelper.executeDockerRequest(job, (error, data) ->
               if(error)
                 AlgorithmManagement.updateStatus(identifier, 'error', null, error.statusMessage)
             )
