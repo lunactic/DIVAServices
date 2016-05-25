@@ -10,4 +10,6 @@ export PYTHONIOENCODING=UTF-8
 ./scripts/setup.sh
 ./scripts/cleanUp.sh
 
-forever -m 5 --minUptime 1000 --spinSleepTime 5000 --watch -c coffee server.coffee
+#this can be used once we're stable
+#forever -m 5 --minUptime 1000 --spinSleepTime 5000 --watch -c coffee server.coffee
+coffee server.coffee
