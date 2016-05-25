@@ -39,7 +39,7 @@
         "infoText": "Description of the parameter",
         "minLength": 3,
         "maxLength": 255,
-        "required": false
+        "required": true
       },
       "options": {
         "type": "object",
@@ -89,7 +89,7 @@
         "infoText": "Description of the parameter",
         "minLength": 3,
         "maxLength": 255,
-        "required": false
+        "required": true
       },
       "options": {
         "type": "object",
@@ -134,7 +134,7 @@
         "infoText": "Description of the parameter",
         "minLength": 3,
         "maxLength": 255,
-        "required": false
+        "required": true
       },
       "options": {
         "type": "object",
