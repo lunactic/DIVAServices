@@ -1,5 +1,6 @@
 {
   "highlighter": {
+    "displayText":"Highlighter",
     "infoText": "Indicating that this method requires a defined region of some sort on the input",
     "type": "object",
     "properties": {
@@ -24,6 +25,7 @@
     "allowMultiple": false
   },
   "number": {
+    "displayText":"Number",
     "infoText": "A parameter requiring a number value",
     "type": "object",
     "properties": {
@@ -74,6 +76,7 @@
     }
   },
   "text": {
+    "displayText":"Text",
     "infoText": "A parameter requiring textual input",
     "type": "object",
     "properties": {
@@ -119,6 +122,7 @@
     }
   },
   "select": {
+    "displayText":"Select",
     "infoText":"list of values from which one can be selected",
     "type": "object",
     "properties": {
@@ -164,21 +168,27 @@
     }
   },
   "inputImage":{
+    "displayText":"Input Image",
     "infoText":"Path to the input image"
   },
   "outputImage":{
+    "displayText":"Output Image",
     "infoText":"Path where to save the output image"
   },
   "resultFile":{
+    "displayText":"Result File",
     "infoText":"Path where to save the resulting json file (if output = file)"
   },
   "inputFileExtension":{
+    "displayText":"Input File Extension",
     "infoText":"Extension of the input file"
   },
   "outputFolder":{
+    "displayText":"Output Folder",
     "infoText":"Folder for saving results"
   },
   "host":{
+    "displayText":"Host",
     "infoText":"Base Url of the server"
   }
 }

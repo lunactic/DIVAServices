@@ -34,7 +34,7 @@
     "required":true
   },
   "email":{
-    "displayText":"E-Mail Address"
+    "displayText":"E-Mail Address",
     "infoText":"Contact email address",
     "type":"string",
     "format":"email",
