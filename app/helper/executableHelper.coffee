@@ -224,6 +224,7 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
         #FINISH
         if(err?)
           requestCallback err, null
+          return
         results = []
         if(collection.result?)
           requestCallback null, collection.result
@@ -315,10 +316,18 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
         image = ImageHelper.saveImage(inputImage, process, i)
         if(inputImage.type is 'md5')
           ioHelper.deleteCollectionFolders(collection.name)
-          ImageHelper.handleMd5(image, process, collection, serviceInfo, parameterHelper, req)
-          if(ResultHelper.checkCollectionResultAvailable(collection))
-            collection.result = ResultHelper.loadResult(collection)
-            callback null, collection
+          if(image?)
+            ImageHelper.handleMd5(image, process, collection, serviceInfo, parameterHelper, req)
+            if(ResultHelper.checkCollectionResultAvailable(collection))
+              collection.result = ResultHelper.loadResult(collection)
+              callback null, collection
+              return
+          else
+            err =
+              statusCode: 500
+              statusText: 'Image with md5 hash: ' + inputImage.value + ' is not available'
+              errorType: 'ImageNotFound'
+            callback err, null
             return
         process.image = image
         collection.processes.push(process)

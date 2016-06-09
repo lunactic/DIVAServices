@@ -55,9 +55,6 @@ app.use bodyParser.json(limit: '50mb')
 app.use bodyParser.urlencoded(extended: true, limit: '50mb')
 app.use (err, req, res, next) ->
   if err.status == 400 and err.name == 'SyntaxError' and err.body
-    logger.log 'error', 'JSON Body parser error!'
-    logger.log 'error', req.method + ' ' + req.url
-    logger.log 'error', err.body.slice(0,100).toString()
     error =
       status: 500
       message: 'Json Body parser error: ' + err.body.slice(0,100).toString()
