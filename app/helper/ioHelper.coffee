@@ -128,26 +128,46 @@ ioHelper = exports = module.exports = class IoHelper
         logger.log 'error', error
     return
 
-  downloadFile: (fileUrl, localFolder, callback) ->
-    filename = path.basename(url.parse(fileUrl).pathname)
-    file = fs.createWriteStream(localFolder + path.sep + filename)
-    switch(url.parse(fileUrl).protocol)
-      when 'http:'
-        request = http.get(fileUrl, (response) ->
-          response.pipe(file)
-          response.on('end', () ->
-            callback null, localFolder + path.sep + filename
+  downloadFile: (fileUrl, localFolder, fileType, callback) ->
+    @checkFileType(fileType,fileUrl, (error) ->
+      if(error?)
+        callback error
+        return
+      filename = path.basename(url.parse(fileUrl).pathname)
+      #check headers first to ensure fileType is correct if available
+      file = fs.createWriteStream(localFolder + path.sep + filename)
+      switch(url.parse(fileUrl).protocol)
+        when 'http:'
+          request = http.get(fileUrl, (response) ->
+            response.pipe(file)
+            response.on('end', () ->
+              callback null, localFolder + path.sep + filename
+            )
           )
-        )
-      when 'https:'
-        request = https.get(fileUrl, (response) ->
-          response.pipe(file)
-          response.on('end', () ->
-            callback null, localFolder + path.sep + filename
+        when 'https:'
+          request = https.get(fileUrl, (response) ->
+            response.pipe(file)
+            response.on('end', () ->
+              callback null, localFolder + path.sep + filename
+            )
           )
-        )
+    )
 
-    
+
+  checkFileType: (fileType, fileUrl, callback) ->
+    if(fileType?)
+      urlInfo = url.parse(fileUrl)
+      options = {method: 'HEAD', hostname: urlInfo.hostname, path: urlInfo.path, port: urlInfo.port }
+      req = http.request(options, (res) ->
+        if(res.headers['content-type'] isnt fileType)
+          callback {error: 'non matching fileType'}
+        else
+          callback null
+      )
+      req.end()
+    else
+      callback null
+
   createCollectionFolders: (collection) ->
     rootFolder = nconf.get('paths:imageRootPath') + path.sep + collection
     mkdirp(rootFolder, (err) ->

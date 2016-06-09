@@ -41,7 +41,7 @@ upload = exports = module.exports = class Upload
     collectionName = RandomWordGenerator.generateRandomWord()
     self = @
     @ioHelper.createCollectionFolders(collectionName)
-    @ioHelper.downloadFile(url, nconf.get('paths:imageRootPath') + path.sep + collectionName, (err, filename) ->
+    @ioHelper.downloadFile(url, nconf.get('paths:imageRootPath') + path.sep + collectionName,null, (err, filename) ->
       self.ioHelper.unzipFolder(filename, nconf.get('paths:imageRootPath') + path.sep + collectionName + path.sep + 'original', () ->
         ImageHelper.addImageInfoCollection(collectionName)
         callback null, collectionName

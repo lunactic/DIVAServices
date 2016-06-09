@@ -169,14 +169,22 @@ validate = (req, res, schema) ->
 
 createAlgorithm = (req,res, route, identifier, imageName) ->
   ioHelper = new IoHelper()
-  ioHelper.downloadFile(req.body.method.file, '/data/executables/' + route, (err, filename) ->
+  AlgorithmManagement.updateServicesFile(req.body, identifier, route, imageName)
+  ioHelper.downloadFile(req.body.method.file, '/data/executables/' + route, 'application/zip', (err, filename) ->
+    if(err?)
+      AlgorithmManagement.updateStatus(identifier, 'error', null, 'file has wrong data format')
+      error =
+        statusCode: 500
+        statusText: 'fileUrl does not point to a correct zip file'
+        errorType: 'fileTypeError'
+      sendResponse(res, error, null)
+      return
     #create docker file
     DockerManagement.createDockerFile(req.body, '/data/executables/' + route)
     #create bash script
     DockerManagement.createBashScript(req.body, '/data/executables/' + route)
     #update servicesFile
     AlgorithmManagement.createInfoFile(req.body, '/data/json/' + route)
-    AlgorithmManagement.updateServicesFile(req.body, identifier, route, imageName)
     AlgorithmManagement.updateRootInfoFile(req.body, route)
     AlgorithmManagement.updateStatus(identifier, 'creating', '/' + route)
     #create a tar from zip
