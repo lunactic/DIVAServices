@@ -40,7 +40,14 @@ router.post '/algorithms', (req, res, next) ->
       status = AlgorithmManagement.getStatusByRoute('/' + route)
       imageName = AlgorithmManagement.generateImageName(req.body)
       if(status?)
-        if(status.status.statusCode == 410)
+        if(status.status.statusCode == 200)
+          #method with this route already exists, return an error
+          err =
+            statusCode: 500
+            statusText: 'An algorithm with the same name / type combination already exsists. Please change the name of the algorithm'
+            errorType: 'MethodDuplication'
+          sendError(res, err)
+        else if(status.status.statusCode == 410)
           createAlgorithm(req,res, route, identifier, imageName)
         else
           response =
