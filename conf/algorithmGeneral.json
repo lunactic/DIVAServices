@@ -79,6 +79,9 @@
     "displayText":"Type",
     "infoText":"Type of this method  (e.g. OCR, binarization,...)",
     "type":"string",
-    "required":true
+    "required":true,
+    "minLength":5,
+    "maxLength":15,
+    "regex": "^([a-zA-Z]*)$"
   }
 }
