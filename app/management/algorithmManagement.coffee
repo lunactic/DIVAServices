@@ -35,8 +35,8 @@ algorithmManagement = exports = module.exports = class AlgorithmManagement
     random = Math.random().toString()
     return crypto.createHash('sha1').update(current_date + random).digest 'hex'
 
-  @generateUrl: (newAlgorithm) ->
-    return newAlgorithm.general.type + '/' + newAlgorithm.general.name.replace(/\s/g, '').toLowerCase()
+  @generateRoute: (newAlgorithm) ->
+    return newAlgorithm.general.type.toLowerCase() + '/' + newAlgorithm.general.name.replace(/\s/g, '').toLowerCase()
 
   @generateFolders: (route) ->
     mkdirp.sync('/data/executables/' + route)
@@ -44,7 +44,7 @@ algorithmManagement = exports = module.exports = class AlgorithmManagement
     return
 
   @generateImageName: (newAlgorithm) ->
-    return newAlgorithm.general.name.toLowerCase().replace(/\s/g, '_')
+    return newAlgorithm.general.type.toLowerCase() + newAlgorithm.general.name.toLowerCase().replace(/\s/g, '_')
 
   @createInfoFile: (newAlgorithm, folder) ->
     data = _.cloneDeep(newAlgorithm)
