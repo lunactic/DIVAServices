@@ -24,6 +24,7 @@ imageHelper = exports = module.exports = class ImageHelper
 
 
   @saveImage: (inputImage, process, counter) ->
+    #TODO add IIF handling here
     switch inputImage.type
       when 'image'
         image = @saveOriginalImage(inputImage.value,process.rootFolder,counter)

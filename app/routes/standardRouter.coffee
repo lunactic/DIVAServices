@@ -9,8 +9,6 @@
 # Require Express Router
 AlgorithmManagement = require '../management/algorithmManagement'
 async               = require 'async'
-DockerManagement    = require '../docker/dockerManagement'
-ExecutableHelper    = require '../helper/executableHelper'
 GetHandler          = require './getHandler'
 ImageHelper         = require '../helper/imageHelper'
 IoHelper            = require '../helper/ioHelper'
@@ -18,13 +16,11 @@ logger              = require '../logging/logger'
 nconf               = require 'nconf'
 path                = require 'path'
 PostHandler         = require './postHandler'
-ProcessingQueue     = require '../processingQueue/processingQueue'
+RandomWordGenerator = require '../randomizer/randomWordGenerator'
 ResultHelper        = require '../helper/resultHelper'
 router              = require('express').Router()
 schemaValidator     = require '../validator/schemaValidator'
-ServicesInfoHelper  = require '../helper/servicesInfoHelper'
 Statistics          = require '../statistics/statistics'
-Upload              = require '../upload/upload'
 
 
 getHandler = new GetHandler()
@@ -32,20 +28,14 @@ postHandler = new PostHandler()
 
 # Set up special route for image uploading
 router.post '/upload', (req, res) ->
-  if(req.body.image?)
-    Upload.uploadBase64Image req.body.image, (err, result) ->
-      res.json {md5: result.md5}
-  else if(req.body.zip?)
-    Upload.uploadBase64Zip req.body.zip, (err, result) ->
-      res.json {collection: result}
-  else if(req.body.url?)
-    if(req.body.url.endsWith('zip'))
-      Upload.uploadZip(req.body.url, (err, result) ->
-        res.json {collection: result}
-      )
-    else
-      Upload.uploadUrl req.body.url, (err, result) ->
-        res.json {md5: result.md5}
+  collectionName = RandomWordGenerator.generateRandomWord()
+  ioHelper = new IoHelper()
+  ioHelper.createCollectionFolders(collectionName)
+  process =
+    rootFolder: collectionName
+  for image, i in req.body.images
+    ImageHelper.saveImage(image, process, i)
+  send200(res, {collection: collectionName})
 
 router.post '/jobs/:jobId', (req, res, next) ->
   logger.log 'info', 'jobs route called'
