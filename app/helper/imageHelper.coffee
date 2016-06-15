@@ -24,17 +24,17 @@ imageHelper = exports = module.exports = class ImageHelper
 
 
   @saveImage: (inputImage, process, counter) ->
-    #TODO add IIF handling here
     switch inputImage.type
       when 'image'
         image = @saveOriginalImage(inputImage.value,process.rootFolder,counter)
         @addImageInfo(image.md5, image.path, process.rootFolder)
       when 'url'
-        image = @saveImageUrl(inputImage.value,process.rootFolder, counter)
-        @addImageInfo(image.md5, image.path, process.rootFolder)
-      when 'md5'
-        image = @loadImagesMd5(inputImage.value)[0]
-    return image
+        self = @
+        image = @saveImageUrl(inputImage.value,process.rootFolder, counter, (image) ->
+          self.addImageInfo(image.md5, image.path, process.rootFolder)
+        )
+
+    return
 
   @imageExists: (md5, callback) ->
     filtered = @imageInfo.filter (item) ->
@@ -63,13 +63,11 @@ imageHelper = exports = module.exports = class ImageHelper
     if(!counter?)
       counter = ''
     image = {}
-    sync = false
-    
+
     imgFolder = imagePath + path.sep + folder + path.sep + 'original' + path.sep
     imgName = 'input' + counter
     imgExtension = getImageExtensionFromBase64(base64Data)
     fs.stat imgFolder + imgName, (err, stat) ->
-      #TODO Create an image class
       image =
         rootFolder: path.join(path.dirname(imgFolder),'..')
         folder: imgFolder
@@ -78,23 +76,20 @@ imageHelper = exports = module.exports = class ImageHelper
         path:  imgFolder + imgName + '.' + imgExtension
         md5: md5String
       if !err?
-        sync = true
-        return
+        return image
       else if err.code == 'ENOENT'
         fs.writeFile image.path, base64Data, 'base64', (err) ->
-          sync = true
-          return
+          return image
         return
       else
         #error handling
-    while(!sync)
-      require('deasync').sleep(100)
-    return image
 
   @saveImageJson: (image,process) ->
     process.image.extension = getImageExtensionFromBase64(image)
     base64Data = image.replace(/^data:image\/png;base64,/, "")
     fs.writeFileSync(process.outputFolder + '/' + process.image.name + '.' + process.image.extension,base64Data, 'base64')
+
+
   # ---
   # **saveImageUrl**</br>
   # saves an image to the disk coming from a URL
@@ -104,12 +99,11 @@ imageHelper = exports = module.exports = class ImageHelper
   #     *EXTENSION* is the image extension</br>
   # `params`
   #   *url* the URL to the image
-  @saveImageUrl: (url, folder, counter) ->
+  @saveImageUrl: (url, folder, counter, cb) ->
     if(!counter?)
       counter = ''
-    imagePath = nconf.get('paths:imageRootPath')
+    imagePath = nconf.get('paths:imageRootPath') + '/' + folder + '/'
     image = {}
-    sync = false
     async.waterfall [
       (callback) ->
         self = @
@@ -118,12 +112,15 @@ imageHelper = exports = module.exports = class ImageHelper
           callback null, imgExtension
         )
       (imgExtension, callback) ->
-        request(url).pipe(fs.createWriteStream(imagePath + '/temp.' + imgExtension)).on 'close', (cb) ->
-          base64 = fs.readFileSync imagePath + '/temp.' + imgExtension, 'base64'
+        console.log 'begin image download at url: ' + url
+        console.log 'temp path: ' + imagePath + 'temp_' + counter + '.' + imgExtension
+        request(url).pipe(fs.createWriteStream(imagePath + 'temp_' + counter + '.' + imgExtension)).on 'close', (cb) ->
+          console.log 'finished image download'
+          base64 = fs.readFileSync imagePath + 'temp_' + counter + '.' + imgExtension, 'base64'
           md5String = md5(base64)
           if(!folder?)
             folder = md5String
-          imgFolder = imagePath + '/' + folder + '/original/'
+          imgFolder = imagePath + 'original/'
           imgName = 'input' + counter
           image =
             rootFolder: path.join(path.dirname(imgFolder),'..')
@@ -132,35 +129,27 @@ imageHelper = exports = module.exports = class ImageHelper
             extension: imgExtension
             path: imgFolder + imgName + '.' +imgExtension
             md5: md5String
-
+          console.log 'begin fs.stat'
           fs.stat image.path, (err, stat) ->
             if !err?
-              fs.unlink(imagePath + '/temp.' + imgExtension)
-              sync = true
+              console.log 'image exists'
+              fs.unlink(imagePath + 'temp_' + counter + '.' + imgExtension)
               callback null, image
-              return
             else if err.code == 'ENOENT'
-              source = fs.createReadStream imagePath + '/temp.' + imgExtension
+              console.log 'copy image'
+              source = fs.createReadStream imagePath + 'temp_' + counter + '.' + imgExtension
               dest = fs.createWriteStream image.path
               source.pipe(dest)
               source.on 'end', () ->
-                fs.unlink(imagePath + '/temp.' + imgExtension)
-                sync = true
+                fs.unlink(imagePath + 'temp_' + counter + '.' + imgExtension)
                 callback null, image
-                return
               source.on 'error', (err) ->
                 logger.log 'error', err
-                sync = true
                 callback null, image
-                return
-              return
-            return
     ], (err, image) ->
-      return image
-
-    while(!sync)
-      require('deasync').sleep(100)
-    return image
+      if(err?)
+        logger.log 'error', err
+      cb image
 
   #Loads all images given an md5 hash
   @loadImagesMd5: (md5) ->
@@ -278,14 +267,45 @@ imageHelper = exports = module.exports = class ImageHelper
     collection.inputHighlighters = _.clone(req.body.highlighter)
     return
 
+  @createCollectionInformation: (collectionName, numberOfImages) ->
+    status =
+      statusCode: 110
+      statusMessage: 'Downloaded 0 of ' + numberOfImages + ' images'
+      percentage: 0
+    statusFile = nconf.get('paths:imageRootPath') + '/' + collectionName + '/' + 'status.json'
+    fs.writeFileSync statusFile,JSON.stringify(status, null, '\t'), 'utf8'
+    return
+
+
+  @updateCollectionInformation: (collectionName, numberOfImages, numberOfDownloadedImages) ->
+    if(numberOfDownloadedImages isnt numberOfImages )
+      status =
+        statusCode: 110
+        statusMessage: 'Downloaded ' + numberOfDownloadedImages + ' of ' + numberOfImages + 'images'
+        percentage: (numberOfDownloadedImages / numberOfImages) * 100
+    else
+      status =
+        statusCode: 200
+        statusMessage: 'Collection is available'
+        percentage: 100
+
+    statusFile = nconf.get('paths:imageRootPath') + '/' + collectionName + '/' + 'status.json'
+    fs.writeFileSync statusFile,JSON.stringify(status, null, '\t'), 'utf8'
+    return
+
+  @getCollectionInformation: (collectionName) ->
+    statusFile = nconf.get('paths:imageRootPath') + '/' + collectionName + '/' + 'status.json'
+    status = JSON.parse(fs.readFileSync(statusFile, 'utf-8'))
+    return status
+
   getImageExtension = (contentType) ->
-    switch (contentType)
-      when "image/jpeg"
-        return 'jpg'
-      when "image/tiff"
-        return 'tiff'
-      when "image/png"
-        return 'png'
+      switch (contentType)
+        when "image/jpeg"
+          return 'jpg'
+        when "image/tiff"
+          return 'tiff'
+        when "image/png"
+          return 'png'
 
   getImageExtensionFromBase64 = (base64) ->
     if(base64.indexOf('/9j/4AAQ') != -1 or base64.indexOf('_9j_4AA') != -1)

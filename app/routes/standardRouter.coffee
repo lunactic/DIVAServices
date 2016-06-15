@@ -10,6 +10,7 @@
 AlgorithmManagement = require '../management/algorithmManagement'
 async               = require 'async'
 GetHandler          = require './getHandler'
+IiifManifestParser  = require '../parsers/iiifManifestParser'
 ImageHelper         = require '../helper/imageHelper'
 IoHelper            = require '../helper/ioHelper'
 logger              = require '../logging/logger'
@@ -27,15 +28,53 @@ getHandler = new GetHandler()
 postHandler = new PostHandler()
 
 # Set up special route for image uploading
+#TODO Provide a way to upload other data (currently sent as req.body.data)
 router.post '/upload', (req, res) ->
   collectionName = RandomWordGenerator.generateRandomWord()
   ioHelper = new IoHelper()
   ioHelper.createCollectionFolders(collectionName)
   process =
     rootFolder: collectionName
-  for image, i in req.body.images
-    ImageHelper.saveImage(image, process, i)
-  send200(res, {collection: collectionName})
+  #send immediate response with collection name to not block the request for too long
+  
+  #Create a status route
+  numberOfImages = 0
+  async.each req.body.images, ((image, callback) ->
+    switch image.type
+      when 'iiif'
+        iifManifestParser = new IiifManifestParser(image.value)
+        iifManifestParser.initialize().then ->
+          numberOfImages += iifManifestParser.getAllImages(0).length
+          console.log numberOfImages
+          callback()
+      else
+        numberOfImages++
+        callback()
+  ), (err) ->
+    console.log 'all images processed'
+    ImageHelper.createCollectionInformation(collectionName, numberOfImages)
+
+    send200(res, {collection: collectionName})
+    #TODO add a statistics route for a collection to check if all images are downloaded
+    imageCounter = 1
+    for image, i in req.body.images
+      switch image.type
+        when 'iiif'
+          iifManifestParser = new IiifManifestParser(image.value)
+          iifManifestParser.initialize().then ->
+          #TODO improve to save all images
+            images = iifManifestParser.getAllImages(0)
+            metadata = iifManifestParser.getMetadata()
+            label = iifManifestParser.getLabel()
+            description = iifManifestParser.getDescription()
+            for inputImage,i in images
+              ImageHelper.saveImageUrl(inputImage, collectionName, i, (image) ->
+                ImageHelper.addImageInfo image.md5, image.path, collectionName
+                ImageHelper.updateCollectionInformation(collectionName, numberOfImages, imageCounter++)
+              )
+        else
+          ImageHelper.saveImage(image, process, i)
+          ImageHelper.updateCollectionInformation(collectionName, numberOfImages, imageCounter++)
 
 router.post '/jobs/:jobId', (req, res, next) ->
   logger.log 'info', 'jobs route called'
@@ -95,7 +134,11 @@ router.post '*', (req, res, next) ->
   else
     next()
 
-
+#read status information of a collection
+router.get '/collections/:collection', (req, res) ->
+  collection = req.params.collection
+  status = ImageHelper.getCollectionInformation(collection)
+  send200(res, status)
 
 #load all images from a collection
 router.get '/image/:collection', (req, res) ->

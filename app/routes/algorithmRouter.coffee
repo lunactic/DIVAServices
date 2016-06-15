@@ -235,8 +235,8 @@ createAlgorithm = (req,res, route, identifier, imageName) ->
           body:
             images: [
               {
-                type: 'url'
-                value: 'https://placeholdit.imgix.net/~text?txtsize=33&txt=350%C3%97150&w=350&h=150'
+                type: 'collection'
+                value: 'test'
               }
             ]
             highlighter: highlighter

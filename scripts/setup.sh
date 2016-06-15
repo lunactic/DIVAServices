@@ -97,16 +97,18 @@ ocropyLanguageModelsFolder=($(cat conf/server.dev.json | jq -r '.paths.ocropyLan
 mkdir -p $ocropyLanguageModelsFolder
 executableFolder=($(cat conf/server.dev.json | jq -r '.paths.executablePath'))
 mkdir -p $executableFolder
-
+mkdir -p $imageFolder/test/original
 
 header "Creating Files"
 imageInfoFile=($(cat conf/server.dev.json | jq -r '.paths.imageInfoFile'))
-echo "[]" > $imageInfoFile
+echo '[ {"md5":"4adddfaa693b184d675d61d21efda43c", "file":"/data/images/test/original/input0.png", "collection":"test"} ]' > $imageInfoFile
 servicesInfoFile=($(cat conf/server.dev.json | jq -r '.paths.servicesInfoFile'))
 echo '{"services":[]}' > $servicesInfoFile
 rootInfoFile=($(cat conf/server.dev.json | jq -r '.paths.rootInfoFile'))
 echo "[]" > $rootInfoFile
 
+header "Copying Files"
+cp /data/input0.png $imageFolder/test/original/
 
 header "Compiling Sources"
 coffee -mc .
