@@ -30,11 +30,20 @@ postHandler = exports = module.exports = class PostHandler
   #   *req* the incoming request
   handleRequest: (req, cb) ->
     serviceInfo = ServicesInfoHelper.getServiceInfoByPath(req.originalUrl)
+    if(!serviceInfo?)
+      error =
+        statusCode: 404
+        statusText: 'This method is not available'
+        errorType: 'MethodNotAvailable'
+      cb error, null
+      return
     if(serviceInfo.status.statusCode == 410)
       error  =
         statusCode: serviceInfo.status.statusCode
         statusText: 'This algorithm is no longer available'
+        errorType: 'NoLongerAvailable'
       cb error, null
+      return
     else
       switch serviceInfo.execute
         when 'remote'

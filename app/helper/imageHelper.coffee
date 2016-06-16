@@ -276,6 +276,13 @@ imageHelper = exports = module.exports = class ImageHelper
     fs.writeFileSync statusFile,JSON.stringify(status, null, '\t'), 'utf8'
     return
 
+  @checkCollectionAvailable: (collectionName) ->
+    try
+      stats = fs.statSync(nconf.get('paths:imageRootPath') + '/' + collectionName)
+      return true
+    catch error
+      return false
+
 
   @updateCollectionInformation: (collectionName, numberOfImages, numberOfDownloadedImages) ->
     if(numberOfDownloadedImages isnt numberOfImages )

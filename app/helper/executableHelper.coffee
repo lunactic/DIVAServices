@@ -159,7 +159,11 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
         if (req.body.images?  and req.body.images[0].type is 'collection')
           preprocessCollection(collection, req, serviceInfo, parameterHelper,executionType, callback)
         else
-          #TODO Error handling
+          err =
+            statusCode: 500
+            errorType: 'NotSupported'
+            statusText: 'This input type is not supported. The only supported type is collection'
+          callback err, null
           logger.log 'error', 'Collection Not Found'
         return
       (collection, callback) ->
@@ -247,6 +251,16 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
 
   preprocessCollection = (collection, req, serviceInfo, parameterHelper,executionType, callback) ->
     #process a collection
+
+    #check if collection exists
+    if(not ImageHelper.checkCollectionAvailable(req.body.images[0].value))
+      err =
+        statusCode: 500
+        errorType: 'CollectionNotAvailable'
+        statusText: 'The collection ' + req.body.images[0].value + ' does not exist on the server'
+      callback err, null
+      return
+
     collection.name = req.body.images[0].value
     folder = nconf.get('paths:imageRootPath') + path.sep + collection.name
     collection.inputParameters = _.clone(req.body.inputs)
