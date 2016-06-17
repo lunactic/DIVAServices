@@ -26,7 +26,8 @@ mkdir -p $imageFolder/test/original
 
 header "Creating Files"
 imageInfoFile=($(cat conf/server.dev.json | jq -r '.paths.imageInfoFile'))
-echo '[ {"md5":"4adddfaa693b184d675d61d21efda43c", "file":"/data/images/test/original/input0.png", "collection":"test"} ]' > $imageInfoFile
+#md5 hash for this test image: https://placeholdit.imgix.net/~text?txtsize=33&txt=This%20is%20a%20test&w=1024&h=768
+echo '[ {"md5":"985c0d138d4797d5fdaf8e893313c59c", "file":"/data/images/test/original/input0.png", "collection":"test"} ]' > $imageInfoFile
 
 servicesInfoFile=($(cat conf/server.dev.json | jq -r '.paths.servicesInfoFile'))
 echo '{"services":[]}' > $servicesInfoFile
