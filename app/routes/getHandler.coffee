@@ -36,16 +36,12 @@ getHandler = exports = module.exports = class GetHandler
     #else load info file
     else
       fs.readFile nconf.get('paths:jsonPath') + req.originalUrl + '/info.json', 'utf8', (err, data) ->
-        if err
+        if err?
           algo = AlgorithmManagement.getStatusByRoute(req.originalUrl)
           if(algo?)
-            error = 
-              statusCode: algo.status.statusCode
-              statusText: algo.status.statusMessage
+            error = createError(algot.status.statusCode, algo.status.statusMessage)
           else
-            error =
-              statusCode: 404
-              statusText: 'This algorithm is not available'
+            error = createError(404,'This algorithm is not available')
           callback error
         else
           data = data.replace(new RegExp('\\$BASEURL\\$','g'),nconf.get('server:rootUrl'))
@@ -120,10 +116,10 @@ getHandler = exports = module.exports = class GetHandler
                 process.result['status'] = 'done'
               callback null, process.result
               return
-          #if the callback was not called yet, we can assume that the result
+          #if the callback was not called yet, we can assume that the result is not available
           err = createError(404,'This result is not available')
           callback err, null
-          #return error message that image is not available
+          return
       )
     else if queryParams['rootFolder']
       #try to load results
@@ -144,6 +140,8 @@ getHandler = exports = module.exports = class GetHandler
         return
       err = createError(400, 'Malformed request. Parsing of the provided information was not possible')
       callback err, null
+    else
+      erro = createError(500, 'Could not parse this request')
 
   prepareQueryParams = (proc, queryParams) ->
     proc.inputParameters = _.clone(queryParams)

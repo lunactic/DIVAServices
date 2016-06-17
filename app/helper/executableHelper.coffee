@@ -59,7 +59,6 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
 
   buildRemoteCommand = (process) ->
     params = _.clone(process.parameters.params)
-    #paths = _.clone(process.parameters.data)
     _.forIn(params, (value, key) ->
       switch key
         when 'inputImage','outputImage','resultFile'
