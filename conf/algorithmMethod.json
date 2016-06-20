@@ -5,11 +5,13 @@
     "type": "enum",
     "values": [
       "java:7",
-      "java:8"
+      "java:8",
+      "divaservices/ocropus"
     ],
     "keys" :[
       "Java 7",
-      "Java 8"
+      "Java 8",
+      "Ocropus"
     ],
     "required": true
   },

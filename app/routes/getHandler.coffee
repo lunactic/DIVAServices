@@ -131,7 +131,7 @@ getHandler = exports = module.exports = class GetHandler
       process.method = serviceInfo.service
       process.rootFolder = queryParams['rootFolder']
       if(ResultHelper.checkProcessResultAvailable(process))
-        process.result = ResultHelper.loadResult process
+        proceess.result = ResultHelper.loadResult process
         if(queryParams.requireOutputImage is 'false' && process.result['image']?)
           delete process.result['image']
         if(!process.result.hasOwnProperty('status'))
