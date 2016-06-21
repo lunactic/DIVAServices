@@ -31,8 +31,7 @@ postHandler = new PostHandler()
 #TODO Provide a way to upload other data (currently sent as req.body.data)
 router.post '/upload', (req, res) ->
   collectionName = RandomWordGenerator.generateRandomWord()
-  ioHelper = new IoHelper()
-  ioHelper.createCollectionFolders(collectionName)
+  IoHelper.createCollectionFolders(collectionName)
   process =
     rootFolder: collectionName
   #send immediate response with collection name to not block the request for too long
@@ -97,8 +96,7 @@ router.post '/jobs/:jobId', (req, res, next) ->
       AlgorithmManagement.updateStatus(null, 'error', process.req.originalUrl, error.statusMessage)
       sendError(res, err)
     else if(process.type is 'test')
-      ioHelper = new IoHelper()
-      schemaValidator.validate(ioHelper.loadFile(process.resultFile), 'responseSchema', (error) ->
+      schemaValidator.validate(IoHelper.loadFile(process.resultFile), 'responseSchema', (error) ->
         if error
           AlgorithmManagement.updateStatus(null, 'error', process.req.originalUrl, error)
           sendError(res, error)
@@ -160,8 +158,7 @@ router.get '/image/check/:md5', (req, res) ->
 
 router.get '/collections/:collection/:execution', (req, res) ->
 #zip folder
-  ioHelper = new IoHelper()
-  filename = ioHelper.zipFolder(nconf.get('paths:imageRootPath') + '/' + req.params.collection + '/' + req.params.execution)
+  filename = IoHelper.zipFolder(nconf.get('paths:imageRootPath') + '/' + req.params.collection + '/' + req.params.execution)
   res.status '200'
   res.json ({zipLink: 'http://' + nconf.get('server:rootUrl') + '/static/' + filename})
 
@@ -180,23 +177,19 @@ router.get '/image/results/:md5', (req, res)->
 
 #Info routes
 router.get '/information/general', (req, res) ->
-  ioHelper = new IoHelper()
-  general = ioHelper.loadFile('conf/algorithmGeneral.json')
+  general = IoHelper.loadFile('conf/algorithmGeneral.json')
   sendResponse res, null, general
 
 router.get '/information/input', (req, res) ->
-  ioHelper = new IoHelper()
-  input = ioHelper.loadFile('conf/algorithmInput.json')
+  input = IoHelper.loadFile('conf/algorithmInput.json')
   sendResponse res, null, input
 
 router.get '/information/output', (req, res) ->
-  ioHelper = new IoHelper()
-  output = ioHelper.loadFile('conf/algorithmOutput.json')
+  output = IoHelper.loadFile('conf/algorithmOutput.json')
   sendResponse res, null, output
 
 router.get '/information/method', (req, res) ->
-  ioHelper = new IoHelper()
-  method = ioHelper.loadFile('conf/algorithmMethod.json')
+  method = IoHelper.loadFile('conf/algorithmMethod.json')
   sendResponse res, null, method
 
 # Set up the routing for GET requests

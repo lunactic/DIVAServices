@@ -23,10 +23,10 @@ logger    = require '../logging/logger'
 # expose IoHelper
 ioHelper = exports = module.exports = class IoHelper
 
-  deleteFile: (file) ->
+  @deleteFile: (file) ->
     fs.unlink(file)
 
-  unzipFolder: (zipFile, folder, callback) ->
+  @unzipFolder: (zipFile, folder, callback) ->
     mkdirp(folder, (err) ->
       if(err)
         logger.log 'error', err
@@ -37,7 +37,7 @@ ioHelper = exports = module.exports = class IoHelper
           callback null
     )
 
-  zipFolder: (folder) ->
+  @zipFolder: (folder) ->
     archive = archiver('zip',{})
     folders = folder.split(path.sep)
 
@@ -59,7 +59,7 @@ ioHelper = exports = module.exports = class IoHelper
     archive.finalize()
     return fileName
 
-  getOutputFolder: (rootFolder, service, unique) ->
+  @getOutputFolder: (rootFolder, service, unique) ->
     #check which folder is to be used
     imagePath = nconf.get('paths:imageRootPath')
     rootPath = imagePath + '/' + rootFolder
@@ -81,10 +81,10 @@ ioHelper = exports = module.exports = class IoHelper
       return rootPath + '/' + service + '_0'
 
   #build file Path from outputFolder name and filename
-  buildFilePath: (path, fileName) ->
+  @buildFilePath: (path, fileName) ->
     return path + '/' + fileName + '.json'
 
-  buildTempFilePath: (path, fileName) ->
+  @buildTempFilePath: (path, fileName) ->
     return path + '/' + fileName + '_temp.json'
 
   # ---
@@ -92,7 +92,7 @@ ioHelper = exports = module.exports = class IoHelper
   # Loads existing file from the disk</br>
   # `params`
   #   *filePath* path to the file
-  loadFile: (filePath) ->
+  @loadFile: (filePath) ->
     try
       stats = fs.statSync(filePath)
       if stats.isFile()
@@ -107,7 +107,7 @@ ioHelper = exports = module.exports = class IoHelper
   # ---
   # **/br>
   # saves the a file to disk</br>
-  saveFile: (filePath, content, callback) ->
+  @saveFile: (filePath, content, callback) ->
     try
       fs.writeFileSync filePath, JSON.stringify(content, null, '\t')
       if callback?
@@ -115,8 +115,8 @@ ioHelper = exports = module.exports = class IoHelper
     catch error
       logger.log 'error', error
     return
-  
-  writeTempFile: (filePath) ->
+
+  @writeTempFile: (filePath) ->
     try
       stats = fs.statSync filePath
         #check if file exists
@@ -128,7 +128,7 @@ ioHelper = exports = module.exports = class IoHelper
         logger.log 'error', error
     return
 
-  downloadFile: (fileUrl, localFolder, fileType, callback) ->
+  @downloadFile: (fileUrl, localFolder, fileType, callback) ->
     @checkFileType(fileType,fileUrl, (error) ->
       if(error?)
         callback error
@@ -138,14 +138,14 @@ ioHelper = exports = module.exports = class IoHelper
       file = fs.createWriteStream(localFolder + path.sep + filename)
       switch(url.parse(fileUrl).protocol)
         when 'http:'
-          request = http.get(fileUrl, (response) ->
+          http.get(fileUrl, (response) ->
             response.pipe(file)
             response.on('end', () ->
               callback null, localFolder + path.sep + filename
             )
           )
         when 'https:'
-          request = https.get(fileUrl, (response) ->
+          https.get(fileUrl, (response) ->
             response.pipe(file)
             response.on('end', () ->
               callback null, localFolder + path.sep + filename
@@ -154,7 +154,7 @@ ioHelper = exports = module.exports = class IoHelper
     )
 
 
-  checkFileType: (fileType, fileUrl, callback) ->
+  @checkFileType: (fileType, fileUrl, callback) ->
     if(fileType?)
       urlInfo = url.parse(fileUrl)
       options = {method: 'HEAD', hostname: urlInfo.hostname, path: urlInfo.path, port: urlInfo.port }
@@ -168,7 +168,7 @@ ioHelper = exports = module.exports = class IoHelper
     else
       callback null
 
-  createCollectionFolders: (collection) ->
+  @createCollectionFolders: (collection) ->
     rootFolder = nconf.get('paths:imageRootPath') + path.sep + collection
     mkdirp(rootFolder, (err) ->
       if(err)
@@ -179,7 +179,7 @@ ioHelper = exports = module.exports = class IoHelper
         logger.log 'error', err
     )
 
-  deleteCollectionFolders: (collection) ->
+  @deleteCollectionFolders: (collection) ->
     rootFolder = nconf.get('paths:imageRootPath') + path.sep + collection
     rmdir(rootFolder, (err) ->
       if(err)
@@ -188,14 +188,14 @@ ioHelper = exports = module.exports = class IoHelper
       return
     )
     
-  checkFileExists: (filePath) ->
+  @checkFileExists: (filePath) ->
     try
       stats = fs.statSync(filePath)
       return stats.isFile()
     catch error
       return false
 
-  readdir: (path) ->
+  @readdir: (path) ->
     try
       files = fs.readdirSync(path)
       return files

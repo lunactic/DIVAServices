@@ -27,7 +27,6 @@ router.get '/algorithms/:identifier', (req, res) ->
     send200 res, status
 
 router.post '/algorithms', (req, res, next) ->
-  ioHelper = new IoHelper()
   #add a new algorithm
   #get route address
   schemaValidator.validate(req.body, 'createSchema', (error) ->
@@ -165,19 +164,9 @@ sendError = (res, err) ->
     message: err.statusText
   res.json error
 
-validate = (req, res, schema) ->
-  schemaValidator.validate(req.body, schema, (error) ->
-    if error
-      sendError(res, error)
-    else
-      send200(res, {status: 'valid'})
-  )
-
-
 createAlgorithm = (req,res, route, identifier, imageName) ->
-  ioHelper = new IoHelper()
   AlgorithmManagement.updateServicesFile(req.body, identifier, route, imageName)
-  ioHelper.downloadFile(req.body.method.file, '/data/executables/' + route, 'application/zip', (err, filename) ->
+  IoHelper.downloadFile(req.body.method.file, '/data/executables/' + route, 'application/zip', (err, filename) ->
     if(err?)
       AlgorithmManagement.updateStatus(identifier, 'error', null, 'file has wrong data format')
       error =

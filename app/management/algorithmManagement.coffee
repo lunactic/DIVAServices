@@ -12,7 +12,7 @@ algorithmManagement = exports = module.exports = class AlgorithmManagement
   @ioHelper = new IoHelper()
 
   @getStatusByIdentifier: (identifier) ->
-    content = @ioHelper.loadFile(nconf.get('paths:servicesInfoFile'))
+    content = IoHelper.loadFile(nconf.get('paths:servicesInfoFile'))
     info = _.find(content.services, {'identifier':identifier})
     if(info?)
       message =
@@ -23,7 +23,7 @@ algorithmManagement = exports = module.exports = class AlgorithmManagement
       return null
 
   @getStatusByRoute: (route) ->
-    content = @ioHelper.loadFile(nconf.get('paths:servicesInfoFile'))
+    content = IoHelper.loadFile(nconf.get('paths:servicesInfoFile'))
     status = _.find(content.services, ('path':route))
     if(status?)
       return status
@@ -58,35 +58,35 @@ algorithmManagement = exports = module.exports = class AlgorithmManagement
       return _.includes(reservedWords, _.keys(input)[0])
     )
 
-    @ioHelper.saveFile(folder + path.sep + 'info.json', data, (err) ->
+    IoHelper.saveFile(folder + path.sep + 'info.json', data, (err) ->
       if(err)
         logger.log 'error', err
       else
         return
     )
   @deleteInfoFile: (folder) ->
-    @ioHelper.deleteFile(folder + path.sep + 'info.json')
+    IoHelper.deleteFile(folder + path.sep + 'info.json')
 
   @updateRootInfoFile: (newAlgorithm, route) ->
-    fileContent = @ioHelper.loadFile(nconf.get('paths:rootInfoFile'))
+    fileContent = IoHelper.loadFile(nconf.get('paths:rootInfoFile'))
     newEntry =
       name: newAlgorithm.general.name
       description: newAlgorithm.general.description
       type: newAlgorithm.general.type
       url: 'http://$BASEURL$/' + route
     fileContent.push(newEntry)
-    @ioHelper.saveFile(nconf.get('paths:rootInfoFile'), fileContent, (err) ->
+    IoHelper.saveFile(nconf.get('paths:rootInfoFile'), fileContent, (err) ->
       return
     )
   @removeFromRootInfoFile: (route) ->
-    fileContent = @ioHelper.loadFile(nconf.get('paths:rootInfoFile'))
+    fileContent = IoHelper.loadFile(nconf.get('paths:rootInfoFile'))
     _.remove(fileContent, (entry) ->
       entry.url == 'http://$BASEURL$'+route
     )
-    @ioHelper.saveFile(nconf.get('paths:rootInfoFile'), fileContent)
+    IoHelper.saveFile(nconf.get('paths:rootInfoFile'), fileContent)
 
   @updateStatus: (identifier, status,route, message) ->
-    content = @ioHelper.loadFile(nconf.get('paths:servicesInfoFile'))
+    content = IoHelper.loadFile(nconf.get('paths:servicesInfoFile'))
     if(identifier? and _.find(content.services, {'identifier':identifier})?)
       currentInfo = _.find(content.services, {'identifier':identifier})
     else if(route? and _.find(content.services, {'path':route})?)
@@ -109,29 +109,29 @@ algorithmManagement = exports = module.exports = class AlgorithmManagement
         currentInfo.status.statusCode = 410
         currentInfo.status.statusMessage = 'This Algorithm is no longer available'
 
-    @ioHelper.saveFile(nconf.get('paths:servicesInfoFile'), content)
+    IoHelper.saveFile(nconf.get('paths:servicesInfoFile'), content)
     return
 
   @updateRoute: (identifier, newRoute) ->
-    content = @ioHelper.loadFile(nconf.get('paths:servicesInfoFile'))
+    content = IoHelper.loadFile(nconf.get('paths:servicesInfoFile'))
     if(identifier? and _.find(content.services, {'identifier':identifier})?)
       currentInfo = _.find(content.services, {'identifier':identifier})
     currentInfo.path = newRoute
-    @ioHelper.saveFile(nconf.get('paths:servicesInfoFile'), content)
+    IoHelper.saveFile(nconf.get('paths:servicesInfoFile'), content)
     return
 
   @recordException: (identifier, exception) ->
-    content = @ioHelper.loadFile(nconf.get('paths:servicesInfoFile'))
+    content = IoHelper.loadFile(nconf.get('paths:servicesInfoFile'))
     if(identifier? and _.find(content.services, {'identifier':identifier})?)
       currentInfo = _.find(content.services, {'identifier':identifier})
     exception =
       date: new Date().toJSON()
       errorMessage: exception
     currentInfo.exceptions.push(exception)
-    @ioHelper.saveFile(nconf.get('paths:servicesInfoFile'), content)
+    IoHelper.saveFile(nconf.get('paths:servicesInfoFile'), content)
 
   @getExceptions: (identifier) ->
-    content = @ioHelper.loadFile(nconf.get('paths:servicesInfoFile'))
+    content = IoHelper.loadFile(nconf.get('paths:servicesInfoFile'))
     if(identifier? and _.find(content.services, {'identifier':identifier})?)
       currentInfo = _.find(content.services, {'identifier':identifier})
     return currentInfo.exceptions

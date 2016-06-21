@@ -5,7 +5,6 @@
 
 fs = require 'fs'
 logger = require '../../logging/logger'
-ImageHelper = require '../imageHelper'
 
 noResultHandler = exports = module.exports = class NoResultHandler
   @filename: ''

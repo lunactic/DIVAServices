@@ -223,11 +223,10 @@ parameterHelper = exports = module.exports = class ParameterHelper
       content = JSON.parse(fs.readFileSync(paramPath,'utf8'))
       if((info = _.filter(content,{'parameters':data.parameters, 'highlighters':data.highlighters})).length > 0)
         #found some information about this method
-        ioHelper = new IoHelper()
         if(process.image?)
-          process.resultFile = ioHelper.buildFilePath(info[0].folder, process.image.name)
+          process.resultFile = IoHelper.buildFilePath(info[0].folder, process.image.name)
         else
-          process.resultFile = ioHelper.buildFilePath(info[0].folder, path.basename(info[0].folder))
+          process.resultFile = IoHelper.buildFilePath(info[0].folder, path.basename(info[0].folder))
         process.outputFolder = info[0].folder
       else
         #found no information about that method

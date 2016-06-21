@@ -37,7 +37,6 @@ queueHandler = exports = module.exports = class QueueHandler
 
   #TODO use the callback in executeDockerRequest
   @addDockerRequestToQueue: (req, cb) ->
-    self = @
     @executableHelper.preprocess req, @dockerProcessingQueue, 'regular', cb, () ->
       executeDockerRequest()
 

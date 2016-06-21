@@ -35,8 +35,7 @@ servicesInfoHelper = exports = module.exports = class ServicesInfoHelper
 
 
   @update: (newData) ->
-    ioHelper = new IoHelper()
-    ioHelper.saveFile(nconf.get('paths:servicesInfoFile'), newData, (err) ->
+    IoHelper.saveFile(nconf.get('paths:servicesInfoFile'), newData, (err) ->
       return
     )
   

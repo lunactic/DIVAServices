@@ -14,7 +14,6 @@ md5                   = require 'md5'
 nconf                 = require 'nconf'
 path                  = require 'path'
 request               = require 'request'
-ParameterHelper       = require '../helper/parameterHelper'
 logger                = require '../logging/logger'
 
 # expose imageHelper
@@ -106,7 +105,6 @@ imageHelper = exports = module.exports = class ImageHelper
     image = {}
     async.waterfall [
       (callback) ->
-        self = @
         request.head(url).on('response', (response) ->
           imgExtension = getImageExtension(response.headers['content-type'])
           callback null, imgExtension
@@ -306,13 +304,13 @@ imageHelper = exports = module.exports = class ImageHelper
     return status
 
   getImageExtension = (contentType) ->
-      switch (contentType)
-        when "image/jpeg"
-          return 'jpg'
-        when "image/tiff"
-          return 'tiff'
-        when "image/png"
-          return 'png'
+    switch (contentType)
+      when "image/jpeg"
+        return 'jpg'
+      when "image/tiff"
+        return 'tiff'
+      when "image/png"
+        return 'png'
 
   getImageExtensionFromBase64 = (base64) ->
     if(base64.indexOf('/9j/4AAQ') != -1 or base64.indexOf('_9j_4AA') != -1)
