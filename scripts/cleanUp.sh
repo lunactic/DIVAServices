@@ -9,31 +9,31 @@ function header {
 
 header "cleaning folders"
 imageFolder=($(cat conf/server.dev.json | jq -r '.paths.imageRootPath'))
-rm -r $imageFolder/
+rm -r ${imageFolder}/
 jsonFolder=($(cat conf/server.dev.json | jq -r '.paths.jsonPath'))
-rm -r $jsonFolder/
+rm -r ${jsonFolder}/
 executableFolder=($(cat conf/server.dev.json | jq -r '.paths.executablePath'))
-rm -r $executableFolder/
+rm -r ${executableFolder}/
 
 header "Creating Folders"
 imageFolder=($(cat conf/server.dev.json | jq -r '.paths.imageRootPath'))
-mkdir -p $imageFolder
+mkdir -p ${imageFolder}
 jsonFolder=($(cat conf/server.dev.json | jq -r '.paths.jsonPath'))
-mkdir -p $jsonFolder
+mkdir -p ${jsonFolder}
 executableFolder=($(cat conf/server.dev.json | jq -r '.paths.executablePath'))
-mkdir -p $executableFolder
-mkdir -p $imageFolder/test/original
+mkdir -p ${executableFolder}
+mkdir -p ${imageFolder}/test/original
 
 header "Creating Files"
 imageInfoFile=($(cat conf/server.dev.json | jq -r '.paths.imageInfoFile'))
 #md5 hash for this test image: https://placeholdit.imgix.net/~text?txtsize=33&txt=This%20is%20a%20test&w=1024&h=768
-echo '[ {"md5":"1e5300b94a45423592a0f9011a63ba2a", "file":"/data/images/test/original/input0.jpg", "collection":"test"} ]' > $imageInfoFile
+echo '[ {"md5":"1e5300b94a45423592a0f9011a63ba2a", "file":"/data/images/test/original/input0.jpg", "collection":"test"} ]' > ${imageInfoFile}
 
 servicesInfoFile=($(cat conf/server.dev.json | jq -r '.paths.servicesInfoFile'))
-echo '{"services":[]}' > $servicesInfoFile
+echo '{"services":[]}' > ${servicesInfoFile}
 
 rootInfoFile=($(cat conf/server.dev.json | jq -r '.paths.rootInfoFile'))
-echo "[]" > $rootInfoFile
+echo "[]" > ${rootInfoFile}
 
 header "Copying Files"
-cp /data/input0.jpg $imageFolder/test/original/
+cp /data/input0.jpg ${imageFolder}/test/original/

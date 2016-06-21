@@ -91,7 +91,7 @@ getHandler = exports = module.exports = class GetHandler
       #locate the image folder
       ImageHelper.imageExists(queryParams.md5, (err, data) ->
         if(err?)
-          error = createError(404,'Image no available')
+          error = createError(404,'Image not available')
           callback error, null
           return
         if(data.imageAvailable)
@@ -107,8 +107,6 @@ getHandler = exports = module.exports = class GetHandler
             #TODO Is this needed in the future, when everything is starting from the point of a collection?
             if(ResultHelper.checkProcessResultAvailable(process))
               process.result = ResultHelper.loadResult process
-              if(queryParams.requireOutputImage is 'false' && process.result['image']?)
-                delete process.result['image']
               if(!process.result?)
                 process.result = {status: 'planned'}
               if(!process.result.hasOwnProperty('status'))

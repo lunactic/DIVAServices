@@ -23,29 +23,29 @@ resultHelper = exports = module.exports = class ResultHelper
 
     @parameterHelper.loadParamInfo(collection)
     collection.resultFile = collection.outputFolder + path.sep + 'result.json'
-    return @ioHelper.checkFileExists(collection.resultFile)
+    return IoHelper.checkFileExists(collection.resultFile)
 
   @checkProcessResultAvailable: (process) ->
     @parameterHelper.loadParamInfo(process)
-    return process.resultFile? and @ioHelper.checkFileExists(process.resultFile)
+    return process.resultFile? and IoHelper.checkFileExists(process.resultFile)
 
   @loadResult: (info) ->
-    return @ioHelper.loadFile(info.resultFile)
+    return IoHelper.loadFile(info.resultFile)
 
   @saveResult: (info, callback) ->
-    @ioHelper.saveFile(info.resultFile, info.result, callback)
+    IoHelper.saveFile(info.resultFile, info.result, callback)
 
   @loadAvailableResults: (folder, image) ->
-    files = @ioHelper.readdir(folder)
+    files = IoHelper.readdir(folder)
     results = []
     if(files?)
       files = _.filter(files, (file) ->
         return file.endsWith('.json')
       )
       for file in files
-        methodResults = @ioHelper.loadFile(folder + path.sep + file)
+        methodResults = IoHelper.loadFile(folder + path.sep + file)
         for methodResult in methodResults
-          processResult = @ioHelper.loadFile(methodResult.folder + path.sep + image.name + '.json')
+          processResult = IoHelper.loadFile(methodResult.folder + path.sep + image.name + '.json')
           processResult['method'] = file.split('.')[0]
           processResult['parameters'] = methodResult.parameters
           results.push(processResult)

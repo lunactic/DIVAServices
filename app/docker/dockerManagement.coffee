@@ -1,6 +1,5 @@
 _             = require 'lodash'
 archiver      = require 'archiver'
-childProcess  = require 'child_process'
 logger        = require '../logging/logger'
 Docker        = require "dockerode"
 fs            = require 'fs'

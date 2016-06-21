@@ -30,7 +30,7 @@ function test_all_mandatory_programs {
   for ((i=0;i<$elements;i++)); do
     program=${programs[${i}]}
     status=$(program_is_installed ${program})
-    if [ $status -eq 0 ] ; then
+    if [ ${status} -eq 0 ] ; then
       missing_programs+=(${program})
       passed=false
     fi
@@ -52,10 +52,10 @@ function install_global_npm_packages {
   for ((i=0;i<$elements;i++)); do
     package=${packages[${i}]}
     status=$(program_is_installed ${package})
-    if [ $status -eq 1 ] ; then
+    if [ ${status} -eq 1 ] ; then
       echo "skipping package=${package} because it is already installed"
     else
-      if [ $package = "coffee" ] ; then
+      if [ ${package} = "coffee" ] ; then
         package="coffee-script"
       fi
       echo "installing package=${package}"
@@ -88,28 +88,28 @@ echo "done"
 
 header "Creating Folders"
 imageFolder=($(cat conf/server.dev.json | jq -r '.paths.imageRootPath'))
-mkdir -p $imageFolder
+mkdir -p ${imageFolder}
 textualFolder=($(cat conf/server.dev.json | jq -r '.paths.textualRootPath'))
-mkdir -p $textualFolder
+mkdir -p ${textualFolder}
 jsonFolder=($(cat conf/server.dev.json | jq -r '.paths.jsonPath'))
-mkdir -p $jsonFolder
+mkdir -p ${jsonFolder}
 ocropyLanguageModelsFolder=($(cat conf/server.dev.json | jq -r '.paths.ocropyLanguageModelsPath'))
-mkdir -p $ocropyLanguageModelsFolder
+mkdir -p ${ocropyLanguageModelsFolder}
 executableFolder=($(cat conf/server.dev.json | jq -r '.paths.executablePath'))
-mkdir -p $executableFolder
-mkdir -p $imageFolder/test/original
+mkdir -p ${executableFolder}
+mkdir -p ${imageFolder}/test/original
 
 header "Creating Files"
 imageInfoFile=($(cat conf/server.dev.json | jq -r '.paths.imageInfoFile'))
 #md5 hash for this test image: https://placeholdit.imgix.net/~text?txtsize=33&txt=This%20is%20a%20test&w=1024&h=768
-echo '[ {"md5":"985c0d138d4797d5fdaf8e893313c59c", "file":"/data/images/test/original/input0.png", "collection":"test"} ]' > $imageInfoFile
+echo '[ {"md5":"985c0d138d4797d5fdaf8e893313c59c", "file":"/data/images/test/original/input0.png", "collection":"test"} ]' > ${imageInfoFile}
 servicesInfoFile=($(cat conf/server.dev.json | jq -r '.paths.servicesInfoFile'))
-echo '{"services":[]}' > $servicesInfoFile
+echo '{"services":[]}' > ${servicesInfoFile}
 rootInfoFile=($(cat conf/server.dev.json | jq -r '.paths.rootInfoFile'))
-echo "[]" > $rootInfoFile
+echo "[]" > ${rootInfoFile}
 
 header "Copying Files"
-cp /data/input0.png $imageFolder/test/original/
+cp /data/input0.png ${imageFolder}/test/original/
 
 header "Compiling Sources"
 coffee -mc .

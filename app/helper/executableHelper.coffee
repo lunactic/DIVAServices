@@ -17,13 +17,11 @@ Collection          = require '../processingQueue/collection'
 ConsoleResultHandler= require './resultHandlers/consoleResultHandler'
 DockerManagement    = require '../docker/dockerManagement'
 FileResultHandler   = require './resultHandlers/fileResultHandler'
-IiifManifestParser  = require '../parsers/iiifManifestParser'
 ImageHelper         = require '../helper/imageHelper'
 IoHelper            = require '../helper/ioHelper'
 NoResultHandler     = require './resultHandlers/noResultHandler'
 Process             = require '../processingQueue/process'
 ParameterHelper     = require '../helper/parameterHelper'
-RandomWordGenerator = require '../randomizer/randomWordGenerator'
 RemoteExecution     = require '../remoteExecution/remoteExecution'
 ResultHelper        = require '../helper/resultHelper'
 ServicesInfoHelper  = require '../helper/servicesInfoHelper'
@@ -147,14 +145,12 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
 
   preprocess: (req,processingQueue, executionType, requestCallback, queueCallback) ->
     serviceInfo = ServicesInfoHelper.getServiceInfoByPath(req.originalUrl)
-    ioHelper = new IoHelper()
     parameterHelper = new ParameterHelper()
     collection = new Collection()
     collection.method = serviceInfo.service
     async.waterfall [
       (callback) ->
         #STEP 1
-        #TODO Add collection exist check to here
         if (req.body.images?  and req.body.images[0].type is 'collection')
           preprocessCollection(collection, req, serviceInfo, parameterHelper,executionType, callback)
         else
@@ -172,7 +168,7 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
           callback null,collection
           return
         #Create an array of processes that are added to the processing queue
-        outputFolder = ioHelper.getOutputFolder(collection.name, serviceInfo.service, serviceInfo.uniqueOnCollection)
+        outputFolder = IoHelper.getOutputFolder(collection.name, serviceInfo.service, serviceInfo.uniqueOnCollection)
         collection.outputFolder = outputFolder
         collection.resultFile = collection.outputFolder + path.sep + 'result.json'
         for process in collection.processes
@@ -183,20 +179,17 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
           process.neededParameters = serviceInfo.parameters
           process.method = collection.method
           process.parameters = parameterHelper.matchParams(process,req)
-          #TODO check if still needed
-          if(process.parameters.params.outputImage?)
-            process.parameters.params.outputImage = ImageHelper.getOutputImage(process.image, process.outputFolder)
           if(ResultHelper.checkProcessResultAvailable(process))
             process.result = ResultHelper.loadResult(process)
           else
             process.methodFolder = path.basename(process.outputFolder)
             if(process.image?)
-              process.resultFile = ioHelper.buildFilePath(process.outputFolder, process.image.name)
-              process.tmpResultFile = ioHelper.buildTempFilePath(process.outputFolder, process.image.name)
+              process.resultFile = IoHelper.buildFilePath(process.outputFolder, process.image.name)
+              process.tmpResultFile = IoHelper.buildTempFilePath(process.outputFolder, process.image.name)
               process.inputImageUrl = ImageHelper.getInputImageUrl(process.rootFolder, process.image.name, process.image.extension)
             else
-              process.resultFile = ioHelper.buildFilePath(process.outputFolder,process.methodFolder)
-              process.tmpResultFile = ioHelper.buildTempFilePath(process.outputFolder,process.methodFolder)
+              process.resultFile = IoHelper.buildFilePath(process.outputFolder,process.methodFolder)
+              process.tmpResultFile = IoHelper.buildTempFilePath(process.outputFolder,process.methodFolder)
             if(req.body.requireOutputImage?)
               process.requireOutputImage = req.body.requireOutputImage
             process.programType = serviceInfo.programType
@@ -221,7 +214,7 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
         for process in collection.processes
           if(!(process.result?))
             parameterHelper.saveParamInfo(process,process.parameters,process.rootFolder,process.outputFolder, process.method)
-            ioHelper.writeTempFile(process.resultFile)
+            IoHelper.writeTempFile(process.resultFile)
         callback null, collection
       ],(err, collection) ->
         #FINISH

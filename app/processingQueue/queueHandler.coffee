@@ -32,12 +32,10 @@ queueHandler = exports = module.exports = class QueueHandler
   @addRemoteRequestToQueue: (req, cb) ->
     self = @
     @executableHelper.preprocess req, @remoteProcessingQueue, 'regular', cb, () ->
-      #TODO: ADD SPECIAL REMOTE PREPROCESSING HERE
       self.executeRemoteRequest()
 
   #TODO use the callback in executeDockerRequest
   @addDockerRequestToQueue: (req, cb) ->
-    self = @
     @executableHelper.preprocess req, @dockerProcessingQueue, 'regular', cb, () ->
       executeDockerRequest()
 
@@ -73,7 +71,7 @@ queueHandler = exports = module.exports = class QueueHandler
       QueueHandler.executableHelper.executeDockerRequest(job)
 
   executeLocalRequest = () ->
-#TODO: Replace getNumberOfCurrentExecutions() with some form of available computing time
+    #TODO: Replace getNumberOfCurrentExecutions() with some form of available computing time
     if(Statistics.getNumberOfCurrentExecutions() < 2 && localRequestAvailable())
       QueueHandler.executableHelper.executeLocalRequest(getNextLocalRequest())
 
