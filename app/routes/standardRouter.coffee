@@ -53,7 +53,6 @@ router.post '/upload', (req, res) ->
   ), (err) ->
     console.log 'all images processed'
     ImageHelper.createCollectionInformation(collectionName, numberOfImages)
-
     send200(res, {collection: collectionName})
     #TODO add a statistics route for a collection to check if all images are downloaded
     imageCounter = 1

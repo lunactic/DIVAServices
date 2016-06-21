@@ -74,7 +74,6 @@ getHandler = exports = module.exports = class GetHandler
       prepareQueryParams(collection, queryParams)
       folder = nconf.get('paths:imageRootPath') + path.sep + collection.name
       collection.neededParameters = neededParameters
-      collection.inputParameters = queryParams
       collection.image =
         path: folder
         md5:  ""

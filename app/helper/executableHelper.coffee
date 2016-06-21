@@ -183,6 +183,7 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
           process.neededParameters = serviceInfo.parameters
           process.method = collection.method
           process.parameters = parameterHelper.matchParams(process,req)
+          #TODO check if still needed
           if(process.parameters.params.outputImage?)
             process.parameters.params.outputImage = ImageHelper.getOutputImage(process.image, process.outputFolder)
           if(ResultHelper.checkProcessResultAvailable(process))
