@@ -70,8 +70,7 @@ router.post '/upload', (req, res) ->
                 ImageHelper.updateCollectionInformation(collectionName, numberOfImages, imageCounter++)
               )
         else
-          ImageHelper.saveImage(image, process, i)
-          ImageHelper.updateCollectionInformation(collectionName, numberOfImages, imageCounter++)
+          ImageHelper.saveImage(image, process, numberOfImages, imageCounter++)
 
 router.post '/jobs/:jobId', (req, res, next) ->
   logger.log 'info', 'jobs route called'

@@ -22,15 +22,18 @@ imageHelper = exports = module.exports = class ImageHelper
   @imageInfo ?= JSON.parse(fs.readFileSync(nconf.get('paths:imageInfoFile'),'utf-8'))
 
 
-  @saveImage: (inputImage, process, counter) ->
+  @saveImage: (inputImage, process, numberOfImages, counter) ->
+    self = @
     switch inputImage.type
       when 'image'
-        image = @saveOriginalImage(inputImage.value,process.rootFolder,counter)
-        @addImageInfo(image.md5, image.path, process.rootFolder)
+        image = @saveOriginalImage(inputImage.value,process.rootFolder,counter, (image) ->
+          self.addImageInfo(image.md5, image.path, process.rootFolder)
+          self.updateCollectionInformation(process.rootFolder, numberOfImages, counter)
+        )
       when 'url'
-        self = @
         image = @saveImageUrl(inputImage.value,process.rootFolder, counter, (image) ->
           self.addImageInfo(image.md5, image.path, process.rootFolder)
+          self.updateCollectionInformation(process.rootFolder, numberOfImages, counter)
         )
 
     return
@@ -52,7 +55,7 @@ imageHelper = exports = module.exports = class ImageHelper
   #     *EXTENSION* is the image extension</br>
   # `params`
   #   *image* the received base64 encoded image
-  @saveOriginalImage: (image, folder, counter) ->
+  @saveOriginalImage: (image, folder, counter, callback) ->
     #code for saving an image
     imagePath = nconf.get('paths:imageRootPath')
     base64Data = image.replace(/^data:image\/png;base64,/, "")
@@ -78,7 +81,7 @@ imageHelper = exports = module.exports = class ImageHelper
         return image
       else if err.code == 'ENOENT'
         fs.writeFile image.path, base64Data, 'base64', (err) ->
-          return image
+          callback image
         return
       else
         #error handling
