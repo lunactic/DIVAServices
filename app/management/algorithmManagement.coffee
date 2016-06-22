@@ -137,7 +137,7 @@ algorithmManagement = exports = module.exports = class AlgorithmManagement
     return currentInfo.exceptions
 
 
-#TODO MAKE CHANGES FOR DOCKER OR CREATE A SEPERATE METHOD
+  #TODO MAKE CHANGES FOR DOCKER OR CREATE A SEPERATE METHOD
   @updateServicesFile: (newAlgorithm, identifier, route, imageName) ->
     ServicesInfoHelper.reload()
     if(not @getStatusByIdentifier(identifier)? and not @getStatusByRoute(route)?)
@@ -169,3 +169,10 @@ algorithmManagement = exports = module.exports = class AlgorithmManagement
       newContent.services.push(newServiceEntry)
       ServicesInfoHelper.update(newContent)
       ServicesInfoHelper.reload()
+
+  @updateIdentifier: (route, newIdentifier) ->
+    content = IoHelper.loadFile(nconf.get('paths:servicesInfoFile'))
+    service = _.find(content.services, ('path':route))
+    service.identifier = newIdentifier
+    ServicesInfoHelper.update(content)
+    ServicesInfoHelper.reload()

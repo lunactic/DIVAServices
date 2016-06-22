@@ -39,6 +39,7 @@ router.post '/algorithms', (req, res, next) ->
       status = AlgorithmManagement.getStatusByRoute('/' + route)
       imageName = AlgorithmManagement.generateImageName(req.body)
       if(status?)
+        #TODO Check also against deployment statuses
         if(status.status.statusCode == 200)
           #method with this route already exists, return an error
           err =
@@ -47,7 +48,13 @@ router.post '/algorithms', (req, res, next) ->
             errorType: 'MethodDuplication'
           sendError(res, err)
         else if(status.status.statusCode == 410)
+          #algorithm was deleted, create a new one
+          identifier = AlgorithmManagement.createIdentifier()
           createAlgorithm(req,res, route, identifier, imageName)
+        else if(status.status.statusCode == 500)
+          identifier = AlgorithmManagement.createIdentifier()
+          AlgorithmManagement.updateIdentifier(route, identifier)
+          createAlgorithm(req, res, route, identifier, imageName)
         else
           response =
             statusCode: status.status.statusCode
