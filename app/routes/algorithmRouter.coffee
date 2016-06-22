@@ -239,6 +239,8 @@ createAlgorithm = (req,res, route, identifier, imageName) ->
 
         executableHelper.preprocess req, QueueHandler.dockerProcessingQueue, 'test',
           (err, response) ->
+            if(err?)
+              logger.log 'error', err
             #logger.log 'info', response
         ,
           () ->

@@ -234,7 +234,22 @@ parameterHelper = exports = module.exports = class ParameterHelper
     catch error
       #no information found
       return
-  # ---
+
+  removeParamInfo: (process) ->
+    paramPath = nconf.get('paths:imageRootPath') + '/' + process.rootFolder + '/' + process.method + '.json'
+    data =
+      highlighters: process.inputHighlighters
+      parameters: process.inputParameters
+    try
+      fs.statSync(paramPath).isFile()
+      content = JSON.parse(fs.readFileSync(paramPath,'utf8'))
+      if((info = _.filter(content,{'parameters':data.parameters, 'highlighters':data.highlighters})).length > 0)
+        _.remove(content, {'parameters':data.parameters, 'highlighters':data.highlighters})
+        fs.writeFileSync(paramPath, JSON.stringify(content))
+
+
+
+# ---
   # **checkReservedParameters**</br>
   # Checks if a parameter is in the list of reserverd words as defined in server.NODE_ENV.json</br>
   # `params`

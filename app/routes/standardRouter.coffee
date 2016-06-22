@@ -97,9 +97,11 @@ router.post '/jobs/:jobId', (req, res, next) ->
       schemaValidator.validate(IoHelper.loadFile(process.resultFile), 'responseSchema', (error) ->
         if error
           AlgorithmManagement.updateStatus(null, 'error', process.req.originalUrl, error)
+          ResultHelper.removeResult(process)
           sendError(res, error)
         else
           AlgorithmManagement.updateStatus(null, 'ok', process.req.originalUrl)
+          ResultHelper.removeResult(process)
           send200(res, {status: 'valid'})
       )
     else

@@ -34,7 +34,11 @@ resultHelper = exports = module.exports = class ResultHelper
 
   @saveResult: (info, callback) ->
     IoHelper.saveFile(info.resultFile, info.result, callback)
-
+  
+  @removeResult: (process) ->
+    @parameterHelper.removeParamInfo(process)
+    IoHelper.deleteFolder(process.outputFolder)
+    
   @loadAvailableResults: (folder, image) ->
     files = IoHelper.readdir(folder)
     results = []

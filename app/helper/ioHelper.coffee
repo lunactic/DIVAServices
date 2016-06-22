@@ -26,6 +26,10 @@ ioHelper = exports = module.exports = class IoHelper
   @deleteFile: (file) ->
     fs.unlink(file)
 
+  @deleteFolder: (folder) ->
+    rmdir(folder, (err) ->
+    )
+
   @unzipFolder: (zipFile, folder, callback) ->
     mkdirp(folder, (err) ->
       if(err)
