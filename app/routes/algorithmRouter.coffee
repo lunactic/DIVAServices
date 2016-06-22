@@ -176,18 +176,17 @@ createAlgorithm = (req,res, route, identifier, imageName) ->
   IoHelper.downloadFile(req.body.method.file, '/data/executables/' + route, 'application/zip', (err, filename) ->
     if(err?)
       AlgorithmManagement.updateStatus(identifier, 'error', null, 'file has wrong data format')
-      error =
+      response =
         statusCode: 500
-        statusText: 'fileUrl does not point to a correct zip file'
-        errorType: 'fileTypeError'
-      sendResponse(res, error, null)
+        identifier: identifier
+        statusMessage: 'fileUrl does not point to a correct zip file'
+      sendResponse(res, null, response)
       return
     #create docker file
     DockerManagement.createDockerFile(req.body, '/data/executables/' + route)
     #create bash script
     DockerManagement.createBashScript(req.body, '/data/executables/' + route)
     #update servicesFile
-    AlgorithmManagement.createInfoFile(req.body, '/data/json/' + route)
     AlgorithmManagement.updateRootInfoFile(req.body, route)
     AlgorithmManagement.updateStatus(identifier, 'creating', '/' + route)
     #create a tar from zip
@@ -249,6 +248,8 @@ createAlgorithm = (req,res, route, identifier, imageName) ->
             executableHelper.executeDockerRequest(job, (error, data) ->
               if(error)
                 AlgorithmManagement.updateStatus(identifier, 'error', null, error.statusMessage)
+              else
+                AlgorithmManagement.createInfoFile(req.body, '/data/json/' + route)
             )
     ))
 
