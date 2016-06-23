@@ -8,7 +8,7 @@ IoHelper              = require '../helper/ioHelper'
 logger                = require '../logging/logger'
 nconf                 = require 'nconf'
 path                  = require 'path'
-ProcessingQueue       = require '../processingQueue/processingQueue'
+ResultHelper          = require '../helper/resultHelper'
 router                = require('express').Router()
 schemaValidator       = require '../validator/schemaValidator'
 ServicesInfoHelper    = require '../helper/servicesInfoHelper'
@@ -53,7 +53,7 @@ router.post '/algorithms', (req, res, next) ->
           createAlgorithm(req,res, route, identifier, imageName)
         else if(status.status.statusCode == 500)
           identifier = AlgorithmManagement.createIdentifier()
-          AlgorithmManagement.updateIdentifier(route, identifier)
+          AlgorithmManagement.updateIdentifier('/'+route, identifier)
           createAlgorithm(req, res, route, identifier, imageName)
         else
           response =
@@ -110,10 +110,7 @@ router.put '/algorithms/:identifier', (req, res) ->
 router.post '/algorithms/:identifier/exceptions/:jobId', (req, res, next) ->
   AlgorithmManagement.recordException(req.params.identifier, req.text)
   process = QueueHandler.getDockerJob(req.params.jobId)
-  content = JSON.parse(fs.readFileSync(process.resultFile))
-  content.status = 'error'
-  content['errorMessage'] = 'There was an error in processing this request'
-  fs.writeFileSync(process.resultFile, JSON.stringify(content, null, '\t'),'utf8')
+  ResultHelper.removeResult(process)
   send200(res, {})
 
 router.get '/algorithms/:identifier/exceptions', (req, res) ->
