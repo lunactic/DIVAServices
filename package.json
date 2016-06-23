@@ -1,10 +1,10 @@
 {
   "name": "DivaServices",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "private": true,
   "main":"server.coffee",
   "author": "Marcel Würsch",
-  "license": "GPLv3",
+  "license": "LGPLv2.1",
   "repository": {
     "type":"git",
     "url":"git@github.com:lunactic/DIVAServices.git"
