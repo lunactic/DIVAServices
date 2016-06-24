@@ -93,10 +93,10 @@ router.put '/algorithms/:identifier', (req, res) ->
           else
             #docker
             identifier = AlgorithmManagement.createIdentifier()
-            route = AlgorithmManagement.generateRoute(req.body)
+            #route = AlgorithmManagement.generateRoute(req.body)
             #check if we can find the route already
             imageName = AlgorithmManagement.generateImageName(req.body)
-            AlgorithmManagement.generateFolders(route)
+            AlgorithmManagement.generateFolders(newRoute)
             createAlgorithm(req,res, route, identifier, imageName)
         )
     )
