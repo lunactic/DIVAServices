@@ -184,7 +184,6 @@ createAlgorithm = (req,res, route, identifier, imageName) ->
     #create bash script
     DockerManagement.createBashScript(req.body, '/data/executables/' + route)
     #update servicesFile
-    AlgorithmManagement.updateRootInfoFile(req.body, route)
     AlgorithmManagement.updateStatus(identifier, 'creating', '/' + route)
     #create a tar from zip
     response =
@@ -248,6 +247,7 @@ createAlgorithm = (req,res, route, identifier, imageName) ->
               if(error)
                 AlgorithmManagement.updateStatus(identifier, 'error', null, error.statusMessage)
               else
+                AlgorithmManagement.updateRootInfoFile(req.body, route)
                 AlgorithmManagement.createInfoFile(req.body, '/data/json/' + route)
             )
     ))
