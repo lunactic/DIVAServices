@@ -39,7 +39,7 @@ getHandler = exports = module.exports = class GetHandler
         if err?
           algo = AlgorithmManagement.getStatusByRoute(req.originalUrl)
           if(algo?)
-            error = createError(algot.status.statusCode, algo.status.statusMessage)
+            error = createError(algo.status.statusCode, algo.status.statusMessage)
           else
             error = createError(404,'This algorithm is not available')
           callback error
