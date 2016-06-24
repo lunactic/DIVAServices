@@ -222,7 +222,7 @@ createAlgorithm = (req,res, route, identifier, imageName) ->
                       type: 'rectangle'
                       closed: true
                       segments:[[0,0],[0,150],[350,150],[350,0]]
-        req =
+        testRequest =
           originalUrl: '/' + route
           body:
             images: [
@@ -234,7 +234,7 @@ createAlgorithm = (req,res, route, identifier, imageName) ->
             highlighter: highlighter
             inputs: inputs
 
-        executableHelper.preprocess req, QueueHandler.dockerProcessingQueue, 'test',
+        executableHelper.preprocess testRequest, QueueHandler.dockerProcessingQueue, 'test',
           (err, response) ->
             if(err?)
               logger.log 'error', err
