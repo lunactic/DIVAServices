@@ -76,17 +76,14 @@ router.put '/algorithms/:identifier', (req, res) ->
   if(serviceInfo?)
     #build new route
     currentRoute = serviceInfo.path
-    routeParts = currentRoute.split('/')
+    routeParts = currentRoute.split('/').filter((n) -> return n != '')
     lastPart = routeParts[routeParts.length - 1]
-    if(isNaN(lastPart))
-      newRoute = currentRoute + '/1'
-    else
-      routeParts[routeParts.length - 1]++
-      newRoute = routeParts.join('/')
+    routeParts[routeParts.length - 1]++
+    newRoute = '/' + routeParts.join('/')
     AlgorithmManagement.updateStatus(req.params.identifier, 'delete')
     #remove /route/info.json file
     AlgorithmManagement.deleteInfoFile('/data/json' + serviceInfo.path)
-    AlgorithmManagement.updateRoute(req.params.identifier, newRoute)
+    #AlgorithmManagement.updateRoute(req.params.identifier, newRoute)
     AlgorithmManagement.removeFromRootInfoFile(serviceInfo.path)
     DockerManagement.removeImage(serviceInfo.image_name, (error) ->
       if(not error?)
@@ -96,7 +93,6 @@ router.put '/algorithms/:identifier', (req, res) ->
           else
             #docker
             identifier = AlgorithmManagement.createIdentifier()
-            #route = AlgorithmManagement.generateRoute(req.body)
             #check if we can find the route already
             imageName = AlgorithmManagement.generateImageName(req.body)
             AlgorithmManagement.generateFolders(newRoute)

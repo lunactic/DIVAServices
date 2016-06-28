@@ -36,7 +36,7 @@ algorithmManagement = exports = module.exports = class AlgorithmManagement
     return crypto.createHash('sha1').update(current_date + random).digest 'hex'
 
   @generateRoute: (newAlgorithm) ->
-    return newAlgorithm.general.type.toLowerCase() + '/' + newAlgorithm.general.name.replace(/\s/g, '').toLowerCase()
+    return newAlgorithm.general.type.toLowerCase() + '/' + newAlgorithm.general.name.replace(/\s/g, '').toLowerCase() + '/1'
 
   @generateFolders: (route) ->
     mkdirp.sync('/data/executables/' + route)
