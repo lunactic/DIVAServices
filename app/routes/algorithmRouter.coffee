@@ -39,28 +39,31 @@ router.post '/algorithms', (req, res, next) ->
       status = AlgorithmManagement.getStatusByRoute('/' + route)
       imageName = AlgorithmManagement.generateImageName(req.body)
       if(status?)
-        #TODO Check also against deployment statuses
-        if(status.status.statusCode == 200)
-          #method with this route already exists, return an error
-          err =
-            statusCode: 500
-            statusText: 'An algorithm with the same name / type combination already exsists. Please change the name of the algorithm'
-            errorType: 'MethodDuplication'
-          sendError(res, err)
-        else if(status.status.statusCode == 410)
-          #algorithm was deleted, create a new one
-          identifier = AlgorithmManagement.createIdentifier()
-          createAlgorithm(req,res, route, identifier, imageName)
-        else if(status.status.statusCode == 500)
-          identifier = AlgorithmManagement.createIdentifier()
-          AlgorithmManagement.updateIdentifier('/'+route, identifier)
-          createAlgorithm(req, res, route, identifier, imageName)
-        else
-          response =
-            statusCode: status.status.statusCode
-            identifier: status.identifier
-            statusMessage: status.status.statusMessage
-          sendResponse res, null, response
+        switch status.status.statusCode
+          when 200
+            #method with this route already exists, return an error
+            err =
+              statusCode: 500
+              statusText: 'An algorithm with the same name / type combination already exsists. Please change the name of the algorithm'
+              errorType: 'MethodDuplication'
+            sendError(res, err)
+          when 410
+            #algorithm was deleted, create a new one
+            identifier = AlgorithmManagement.createIdentifier()
+            createAlgorithm(req,res, route, identifier, imageName)
+          when 500
+            DockerManagement.removeImage(status.image_name, (error) ->
+              if(not error?)
+                identifier = AlgorithmManagement.createIdentifier()
+                AlgorithmManagement.updateIdentifier('/'+route, identifier)
+                createAlgorithm(req, res, route, identifier, imageName)
+            )
+          else
+            response =
+              statusCode: status.status.statusCode
+              identifier: status.identifier
+              statusMessage: status.status.statusMessage
+            sendResponse res, null, response
       else
         identifier = AlgorithmManagement.createIdentifier()
         AlgorithmManagement.generateFolders(route)
