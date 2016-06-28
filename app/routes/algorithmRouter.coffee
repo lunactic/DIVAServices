@@ -97,7 +97,7 @@ router.put '/algorithms/:identifier', (req, res) ->
             #check if we can find the route already
             imageName = AlgorithmManagement.generateImageName(req.body)
             AlgorithmManagement.generateFolders(newRoute)
-            createAlgorithm(req,res, route, identifier, imageName)
+            createAlgorithm(req,res, newRoute, identifier, imageName)
         )
     )
   else
