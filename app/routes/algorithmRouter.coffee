@@ -74,31 +74,55 @@ router.put '/algorithms/:identifier', (req, res) ->
   #perform a deletion and an addition of the new algorithm
   serviceInfo = ServicesInfoHelper.getServiceInfoByIdentifier(req.params.identifier)
   if(serviceInfo?)
-    #build new route
-    currentRoute = serviceInfo.path
-    routeParts = currentRoute.split('/').filter((n) -> return n != '')
-    lastPart = routeParts[routeParts.length - 1]
-    routeParts[routeParts.length - 1]++
-    newRoute = '/' + routeParts.join('/')
-    AlgorithmManagement.updateStatus(req.params.identifier, 'delete')
-    #remove /route/info.json file
-    AlgorithmManagement.deleteInfoFile('/data/json' + serviceInfo.path)
-    #AlgorithmManagement.updateRoute(req.params.identifier, newRoute)
-    AlgorithmManagement.removeFromRootInfoFile(serviceInfo.path)
-    DockerManagement.removeImage(serviceInfo.image_name, (error) ->
-      if(not error?)
-        schemaValidator.validate(req.body, 'createSchema', (error) ->
-          if(error)
-            sendError(res, error)
-          else
-            #docker
-            identifier = AlgorithmManagement.createIdentifier()
-            #check if we can find the route already
-            imageName = AlgorithmManagement.generateImageName(req.body)
-            AlgorithmManagement.generateFolders(newRoute)
-            createAlgorithm(req,res, newRoute, identifier, imageName)
+    switch serviceInfo.status.statusCode
+      when 410
+        #error recovery
+        currentRoute = serviceInfo.path
+        routeParts = currentRoute.split('/').filter((n) -> return n != '')
+        lastPart = routeParts[routeParts.length - 1]
+        routeParts[routeParts.length - 1]++
+        newRoute = routeParts.join('/')
+        AlgorithmManagement.removeFromServiceInfoFile(newRoute)
+        DockerManagement.removeImage(serviceInfo.image_name, (error) ->
+          if(not error?)
+            schemaValidator.validate(req.body, 'createSchema', (error) ->
+              if(error)
+                sendError(res, error)
+              else
+                #docker
+                identifier = AlgorithmManagement.createIdentifier()
+                #check if we can find the route already
+                imageName = AlgorithmManagement.generateImageName(req.body)
+                AlgorithmManagement.generateFolders(newRoute)
+                createAlgorithm(req,res, newRoute, identifier, imageName)
+            )
         )
-    )
+      else
+        #build new route
+        currentRoute = serviceInfo.path
+        routeParts = currentRoute.split('/').filter((n) -> return n != '')
+        lastPart = routeParts[routeParts.length - 1]
+        routeParts[routeParts.length - 1]++
+        newRoute = routeParts.join('/')
+        AlgorithmManagement.updateStatus(req.params.identifier, 'delete')
+        #remove /route/info.json file
+        AlgorithmManagement.deleteInfoFile('/data/json' + serviceInfo.path)
+        #AlgorithmManagement.updateRoute(req.params.identifier, newRoute)
+        AlgorithmManagement.removeFromRootInfoFile(serviceInfo.path)
+        DockerManagement.removeImage(serviceInfo.image_name, (error) ->
+          if(not error?)
+            schemaValidator.validate(req.body, 'createSchema', (error) ->
+              if(error)
+                sendError(res, error)
+              else
+                #docker
+                identifier = AlgorithmManagement.createIdentifier()
+                #check if we can find the route already
+                imageName = AlgorithmManagement.generateImageName(req.body)
+                AlgorithmManagement.generateFolders(newRoute)
+                createAlgorithm(req,res, newRoute, identifier, imageName)
+            )
+        )
   else
     err =
       statusCode: 404

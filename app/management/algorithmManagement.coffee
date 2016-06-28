@@ -85,6 +85,12 @@ algorithmManagement = exports = module.exports = class AlgorithmManagement
     )
     IoHelper.saveFile(nconf.get('paths:rootInfoFile'), fileContent)
 
+  @removeFromServiceInfoFile: (route) ->
+    content = IoHelper.loadFile(nconf.get('paths:servicesInfoFile'))
+    _.remove(content.services,{'path':route})
+    IoHelper.saveFile(nconf.get('paths:servicesInfoFile'), content)
+    return
+
   @updateStatus: (identifier, status,route, message) ->
     content = IoHelper.loadFile(nconf.get('paths:servicesInfoFile'))
     if(identifier? and _.find(content.services, {'identifier':identifier})?)
