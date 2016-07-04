@@ -134,6 +134,9 @@ router.post '/algorithms/:identifier/exceptions/:jobId', (req, res, next) ->
   AlgorithmManagement.recordException(req.params.identifier, req.text)
   process = QueueHandler.getDockerJob(req.params.jobId)
   ResultHelper.removeResult(process)
+  if(process.type is 'test')
+    AlgorithmManagement.updateStatus(process.algorithmIdentifier, 'error', process.req.originalUrl, req.text)
+
   send200(res, {})
 
 router.get '/algorithms/:identifier/exceptions', (req, res) ->
@@ -267,9 +270,7 @@ createAlgorithm = (req,res, route, identifier, imageName) ->
             QueueHandler.runningDockerJobs.push(job)
             #execute the algorithm once
             executableHelper.executeDockerRequest(job, (error, data) ->
-              if(error)
-                AlgorithmManagement.updateStatus(identifier, 'error', null, error.statusMessage)
-              else
+              if(!error?)
                 AlgorithmManagement.updateRootInfoFile(req.body, route)
                 AlgorithmManagement.createInfoFile(req.body, '/data/json/' + route)
             )

@@ -113,14 +113,14 @@ dockerManagement = exports = module.exports = class DockerManagement
       inputCount++
 
     content += '1> /data/result.json 2> /data/error.txt \n'
-    content += 'if [ -s "/data/result.json" ] \n'
-    content += 'then \n'
-    content += '    curl -H "Content-Type: application/json" --data @/data/result.json $2 \n'
-    content += 'fi \n'
     content += 'if [ -s "/data/error.txt" ] \n'
     content += 'then \n'
     content += '    curl -H "Content-Type: text/plain" --data @/data/error.txt $3 \n'
     content += '    exit 1 \n'
+    content += 'fi \n'
+    content += 'if [ -s "/data/result.json" ] \n'
+    content += 'then \n'
+    content += '    curl -H "Content-Type: application/json" --data @/data/result.json $2 \n'
     content += 'fi'
     fs.writeFileSync(outputFolder + path.sep + "script.sh", content)
 
