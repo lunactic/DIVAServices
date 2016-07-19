@@ -3,9 +3,11 @@
 #
 # **FileResultHandler** handles results coming from a file
 
-fs = require 'fs'
-logger = require '../../logging/logger'
+_           = require 'lodash'
+fs          = require 'fs'
+logger      = require '../../logging/logger'
 ImageHelper = require '../imageHelper'
+IoHelper    = require '../ioHelper'
 
 fileResultHandler = exports = module.exports = class FileResultHandler
   @filename: ''
@@ -25,6 +27,17 @@ fileResultHandler = exports = module.exports = class FileResultHandler
           else
             try
               data = JSON.parse(data)
+              files = _.filter(data.output, (entry) ->
+                return _.has(entry,'file')
+              )
+              for entry in files
+
+                IoHelper.saveFileBase64(process.outputFolder + '/' + entry.file.filename, entry.file.content, () ->
+                  entry.file['url'] = IoHelper.getStaticFileUrl(process.rootFolder + '/' + process.methodFolder, entry.file.filename)
+                  delete entry.file.filename
+                  delete entry.file.content
+                )
+
               data['status'] = 'done'
               if(data['image']?)
                 ImageHelper.saveImageJson(data['image'],process)

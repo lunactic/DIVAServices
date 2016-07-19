@@ -71,6 +71,7 @@ dockerManagement = exports = module.exports = class DockerManagement
       "RUN apt-get install wget\n" +
       "RUN apt-get install unzip\n"+
       "RUN mkdir /data\n"+
+      "RUN mkdir /data/output\n"+
       "WORKDIR /data\n" +
       "COPY . .\n" +
       'RUN ["chmod", "+x", "./script.sh"]\n' +

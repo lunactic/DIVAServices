@@ -26,7 +26,7 @@
     "paths":{
       "inputImage":"/data/inputImage.png",
       "inputFolder":"/data",
-      "outputFolder":"/data",
+      "outputFolder":"/data/output",
       "resultFile":"/data/result.json"
     }
   },

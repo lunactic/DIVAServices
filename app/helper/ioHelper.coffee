@@ -120,6 +120,15 @@ ioHelper = exports = module.exports = class IoHelper
       logger.log 'error', error
     return
 
+  @saveFileBase64: (filePath, content, callback) ->
+    try
+      fs.writeFileSync filePath, JSON.stringify(content, null, '\t'), 'base64'
+      if callback?
+        callback null
+    catch error
+      logger.log 'error', error
+    return
+
   @writeTempFile: (filePath) ->
     try
       stats = fs.statSync filePath
@@ -131,6 +140,16 @@ ioHelper = exports = module.exports = class IoHelper
       catch error
         logger.log 'error', error
     return
+
+  @getStaticFileUrl: (folder, filename) ->
+    rootUrl = nconf.get('server:rootUrl')
+    outputUrl = 'http://' + rootUrl + '/static/' + folder + '/' + filename
+    return outputUrl
+
+  @getStaticFileUrlWithExt: (folder, filename, extension) ->
+    rootUrl = nconf.get('server:rootUrl')
+    outputUrl = 'http://' + rootUrl + '/static/' + folder + '/' + filename + '.' + extension
+    return outputUrl
 
   @downloadFile: (fileUrl, localFolder, fileType, callback) ->
     @checkFileType(fileType,fileUrl, (error) ->
