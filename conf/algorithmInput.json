@@ -171,6 +171,10 @@
     "displayText":"Input Image",
     "infoText":"Path to the input image"
   },
+  "inputFile":{
+    "displayText":"Input File",
+    "infoText":"Path to an input file (e.g. a textfile)"
+  },
   "outputImage":{
     "displayText":"Output Image",
     "infoText":"Path where to save the output image"

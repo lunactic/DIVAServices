@@ -272,6 +272,9 @@
             "inputImage":{
               "type":"object"
             },
+            "inputFile":{
+              "type":"object"
+            },
             "outputImage":{
               "type":"object"
             },
