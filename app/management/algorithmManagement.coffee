@@ -54,14 +54,20 @@ algorithmManagement = exports = module.exports = class AlgorithmManagement
     )
     _.unset(data, 'output')
     _.unset(data, 'method')
-    _.remove(data.input, (input) ->
-      return _.includes(reservedWords, _.keys(input)[0])
+    _.forEach(data.input, (input) ->
+      if(_.includes(reservedWords, _.keys(input)[0]))
+        input[_.keys(input)[0]]['userdefined'] = false
+        return
+      else
+        input[_.keys(input)[0]]['userdefined'] = true
+        logger.log 'info', 'true'
     )
 
     IoHelper.saveFile(folder + path.sep + 'info.json', data, (err) ->
       if(err)
         logger.log 'error', err
       else
+        logger.log 'info', 'saved file'
         return
     )
   @deleteInfoFile: (folder) ->
