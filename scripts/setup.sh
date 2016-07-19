@@ -89,8 +89,6 @@ echo "done"
 header "Creating Folders"
 imageFolder=($(cat conf/server.dev.json | jq -r '.paths.imageRootPath'))
 mkdir -p ${imageFolder}
-textualFolder=($(cat conf/server.dev.json | jq -r '.paths.textualRootPath'))
-mkdir -p ${textualFolder}
 jsonFolder=($(cat conf/server.dev.json | jq -r '.paths.jsonPath'))
 mkdir -p ${jsonFolder}
 ocropyLanguageModelsFolder=($(cat conf/server.dev.json | jq -r '.paths.ocropyLanguageModelsPath'))
