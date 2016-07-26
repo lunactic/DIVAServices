@@ -184,10 +184,6 @@ router.get '/information/input', (req, res) ->
   input = IoHelper.loadFile('conf/algorithmInput.json')
   sendResponse res, null, input
 
-router.get '/information/output', (req, res) ->
-  output = IoHelper.loadFile('conf/algorithmOutput.json')
-  sendResponse res, null, output
-
 router.get '/information/method', (req, res) ->
   method = IoHelper.loadFile('conf/algorithmMethod.json')
   sendResponse res, null, method

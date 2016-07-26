@@ -192,7 +192,6 @@
     "required": [
      "general",
      "input",
-     "output",
      "method"
     ],
     "properties": {
@@ -293,17 +292,6 @@
           "additionalProperties": false
         },
         "additionalItems": false
-      },
-      "output":{
-        "type":"object",
-        "required":[
-          "output_type"
-        ],
-        "properties":{
-          "output_type":{
-            "type":"string"
-          }
-        }
       },
       "method": {
         "type": "object",
