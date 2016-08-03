@@ -1,9 +1,170 @@
 {
   "responseSchema": {
     "id": "responseSchema",
-    "$schema": "http://json-schema.org/schema#",
+    "$schema": "http://json-schema.org/draft-04/schema#",
     "description": "schema for response entry",
     "definitions": {
+      "file": {
+        "type": "object",
+        "required": [
+          "mime-type",
+          "name",
+          "url"
+        ],
+        "properties": {
+          "mime-type": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string",
+            "format": "uri"
+          },
+          "additionalProperties": false
+        }
+      },
+      "image": {
+        "type": "object",
+        "required": [
+          "type",
+          "mime-type",
+          "name",
+          "url"
+        ],
+        "properties": {
+          "mime-type": {
+            "type": "string"
+          },
+          "type": {
+            "enum": [
+              "binary",
+              "color",
+              "greyscale"
+            ]
+          },
+          "name": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string",
+            "format": "uri"
+          }
+        },
+        "additionalProperties": false
+      },
+      "number": {
+        "type": "object",
+        "required": [
+          "name",
+          "value",
+          "mime-type"
+        ],
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "value": {
+            "type": "number"
+          },
+          "mime-type": {
+            "type": "string"
+          },
+          "options": {
+            "type": "object",
+            "properties": {
+              "min": {
+                "type": "number"
+              },
+              "max": {
+                "type": "number"
+              },
+              "steps": {
+                "type": "number"
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      },
+      "string": {
+        "type":"object",
+        "required":[
+          "name",
+          "value",
+          "mime-type"
+        ],
+        "properties":{
+          "name":{
+            "type":"string"
+          },
+          "value":{
+            "type":"string"
+          },
+          "mime-type":{
+            "type":"string"
+          },
+          "options":{
+            "type":"object",
+            "properties":{
+              "min":{
+                "type":"integer"
+              },
+              "max":{
+                "type":"integer"
+              },
+              "regex":{
+                "type":"string"
+              }
+            },
+            "additionalProperties":false
+          },
+          "additionalProperties":false
+        }
+      },
+      "array":{
+        "type":"object",
+        "required":[
+          "name",
+          "dimensions",
+          "type",
+          "mime-type",
+          "values"
+        ],
+        "properties":{
+          "name":{
+            "type":"string"
+          },
+          "dimensions":{
+            "type":"object",
+            "required":[
+              "n",
+              "shape"
+            ],
+            "properties":{
+              "n":{
+                "type":"integer"
+              },
+              "shape":{
+                "type":"array"
+              }
+            },
+            "additionalProperties":false
+          },
+          "type":{
+            "enum":["numeric","string"]
+          },
+          "mime-type":{
+            "type":"string"
+          },
+          "values":{
+            "type":"array"
+          }
+        },
+        "additionalProperties":false
+      },
       "rectangle": {
         "type": "object",
         "required": [
@@ -119,11 +280,30 @@
     "required": [
       "status",
       "resultLink",
-      "collectionName"
+      "collectionName",
+      "output"
     ],
     "properties": {
       "output": {
-        "type": "array"
+        "type": "array",
+        "items": {
+          "description": "Output types",
+          "type": "object",
+          "properties": {
+            "image": {
+              "$ref": "#/definitions/image"
+            },
+            "number": {
+              "$ref": "#/definitions/number"
+            },
+            "string": {
+              "$ref": "#/definitions/string"
+            },
+            "file": {
+              "$ref": "#/definitions/file"
+            }
+          }
+        }
       },
       "highlighters": {
         "type": "array",
@@ -154,10 +334,6 @@
       "inputImage": {
         "type": "string",
         "format": "uri"
-      },
-      "outputImage":{
-        "type":"string",
-        "format":"uri"
       },
       "resultLink": {
         "type": "string",

@@ -26,35 +26,44 @@ fileResultHandler = exports = module.exports = class FileResultHandler
             callback error, null, null
           else
             try
+
+              # parse the result into json
               data = JSON.parse(data)
+
+              #get 'files' from the output array
               files = _.filter(data.output, (entry) ->
                 return _.has(entry,'file')
               )
-              for entry in files
-
-                IoHelper.saveFileBase64(process.outputFolder + '/' + entry.file.filename, entry.file.content, () ->
-                  entry.file['url'] = IoHelper.getStaticFileUrl(process.rootFolder + '/' + process.methodFolder, entry.file.filename)
-                  delete entry.file.filename
-                  delete entry.file.content
+              for file in files
+                IoHelper.saveFileBase64(process.outputFolder + '/' + file.file.filename, file.file.content, () ->
+                  file.file['url'] = IoHelper.getStaticFileUrl(process.rootFolder + '/' + process.methodFolder, file.file.filename)
+                  delete file.file.filename
+                  delete file.file.content
                 )
 
-              data['status'] = 'done'
-              if(data['image']?)
-                ImageHelper.saveImageJson(data['image'],process)
+              #get 'images' from the output array
+              images = _.filter(data.output, (entry) ->
+                return _.has(entry, 'image')
+              )
+              for image in images
+                ImageHelper.saveImageJson(image.image.content,process)
                 process.outputImageUrl = ImageHelper.getOutputImageUrl(process.rootFolder + '/' + process.methodFolder, process.image.name, process.image.extension )
-                data['outputImage'] = process.outputImageUrl
-                delete data['image']
+                image.image['url'] = process.outputImageUrl
+                delete image.image['content']
+
+              data['status'] = 'done'
+
               data['inputImage'] = process.inputImageUrl
               data['resultLink'] = process.resultLink
               data['collectionName'] = process.rootFolder
               data['resultZipLink'] = 'http://192.168.56.101:8080/collections/' + process.rootFolder + '/' + process.methodFolder
               fs.writeFileSync(self.filename,JSON.stringify(data), "utf8")
             catch error
+              logger.log 'error', error
               err =
                 statusCode: 500
                 statusMessage: 'Could not parse result'
               callback err
-              logger.log 'error', error
             callback null, data, process.id
       else
         callback err, null, null
