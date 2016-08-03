@@ -160,7 +160,7 @@ algorithmManagement = exports = module.exports = class AlgorithmManagement
         _.set(parameters,_.get(newAlgorithm, 'input[' + key + '].'+inputType+'.name', inputType),'')
       )
       newServiceEntry =
-        service: newAlgorithm.general.type.toLowerCase() + newAlgorithm.general.name.replace(/\s/g, '').toLowerCase()
+        service: route.replace(/\//g, '').toLowerCase()
         identifier: identifier
         path: '/'+route
         executablePath: '/data/executables/' + route + path.sep + newAlgorithm.method.executable_path

@@ -52,11 +52,12 @@ fileResultHandler = exports = module.exports = class FileResultHandler
                 delete image.image['content']
 
               data['status'] = 'done'
-
               data['inputImage'] = process.inputImageUrl
               data['resultLink'] = process.resultLink
               data['collectionName'] = process.rootFolder
-              data['resultZipLink'] = 'http://192.168.56.101:8080/collections/' + process.rootFolder + '/' + process.methodFolder
+
+              #TODO Fix this link
+              #data['resultZipLink'] = 'http://192.168.56.101:8080/collections/' + process.rootFolder + '/' + process.methodFolder
               fs.writeFileSync(self.filename,JSON.stringify(data), "utf8")
             catch error
               logger.log 'error', error
