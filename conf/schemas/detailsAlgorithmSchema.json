@@ -4,6 +4,17 @@
     "$schema": "http://json-schema.org/schema#",
     "description": "schema for an algorithm details view entry",
     "definitions": {
+      "nonuser":{
+        "type":"object",
+        "required":[
+          "userdefined"
+        ],
+        "properties":{
+          "userdefined":{
+            "type":"boolean"
+          }
+        }
+      },
       "name": {
         "type": "string",
         "minLength": 3,
@@ -240,6 +251,18 @@
             },
             "checkbox": {
               "$ref": "#/definitions/checkbox"
+            },
+            "inputImage":{
+              "$ref": "#/definitions/nonuser"
+            },
+            "outputFolder":{
+              "$ref": "#/definitions/nonuser"
+            },
+            "inputFileExtension":{
+              "$ref": "#/definitions/nonuser"
+            },
+            "resultFile":{
+              "$ref": "#/definitions/nonuser"
             }
           },
           "additionalProperties": false

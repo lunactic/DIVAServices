@@ -20,9 +20,7 @@ resultHelper = exports = module.exports = class ResultHelper
       collection.inputHighlighters[key] = String(value)
     )
 
-
     @parameterHelper.loadParamInfo(collection)
-    #resultFileContent = IoHelper.loadFile(collection.rootFolder + path.sep + collection.method + '.json')
     collection.resultFile = collection.outputFolder + path.sep + 'result.json'
     return IoHelper.checkFileExists(collection.resultFile)
 

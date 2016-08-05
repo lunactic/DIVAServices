@@ -35,22 +35,16 @@ fileResultHandler = exports = module.exports = class FileResultHandler
                 return _.has(entry,'file')
               )
               for file in files
-                IoHelper.saveFileBase64(process.outputFolder + '/' + file.file.filename, file.file.content, () ->
-                  file.file['url'] = IoHelper.getStaticFileUrl(process.rootFolder + '/' + process.methodFolder, file.file.filename)
-                  delete file.file.filename
+                if file.file['mime-type'].startsWith('image')
+                  ImageHelper.saveImageJson(file.file.content, process)
+                  process.outputImageUrl = ImageHelper.getOutputImageUrl(process.rootFolder + '/' + process.methodFolder, process.image.name, process.image.extension )
+                  file.file['url'] = process.outputImageUrl
                   delete file.file.content
-                )
-
-              #get 'images' from the output array
-              images = _.filter(data.output, (entry) ->
-                return _.has(entry, 'image')
-              )
-              for image in images
-                ImageHelper.saveImageJson(image.image.content,process)
-                process.outputImageUrl = ImageHelper.getOutputImageUrl(process.rootFolder + '/' + process.methodFolder, process.image.name, process.image.extension )
-                image.image['url'] = process.outputImageUrl
-                delete image.image['content']
-
+                else
+                  IoHelper.saveFileBase64(process.outputFolder + '/' + file.file.filename, file.file.content, () ->
+                    file.file['url'] = IoHelper.getStaticFileUrl(process.rootFolder + '/' + process.methodFolder, file.file.filename)
+                    delete file.file.content
+                  )
               data['status'] = 'done'
               data['inputImage'] = process.inputImageUrl
               data['resultLink'] = process.resultLink

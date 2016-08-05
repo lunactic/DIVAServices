@@ -1,7 +1,7 @@
 {
   "responseSchema": {
     "id": "responseSchema",
-    "$schema": "http://json-schema.org/draft-04/schema#",
+    "$schema": "http://json-schema.org/schema#",
     "description": "schema for response entry",
     "definitions": {
       "file": {
@@ -22,37 +22,23 @@
             "type": "string",
             "format": "uri"
           },
-          "additionalProperties": false
-        }
-      },
-      "image": {
-        "type": "object",
-        "required": [
-          "type",
-          "mime-type",
-          "name",
-          "url"
-        ],
-        "properties": {
-          "mime-type": {
-            "type": "string"
-          },
-          "type": {
-            "enum": [
-              "binary",
-              "color",
-              "greyscale"
-            ]
-          },
-          "name": {
-            "type": "string"
-          },
-          "url": {
-            "type": "string",
-            "format": "uri"
+          "options": {
+            "type": "object",
+            "required": [
+              "visualization",
+              "type"
+            ],
+            "properties": {
+              "type": {
+                "type": "string"
+              },
+              "visualization": {
+                "type": "boolean"
+              }
+            },
+            "additionalProperties": true
           }
-        },
-        "additionalProperties": false
+        }
       },
       "number": {
         "type": "object",
@@ -90,80 +76,82 @@
         "additionalProperties": false
       },
       "string": {
-        "type":"object",
-        "required":[
+        "type": "object",
+        "required": [
           "name",
           "value",
           "mime-type"
         ],
-        "properties":{
-          "name":{
-            "type":"string"
+        "properties": {
+          "name": {
+            "type": "string"
           },
-          "value":{
-            "type":"string"
+          "value": {
+            "type": "string"
           },
-          "mime-type":{
-            "type":"string"
+          "mime-type": {
+            "type": "string"
           },
-          "options":{
-            "type":"object",
-            "properties":{
-              "min":{
-                "type":"integer"
+          "options": {
+            "type": "object",
+            "properties": {
+              "min": {
+                "type": "integer"
               },
-              "max":{
-                "type":"integer"
+              "max": {
+                "type": "integer"
               },
-              "regex":{
-                "type":"string"
+              "regex": {
+                "type": "string"
               }
             },
-            "additionalProperties":false
-          },
-          "additionalProperties":false
+            "additionalProperties": false
+          }
         }
       },
-      "array":{
-        "type":"object",
-        "required":[
+      "array": {
+        "type": "object",
+        "required": [
           "name",
           "dimensions",
           "type",
           "mime-type",
           "values"
         ],
-        "properties":{
-          "name":{
-            "type":"string"
+        "properties": {
+          "name": {
+            "type": "string"
           },
-          "dimensions":{
-            "type":"object",
-            "required":[
+          "dimensions": {
+            "type": "object",
+            "required": [
               "n",
               "shape"
             ],
-            "properties":{
-              "n":{
-                "type":"integer"
+            "properties": {
+              "n": {
+                "type": "integer"
               },
-              "shape":{
-                "type":"array"
+              "shape": {
+                "type": "array"
               }
             },
-            "additionalProperties":false
+            "additionalProperties": false
           },
-          "type":{
-            "enum":["numeric","string"]
+          "type": {
+            "enum": [
+              "numeric",
+              "string"
+            ]
           },
-          "mime-type":{
-            "type":"string"
+          "mime-type": {
+            "type": "string"
           },
-          "values":{
-            "type":"array"
+          "values": {
+            "type": "array"
           }
         },
-        "additionalProperties":false
+        "additionalProperties": false
       },
       "rectangle": {
         "type": "object",
@@ -290,9 +278,6 @@
           "description": "Output types",
           "type": "object",
           "properties": {
-            "image": {
-              "$ref": "#/definitions/image"
-            },
             "number": {
               "$ref": "#/definitions/number"
             },
