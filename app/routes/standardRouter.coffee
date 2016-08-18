@@ -39,9 +39,9 @@ router.post '/upload', (req, res) ->
   #Create a status route
   numberOfImages = 0
   async.each req.body.images, ((image, callback) ->
-    switch image.type
+    switch image.image.type
       when 'iiif'
-        iifManifestParser = new IiifManifestParser(image.value)
+        iifManifestParser = new IiifManifestParser(image.image.value)
         iifManifestParser.initialize().then ->
           numberOfImages += iifManifestParser.getAllImages(0).length
           console.log numberOfImages
@@ -55,9 +55,9 @@ router.post '/upload', (req, res) ->
     send200(res, {collection: collectionName})
     imageCounter = 1
     for image, i in req.body.images
-      switch image.type
+      switch image.image.type
         when 'iiif'
-          iifManifestParser = new IiifManifestParser(image.value)
+          iifManifestParser = new IiifManifestParser(image.image.value)
           iifManifestParser.initialize().then ->
             #TODO improve to save all images
             images = iifManifestParser.getAllImages(0)
@@ -70,7 +70,7 @@ router.post '/upload', (req, res) ->
                 ImageHelper.updateCollectionInformation(collectionName, numberOfImages, imageCounter++)
               )
         else
-          ImageHelper.saveImage(image, process, numberOfImages, imageCounter++)
+          ImageHelper.saveImage(image.image, process, numberOfImages, imageCounter++)
 
 router.post '/jobs/:jobId', (req, res, next) ->
   logger.log 'info', 'jobs route called'
@@ -82,6 +82,7 @@ router.post '/jobs/:jobId', (req, res, next) ->
       ResultHelper.saveResult(process, callback)
       return
     (callback) ->
+      #Todo: check the schema here already
       process.resultHandler.handleResult(null, null, null, process, (error, data, processId) ->
         if(error)
           callback error
@@ -134,8 +135,16 @@ router.post '*', (req, res, next) ->
 #read status information of a collection
 router.get '/collections/:collection', (req, res) ->
   collection = req.params.collection
-  status = ImageHelper.getCollectionInformation(collection)
-  send200(res, status)
+  if ImageHelper.checkCollectionAvailable(collection)
+    status = ImageHelper.getCollectionInformation(collection)
+    send200(res, status)
+
+  else
+    err =
+      statusCode: 404
+      statusText: 'CollectionNotAvailable'
+    sendResponse res, err, null
+
 
 #load all images from a collection
 router.get '/image/:collection', (req, res) ->
@@ -157,7 +166,7 @@ router.get '/image/check/:md5', (req, res) ->
     sendResponse res, err, response
 
 router.get '/collections/:collection/:execution', (req, res) ->
-#zip folder
+  #zip folder
   filename = IoHelper.zipFolder(nconf.get('paths:imageRootPath') + '/' + req.params.collection + '/' + req.params.execution)
   res.status '200'
   res.json ({zipLink: 'http://' + nconf.get('server:rootUrl') + '/static/' + filename})
@@ -187,6 +196,26 @@ router.get '/information/input', (req, res) ->
 router.get '/information/method', (req, res) ->
   method = IoHelper.loadFile('conf/algorithmMethod.json')
   sendResponse res, null, method
+
+ #schema routes
+router.get '/schemas/create', (req, res) ->
+  create = IoHelper.loadFile('conf/schemas/createAlgorithmSchema.json')
+  sendResponse res, null, create
+
+router.get '/schemas/details', (req, res) ->
+  details = IoHelper.loadFile('conf/schemas/detailsAlgorithmSchema.json')
+  sendResponse res, null, details
+
+router.get '/schemas/general', (req, res) ->
+  general = IoHelper.loadFile('conf/schemas/generalAlgorithmSchema.json')
+  sendResponse res, null, general
+
+router.get '/swagger', (req, res) ->
+  swagger = IoHelper.loadFile('conf/swagger.json')
+  swagger = JSON.parse(JSON.stringify(swagger).replace(new RegExp('\\$BASEURL\\$','g'),nconf.get('server:rootUrl')))
+
+  sendResponse res, null, swagger
+
 
 # Set up the routing for GET requests
 router.get '*', (req, res, next) ->
