@@ -10,6 +10,7 @@ _                     = require 'lodash'
 async                 = require 'async'
 deasync               = require 'deasync'
 fs                    = require 'fs'
+IoHelper              = require '../helper/ioHelper'
 md5                   = require 'md5'
 nconf                 = require 'nconf'
 path                  = require 'path'
@@ -180,6 +181,17 @@ imageHelper = exports = module.exports = class ImageHelper
     while(!sync)
       require('deasync').sleep(100)
     return images
+
+  @getAllCollections: () ->
+    collections = []
+    imageInfo = IoHelper.loadFile(nconf.get('paths:imageInfoFile'))
+    _.forEach(imageInfo, (image) ->
+      if !(collections.indexOf(image.collection) > -1)
+        collections.push(image.collection)
+    )
+    return collections
+
+
 
   @loadCollection: (collectionName, newCollection) ->
     if(!newCollection)

@@ -132,6 +132,14 @@ router.post '*', (req, res, next) ->
   else
     next()
 
+
+#get a list of all collections
+router.get '/collections/', (req, res) ->
+  collections = ImageHelper.getAllCollections()
+  response =
+    collections: collections
+  send200 res, response
+
 #read status information of a collection
 router.get '/collections/:collection', (req, res) ->
   collection = req.params.collection

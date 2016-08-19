@@ -40,10 +40,10 @@
       ],
       "properties": {
         "name": {
-          "$ref": "http://127.0.0.1/schemas/details#/definitions/name"
+          "$ref": "http://134.21.72.48:8080/schemas/details#/definitions/name"
         },
         "description": {
-          "$ref": "http://127.0.0.1/schemas/details#/definitions/description"
+          "$ref": "http://134.21.72.48:8080/schemas/details#/definitions/description"
         },
         "options": {
           "type": "object",
@@ -81,10 +81,10 @@
       ],
       "properties": {
         "name": {
-          "$ref": "http://127.0.0.1/schemas/details#/definitions/name"
+          "$ref": "http://134.21.72.48:8080/schemas/details#/definitions/name"
         },
         "description": {
-          "$ref": "http://127.0.0.1/schemas/details#/definitions/description"
+          "$ref": "http://134.21.72.48:8080/schemas/details#/definitions/description"
         },
         "options": {
           "type": "object",
@@ -119,10 +119,10 @@
       ],
       "properties": {
         "name": {
-          "$ref": "http://127.0.0.1/schemas/details#/definitions/name"
+          "$ref": "http://134.21.72.48:8080/schemas/details#/definitions/name"
         },
         "description": {
-          "$ref": "http://127.0.0.1/schemas/details#/definitions/description"
+          "$ref": "http://134.21.72.48:8080/schemas/details#/definitions/description"
         },
         "options": {
           "type": "object",
@@ -161,10 +161,10 @@
       ],
       "properties": {
         "name": {
-          "$ref": "http://127.0.0.1/schemas/details#/definitions/name"
+          "$ref": "http://134.21.72.48:8080/schemas/details#/definitions/name"
         },
         "description": {
-          "$ref": "http://127.0.0.1/schemas/details#/definitions/description"
+          "$ref": "http://134.21.72.48:8080/schemas/details#/definitions/description"
         },
         "options": {
           "type": "object",
@@ -192,7 +192,6 @@
     "input"
   ],
   "properties": {
-    "id": "#test",
     "general": {
       "type": "object",
       "properties": {
@@ -243,31 +242,31 @@
         "type": "object",
         "properties": {
           "highlighter": {
-            "$ref": "http://127.0.0.1/schemas/details#/definitions/highlighter"
+            "$ref": "http://134.21.72.48:8080/schemas/details#/definitions/highlighter"
           },
           "number": {
-            "$ref": "http://127.0.0.1/schemas/details#/definitions/number"
+            "$ref": "http://134.21.72.48:8080/schemas/details#/definitions/number"
           },
           "text": {
-            "$ref": "http://127.0.0.1/schemas/details#/definitions/text"
+            "$ref": "http://134.21.72.48:8080/schemas/details#/definitions/text"
           },
           "select": {
-            "$ref": "http://127.0.0.1/schemas/details#/definitions/select"
+            "$ref": "http://134.21.72.48:8080/schemas/details#/definitions/select"
           },
           "checkbox": {
-            "$ref": "http://127.0.0.1/schemas/details#/definitions/checkbox"
+            "$ref": "http://134.21.72.48:8080/schemas/details#/definitions/checkbox"
           },
           "inputImage": {
-            "$ref": "http://127.0.0.1/schemas/details#/definitions/nonuser"
+            "$ref": "http://134.21.72.48:8080/schemas/details#/definitions/nonuser"
           },
           "outputFolder": {
-            "$ref": "http://127.0.0.1/schemas/details#/definitions/nonuser"
+            "$ref": "http://134.21.72.48:8080/schemas/details#/definitions/nonuser"
           },
           "inputFileExtension": {
-            "$ref": "http://127.0.0.1/schemas/details#/definitions/nonuser"
+            "$ref": "http://134.21.72.48:8080/schemas/details#/definitions/nonuser"
           },
           "resultFile": {
-            "$ref": "http://127.0.0.1/schemas/details#/definitions/nonuser"
+            "$ref": "http://134.21.72.48:8080/schemas/details#/definitions/nonuser"
           }
         },
         "additionalProperties": false
