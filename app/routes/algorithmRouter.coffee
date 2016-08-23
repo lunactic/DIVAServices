@@ -12,6 +12,7 @@ ResultHelper          = require '../helper/resultHelper'
 router                = require('express').Router()
 schemaValidator       = require '../validator/schemaValidator'
 ServicesInfoHelper    = require '../helper/servicesInfoHelper'
+Swagger               = require '../swagger/swagger'
 QueueHandler          = require '../processingQueue/queueHandler'
 
 
@@ -273,6 +274,11 @@ createAlgorithm = (req,res, route, identifier, imageName) ->
               if(!error?)
                 AlgorithmManagement.updateRootInfoFile(req.body, route)
                 AlgorithmManagement.createInfoFile(req.body, '/data/json/' + route)
+                #add too swagger
+                info = IoHelper.loadFile('/data/json/' + route + '/info.json')
+                Swagger.createEntry(info, route)
+                #1 read algorithm info.json
+                #2 call Swagger.createEntry
             )
     ))
 

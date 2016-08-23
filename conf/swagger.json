@@ -234,54 +234,6 @@
           }
         }
       }
-    },
-    "/graph/graphextraction/1": {
-      "get": {
-        "description": "get method information",
-        "produces": [
-          "application/json"
-        ],
-        "tags": [
-          "methods"
-        ],
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "method information",
-            "schema": {
-              "$ref": "http://$BASEURL$/schemas/details"
-            }
-          }
-        }
-      },
-      "post": {
-        "description": "execute method",
-        "produces": [
-          "application/json"
-        ],
-        "tags": [
-          "methods"
-        ],
-        "parameters": [
-          {
-            "name": "execution parameters",
-            "in": "body",
-            "description": "needed execution parameters",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/graphextraction"
-            }
-          }
-        ],
-        "responses": {
-          "202": {
-            "description": "start execution response",
-            "schema": {
-              "$ref": "#/definitions/startExecution"
-            }
-          }
-        }
-      }
     }
   },
   "definitions": {
@@ -474,25 +426,6 @@
         }
       }
     },
-    "sauvolabinarizationinput": {
-      "type": "object",
-      "required": [
-        "inputs",
-        "highlighter",
-        "images"
-      ],
-      "properties": {
-        "inputs": {
-          "type": "object"
-        },
-        "highlighter": {
-          "type": "object"
-        },
-        "images": {
-          "$ref": "#/definitions/inputImages"
-        }
-      }
-    },
     "startExecution": {
       "type": "object",
       "required": [
@@ -566,40 +499,6 @@
           }
         },
         "additionalProperties": false
-      }
-    },
-    "graphextraction": {
-      "type": "object",
-      "required": [
-        "inputs",
-        "highlighter",
-        "images"
-      ],
-      "properties": {
-        "inputs": {
-          "type": "object",
-          "required": [
-            "InterestPointDetector"
-          ],
-          "properties": {
-            "InterestPointDetector": {
-              "type": "string",
-              "enum": [
-                "SCP",
-                "CP",
-                "Harris",
-                "DOG"
-              ],
-              "default": "Harris"
-            }
-          }
-        },
-        "highlighter": {
-          "type": "object"
-        },
-        "images": {
-          "$ref": "#/definitions/inputImages"
-        }
       }
     }
   }

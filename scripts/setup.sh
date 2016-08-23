@@ -105,6 +105,9 @@ servicesInfoFile=($(cat conf/server.dev.json | jq -r '.paths.servicesInfoFile'))
 echo '{"services":[]}' > ${servicesInfoFile}
 rootInfoFile=($(cat conf/server.dev.json | jq -r '.paths.rootInfoFile'))
 echo "[]" > ${rootInfoFile}
+swaggerInfoFile=($(cat conf/server.dev.json | jq -r '.paths.swaggerFile'))
+cp conf/swagger.json ${swaggerInfoFile}
+
 
 header "Copying Files"
 cp /data/input0.jpg ${imageFolder}/test/original/

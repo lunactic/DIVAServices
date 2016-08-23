@@ -14,7 +14,7 @@
     "level": "DEBUG"
   },
   "docker":{
-    "host":"134.21.72.42",
+    "host":"134.21.72.95",
     "port":"2375",
     "reportHost":"134.21.72.48:8080",
     "replacePaths":[
@@ -54,6 +54,7 @@
     "rootInfoFile":"/data/json/info.json",
     "servicesInfoFile":"/data/json/services.json",
     "noisingXmlPath": "/data/noise/scripts/realistic.xml",
+    "swaggerFile": "/data/json/swagger.json",
     "executablePath":"/data/executables"
   },
   "remotePaths": {

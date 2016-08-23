@@ -219,7 +219,7 @@ router.get '/schemas/general', (req, res) ->
   sendResponse res, null, general
 
 router.get '/swagger', (req, res) ->
-  swagger = IoHelper.loadFile('conf/swagger.json')
+  swagger = IoHelper.loadFile(nconf.get('paths:swaggerFile'))
   swagger = JSON.parse(JSON.stringify(swagger).replace(new RegExp('\\$BASEURL\\$','g'),nconf.get('server:rootUrl')))
 
   sendResponse res, null, swagger
