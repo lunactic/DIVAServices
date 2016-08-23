@@ -218,7 +218,7 @@ router.get '/schemas/general', (req, res) ->
   general = IoHelper.loadFile('conf/schemas/generalAlgorithmSchema.json')
   sendResponse res, null, general
 
-router.get '/swagger', (req, res) ->
+router.get '/openapi', (req, res) ->
   swagger = IoHelper.loadFile(nconf.get('paths:swaggerFile'))
   swagger = JSON.parse(JSON.stringify(swagger).replace(new RegExp('\\$BASEURL\\$','g'),nconf.get('server:rootUrl')))
 
