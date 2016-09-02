@@ -228,7 +228,7 @@ createAlgorithm = (req,res, route, identifier, imageName) ->
         inputs = {}
         highlighter = {}
         for input in req.body.input
-          if(not(_.keys(input)[0] in nconf.get('reservedWords')))
+          if(not(_.keys(input)[0] in nconf.get('reservedWords')) or _.keys(input)[0] == 'highlighter')
             switch(_.keys(input)[0])
               when 'select'
                 inputs[input.select.name] = input.select.options.values[input.select.options.default]
@@ -242,12 +242,14 @@ createAlgorithm = (req,res, route, identifier, imageName) ->
                     highlighter =
                       type: 'polygon'
                       closed: true
-                      segments:[[0,0],[0,150],[350,150],[350,0]]
+                      segments:[[1,1],[1,150],[350,150],[350,1]]
                   when 'rectangle'
                     highlighter =
                       type: 'rectangle'
                       closed: true
-                      segments:[[0,0],[0,150],[350,150],[350,0]]
+                      segments:[[1,1],[1,150],[350,150],[350,1]]
+
+        inputs['highlighter'] = highlighter
         testRequest =
           originalUrl: '/' + route
           body:
@@ -257,7 +259,6 @@ createAlgorithm = (req,res, route, identifier, imageName) ->
                 value: 'test'
               }
             ]
-            highlighter: highlighter
             inputs: inputs
 
         executableHelper.preprocess testRequest, QueueHandler.dockerProcessingQueue, 'test',

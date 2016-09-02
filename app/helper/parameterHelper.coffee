@@ -65,6 +65,8 @@ parameterHelper = exports = module.exports = class ParameterHelper
         return '##outputImage##'
       when 'noisingXmlFile'
         return nconf.get('paths:noisingXmlPath')
+      when 'mcr2014b'
+        return nconf.get('paths:mcr2014b')
   # ---
   # **matchParams**</br>
   # Matches the received parameter values to the needed parameters</br>
@@ -79,7 +81,7 @@ parameterHelper = exports = module.exports = class ParameterHelper
       if checkReservedParameters parameter
         #check if highlighter
         if parameter is 'highlighter'
-          params[process.neededParameters[parameter]] = this.getHighlighterParamValues(process.neededParameters[parameter], process.inputHighlighters.segments)
+          params[parameter] = this.getHighlighterParamValues(process.inputHighlighters.type, process.inputHighlighters.segments)
           outputParams[process.neededParameters[parameter]] = params[process.neededParameters[parameter]]
         else
           params[parameter] = this.getReservedParamValue(parameter, process, req)
@@ -156,6 +158,7 @@ parameterHelper = exports = module.exports = class ParameterHelper
         merged = []
         merged = merged.concat.apply(merged,inputHighlighter)
         merged = merged.map(Math.round)
+
         return merged.join(' ')
       when 'circle'
         position = inputHighlighter.position

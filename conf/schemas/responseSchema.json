@@ -286,32 +286,32 @@
             },
             "file": {
               "$ref": "#/definitions/file"
+            },
+            "highlighter":{
+              "type": "array",
+              "items": {
+                "description": "Highlighter types",
+                "type": "object",
+                "properties": {
+                  "rectangle": {
+                    "$ref": "#/definitions/rectangle"
+                  },
+                  "line": {
+                    "$ref": "#/definitions/line"
+                  },
+                  "circle": {
+                    "$ref": "#/definitions/circle"
+                  },
+                  "point": {
+                    "$ref": "#/definitions/point"
+                  }
+                },
+                "additionalProperties": false
+              },
+              "additionalItems": false
             }
           }
         }
-      },
-      "highlighters": {
-        "type": "array",
-        "items": {
-          "description": "Highlighter types",
-          "type": "object",
-          "properties": {
-            "rectangle": {
-              "$ref": "#/definitions/rectangle"
-            },
-            "line": {
-              "$ref": "#/definitions/line"
-            },
-            "circle": {
-              "$ref": "#/definitions/circle"
-            },
-            "point": {
-              "$ref": "#/definitions/point"
-            }
-          },
-          "additionalProperties": false
-        },
-        "additionalItems": false
       },
       "status": {
         "type": "string"

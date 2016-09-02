@@ -167,6 +167,10 @@
       }
     }
   },
+  "mcr2014b":{
+    "displayText":"MCR2014b Path",
+    "infoText":"Path to the MCR2014b Installation"
+  },
   "inputImage":{
     "displayText":"Input Image",
     "infoText":"Path to the input image"

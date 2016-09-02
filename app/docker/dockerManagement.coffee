@@ -68,8 +68,7 @@ dockerManagement = exports = module.exports = class DockerManagement
     content = "FROM " + algorithmInfos.method.environment + "\n" +
       "MAINTAINER marcel.wuersch@unifr.ch\n" +
       "RUN apt-get update\n" +
-      "RUN apt-get install wget\n" +
-      "RUN apt-get install unzip\n"+
+      "RUN apt-get install wget unzip curl -y\n" +
       "RUN mkdir /data\n"+
       "RUN mkdir /data/output\n"+
       "WORKDIR /data\n" +
@@ -97,6 +96,8 @@ dockerManagement = exports = module.exports = class DockerManagement
         content += 'coffee ' + algorithmInfos.method.executable_path + ' '
       when 'bash'
         content += '/data/' + algorithmInfos.method.executable_path + ' '
+      when 'matlab'
+        content += '/data/' + algorithmInfos.method.executable_path + ' '
 
     #input count starts with 4. Params 1,2 and 3 are fix used
     # 1: inputImageUrl
@@ -110,7 +111,11 @@ dockerManagement = exports = module.exports = class DockerManagement
       if(key in nconf.get('reservedWords') and key in nconf.get('docker:replacePaths'))
         content += getDockerInput(key) + ' '
       else
-        content += '$'+inputCount+' '
+        #TODO add switch for highlighters to add more values
+        if key is 'highlighter'
+          content += '$' + inputCount++ + ' ' + '$' + inputCount++ + ' ' + '$' + inputCount++ + ' ' + '$' + inputCount++ + ' ' + '$' + inputCount++ + ' ' + '$' + inputCount++ + ' ' + '$' + inputCount++ + ' ' + '$' + inputCount++ + ' '
+        else
+          content += '$'+inputCount+' '
       inputCount++
 
     content += '1> /data/result.json 2> /data/error.txt \n'
@@ -129,7 +134,10 @@ dockerManagement = exports = module.exports = class DockerManagement
     params = process.parameters.params
     paramsPath = ""
     _.forOwn(params, (value, key) ->
-      paramsPath += '"' + value + '" '
+      if key == 'highlighter'
+        paramsPath += _.map(params.highlighter.split(' '), (item) -> return '"'+item+ '"').join(' ')
+      else
+        paramsPath += '"' + value + '" '
     )
     command = "./script.sh " + process.inputImageUrl + " " + process.remoteResultUrl + " " + process.remoteErrorUrl + " " + paramsPath
     logger.log 'info', command

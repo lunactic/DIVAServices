@@ -287,6 +287,9 @@
               "type":"object"
             },"host":{
               "type":"object"
+            },
+            "mcr2014b":{
+              "type":"object"
             }
           },
           "additionalProperties": false

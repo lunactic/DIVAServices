@@ -6,12 +6,14 @@
     "values": [
       "java:7",
       "java:8",
-      "divaservices/ocropus"
+      "divaservices/ocropus",
+      "divaservices/matlab2014b-compiler-runtime-docker"
     ],
     "keys" :[
       "Java 7",
       "Java 8",
-      "Ocropus"
+      "Ocropus",
+      "Matlab Compiler Runtime 2014b (on Ubuntu)"
     ],
     "required": true
   },
@@ -22,12 +24,14 @@
     "values": [
       "java",
       "coffeescript",
-      "bash"
+      "bash",
+      "matlab"
     ],
     "keys": [
       "Java-JAR",
       "CoffeeScript",
-      "Bash Script"
+      "Bash Script",
+      "Compiled Matlab Code"
     ],
     "required": true
   },
