@@ -29,22 +29,59 @@ fileResultHandler = exports = module.exports = class FileResultHandler
 
               # parse the result into json
               data = JSON.parse(data)
+              if process.executableType is 'matlab'
+                #get the current outputContent
+                tmpOutput = data.output
+                if tmpOutput.highlighter == null
+                  tmpOutput.highlighter = []
+                else
+                  #get temp higlighter
+                  tempHighlighter = tmpOutput.highlighter
+                  tmpOutput.highlighter = []
+                  _.forIn(tempHighlighter, (value, key) ->
+                    newKey = key.replace(/\d/g, '')
+                    newHighlighter = {}
+                    newHighlighter[newKey] = value
+                    tmpOutput.highlighter.push(newHighlighter)
+                  )
+                #create the output array
+                data.output = [
+                  tmpOutput
+                ]
+
 
               #get 'files' from the output array
               files = _.filter(data.output, (entry) ->
                 return _.has(entry,'file')
               )
+              visualization = false
               for file in files
                 if file.file['mime-type'].startsWith('image')
                   ImageHelper.saveImageJson(file.file.content, process)
                   process.outputImageUrl = ImageHelper.getOutputImageUrl(process.rootFolder + '/' + process.methodFolder, process.image.name, process.image.extension )
                   file.file['url'] = process.outputImageUrl
+                  if file.file.options.visualization
+                    visualization = true
+
                   delete file.file.content
                 else
                   IoHelper.saveFileBase64(process.outputFolder + '/' + file.file.filename, file.file.content, () ->
                     file.file['url'] = IoHelper.getStaticFileUrl(process.rootFolder + '/' + process.methodFolder, file.file.filename)
                     delete file.file.content
                   )
+
+              #check if there is a visualization type, otherwise generate one of the original inputImage
+              if not visualization
+                file =
+                  file:
+                    'mime-type': 'png'
+                    url: process.inputImageUrl
+                    name: 'visualization'
+                    options:
+                      visualization: true
+                      type: 'outputVisualization'
+                data.output.push(file)
+
               data['status'] = 'done'
               data['inputImage'] = process.inputImageUrl
               data['resultLink'] = process.resultLink

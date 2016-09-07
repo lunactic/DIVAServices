@@ -173,6 +173,7 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
         collection.resultFile = collection.outputFolder + path.sep + 'result.json'
         for process in collection.processes
           process.algorithmIdentifier = serviceInfo.identifier
+          process.executableType = serviceInfo.executableType
           process.outputFolder = outputFolder
           process.inputParameters = _.clone(req.body.inputs)
           process.inputHighlighters = _.clone(req.body.inputs.highlighter)

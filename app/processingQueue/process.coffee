@@ -3,6 +3,7 @@
 process = exports = module.exports = class Process
   @id: ""
   @algorithmIdentifier: ""
+  @executableType: ""
   @req: null
   @method: ""
   @image: null

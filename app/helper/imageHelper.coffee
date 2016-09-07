@@ -114,10 +114,7 @@ imageHelper = exports = module.exports = class ImageHelper
           callback null, imgExtension
         )
       (imgExtension, callback) ->
-        console.log 'begin image download at url: ' + url
-        console.log 'temp path: ' + imagePath + 'temp_' + counter + '.' + imgExtension
         request(url).pipe(fs.createWriteStream(imagePath + 'temp_' + counter + '.' + imgExtension)).on 'close', (cb) ->
-          console.log 'finished image download'
           base64 = fs.readFileSync imagePath + 'temp_' + counter + '.' + imgExtension, 'base64'
           md5String = md5(base64)
           if(!folder?)
@@ -131,14 +128,11 @@ imageHelper = exports = module.exports = class ImageHelper
             extension: imgExtension
             path: imgFolder + imgName + '.' +imgExtension
             md5: md5String
-          console.log 'begin fs.stat'
           fs.stat image.path, (err, stat) ->
             if !err?
-              console.log 'image exists'
               fs.unlink(imagePath + 'temp_' + counter + '.' + imgExtension)
               callback null, image
             else if err.code == 'ENOENT'
-              console.log 'copy image'
               source = fs.createReadStream imagePath + 'temp_' + counter + '.' + imgExtension
               dest = fs.createWriteStream image.path
               source.pipe(dest)

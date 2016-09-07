@@ -9,7 +9,8 @@
         "required": [
           "mime-type",
           "name",
-          "url"
+          "url",
+          "options"
         ],
         "properties": {
           "mime-type": {

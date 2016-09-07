@@ -118,7 +118,12 @@ dockerManagement = exports = module.exports = class DockerManagement
           content += '$'+inputCount+' '
       inputCount++
 
-    content += '1> /data/result.json 2> /data/error.txt \n'
+    if algorithmInfos.method.executableType is 'matlab'
+      content += '1> /data/result.json \n'
+    else
+      content += '1> /data/result.json 2> /data/error.txt \n'
+
+
     content += 'if [ -s "/data/error.txt" ] \n'
     content += 'then \n'
     content += '    curl -H "Content-Type: text/plain" --data @/data/error.txt $3 \n'

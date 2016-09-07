@@ -60,7 +60,6 @@ algorithmManagement = exports = module.exports = class AlgorithmManagement
         return
       else
         input[_.keys(input)[0]]['userdefined'] = true
-        logger.log 'info', 'true'
     )
 
     IoHelper.saveFile(folder + path.sep + 'info.json', data, (err) ->
@@ -168,6 +167,7 @@ algorithmManagement = exports = module.exports = class AlgorithmManagement
         allowParallel: true
         output: 'file'
         execute: 'docker'
+        executableType: newAlgorithm.method.executableType
         image_name: imageName
         parameters: parameters
         status:

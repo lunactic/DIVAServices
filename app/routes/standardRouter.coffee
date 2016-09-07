@@ -39,25 +39,23 @@ router.post '/upload', (req, res) ->
   #Create a status route
   numberOfImages = 0
   async.each req.body.images, ((image, callback) ->
-    switch image.image.type
+    switch image.type
       when 'iiif'
-        iifManifestParser = new IiifManifestParser(image.image.value)
+        iifManifestParser = new IiifManifestParser(image.value)
         iifManifestParser.initialize().then ->
           numberOfImages += iifManifestParser.getAllImages(0).length
-          console.log numberOfImages
           callback()
       else
         numberOfImages++
         callback()
   ), (err) ->
-    console.log 'all images processed'
     ImageHelper.createCollectionInformation(collectionName, numberOfImages)
     send200(res, {collection: collectionName})
     imageCounter = 1
     for image, i in req.body.images
-      switch image.image.type
+      switch image.type
         when 'iiif'
-          iifManifestParser = new IiifManifestParser(image.image.value)
+          iifManifestParser = new IiifManifestParser(image.value)
           iifManifestParser.initialize().then ->
             #TODO improve to save all images
             images = iifManifestParser.getAllImages(0)
@@ -70,7 +68,7 @@ router.post '/upload', (req, res) ->
                 ImageHelper.updateCollectionInformation(collectionName, numberOfImages, imageCounter++)
               )
         else
-          ImageHelper.saveImage(image.image, process, numberOfImages, imageCounter++)
+          ImageHelper.saveImage(image, process, numberOfImages, imageCounter++)
 
 router.post '/jobs/:jobId', (req, res, next) ->
   logger.log 'info', 'jobs route called'
