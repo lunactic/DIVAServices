@@ -209,7 +209,7 @@ createAlgorithm = (req,res, route, identifier, imageName) ->
     #create docker file
     DockerManagement.createDockerFile(req.body, '/data/executables/' + route)
     #create bash script
-    DockerManagement.createBashScript(req.body, '/data/executables/' + route)
+    DockerManagement.createBashScript(identifier, req.body, '/data/executables/' + route)
     #update servicesFile
     AlgorithmManagement.updateStatus(identifier, 'creating', '/' + route)
     #create a tar from zip
@@ -236,6 +236,8 @@ createAlgorithm = (req,res, route, identifier, imageName) ->
                 inputs[input.number.name] = input.number.options.default
               when 'text'
                 inputs[input.text.name] = input.text.options.default
+              when 'json'
+                inputs[input.json.name] = JSON.parse(fs.readFileSync(nconf.get('paths:testPath')+'/json/array.json'))
               when 'highlighter'
                 switch input.highlighter.type
                   when 'polygon'

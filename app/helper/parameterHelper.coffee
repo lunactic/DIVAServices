@@ -76,20 +76,33 @@ parameterHelper = exports = module.exports = class ParameterHelper
   matchParams: (process, req) ->
     params = {}
     outputParams = {}
-    for parameter of process.neededParameters
+
+    for neededParameter in process.neededParameters
       #build parameters
-      if checkReservedParameters parameter
+      paramKey = _.keys(neededParameter)[0]
+      paramValue = neededParameter[paramKey]
+
+      if checkReservedParameters paramKey
         #check if highlighter
-        if parameter is 'highlighter'
-          params[parameter] = this.getHighlighterParamValues(process.inputHighlighters.type, process.inputHighlighters.segments)
-          outputParams[process.neededParameters[parameter]] = params[process.neededParameters[parameter]]
+        if paramKey is 'highlighter'
+          params[paramKey] = this.getHighlighterParamValues(process.inputHighlighters.type, process.inputHighlighters.segments)
         else
-          params[parameter] = this.getReservedParamValue(parameter, process, req)
+          params[paramKey] = this.getReservedParamValue(paramKey, process, req)
       else
-        value = this.getParamValue(parameter, process.inputParameters)
+        #handle json
+        value = this.getParamValue(paramKey, process.inputParameters)
         if value?
-          params[parameter] = value
-          outputParams[parameter] = value
+          if paramValue is 'json'
+            jsonFile = process.outputFolder + '/jsonInput.json'
+            IoHelper.saveFile(jsonFile, value, () ->)
+            params[paramKey] = jsonFile
+            outputParams[paramKey] = jsonFile
+          else
+            params[paramKey] = value
+            outputParams[paramKey] = value
+        else if paramValue is 'url'
+          params[paramKey] = ""
+          outputParams[paramKey] = ""
     result =
       params: params
       outputParams: outputParams
@@ -176,13 +189,13 @@ parameterHelper = exports = module.exports = class ParameterHelper
   getMethodName: (algorithm) ->
     return algorithm.replace(/\//g, '')
 
+  createOutputFolder: (outputFolder) ->
+    fs.mkdirSync(outputFolder)
+    return
+
   saveParamInfo: (process, parameters, rootFolder,outputFolder,method ) ->
     if process.result?
       return
-    try
-      fs.mkdirSync(outputFolder)
-    catch error
-      #no need to handle the error
 
     methodPath = nconf.get('paths:imageRootPath') + '/'+ rootFolder + '/' + method + '.json'
     content = []

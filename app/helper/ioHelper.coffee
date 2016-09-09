@@ -77,9 +77,10 @@ ioHelper = exports = module.exports = class IoHelper
 
 
     if(folders.length > 0 and not unique)
+      #TODO Fix the number increment here to work with numbers > 1-9
       numbers = _.invokeMap folders, String::split, '_'
       numbers = _.map(numbers, 1)
-      maxNumber = parseInt(_.max(numbers),10)
+      maxNumber = parseInt(_.max(numbers))
       return rootPath + '/' + service + '_' + (maxNumber + 1)
     else
       return rootPath + '/' + service + '_0'
@@ -146,10 +147,17 @@ ioHelper = exports = module.exports = class IoHelper
     outputUrl = 'http://' + rootUrl + '/static/' + folder + '/' + filename
     return outputUrl
 
+
   @getStaticFileUrlWithExt: (folder, filename, extension) ->
     rootUrl = nconf.get('server:rootUrl')
     outputUrl = 'http://' + rootUrl + '/static/' + folder + '/' + filename + '.' + extension
     return outputUrl
+
+  @getStaticFileUrlWithFullPath: (relativefilePath) ->
+    rootUrl = nconf.get('server:rootUrl')
+    outputUrl = 'http://' + rootUrl + '/static/' + relativefilePath
+    return outputUrl
+
 
   @downloadFile: (fileUrl, localFolder, fileType, callback) ->
     @checkFileType(fileType,fileUrl, (error) ->

@@ -131,6 +131,42 @@ algorithmManagement = exports = module.exports = class AlgorithmManagement
     IoHelper.saveFile(nconf.get('paths:servicesInfoFile'), content)
     return
 
+  @addUrlParameter: (identifier, parameterName) ->
+    content = IoHelper.loadFile(nconf.get('paths:servicesInfoFile'))
+    if(identifier? and _.find(content.services, {'identifier':identifier})?)
+      currentInfo = _.find(content.services, {'identifier':identifier})
+    info = {}
+    exists = false
+    _.forEach(currentInfo.parameters, (value, key) ->
+      if _.has(value,parameterName)
+        exists = true
+    )
+
+    if not exists
+      info[parameterName] = 'url'
+      currentInfo.parameters.unshift(info)
+    IoHelper.saveFile(nconf.get('paths:servicesInfoFile'), content)
+    return
+
+
+  @addRemotePath: (identifier, parameterName, remotePath) ->
+    content = IoHelper.loadFile(nconf.get('paths:servicesInfoFile'))
+    if(identifier? and _.find(content.services, {'identifier':identifier})?)
+      currentInfo = _.find(content.services, {'identifier':identifier})
+    info = {}
+    exists = false
+    _.forEach(currentInfo.remotePaths, (value, key) ->
+      if _.has(value,parameterName)
+        exists = true
+    )
+
+    if not exists
+      info[parameterName] = remotePath
+      currentInfo.remotePaths.push(info)
+    IoHelper.saveFile(nconf.get('paths:servicesInfoFile'), content)
+    return
+
+
   @recordException: (identifier, exception) ->
     content = IoHelper.loadFile(nconf.get('paths:servicesInfoFile'))
     if(identifier? and _.find(content.services, {'identifier':identifier})?)
@@ -153,10 +189,13 @@ algorithmManagement = exports = module.exports = class AlgorithmManagement
     ServicesInfoHelper.reload()
     if(not @getStatusByIdentifier(identifier)? and not @getStatusByRoute(route)?)
       newContent = _.cloneDeep(ServicesInfoHelper.fileContent)
-      parameters = {}
+      parameters = []
       _.forEach(newAlgorithm.input, (input, key) ->
         inputType = _.keys(input)[0]
-        _.set(parameters,_.get(newAlgorithm, 'input[' + key + '].'+inputType+'.name', inputType),'')
+        key = _.get(newAlgorithm, 'input[' + key + '].'+inputType+'.name', inputType)
+        info = {}
+        info[key] = inputType
+        parameters.push(info)
       )
       newServiceEntry =
         service: route.replace(/\//g, '').toLowerCase()
@@ -170,6 +209,7 @@ algorithmManagement = exports = module.exports = class AlgorithmManagement
         executableType: newAlgorithm.method.executableType
         image_name: imageName
         parameters: parameters
+        remotePaths: []
         status:
           statusCode: -1
           statusMessage: ''

@@ -72,6 +72,33 @@
         },
         "additionalProperties": false
       },
+      "json":{
+        "type":"object",
+        "required":[
+          "name",
+          "description",
+          "options"
+        ],
+        "properties":{
+          "name":{
+            "$ref":"#/definitions/name"
+          },
+          "description":{
+            "$ref":"#/definitions/description"
+          },
+          "options":{
+            "type":"object",
+            "required":[
+              "required"
+            ],
+            "properties":{
+              "required":{
+                "type":"boolean"
+              }
+            }
+          }
+        }
+      },
       "text": {
         "type": "object",
         "required": [
@@ -267,6 +294,9 @@
             },
             "checkbox": {
               "$ref": "#/definitions/checkbox"
+            },
+            "json":{
+              "$ref":"#/definitions/json"
             },
             "inputImage":{
               "type":"object"

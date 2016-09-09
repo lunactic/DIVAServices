@@ -1,12 +1,13 @@
-_             = require 'lodash'
-archiver      = require 'archiver'
-logger        = require '../logging/logger'
-Docker        = require "dockerode"
-fs            = require 'fs'
-nconf         = require 'nconf'
-path          = require 'path'
-sequest         = require 'sequest'
-
+_                   = require 'lodash'
+AlgorithmManagement = require '../management/algorithmManagement'
+archiver            = require 'archiver'
+logger              = require '../logging/logger'
+Docker              = require "dockerode"
+fs                  = require 'fs'
+nconf               = require 'nconf'
+path                = require 'path'
+sequest             = require 'sequest'
+IoHelper            = require '../helper/ioHelper'
 
 
 dockerManagement = exports = module.exports = class DockerManagement
@@ -82,12 +83,29 @@ dockerManagement = exports = module.exports = class DockerManagement
       #'ENTRYPOINT ["./script.sh"]'
     fs.writeFileSync(outputFolder + path.sep + 'Dockerfile', content)
 
-  @createBashScript: (algorithmInfos, outputFolder) ->
+  @createBashScript: (identifier, algorithmInfos, outputFolder) ->
     content = "#!/bin/sh\n"
     
     if(_.find(algorithmInfos.input,{'inputImage':{}})?)
       content += 'wget -O /data/inputImage.png $1\n'
       #content += 'wget -O /data/inputImage.png $1\n'
+
+    #input count starts with 4. Params 1,2 and 3 are fix used
+    # 1: inputImageUrl
+    # 2: resultResponseUrl
+    # 3: eroorResponseUrl
+    # increase it for every additional file that needs to be downloaded
+    inputCount = 4
+
+
+    #check if additional files need to be downloaded
+    for input, i in algorithmInfos.input
+      key = _.keys(algorithmInfos.input[i])[0]
+      if key in ['json', 'file']
+        content += 'wget -O /data/' + input[key].name + '.json $' + inputCount + '\n'
+        AlgorithmManagement.addUrlParameter(identifier, input[key].name+'url')
+        AlgorithmManagement.addRemotePath(identifier, input[key].name, '/data/' + input[key].name + '.json')
+        inputCount++
 
     switch(algorithmInfos.method.executableType)
       when 'java'
@@ -99,11 +117,6 @@ dockerManagement = exports = module.exports = class DockerManagement
       when 'matlab'
         content += '/data/' + algorithmInfos.method.executable_path + ' '
 
-    #input count starts with 4. Params 1,2 and 3 are fix used
-    # 1: inputImageUrl
-    # 2: resultResponseUrl
-    # 3: eroorResponseUrl
-    inputCount = 4
 
     for input, i  in algorithmInfos.input
       #check if needs to be rewritten
@@ -135,18 +148,29 @@ dockerManagement = exports = module.exports = class DockerManagement
     content += 'fi'
     fs.writeFileSync(outputFolder + path.sep + "script.sh", content)
 
-  @runDockerImage: (process, imageName, callback) ->
-    params = process.parameters.params
+  @runDockerImage: (proc, imageName, callback) ->
+    params = proc.parameters.params
+    neededParams = proc.neededParameters
     paramsPath = ""
-    _.forOwn(params, (value, key) ->
+    for key, value of params
       if key == 'highlighter'
         paramsPath += _.map(params.highlighter.split(' '), (item) -> return '"'+item+ '"').join(' ')
+      else if _.find(neededParams, key)[key] in ['json', 'file']
+        #replace path with download url
+        remotePath = _.find(proc.remotePaths, key)[key]
+        paramsPath += '"' + remotePath + '" '
+      else if _.find(neededParams, key)[key] in ['url']
+        #get the file path from the corresponding correct value
+        originalKey = key.replace('url','')
+        orignalValue = params[originalKey]
+        url = IoHelper.getStaticFileUrlWithFullPath(orignalValue.replace(nconf.get('paths:imageRootPath')+'/',''))
+        paramsPath += '"' + url + '" '
       else
         paramsPath += '"' + value + '" '
-    )
-    command = "./script.sh " + process.inputImageUrl + " " + process.remoteResultUrl + " " + process.remoteErrorUrl + " " + paramsPath
+
+    command = "./script.sh " + proc.inputImageUrl + " " + proc.remoteResultUrl + " " + proc.remoteErrorUrl + " " + paramsPath
     logger.log 'info', command
-    @docker.run(imageName,['bash', '-c', command], process.stdout, (err, data, container) ->
+    @docker.run(imageName,['bash', '-c', command], proc.stdout, (err, data, container) ->
       if(err?)
         logger.log 'error', err
         if(callback?)

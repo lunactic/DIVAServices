@@ -175,9 +175,11 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
           process.algorithmIdentifier = serviceInfo.identifier
           process.executableType = serviceInfo.executableType
           process.outputFolder = outputFolder
+          parameterHelper.createOutputFolder(process.outputFolder)
           process.inputParameters = _.clone(req.body.inputs)
           process.inputHighlighters = _.clone(req.body.inputs.highlighter)
           process.neededParameters = serviceInfo.parameters
+          process.remotePaths = serviceInfo.remotePaths
           process.method = collection.method
           process.parameters = parameterHelper.matchParams(process,req)
           if(ResultHelper.checkProcessResultAvailable(process))
@@ -259,7 +261,7 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
     folder = nconf.get('paths:imageRootPath') + path.sep + collection.name
     collection.inputParameters = _.clone(req.body.inputs)
     collection.inputHighlighters = _.clone(req.body.inputs.highlighter)
-    collection.parameters = parameterHelper.matchParams(req.body.inputs, req.body.inputs.highlighter.segments,serviceInfo.parameters,folder,folder, "", req)
+    #collection.parameters = parameterHelper.matchParams(req.body.inputs, req.body.inputs.highlighter.segments,serviceInfo.parameters,folder,folder, "", req)
     if(ResultHelper.checkCollectionResultAvailable(collection))
       collection.result = ResultHelper.loadResult(collection)
       callback null, collection

@@ -32,23 +32,19 @@ fileResultHandler = exports = module.exports = class FileResultHandler
               if process.executableType is 'matlab'
                 #get the current outputContent
                 tmpOutput = data.output
-                if tmpOutput.highlighter == null
-                  tmpOutput.highlighter = []
-                else
-                  #get temp higlighter
-                  tempHighlighter = tmpOutput.highlighter
-                  tmpOutput.highlighter = []
-                  _.forIn(tempHighlighter, (value, key) ->
-                    newKey = key.replace(/\d/g, '')
-                    newHighlighter = {}
-                    newHighlighter[newKey] = value
-                    tmpOutput.highlighter.push(newHighlighter)
-                  )
-                #create the output array
-                data.output = [
-                  tmpOutput
-                ]
+                #push all objects into the output array
+                data.output = [ ]
+                _.forIn(tmpOutput, (value, key) ->
+                  newKey = key.replace(/\d/g,'')
+                  newObject = {}
+                  if value.hasOwnProperty('mimetype')
+                    value['mime-type'] = value.mimetype
+                    delete value.mimetype
 
+                  newObject[newKey] = value
+                  data.output.push(newObject)
+                )
+                #create the output array
 
               #get 'files' from the output array
               files = _.filter(data.output, (entry) ->
