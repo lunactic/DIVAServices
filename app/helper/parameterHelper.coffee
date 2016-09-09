@@ -109,7 +109,9 @@ parameterHelper = exports = module.exports = class ParameterHelper
     return result
 
   buildGetUrl: (process) ->
-    getUrl = 'http://' + nconf.get('server:rootUrl') + process.req.originalUrl
+    return IoHelper.getStaticFileUrlWithFullPath(process.resultFile)
+
+    ###getUrl = 'http://' + nconf.get('server:rootUrl') + process.req.originalUrl
 
     #append md5
     if(process.image?)
@@ -125,7 +127,7 @@ parameterHelper = exports = module.exports = class ParameterHelper
     for key in _.keys(process.parameters.outputParams)
       if !(key in ['rectangle','circle','polygon'])
         getUrl += '&' + key + '=' + process.parameters.params[key]
-    return getUrl
+    return getUrl###
 
   buildGetUrlCollection: (collection) ->
     #get the first process for parameter information

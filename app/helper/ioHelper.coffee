@@ -153,11 +153,14 @@ ioHelper = exports = module.exports = class IoHelper
     outputUrl = 'http://' + rootUrl + '/static/' + folder + '/' + filename + '.' + extension
     return outputUrl
 
-  @getStaticFileUrlWithFullPath: (relativefilePath) ->
+  @getStaticFileUrlWithRelPath: (relativefilePath) ->
     rootUrl = nconf.get('server:rootUrl')
     outputUrl = 'http://' + rootUrl + '/static/' + relativefilePath
     return outputUrl
 
+  @getStaticFileUrlWithFullPath: (fullPath) ->
+    relPath = fullPath.replace(nconf.get('paths:imageRootPath') + '/', '')
+    return @getStaticFileUrlWithRelPath(relPath)
 
   @downloadFile: (fileUrl, localFolder, fileType, callback) ->
     @checkFileType(fileType,fileUrl, (error) ->

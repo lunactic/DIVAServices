@@ -163,7 +163,7 @@ dockerManagement = exports = module.exports = class DockerManagement
         #get the file path from the corresponding correct value
         originalKey = key.replace('url','')
         orignalValue = params[originalKey]
-        url = IoHelper.getStaticFileUrlWithFullPath(orignalValue.replace(nconf.get('paths:imageRootPath')+'/',''))
+        url = IoHelper.getStaticFileUrlWithRelPath(orignalValue.replace(nconf.get('paths:imageRootPath')+'/',''))
         paramsPath += '"' + url + '" '
       else
         paramsPath += '"' + value + '" '
