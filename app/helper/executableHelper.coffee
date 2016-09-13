@@ -151,6 +151,7 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
     async.waterfall [
       (callback) ->
         #STEP 1
+        #TODO check if the method actually requires images
         if (req.body.images?  and req.body.images[0].type is 'collection')
           preprocessCollection(collection, req, serviceInfo, parameterHelper,executionType, callback)
         else
@@ -260,7 +261,10 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
     collection.name = req.body.images[0].value
     folder = nconf.get('paths:imageRootPath') + path.sep + collection.name
     collection.inputParameters = _.clone(req.body.inputs)
-    collection.inputHighlighters = _.clone(req.body.inputs.highlighter)
+    if req.body.inputs.highlighter?
+      collection.inputHighlighters = _.clone(req.body.inputs.highlighter)
+    else
+      collection.inputHighlighters = {}
     #collection.parameters = parameterHelper.matchParams(req.body.inputs, req.body.inputs.highlighter.segments,serviceInfo.parameters,folder,folder, "", req)
     if(ResultHelper.checkCollectionResultAvailable(collection))
       collection.result = ResultHelper.loadResult(collection)
