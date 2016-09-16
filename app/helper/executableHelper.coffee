@@ -286,7 +286,9 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
           process.hasImage = true
           collection.processes.push(process)
         callback null, collection
-    else if (collection.hasFiles)
+
+    process = new Process()
+    if (collection.hasFiles)
       process.hasFile = true
     collection.inputParameters = _.clone(req.body.inputs)
     setCollectionHighlighter(collection, req)

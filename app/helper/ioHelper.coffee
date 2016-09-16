@@ -77,9 +77,9 @@ ioHelper = exports = module.exports = class IoHelper
 
 
     if(folders.length > 0 and not unique)
-      #TODO Fix the number increment here to work with numbers > 1-9
       numbers = _.invokeMap folders, String::split, '_'
       numbers = _.map(numbers, 1)
+      numbers = _.map numbers, Number.parseFloat
       maxNumber = parseInt(_.max(numbers))
       return rootPath + '/' + service + '_' + (maxNumber + 1)
     else
@@ -94,12 +94,13 @@ ioHelper = exports = module.exports = class IoHelper
       fs.statSync(path.join(rootPath, file)).isDirectory()
 
     folders = _.filter(folders, (folder) ->
-      _.includes(folder,service.name)
+      _.includes(folder,service.service)
     )
 
     if(folders.length > 0 and not unique)
       numbers = _.invokeMap folders, String::split, '_'
       numbers = _.map(numbers, 1)
+      numbers = _.map numbers, Number.parseFloat
       maxNumber = parseInt(_.max(numbers))
       return rootPath + '/' + service.service + '_' + (maxNumber + 1)
     else
