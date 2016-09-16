@@ -63,7 +63,7 @@ ioHelper = exports = module.exports = class IoHelper
     archive.finalize()
     return fileName
 
-  @getOutputFolder: (rootFolder, service, unique) ->
+  @getOutputFolderForImages: (rootFolder, service, unique) ->
     #check which folder is to be used
     imagePath = nconf.get('paths:imageRootPath')
     rootPath = imagePath + '/' + rootFolder
@@ -85,7 +85,28 @@ ioHelper = exports = module.exports = class IoHelper
     else
       return rootPath + '/' + service + '_0'
 
-  #build file Path from outputFolder name and filename
+
+  @getOutputFolderForData: (service, unique) ->
+    dataPath = nconf.get('paths:dataRootPath')
+    rootPath = dataPath + '/' + service.service
+    #read all folders in the current rootPath
+    folders = fs.readdirSync(rootPath).filter (file) ->
+      fs.statSync(path.join(rootPath, file)).isDirectory()
+
+    folders = _.filter(folders, (folder) ->
+      _.includes(folder,service.name)
+    )
+
+    if(folders.length > 0 and not unique)
+      numbers = _.invokeMap folders, String::split, '_'
+      numbers = _.map(numbers, 1)
+      maxNumber = parseInt(_.max(numbers))
+      return rootPath + '/' + service.service + '_' + (maxNumber + 1)
+    else
+      return rootPath + '/' + service.service + '_0'
+
+
+#build file Path from outputFolder name and filename
   @buildFilePath: (path, fileName) ->
     return path + '/' + fileName + '.json'
 
@@ -142,25 +163,36 @@ ioHelper = exports = module.exports = class IoHelper
         logger.log 'error', error
     return
 
-  @getStaticFileUrl: (folder, filename) ->
+  @getStaticImageUrl: (folder, filename) ->
     rootUrl = nconf.get('server:rootUrl')
-    outputUrl = 'http://' + rootUrl + '/static/' + folder + '/' + filename
+    outputUrl = 'http://' + rootUrl + '/images/' + folder + '/' + filename
     return outputUrl
 
-
-  @getStaticFileUrlWithExt: (folder, filename, extension) ->
+  @getStaticDataUrl: (folder, filename) ->
     rootUrl = nconf.get('server:rootUrl')
-    outputUrl = 'http://' + rootUrl + '/static/' + folder + '/' + filename + '.' + extension
+    outputUrl = 'http://' + rootUrl + '/data/' + folder + '/' + filename
     return outputUrl
 
-  @getStaticFileUrlWithRelPath: (relativefilePath) ->
+  @getStaticImageUrlWithExt: (folder, filename, extension) ->
     rootUrl = nconf.get('server:rootUrl')
-    outputUrl = 'http://' + rootUrl + '/static/' + relativefilePath
+    outputUrl = 'http://' + rootUrl + '/images/' + folder + '/' + filename + '.' + extension
     return outputUrl
 
-  @getStaticFileUrlWithFullPath: (fullPath) ->
+  @getStaticDataUrlWithRelPath: (relativefilePath) ->
+    rootUrl = nconf.get('server:rootUrl')
+    return 'http://' + rootUrl + '/data/' + relativefilePath
+
+  @getStaticImageUrlWithRelPath: (relativefilePath) ->
+    rootUrl = nconf.get('server:rootUrl')
+    return 'http://' + rootUrl + '/images/' + relativefilePath
+
+  @getStaticDataUrlWithFullPath: (fullPath) ->
+    relPath = fullPath.replace(nconf.get('paths:dataRootPath') + '/','')
+    return @getStaticDataUrlWithRelPath(relPath)
+
+  @getStaticImageUrlWithFullPath: (fullPath) ->
     relPath = fullPath.replace(nconf.get('paths:imageRootPath') + '/', '')
-    return @getStaticFileUrlWithRelPath(relPath)
+    return @getStaticImageUrlWithRelPath(relPath)
 
   @downloadFile: (fileUrl, localFolder, fileType, callback) ->
     @checkFileType(fileType,fileUrl, (error) ->
@@ -202,7 +234,19 @@ ioHelper = exports = module.exports = class IoHelper
     else
       callback null
 
-  @createCollectionFolders: (collection) ->
+
+  @createDataCollectionFolders: (service) ->
+    rootFolder = nconf.get('paths:dataRootPath') + path.sep + service.service
+    mkdirp(rootFolder, (err) ->
+      if(err)
+        logger.log 'error', err
+    )
+    mkdirp(rootFolder + path.sep + 'original', (err) ->
+      if(err)
+        logger.log 'error', err
+    )
+
+  @createImageCollectionFolders: (collection) ->
     rootFolder = nconf.get('paths:imageRootPath') + path.sep + collection
     mkdirp(rootFolder, (err) ->
       if(err)
@@ -213,7 +257,7 @@ ioHelper = exports = module.exports = class IoHelper
         logger.log 'error', err
     )
 
-  @deleteCollectionFolders: (collection) ->
+  @deleteImageCollectionFolders: (collection) ->
     rootFolder = nconf.get('paths:imageRootPath') + path.sep + collection
     rmdir(rootFolder, (err) ->
       if(err)

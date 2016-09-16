@@ -64,7 +64,8 @@ app.use (err, req, res, next) ->
   next err
   return
 #setup static file handler
-app.use '/static', express.static('/data/images')
+app.use '/images', express.static(nconf.get('paths:imageRootPath'))
+app.use '/data', express.static(nconf.get('paths:dataRootPath'))
 
 accessLogStream = fs.createWriteStream(__dirname + '/logs/access.log',{flags:'a'})
 #favicon

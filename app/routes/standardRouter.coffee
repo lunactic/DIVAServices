@@ -31,7 +31,7 @@ postHandler = new PostHandler()
 #TODO Provide a way to upload other data (currently sent as req.body.data)
 router.post '/upload', (req, res) ->
   collectionName = RandomWordGenerator.generateRandomWord()
-  IoHelper.createCollectionFolders(collectionName)
+  IoHelper.createImageCollectionFolders(collectionName)
   process =
     rootFolder: collectionName
   #send immediate response with collection name to not block the request for too long

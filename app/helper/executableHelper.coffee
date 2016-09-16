@@ -152,16 +152,36 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
       (callback) ->
         #STEP 1
         #TODO check if the method actually requires images
-        if (req.body.images?  and req.body.images[0].type is 'collection')
+        if(methodRequireFiles(serviceInfo))
+          if (req.body.images?  and req.body.images[0].type is 'collection')
+            collection.name = req.body.images[0].value
+            collection.hasImages = true
+            outputFolder = IoHelper.getOutputFolderForImages(collection.name, serviceInfo.service, serviceInfo.uniqueOnCollection)
+            collection.outputFolder = outputFolder
+            preprocessCollection(collection, req, serviceInfo, parameterHelper,executionType, callback)
+          else
+            err =
+              statusCode: 500
+              errorType: 'NotSupported'
+              statusText: 'This input type is not supported. The only supported type is collection'
+            callback err, null
+            logger.log 'error', 'Collection Not Found'
+          return
+        else if(methodRequiresSaveData(serviceInfo))
+          IoHelper.createDataCollectionFolders(serviceInfo)
+          #method requries data to save
+          #create "collection" on the fly
+          #proceed as we would have data
+          collection.name = serviceInfo.service
+          collection.hasFiles = true
+          outputFolder = IoHelper.getOutputFolderForData(serviceInfo, serviceInfo.uniqueOnCollection)
+          collection.outputFolder = outputFolder
           preprocessCollection(collection, req, serviceInfo, parameterHelper,executionType, callback)
+
         else
-          err =
-            statusCode: 500
-            errorType: 'NotSupported'
-            statusText: 'This input type is not supported. The only supported type is collection'
-          callback err, null
-          logger.log 'error', 'Collection Not Found'
-        return
+          #method does not need any data saved
+          #create "fake" collection and run the method
+
       (collection, callback) ->
         #STEP 2
         #immediate callback if collection.result is available
@@ -169,13 +189,11 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
           callback null,collection
           return
         #Create an array of processes that are added to the processing queue
-        outputFolder = IoHelper.getOutputFolder(collection.name, serviceInfo.service, serviceInfo.uniqueOnCollection)
-        collection.outputFolder = outputFolder
         collection.resultFile = collection.outputFolder + path.sep + 'result.json'
         for process in collection.processes
           process.algorithmIdentifier = serviceInfo.identifier
           process.executableType = serviceInfo.executableType
-          process.outputFolder = outputFolder
+          process.outputFolder = collection.outputFolder
           parameterHelper.createOutputFolder(process.outputFolder)
           process.inputParameters = _.clone(req.body.inputs)
           process.inputHighlighters = _.clone(req.body.inputs.highlighter)
@@ -250,33 +268,63 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
     #process a collection
 
     #check if collection exists
-    if(not ImageHelper.checkCollectionAvailable(req.body.images[0].value))
-      err =
-        statusCode: 500
-        errorType: 'CollectionNotAvailable'
-        statusText: 'The collection ' + req.body.images[0].value + ' does not exist on the server'
-      callback err, null
-      return
+    if(collection.hasImages)
+      if(not ImageHelper.checkCollectionAvailable(req.body.images[0].value))
+        err =
+          statusCode: 500
+          errorType: 'CollectionNotAvailable'
+          statusText: 'The collection ' + req.body.images[0].value + ' does not exist on the server'
+        callback err, null
+        return
 
-    collection.name = req.body.images[0].value
-    folder = nconf.get('paths:imageRootPath') + path.sep + collection.name
-    collection.inputParameters = _.clone(req.body.inputs)
+      folder = nconf.get('paths:imageRootPath') + path.sep + collection.name
+      collection.inputParameters = _.clone(req.body.inputs)
+      setCollectionHighlighter(collection, req)
+      if(ResultHelper.checkCollectionResultAvailable(collection))
+        collection.result = ResultHelper.loadResult(collection)
+        callback null, collection
+      else
+        #if results not available, load images and create processes
+        images = ImageHelper.loadCollection(collection.name, false)
+        for image in images
+          process = new Process()
+          process.req = _.clone(req)
+          process.rootFolder = collection.name
+          process.type = executionType
+          process.image = image
+          process.hasImage = true
+          collection.processes.push(process)
+        callback null, collection
+    else if (collection.hasFiles)
+      collection.inputParameters = _.clone(req.body.inputs)
+      setCollectionHighlighter(collection, req)
+      process = new Process()
+      process.req = _.clone(req)
+      process.rootFolder = collection.name
+      process.type = executionType
+      process.hasFile = true
+      collection.processes.push(process)
+      callback null, collection
+    else
+      logger.log 'error', 'not implemented yet'
+
+
+  setCollectionHighlighter = (collection, req) ->
     if req.body.inputs.highlighter?
       collection.inputHighlighters = _.clone(req.body.inputs.highlighter)
     else
       collection.inputHighlighters = {}
-    #collection.parameters = parameterHelper.matchParams(req.body.inputs, req.body.inputs.highlighter.segments,serviceInfo.parameters,folder,folder, "", req)
-    if(ResultHelper.checkCollectionResultAvailable(collection))
-      collection.result = ResultHelper.loadResult(collection)
-      callback null, collection
-    else
-      #if results not available, load images and create processes
-      images = ImageHelper.loadCollection(collection.name, false)
-      for image in images
-        process = new Process()
-        process.req = _.clone(req)
-        process.rootFolder = collection.name
-        process.type = executionType
-        process.image = image
-        collection.processes.push(process)
-      callback null, collection
+
+
+  methodRequireFiles = (serviceInfo) ->
+    fileParameters = _.filter(serviceInfo.parameters, (parameter)->
+      return _.keys(parameter)[0] in ['inputImage', 'inputFile']
+    )
+    return fileParameters.length > 0
+
+  methodRequiresSaveData = (serviceInfo) ->
+    saveDataParameters = _.filter(serviceInfo.parameters, (parameter)->
+      return parameter[_.keys(parameter)[0]] in ['json']
+    )
+
+    return saveDataParameters.length > 0

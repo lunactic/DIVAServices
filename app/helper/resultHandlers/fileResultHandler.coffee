@@ -62,7 +62,10 @@ fileResultHandler = exports = module.exports = class FileResultHandler
                   delete file.file.content
                 else
                   IoHelper.saveFileBase64(process.outputFolder + '/' + file.file.filename, file.file.content, () ->
-                    file.file['url'] = IoHelper.getStaticFileUrl(process.rootFolder + '/' + process.methodFolder, file.file.filename)
+                    if process.hasImage
+                      file.file['url'] = IoHelper.getStaticImageUrl(process.rootFolder + '/' + process.methodFolder, file.file.filename)
+                    else if process.hasFile
+                      file.file['url'] = IoHelper.getStaticDataUrl(process.rootFolder + '/' + process.methodFolder, file.file.filename)
                     delete file.file.content
                   )
 

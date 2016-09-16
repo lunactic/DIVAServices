@@ -30,3 +30,7 @@ process = exports = module.exports = class Process
   @remoteResultUrl: ""
   @remotePaths: []
   @type: ""
+
+
+  @hasFile = false
+  @hasImage = false

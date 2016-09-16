@@ -46,6 +46,7 @@
   },
   "paths": {
     "imageRootPath": "/data/images",
+    "dataRootPath":"/data/data",
     "matlabPath": "/usr/local/bin/matlab",
     "matlabScriptsPath": "/data/matlab",
     "testPath":"/data/testData",
