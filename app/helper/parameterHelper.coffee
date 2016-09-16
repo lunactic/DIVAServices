@@ -113,23 +113,6 @@ parameterHelper = exports = module.exports = class ParameterHelper
       return IoHelper.getStaticImageUrlWithFullPath(process.resultFile)
     else
       return IoHelper.getStaticDataUrlWithFullPath(process.resultFile)
-    ###getUrl = 'http://' + nconf.get('server:rootUrl') + process.req.originalUrl
-
-    #append md5
-    if(process.image?)
-      getUrl += '?md5=' + process.image.md5
-    else
-      getUrl += '?rootFolder=' + process.rootFolder
-    #append highlighter
-    if(!_.isEmpty(process.inputHighlighters))
-      getUrl += '&highlighter=' + JSON.stringify(process.inputHighlighters['segments'])
-      getUrl += '&highlighterType=' + process.inputHighlighters['type']
-
-     #append other parameters
-    for key in _.keys(process.parameters.outputParams)
-      if !(key in ['rectangle','circle','polygon'])
-        getUrl += '&' + key + '=' + process.parameters.params[key]
-    return getUrl###
 
   buildGetUrlCollection: (collection) ->
     #get the first process for parameter information
