@@ -14,3 +14,6 @@ collection = exports = module.exports = class Collection
     @result = null
     @resultFile = ""
     @rootFolder = ""
+
+    @hasFiles = false
+    @hasImages = false

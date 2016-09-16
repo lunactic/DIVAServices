@@ -26,7 +26,7 @@ parameterHelper = exports = module.exports = class ParameterHelper
       return inputParameters[parameter]
     return
 
-  # ---
+ # ---
   # **getReservedParamValue**</br>
   # Gets the value of a reserved parameter as defined in conf/server.NODE_ENV.json</br>
   # `params`
@@ -109,8 +109,10 @@ parameterHelper = exports = module.exports = class ParameterHelper
     return result
 
   buildGetUrl: (process) ->
-    return IoHelper.getStaticFileUrlWithFullPath(process.resultFile)
-
+    if process.hasImage
+      return IoHelper.getStaticImageUrlWithFullPath(process.resultFile)
+    else
+      return IoHelper.getStaticDataUrlWithFullPath(process.resultFile)
     ###getUrl = 'http://' + nconf.get('server:rootUrl') + process.req.originalUrl
 
     #append md5
@@ -192,14 +194,23 @@ parameterHelper = exports = module.exports = class ParameterHelper
     return algorithm.replace(/\//g, '')
 
   createOutputFolder: (outputFolder) ->
-    fs.mkdirSync(outputFolder)
+    try
+      fs.mkdirSync(outputFolder)
+    catch error
+
     return
 
   saveParamInfo: (process, parameters, rootFolder,outputFolder,method ) ->
     if process.result?
       return
 
-    methodPath = nconf.get('paths:imageRootPath') + '/'+ rootFolder + '/' + method + '.json'
+    if process.hasImage
+      methodPath = nconf.get('paths:imageRootPath') + '/'+ rootFolder + '/' + method + '.json'
+    else if process.hasFile
+      methodPath = nconf.get('paths:dataRootPath') + '/' + rootFolder + '/' + method + '.json'
+    else
+      methodPath = nconf.get('paths:dataRootPath') + '/' + rootFolder + '/' + method + '.json'
+
     content = []
     if(process.inputHighlighters?)
       data =
