@@ -11,6 +11,7 @@ nconf       = require 'nconf'
 hash        = require 'object-hash'
 path        = require 'path'
 util        = require 'util'
+logger      = require '../logging/logger'
 ImageHelper = require './imageHelper'
 IoHelper    = require './ioHelper'
 
@@ -183,27 +184,27 @@ parameterHelper = exports = module.exports = class ParameterHelper
     if(process.inputHighlighters?)
       data =
         highlighters: _.clone(process.inputHighlighters)
-        parameters: hash(_.clone(process.inputParameters))
+        parameters: hash(process.inputParameters)
         folder: outputFolder
     else
       data =
         highlighters: {}
-        parameters: hash(_.clone(process.inputParameters))
+        parameters: hash(process.inputParameters)
         folder: outputFolder
 
     #make strings of everything
-    _.forIn(data.parameters, (value,key) ->
-      data.parameters[key] = JSON.stringify(value)
-    )
     _.forIn(data.highlighters, (value,key) ->
-      data.highlighters[key] = JSON.stringify(value)
+      data.highlighters[key] = String(value)
     )
+    logger.log 'info', 'saveParamInfo'
+    logger.log 'info', JSON.stringify process.inputParameters
+    logger.log 'info', 'hash: ' + hash(process.inputParameters)
 
     try
       fs.statSync(methodPath).isFile()
       content = JSON.parse(fs.readFileSync(methodPath,'utf8'))
       #only save the information if its not already present
-      if(_.filter(content,{'parameters':hash(data.parameters), 'highlighters':data.highlighters}).length == 0)
+      if(_.filter(content,{'parameters':data.parameters, 'highlighters':data.highlighters}).length == 0)
         content.push data
         fs.writeFileSync(methodPath, JSON.stringify(content))
     catch error
@@ -218,14 +219,17 @@ parameterHelper = exports = module.exports = class ParameterHelper
 
     data =
       highlighters: process.inputHighlighters
-      parameters: process.inputParameters
+      parameters: hash(process.inputParameters)
     try
       fs.statSync(paramPath).isFile()
       content = JSON.parse(fs.readFileSync(paramPath,'utf8'))
-      if((info = _.filter(content,{'parameters':hash(data.parameters), 'highlighters':data.highlighters})).length > 0)
+      if((info = _.filter(content,{'parameters':data.parameters, 'highlighters':data.highlighters})).length > 0)
         #found some information about this method
-        if(process.image?)
-          process.resultFile = IoHelper.buildFilePath(info[0].folder, process.image.name)
+        if process.hasImages
+          if(process.image?)
+            process.resultFile = IoHelper.buildFilePath(info[0].folder, process.image.name)
+          else
+            process.resultFile = IoHelper.buildFilePath(info[0].folder, path.basename(info[0].folder))
         else
           process.resultFile = IoHelper.buildFilePath(info[0].folder, path.basename(info[0].folder))
         process.outputFolder = info[0].folder

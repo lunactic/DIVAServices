@@ -12,10 +12,6 @@ resultHelper = exports = module.exports = class ResultHelper
 
   @checkCollectionResultAvailable: (collection) ->
     collection.rootFolder = collection.name
-    #make strings of everything
-    _.forIn(collection.inputParameters, (value,key) ->
-      collection.inputParameters[key] = String(value)
-    )
     _.forIn(collection.inputHighlighters, (value,key) ->
       collection.inputHighlighters[key] = String(value)
     )

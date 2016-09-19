@@ -90,7 +90,7 @@ router.post '/jobs/:jobId', (req, res, next) ->
       )
   ], (err) ->
     if(err)
-      AlgorithmManagement.updateStatus(null, 'error', process.req.originalUrl, error.statusMessage)
+      AlgorithmManagement.updateStatus(null, 'error', process.req.originalUrl, err.statusMessage)
       sendError(res, err)
     else if(process.type is 'test')
       schemaValidator.validate(IoHelper.loadFile(process.resultFile), 'responseSchema', (error) ->
@@ -173,6 +173,7 @@ router.get '/image/check/:md5', (req, res) ->
 
 router.get '/collections/:collection/:execution', (req, res) ->
   #zip folder
+  #TODO Fix here to distiguinsh between collection.hasFiles and collection.hasImages
   filename = IoHelper.zipFolder(nconf.get('paths:imageRootPath') + '/' + req.params.collection + '/' + req.params.execution)
   res.status '200'
   res.json ({zipLink: 'http://' + nconf.get('server:rootUrl') + '/static/' + filename})

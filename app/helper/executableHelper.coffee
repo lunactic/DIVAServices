@@ -291,12 +291,16 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
       process.hasFiles = true
     collection.inputParameters = _.clone(req.body.inputs)
     setCollectionHighlighter(collection, req)
-    process = new Process()
-    process.req = _.clone(req)
-    process.rootFolder = collection.name
-    process.type = executionType
-    collection.processes.push(process)
-    callback null, collection
+    if(ResultHelper.checkCollectionResultAvailable(collection))
+      collection.result = ResultHelper.loadResult(collection)
+      callback null, collection
+    else
+      process = new Process()
+      process.req = _.clone(req)
+      process.rootFolder = collection.name
+      process.type = executionType
+      collection.processes.push(process)
+      callback null, collection
 
   setCollectionHighlighter = (collection, req) ->
     if req.body.inputs.highlighter?
