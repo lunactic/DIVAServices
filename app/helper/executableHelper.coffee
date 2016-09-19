@@ -283,12 +283,12 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
           process.rootFolder = collection.name
           process.type = executionType
           process.image = image
-          process.hasImage = true
+          process.hasImages = true
           collection.processes.push(process)
         callback null, collection
     process = new Process()
     if (collection.hasFiles)
-      process.hasFile = true
+      process.hasFiles = true
     collection.inputParameters = _.clone(req.body.inputs)
     setCollectionHighlighter(collection, req)
     process = new Process()

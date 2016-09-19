@@ -163,7 +163,7 @@ dockerManagement = exports = module.exports = class DockerManagement
         #get the file path from the corresponding correct value
         originalKey = key.replace('url','')
         orignalValue = params[originalKey]
-        if process.hasImage
+        if process.hasImages
           url = IoHelper.getStaticImageUrlWithFullPath(orignalValue)
         else
           url = IoHelper.getStaticDataUrlWithFullPath(orignalValue)

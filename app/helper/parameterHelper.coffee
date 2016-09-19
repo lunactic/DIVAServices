@@ -5,10 +5,12 @@
 # Copyright &copy; Marcel Würsch, GPL v3.0 licensed.
 
 # Module dependencies
-fs      = require 'fs'
-nconf   = require 'nconf'
-path    = require 'path'
-_       = require 'lodash'
+_           = require 'lodash'
+fs          = require 'fs'
+nconf       = require 'nconf'
+hash        = require 'object-hash'
+path        = require 'path'
+util        = require 'util'
 ImageHelper = require './imageHelper'
 IoHelper    = require './ioHelper'
 
@@ -109,35 +111,19 @@ parameterHelper = exports = module.exports = class ParameterHelper
     return result
 
   buildGetUrl: (process) ->
-    if process.hasImage
+    if process.hasImages
       return IoHelper.getStaticImageUrlWithFullPath(process.resultFile)
     else
       return IoHelper.getStaticDataUrlWithFullPath(process.resultFile)
 
   buildGetUrlCollection: (collection) ->
     #get the first process for parameter information
-    process = collection.processes[0]
-
-    getUrl = 'http://' + nconf.get('server:rootUrl') + process.req.originalUrl
-
-    #append collection name
-    getUrl += '?collection=' + collection.name
-    #append highlighter
-    if(!_.isEmpty(process.inputHighlighters))
-      getUrl += '&highlighter=' + JSON.stringify(process.inputHighlighters['segments'])
-      getUrl += '&highlighterType=' + process.inputHighlighters['type']
+    if collection.hasImages
+      return IoHelper.getStaticImageUrlWithFullPath(collection.resultFile)
+    else
+      return IoHelper.getStaticDataUrlWithFullPath(collection.resultFile)
 
 
-    filtered = _.filter(process.parameters.params, (value,key) ->
-      return !key in ['rectangle','circle','polygon']
-    )
-    #append other parameters
-    if(filtered.length > 0)
-      _.forIn(filtered, (value, key) ->
-        getUrl += '&' + key + '=' + value
-      )
-
-    return getUrl
 
   # ---
   # **getHighlighterParamValues**</br>
@@ -186,9 +172,9 @@ parameterHelper = exports = module.exports = class ParameterHelper
     if process.result?
       return
 
-    if process.hasImage
+    if process.hasImages
       methodPath = nconf.get('paths:imageRootPath') + '/'+ rootFolder + '/' + method + '.json'
-    else if process.hasFile
+    else if process.hasFiles
       methodPath = nconf.get('paths:dataRootPath') + '/' + rootFolder + '/' + method + '.json'
     else
       methodPath = nconf.get('paths:dataRootPath') + '/' + rootFolder + '/' + method + '.json'
@@ -197,27 +183,27 @@ parameterHelper = exports = module.exports = class ParameterHelper
     if(process.inputHighlighters?)
       data =
         highlighters: _.clone(process.inputHighlighters)
-        parameters: _.clone(process.inputParameters)
+        parameters: hash(_.clone(process.inputParameters))
         folder: outputFolder
     else
       data =
         highlighters: {}
-        parameters: _.clone(process.inputParameters)
+        parameters: hash(_.clone(process.inputParameters))
         folder: outputFolder
 
     #make strings of everything
     _.forIn(data.parameters, (value,key) ->
-      data.parameters[key] = String(value)
+      data.parameters[key] = JSON.stringify(value)
     )
     _.forIn(data.highlighters, (value,key) ->
-      data.highlighters[key] = String(value)
+      data.highlighters[key] = JSON.stringify(value)
     )
 
     try
       fs.statSync(methodPath).isFile()
       content = JSON.parse(fs.readFileSync(methodPath,'utf8'))
       #only save the information if its not already present
-      if(_.filter(content,{'parameters':data.parameters, 'highlighters':data.highlighters}).length == 0)
+      if(_.filter(content,{'parameters':hash(data.parameters), 'highlighters':data.highlighters}).length == 0)
         content.push data
         fs.writeFileSync(methodPath, JSON.stringify(content))
     catch error
@@ -225,14 +211,18 @@ parameterHelper = exports = module.exports = class ParameterHelper
       fs.writeFileSync(methodPath, JSON.stringify(content))
 
   loadParamInfo: (process) ->
-    paramPath = nconf.get('paths:imageRootPath') + '/' + process.rootFolder + '/' + process.method + '.json'
+    if process.hasImages
+      paramPath = nconf.get('paths:imageRootPath') + '/' + process.rootFolder + '/' + process.method + '.json'
+    else
+      paramPath = nconf.get('paths:dataRootPath') + '/' + process.rootFolder + '/' + process.method + '.json'
+
     data =
       highlighters: process.inputHighlighters
       parameters: process.inputParameters
     try
       fs.statSync(paramPath).isFile()
       content = JSON.parse(fs.readFileSync(paramPath,'utf8'))
-      if((info = _.filter(content,{'parameters':data.parameters, 'highlighters':data.highlighters})).length > 0)
+      if((info = _.filter(content,{'parameters':hash(data.parameters), 'highlighters':data.highlighters})).length > 0)
         #found some information about this method
         if(process.image?)
           process.resultFile = IoHelper.buildFilePath(info[0].folder, process.image.name)

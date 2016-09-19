@@ -32,5 +32,5 @@ process = exports = module.exports = class Process
   @type: ""
 
 
-  @hasFile = false
-  @hasImage = false
+  @hasFiles = false
+  @hasImages = false

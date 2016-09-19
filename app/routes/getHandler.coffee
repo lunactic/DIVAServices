@@ -66,31 +66,7 @@ getHandler = exports = module.exports = class GetHandler
     if queryParams.highlighter?
       highlighter = JSON.parse(queryParams.highlighter)
 
-    #distinguish between loading of the result of a single image or a collection
-    if queryParams['collection']?
-      collection = new Collection()
-      collection.name = queryParams['collection']
-      collection.method = parameterHelper.getMethodName(req.path)
-      prepareQueryParams(collection, queryParams)
-      if(ServicesInfoHelper.methodRequireFiles(serviceInfo))
-        folder = nconf.get('paths:imageRootPath') + path.sep + collection.name
-      else
-        folder = nconf.get('paths:dataRootPath') + path.sep + collection.name
-      collection.neededParameters = neededParameters
-      collection.image =
-        path: folder
-        md5:  ""
-      collection.outputFolder = folder
-      collection.parameters = parameterHelper.matchParams(collection,req)
-      if(ResultHelper.checkCollectionResultAvailable(collection))
-        data = ResultHelper.loadResult collection
-        callback null,data
-        return
-      else
-        err = createError(404,'This result is not available')
-        callback err, null
-
-    else if queryParams['md5']?
+    if queryParams['md5']?
       #locate the image folder
       ImageHelper.imageExists(queryParams.md5, (err, data) ->
         if(err?)
