@@ -151,7 +151,7 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
     async.waterfall [
       (callback) ->
         #STEP 1
-        if(methodRequireFiles(serviceInfo))
+        if(ServicesInfoHelper.methodRequireFiles(serviceInfo))
           if (req.body.images?  and req.body.images[0].type is 'collection')
             collection.name = req.body.images[0].value
             collection.hasImages = true
@@ -162,7 +162,7 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
               statusText: 'This input type is not supported. The only supported type is collection'
             callback err, null
             logger.log 'error', 'Collection Not Found'
-        else if(methodRequiresSaveData(serviceInfo))
+        else if(ServicesInfoHelper.methodRequireSaveData(serviceInfo))
           collection.hasFiles = true
           IoHelper.createDataCollectionFolders(serviceInfo)
           collection.name = serviceInfo.service
@@ -303,17 +303,3 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
       collection.inputHighlighters = _.clone(req.body.inputs.highlighter)
     else
       collection.inputHighlighters = {}
-
-
-  methodRequireFiles = (serviceInfo) ->
-    fileParameters = _.filter(serviceInfo.parameters, (parameter)->
-      return _.keys(parameter)[0] in ['inputImage', 'inputFile']
-    )
-    return fileParameters.length > 0
-
-  methodRequiresSaveData = (serviceInfo) ->
-    saveDataParameters = _.filter(serviceInfo.parameters, (parameter)->
-      return parameter[_.keys(parameter)[0]] in ['json']
-    )
-
-    return saveDataParameters.length > 0

@@ -3,6 +3,7 @@
 #
 # **ServicesInfoHelper** provides access to information stored in the services.json configuration file
 
+_     = require 'lodash'
 nconf = require 'nconf'
 fs    = require 'fs'
 IoHelper = require './ioHelper'
@@ -41,3 +42,14 @@ servicesInfoHelper = exports = module.exports = class ServicesInfoHelper
   
   @reload: () ->
     @fileContent = JSON.parse(fs.readFileSync(nconf.get('paths:servicesInfoFile'), 'utf8'))
+
+  @methodRequireFiles: (serviceInfo) ->
+    fileParameters = _.filter(serviceInfo.parameters, (parameter)->
+      return _.keys(parameter)[0] in ['inputImage', 'inputFile']
+    )
+    return fileParameters.length > 0
+
+  @methodRequireSaveData: (serviceInfo) ->
+    saveDataParameters = _.filter(serviceInfo.parameters, (parameter)->
+      return parameter[_.keys(parameter)[0]] in ['json']
+    )

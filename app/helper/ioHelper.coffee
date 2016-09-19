@@ -154,9 +154,7 @@ ioHelper = exports = module.exports = class IoHelper
 
   @writeTempFile: (filePath) ->
     try
-      stats = fs.statSync filePath
-        #check if file exists
-        #console.log 'saving file to: ' + filePath
+      fs.statSync filePath
     catch error
       try
         fs.writeFileSync filePath, JSON.stringify({status :'planned'})

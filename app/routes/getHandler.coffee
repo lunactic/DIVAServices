@@ -72,7 +72,10 @@ getHandler = exports = module.exports = class GetHandler
       collection.name = queryParams['collection']
       collection.method = parameterHelper.getMethodName(req.path)
       prepareQueryParams(collection, queryParams)
-      folder = nconf.get('paths:imageRootPath') + path.sep + collection.name
+      if(ServicesInfoHelper.methodRequireFiles(serviceInfo))
+        folder = nconf.get('paths:imageRootPath') + path.sep + collection.name
+      else
+        folder = nconf.get('paths:dataRootPath') + path.sep + collection.name
       collection.neededParameters = neededParameters
       collection.image =
         path: folder

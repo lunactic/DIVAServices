@@ -158,7 +158,6 @@ parameterHelper = exports = module.exports = class ParameterHelper
         merged = []
         merged = merged.concat.apply(merged,inputHighlighter)
         merged = merged.map(Math.round)
-
         return merged.join(' ')
       when 'circle'
         position = inputHighlighter.position
