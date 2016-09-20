@@ -256,10 +256,9 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
         requestCallback null, collection.result
 
   preprocessCollection = (collection, req, serviceInfo, parameterHelper,executionType, callback) ->
-    #process a collection
-
-    #check if collection exists
+    #handle images with/without images differently
     if(collection.hasImages)
+      #check if the collection is available
       if(not ImageHelper.checkCollectionAvailable(req.body.images[0].value))
         err =
           statusCode: 500
@@ -267,7 +266,6 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
           statusText: 'The collection ' + req.body.images[0].value + ' does not exist on the server'
         callback err, null
         return
-
       folder = nconf.get('paths:imageRootPath') + path.sep + collection.name
       collection.inputParameters = _.clone(req.body.inputs)
       setCollectionHighlighter(collection, req)
@@ -286,6 +284,7 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
           process.hasImages = true
           collection.processes.push(process)
         callback null, collection
+
     process = new Process()
     if (collection.hasFiles)
       process.hasFiles = true
