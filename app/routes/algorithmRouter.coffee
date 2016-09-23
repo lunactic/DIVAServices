@@ -133,8 +133,9 @@ router.put '/algorithms/:identifier', (req, res) ->
 
 router.post '/algorithms/:identifier/exceptions/:jobId', (req, res, next) ->
   AlgorithmManagement.recordException(req.params.identifier, req.text)
-  process = QueueHandler.getDockerJob(req.params.jobId)
-  ResultHelper.removeResult(process)
+  #TODO rethink this process
+  #process = QueueHandler.getDockerJob(req.params.jobId)
+  #ResultHelper.removeResult(process)
   if(process.type is 'test')
     AlgorithmManagement.updateStatus(process.algorithmIdentifier, 'error', process.req.originalUrl, req.text)
 

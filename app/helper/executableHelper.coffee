@@ -154,6 +154,7 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
         if(ServicesInfoHelper.methodRequireFiles(serviceInfo))
           if (req.body.images?  and req.body.images[0].type is 'collection')
             collection.name = req.body.images[0].value
+            outputFolder = IoHelper.getOutputFolderForImages(collection.name, serviceInfo, serviceInfo.uniqueOnCollection)
             collection.hasImages = true
           else
             err =
@@ -166,11 +167,13 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
           collection.hasFiles = true
           IoHelper.createDataCollectionFolders(serviceInfo)
           collection.name = serviceInfo.service
+          outputFolder = IoHelper.getOutputFolderForData(serviceInfo, serviceInfo.uniqueOnCollection)
         else
           IoHelper.createDataCollectionFolders(serviceInfo)
           collection.name = serviceInfo.service
+          outputFolder = IoHelper.getOutputFolderForData(serviceInfo, serviceInfo.uniqueOnCollection)
 
-        outputFolder = IoHelper.getOutputFolderForData(serviceInfo, serviceInfo.uniqueOnCollection)
+
         collection.outputFolder = outputFolder
         preprocessCollection(collection, req, serviceInfo, parameterHelper,executionType, callback)
       (collection, callback) ->
@@ -284,22 +287,22 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
           process.hasImages = true
           collection.processes.push(process)
         callback null, collection
-
-    process = new Process()
-    if (collection.hasFiles)
-      process.hasFiles = true
-    collection.inputParameters = _.clone(req.body.inputs)
-    setCollectionHighlighter(collection, req)
-    if(ResultHelper.checkCollectionResultAvailable(collection))
-      collection.result = ResultHelper.loadResult(collection)
-      callback null, collection
     else
       process = new Process()
-      process.req = _.clone(req)
-      process.rootFolder = collection.name
-      process.type = executionType
-      collection.processes.push(process)
-      callback null, collection
+      if (collection.hasFiles)
+        process.hasFiles = true
+      collection.inputParameters = _.clone(req.body.inputs)
+      setCollectionHighlighter(collection, req)
+      if(ResultHelper.checkCollectionResultAvailable(collection))
+        collection.result = ResultHelper.loadResult(collection)
+        callback null, collection
+      else
+        process = new Process()
+        process.req = _.clone(req)
+        process.rootFolder = collection.name
+        process.type = executionType
+        collection.processes.push(process)
+        callback null, collection
 
   setCollectionHighlighter = (collection, req) ->
     if req.body.inputs.highlighter?

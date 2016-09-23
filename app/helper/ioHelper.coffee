@@ -73,7 +73,7 @@ ioHelper = exports = module.exports = class IoHelper
 
     #filter for folders matching the service name
     folders = _.filter folders,  (folder) ->
-      _.includes folder,service
+      _.includes folder,service.service
 
 
     if(folders.length > 0 and not unique)
@@ -81,9 +81,9 @@ ioHelper = exports = module.exports = class IoHelper
       numbers = _.map(numbers, 1)
       numbers = _.map numbers, Number.parseFloat
       maxNumber = parseInt(_.max(numbers))
-      return rootPath + '/' + service + '_' + (maxNumber + 1)
+      return rootPath + '/' + service.service + '_' + (maxNumber + 1)
     else
-      return rootPath + '/' + service + '_0'
+      return rootPath + '/' + service.service + '_0'
 
 
   @getOutputFolderForData: (service, unique) ->

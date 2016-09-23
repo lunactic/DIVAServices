@@ -59,25 +59,31 @@ dockerManagement = exports = module.exports = class DockerManagement
     archive.finalize()
 
   @removeImage: (imageName, callback) ->
-    @docker.getImage(imageName).remove( (err,data) ->
+    callback null
+    ###@docker.getImage(imageName).remove( (err,data) ->
       if(err?)
         logger.log 'error', err
       callback null
-    )
+    )###
 
   @createDockerFile: (algorithmInfos, outputFolder) ->
     content = "FROM " + algorithmInfos.method.environment + "\n" +
-      "MAINTAINER marcel.wuersch@unifr.ch\n" +
-      "RUN apt-get update\n" +
-      "RUN apt-get install wget unzip curl -y\n" +
-      "RUN mkdir /data\n"+
-      "RUN mkdir /data/output\n"+
-      "WORKDIR /data\n" +
-      "COPY . .\n" +
-      'RUN ["chmod", "+x", "./script.sh"]\n' +
-      'RUN unzip algorithm.zip\n'
+      "MAINTAINER marcel.wuersch@unifr.ch\n"
+    if algorithmInfos.method.environment is 'kbai/kraken-docker'
+      content += "RUN apk update\n" +
+          "RUN apk add curl\n"
+    else
+      content += "RUN apt-get update\n" +
+        "RUN apt-get install wget unzip curl -y\n"
 
-    if algorithmInfos.method.language is 'bash'
+    content += "RUN mkdir -p /data\n" +
+               "RUN mkdir -p /data/output\n"+
+               "WORKDIR /data\n" +
+               "COPY . .\n" +
+               'RUN ["chmod", "+x", "./script.sh"]\n' +
+               'RUN unzip algorithm.zip\n'
+
+    if algorithmInfos.method.executableType is 'bash'
       content += 'RUN ["chmod", "+x", "./'+ algorithmInfos.method.executable_path+'"]\n'
 
       #'ENTRYPOINT ["./script.sh"]'
@@ -88,7 +94,6 @@ dockerManagement = exports = module.exports = class DockerManagement
     
     if(_.find(algorithmInfos.input,{'inputImage':{}})?)
       content += 'wget -O /data/inputImage.png $1\n'
-      #content += 'wget -O /data/inputImage.png $1\n'
 
     #input count starts with 4. Params 1,2 and 3 are fix used
     # 1: inputImageUrl
@@ -140,7 +145,6 @@ dockerManagement = exports = module.exports = class DockerManagement
     content += 'if [ -s "/data/error.txt" ] \n'
     content += 'then \n'
     content += '    curl -H "Content-Type: text/plain" --data @/data/error.txt $3 \n'
-    content += '    exit 1 \n'
     content += 'fi \n'
     content += 'if [ -s "/data/result.json" ] \n'
     content += 'then \n'
@@ -155,11 +159,11 @@ dockerManagement = exports = module.exports = class DockerManagement
     for key, value of params
       if key == 'highlighter'
         paramsPath += _.map(params.highlighter.split(' '), (item) -> return '"'+item+ '"').join(' ')
-      else if _.find(neededParams, key)[key] in ['json', 'file']
+      else if _.find(neededParams, key)? and _.find(neededParams, key)[key] in ['json', 'file']
         #replace path with download url
         remotePath = _.find(proc.remotePaths, key)[key]
         paramsPath += '"' + remotePath + '" '
-      else if _.find(neededParams, key)[key] in ['url']
+      else if _.find(neededParams, key)? and _.find(neededParams, key)[key] in ['url']
         #get the file path from the corresponding correct value
         originalKey = key.replace('url','')
         orignalValue = params[originalKey]
@@ -174,7 +178,7 @@ dockerManagement = exports = module.exports = class DockerManagement
 
     command = "./script.sh " + proc.inputImageUrl + " " + proc.remoteResultUrl + " " + proc.remoteErrorUrl + " " + paramsPath
     logger.log 'info', command
-    @docker.run(imageName,['bash', '-c', command], proc.stdout, (err, data, container) ->
+    @docker.run(imageName,['sh', '-c', command], proc.stdout, (err, data, container) ->
       if(err?)
         logger.log 'error', err
         if(callback?)
