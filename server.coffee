@@ -13,6 +13,7 @@ if not process.env.NODE_ENV? or process.env.NODE_ENV not in ['dev', 'test', 'pro
 
 nconf = require 'nconf'
 nconf.add 'server', type: 'file', file: './conf/server.' + process.env.NODE_ENV + '.json'
+nconf.add 'baseImages', type: 'file', file: './conf/baseImages.json'
 nconf.add 'detailsAlgorithmSchema', type: 'file', file: './conf/schemas/detailsAlgorithmSchema.json'
 nconf.add 'generalAlgorithmSchema', type: 'file', file: './conf/schemas/generalAlgorithmSchema.json'
 nconf.add 'hostSchema', type: 'file', file: './conf/schemas/hostSchema.json'

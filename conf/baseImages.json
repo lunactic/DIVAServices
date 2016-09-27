@@ -1,0 +1,9 @@
+{
+  "baseImages":{
+    "java:7":"apt",
+    "java:8":"apt",
+    "divaservices/ocropus":"apt",
+    "divaservices/matlab2014b-compiler-runtime-docker":"apt",
+    "kbai/kraken-docker":"apk"
+  }
+}

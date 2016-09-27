@@ -69,12 +69,13 @@ dockerManagement = exports = module.exports = class DockerManagement
   @createDockerFile: (algorithmInfos, outputFolder) ->
     content = "FROM " + algorithmInfos.method.environment + "\n" +
       "MAINTAINER marcel.wuersch@unifr.ch\n"
-    if algorithmInfos.method.environment is 'kbai/kraken-docker'
-      content += "RUN apk update\n" +
-          "RUN apk add curl\n"
-    else
-      content += "RUN apt-get update\n" +
-        "RUN apt-get install wget unzip curl -y\n"
+    switch nconf.get('baseImages:'+algorithmInfos.method.environment)
+      when 'apk'
+        content += "RUN apk update\n" +
+            "RUN apk add curl\n"
+      when 'apt'
+        content += "RUN apt-get update\n" +
+            "RUN apt-get install wget unzip curl -y\n"
 
     content += "RUN mkdir -p /data\n" +
                "RUN mkdir -p /data/output\n"+

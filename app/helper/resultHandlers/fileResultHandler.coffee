@@ -71,7 +71,7 @@ fileResultHandler = exports = module.exports = class FileResultHandler
                   )
 
               #check if there is a visualization type, otherwise generate one of the original inputImage
-              if not visualization
+              if not visualization and process.inputImageUrl?
                 file =
                   file:
                     'mime-type': 'png'
