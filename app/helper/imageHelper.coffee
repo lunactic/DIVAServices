@@ -18,7 +18,7 @@ request               = require 'request'
 logger                = require '../logging/logger'
 
 # expose imageHelper
-imageHelper = exports = module.exports = class ImageHelper
+class ImageHelper
 
   @imageInfo ?= JSON.parse(fs.readFileSync(nconf.get('paths:imageInfoFile'),'utf-8'))
 
@@ -326,3 +326,5 @@ imageHelper = exports = module.exports = class ImageHelper
       return 'jpg'
     if(base64.indexOf('iVBORw0KGgoAAAANSUhEU') != -1)
       return 'png'
+
+module.exports = ImageHelper

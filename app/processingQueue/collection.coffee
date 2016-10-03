@@ -1,4 +1,4 @@
-collection = exports = module.exports = class Collection
+class Collection
 
   constructor: () ->
     @method = ""
@@ -17,3 +17,5 @@ collection = exports = module.exports = class Collection
 
     @hasFiles = false
     @hasImages = false
+
+module.exports = Collection

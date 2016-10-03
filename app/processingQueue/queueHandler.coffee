@@ -4,7 +4,7 @@ Statistics = require '../statistics/statistics'
 ProcessingQueue = require './processingQueue'
 ExecutableHelper = require '../helper/executableHelper'
 
-queueHandler = exports = module.exports = class QueueHandler
+class QueueHandler
 
   @localProcessingQueue = null
   @remoteProcessingQueue = null
@@ -79,3 +79,5 @@ queueHandler = exports = module.exports = class QueueHandler
     logger.log 'info', 'execute remote request'
     if(remoteRequestAvailable())
       QueueHandler.executableHelper.executeRemoteRequest(getNextRemoteRequest())
+
+module.exports = QueueHandler

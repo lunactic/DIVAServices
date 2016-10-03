@@ -1,6 +1,6 @@
 #Class representing a process to be executed
 
-process = exports = module.exports = class Process
+class Process
   @id: ""
   @algorithmIdentifier: ""
   @executableType: ""
@@ -34,3 +34,5 @@ process = exports = module.exports = class Process
 
   @hasFiles = false
   @hasImages = false
+
+module.exports = Process

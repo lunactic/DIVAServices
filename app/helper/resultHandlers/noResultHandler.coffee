@@ -6,7 +6,7 @@
 fs = require 'fs'
 logger = require '../../logging/logger'
 
-noResultHandler = exports = module.exports = class NoResultHandler
+class NoResultHandler
   @filename: ''
   constructor: (filepath) ->
     @filename = filepath
@@ -21,3 +21,5 @@ noResultHandler = exports = module.exports = class NoResultHandler
       #delete the result file as it is not needed
       fs.unlinkSync(@filename)
       callback null, null, null
+
+module.exports = NoResultHandler

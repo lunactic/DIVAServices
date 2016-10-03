@@ -1,4 +1,4 @@
-processingQueue = exports = module.exports = class LocalProcessingQueue
+class ProcessingQueue
 
   constructor: () ->
     @queue = []
@@ -9,3 +9,5 @@ processingQueue = exports = module.exports = class LocalProcessingQueue
     return @queue.shift()
   getSize: ->
     return @queue.length
+
+module.exports = ProcessingQueue

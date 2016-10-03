@@ -22,7 +22,7 @@ ImageHelper         = require '../helper/imageHelper'
 ServicesInfoHelper  = require '../helper/servicesInfoHelper'
 
 #Expose getHandler
-getHandler = exports = module.exports = class GetHandler
+class GetHandler
 
   # ---
   # **handleRequest**</br>
@@ -150,3 +150,5 @@ getHandler = exports = module.exports = class GetHandler
       statusCode: status
       statusText: message
     return err
+
+module.exports = GetHandler

@@ -10,7 +10,8 @@ sequest             = require 'sequest'
 IoHelper            = require '../helper/ioHelper'
 
 
-dockerManagement = exports = module.exports = class DockerManagement
+class DockerManagement
+
   @docker = new Docker({host: nconf.get('docker:host'), port: nconf.get('docker:port')})
 
   @buildImage: (inputFolder, imageName, callback) ->
@@ -200,3 +201,5 @@ dockerManagement = exports = module.exports = class DockerManagement
     )
   getDockerInput = (input) ->
     return nconf.get('docker:paths:'+input)
+
+module.exports = DockerManagement

@@ -4,8 +4,7 @@ ImageHelper     = require './imageHelper'
 IoHelper        = require './ioHelper'
 ParameterHelper = require './parameterHelper'
 
-
-resultHelper = exports = module.exports = class ResultHelper
+class ResultHelper
 
   @parameterHelper = new ParameterHelper()
   @ioHelper = new IoHelper()
@@ -65,3 +64,5 @@ resultHelper = exports = module.exports = class ResultHelper
 
     response['status'] = 'done'
     return response
+
+module.exports = ResultHelper

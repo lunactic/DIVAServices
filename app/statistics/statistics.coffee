@@ -14,7 +14,7 @@ fs          = require 'fs'
 logger      = require '../logging/logger'
 
 
-statistics = exports = module.exports = class Statistics
+class Statistics
 
   @currentExecutions = []
   @currentStatistics = {}
@@ -87,3 +87,5 @@ statistics = exports = module.exports = class Statistics
 
   @saveStatistics: () ->
     fs.writeFileSync nconf.get('paths:servicesInfoFile'), JSON.stringify(@currentStatistics, null, '\t')
+
+module.exports = Statistics

@@ -10,7 +10,7 @@ nconf       = require 'nconf'
 ImageHelper = require '../imageHelper'
 IoHelper    = require '../ioHelper'
 
-fileResultHandler = exports = module.exports = class FileResultHandler
+class FileResultHandler
   @filename: ''
   constructor: (filepath) ->
     @filename = filepath
@@ -97,3 +97,5 @@ fileResultHandler = exports = module.exports = class FileResultHandler
             callback null, data, process.id
       else
         callback err, null, null
+
+module.exports = FileResultHandler

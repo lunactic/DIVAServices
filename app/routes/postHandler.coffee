@@ -20,8 +20,8 @@
 QueueHandler        = require '../processingQueue/queueHandler'
 ServicesInfoHelper  = require '../helper/servicesInfoHelper'
 logger              = require '../logging/logger'
-#Expose postHandler
-postHandler = exports = module.exports = class PostHandler
+
+class PostHandler
 
   # ---
   # **handleRequest**</br>
@@ -59,3 +59,5 @@ postHandler = exports = module.exports = class PostHandler
             statusCode: 500
             statusText: 'error in method definition'
           cb error, null
+
+module.exports = PostHandler

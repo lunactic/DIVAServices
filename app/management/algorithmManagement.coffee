@@ -7,7 +7,7 @@ nconf               = require 'nconf'
 path                = require 'path'
 ServicesInfoHelper  = require '../helper/servicesInfoHelper'
 
-algorithmManagement = exports = module.exports = class AlgorithmManagement
+class AlgorithmManagement
 
   @ioHelper = new IoHelper()
 
@@ -228,3 +228,5 @@ algorithmManagement = exports = module.exports = class AlgorithmManagement
     service.identifier = newIdentifier
     ServicesInfoHelper.update(content)
     ServicesInfoHelper.reload()
+
+module.exports = AlgorithmManagement

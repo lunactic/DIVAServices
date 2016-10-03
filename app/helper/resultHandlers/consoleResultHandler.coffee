@@ -5,7 +5,8 @@
 fs = require 'fs'
 logger = require '../../logging/logger'
 ImageHelper = require '../imageHelper'
-consoleResultHandler = exports = module.exports = class ConsoleResultHandler
+
+class ConsoleResultHandler
   @file = ""
   constructor: (filePath) ->
     @file = filePath
@@ -43,3 +44,5 @@ consoleResultHandler = exports = module.exports = class ConsoleResultHandler
               callback null, data, process.id
         else
           callback err, null, null
+
+module.exports = ConsoleResultHandler

@@ -9,7 +9,7 @@ fs    = require 'fs'
 IoHelper = require './ioHelper'
 
 
-servicesInfoHelper = exports = module.exports = class ServicesInfoHelper
+class ServicesInfoHelper
 
   @fileContent ?= JSON.parse(fs.readFileSync(nconf.get('paths:servicesInfoFile'), 'utf8'))
 
@@ -53,3 +53,5 @@ servicesInfoHelper = exports = module.exports = class ServicesInfoHelper
     saveDataParameters = _.filter(serviceInfo.parameters, (parameter)->
       return parameter[_.keys(parameter)[0]] in ['json']
     )
+
+module.exports = ServicesInfoHelper

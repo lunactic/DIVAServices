@@ -1,4 +1,4 @@
-iifManifestParser = exports = module.exports = class IiifManifestParser
+class IiifManifestParser
 
   manifesto = require 'manifesto.js'
   q         = require 'q'
@@ -34,3 +34,5 @@ iifManifestParser = exports = module.exports = class IiifManifestParser
 
   getAttribution: () ->
     return @manifest.getAttribution()
+
+module.exports = IiifManifestParser

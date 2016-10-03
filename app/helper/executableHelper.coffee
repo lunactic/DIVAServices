@@ -28,7 +28,7 @@ ServicesInfoHelper  = require '../helper/servicesInfoHelper'
 Statistics          = require '../statistics/statistics'
 
 # Expose executableHelper
-executableHelper = exports = module.exports = class ExecutableHelper extends EventEmitter
+class ExecutableHelper extends EventEmitter
 
   # ---
   # **constructor**</br>
@@ -309,3 +309,5 @@ executableHelper = exports = module.exports = class ExecutableHelper extends Eve
       collection.inputHighlighters = _.clone(req.body.inputs.highlighter)
     else
       collection.inputHighlighters = {}
+
+module.exports = ExecutableHelper

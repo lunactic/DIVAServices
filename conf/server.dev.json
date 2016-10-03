@@ -14,7 +14,7 @@
     "level": "DEBUG"
   },
   "docker":{
-    "host":"134.21.72.95",
+    "host":"192.168.56.101",
     "port":"2375",
     "reportHost":"134.21.72.48:8080",
     "replacePaths":[

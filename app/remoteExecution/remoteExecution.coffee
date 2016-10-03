@@ -3,7 +3,7 @@ fs = require 'fs'
 path = require 'path'
 sequest = require 'sequest'
 
-remoteExecution = exports = module.exports = class RemoteExecution
+class RemoteExecution
 
   constructor: (serverUrl, user) ->
     @serverUrl = serverUrl
@@ -31,3 +31,4 @@ remoteExecution = exports = module.exports = class RemoteExecution
     seq = sequest.connect(@userName + '@' + @serverUrl, {readyTimeout: 99999})
     seq 'rm -rf ' + process.rootFolder + '/'
 
+module.exports = RemoteExecution

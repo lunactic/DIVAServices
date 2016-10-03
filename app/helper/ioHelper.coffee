@@ -21,7 +21,7 @@ logger    = require '../logging/logger'
 
 
 # expose IoHelper
-ioHelper = exports = module.exports = class IoHelper
+class IoHelper
 
   @deleteFile: (file) ->
     fs.unlink(file)
@@ -278,3 +278,5 @@ ioHelper = exports = module.exports = class IoHelper
       return files
     catch error
       return null
+
+module.exports = IoHelper

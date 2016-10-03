@@ -16,7 +16,7 @@ ImageHelper = require './imageHelper'
 IoHelper    = require './ioHelper'
 
 # expose parameterHelper
-parameterHelper = exports = module.exports = class ParameterHelper
+class ParameterHelper
 
   # ---
   # **getParamValue**</br>
@@ -263,5 +263,6 @@ parameterHelper = exports = module.exports = class ParameterHelper
     reservedParameters = nconf.get('reservedWords')
     return parameter in reservedParameters
 
+module.exports = ParameterHelper
 
 

@@ -6,7 +6,7 @@ request   = require 'request'
 util      = require 'util'
 
 
-swagger = exports = module.exports = class Swagger
+class Swagger
 
   currentSwagger = IoHelper.loadFile(nconf.get('paths:swaggerFile'))
 
@@ -102,3 +102,5 @@ swagger = exports = module.exports = class Swagger
     currentSwagger.paths['/'+route] = entry
     currentSwagger.definitions[algorithmInfo.general.name.replace(/\s/g,'').toLowerCase()] = definitions
     IoHelper.saveFile(nconf.get('paths:swaggerFile'), currentSwagger, () -> )
+
+module.exports = Swagger
