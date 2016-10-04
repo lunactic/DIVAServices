@@ -59,8 +59,15 @@ class FileResultHandler
                   file.file['url'] = process.outputImageUrl
                   if file.file.options.visualization
                     visualization = true
-
                   delete file.file.content
+                else if file.file['mime-type'] == 'text/plain'
+                  IoHelper.saveFile(process.outputFolder + '/' + file.file.name + '.txt', file.file.content, () ->
+                    if process.hasImages
+                      file.file['url'] = IoHelper.getStaticImageUrl(process.rootFolder + '/' + process.methodFolder, file.file.name + '.txt')
+                    else if process.hasFiles
+                      file.file['url'] = IoHelper.getStaticDataUrl(process.rootFolder + '/' + process.methodFolder, file.file.name + '.txt')
+                    delete file.file.content
+                  )
                 else
                   IoHelper.saveFileBase64(process.outputFolder + '/' + file.file.filename, file.file.content, () ->
                     if process.hasImages
