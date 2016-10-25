@@ -87,10 +87,10 @@ class ImageHelper
       else
         #error handling
 
-  @saveImageJson: (image,process) ->
+  @saveImageJson: (image,process, filename) ->
     process.image.extension = getImageExtensionFromBase64(image)
     base64Data = image.replace(/^data:image\/png;base64,/, "")
-    fs.writeFileSync(process.outputFolder + '/' + process.image.name + '.' + process.image.extension,base64Data, 'base64')
+    fs.writeFileSync(process.outputFolder + '/' + filename + '.' + process.image.extension,base64Data, 'base64')
 
 
   # ---

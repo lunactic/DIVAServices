@@ -54,11 +54,14 @@ class FileResultHandler
               visualization = false
               for file in files
                 if file.file['mime-type'].startsWith('image')
-                  ImageHelper.saveImageJson(file.file.content, process)
-                  process.outputImageUrl = ImageHelper.getOutputImageUrl(process.rootFolder + '/' + process.methodFolder, process.image.name, process.image.extension )
-                  file.file['url'] = process.outputImageUrl
+                  ImageHelper.saveImageJson(file.file.content, process, file.file.name)
+                  if process.hasImages
+                    file.file['url'] = IoHelper.getStaticImageUrl(process.rootFolder + '/' + process.methodFolder, file.file.name + '.png')
+                  else if process.hasFiles
+                    file.file['url'] = IoHelper.getStaticDataUrl(process.rootFolder + '/' + process.methodFolder, file.file.name + '.png' )
                   if file.file.options.visualization
                     visualization = true
+                    process.outputImageUrl = file.file.url
                   delete file.file.content
                 else if file.file['mime-type'] == 'text/plain'
                   IoHelper.saveFile(process.outputFolder + '/' + file.file.name + '.txt', file.file.content, () ->
@@ -71,9 +74,9 @@ class FileResultHandler
                 else
                   IoHelper.saveFileBase64(process.outputFolder + '/' + file.file.filename, file.file.content, () ->
                     if process.hasImages
-                      file.file['url'] = IoHelper.getStaticImageUrl(process.rootFolder + '/' + process.methodFolder, file.file.filename)
+                      file.file['url'] = IoHelper.getStaticImageUrl(process.rootFolder + '/' + process.methodFolder, file.file.name)
                     else if process.hasFiles
-                      file.file['url'] = IoHelper.getStaticDataUrl(process.rootFolder + '/' + process.methodFolder, file.file.filename)
+                      file.file['url'] = IoHelper.getStaticDataUrl(process.rootFolder + '/' + process.methodFolder, file.file.name)
                     delete file.file.content
                   )
 
