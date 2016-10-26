@@ -70,7 +70,7 @@ class DockerManagement
   @createDockerFile: (algorithmInfos, outputFolder) ->
     content = "FROM " + algorithmInfos.method.environment + "\n" +
       "MAINTAINER marcel.wuersch@unifr.ch\n"
-    switch nconf.get('baseImages:'+algorithmInfos.method.environment)
+    switch nconf.get('baseImages:'+ algorithmInfos.method.environment)
       when 'apk'
         content += "RUN apk update\n" +
             "RUN apk add curl\n"

@@ -17,6 +17,9 @@ class Swagger
 
     names = []
     inputProps = {}
+    inputProps['highlighter'] =
+      type: 'object'
+
     _.forEach(inputs, (input) ->
       switch _.keys(input)[0]
         when 'select'
@@ -60,11 +63,9 @@ class Swagger
 
     definitions =
       type: 'object'
-      required: ['inputs', 'highlighter', 'images']
+      required: ['inputs', 'images']
       properties:
         inputs: jsonInputs
-        highlighter:
-          type: 'object'
         images:
           $ref: '#/definitions/inputImages'
 

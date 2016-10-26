@@ -4,8 +4,8 @@
     "infoText": "Necessary environment to run the algorithm",
     "type": "enum",
     "values": [
-      "java:7",
-      "java:8",
+      "anapsix/alpine-java:7",
+      "anapsix/alpine-java:8",
       "divaservices/ocropus",
       "divaservices/matlab2014b-compiler-runtime-docker",
       "kbai/kraken-docker",

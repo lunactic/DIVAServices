@@ -1,7 +1,10 @@
 {
-  "baseImages":{
-    "java:7":"apt",
-    "java:8":"apt",
+  "baseImages": {
+    "anapsix/alpine-java":{
+      "7":"apk",
+      "8":"apk"
+    },
+    "anapsix/alpine-java:8":"apk",
     "divaservices/ocropus":"apt",
     "divaservices/matlab2014b-compiler-runtime-docker":"apt",
     "kbai/kraken-docker":"apk",
