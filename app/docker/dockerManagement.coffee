@@ -70,7 +70,7 @@ class DockerManagement
   @createDockerFile: (algorithmInfos, outputFolder) ->
     content = "FROM " + algorithmInfos.method.environment + "\n" +
       "MAINTAINER marcel.wuersch@unifr.ch\n"
-    switch nconf.get('baseImages:'+ algorithmInfos.method.environment)
+    switch nconf.get('baseImages:'+algorithmInfos.method.environment)
       when 'apk'
         content += "RUN apk update\n" +
             "RUN apk add curl\n"
@@ -169,7 +169,7 @@ class DockerManagement
         #get the file path from the corresponding correct value
         originalKey = key.replace('url','')
         orignalValue = params[originalKey]
-        if process.hasImages
+        if proc.hasImages
           url = IoHelper.getStaticImageUrlWithFullPath(orignalValue)
         else
           url = IoHelper.getStaticDataUrlWithFullPath(orignalValue)
@@ -194,6 +194,10 @@ class DockerManagement
         logger.log 'error', 'Execution did not finish properly! status code is: ' + data.StatusCode
         error =
           statusMessage: 'Execution did not finish properly! status code is: ' + data.StatusCode
+
+        if(proc.type is 'test')
+          ResultHelper.removeResult(process)
+
         container.remove( (err, data) ->
           if(callback?)
             callback error, null

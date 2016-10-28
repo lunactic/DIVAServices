@@ -30,6 +30,7 @@ class ImageHelper
         image = @saveOriginalImage(inputImage.value,process.rootFolder,counter, (image) ->
           self.addImageInfo(image.md5, image.path, process.rootFolder)
           self.updateCollectionInformation(process.rootFolder, numberOfImages, counter)
+          logger.log 'info', 'saved image'
         )
       when 'url'
         image = @saveImageUrl(inputImage.value,process.rootFolder, counter, (image) ->
@@ -43,7 +44,7 @@ class ImageHelper
     filtered = @imageInfo.filter (item) ->
       return item.md5 == md5
     if(filtered.length > 0)
-      callback null, {imageAvailable: true}
+      callback null, {imageAvailable: true, collection: filtered[0].collection}
     else
       callback null, {imageAvailable: false}
 
