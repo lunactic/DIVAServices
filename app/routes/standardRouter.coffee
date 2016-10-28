@@ -14,6 +14,7 @@ IiifManifestParser  = require '../parsers/iiifManifestParser'
 ImageHelper         = require '../helper/imageHelper'
 IoHelper            = require '../helper/ioHelper'
 logger              = require '../logging/logger'
+md5                 = require 'md5'
 nconf               = require 'nconf'
 path                = require 'path'
 PostHandler         = require './postHandler'
@@ -30,10 +31,6 @@ postHandler = new PostHandler()
 # Set up special route for image uploading
 #TODO Provide a way to upload other data (currently sent as req.body.data)
 router.post '/upload', (req, res) ->
-  collectionName = RandomWordGenerator.generateRandomWord()
-  IoHelper.createImageCollectionFolders(collectionName)
-  process =
-    rootFolder: collectionName
   #send immediate response with collection name to not block the request for too long
   
   #Create a status route
@@ -49,26 +46,39 @@ router.post '/upload', (req, res) ->
         numberOfImages++
         callback()
   ), (err) ->
-    ImageHelper.createCollectionInformation(collectionName, numberOfImages)
-    send200(res, {collection: collectionName})
-    imageCounter = 1
-    for image, i in req.body.images
-      switch image.type
-        when 'iiif'
-          iifManifestParser = new IiifManifestParser(image.value)
-          iifManifestParser.initialize().then ->
-            #TODO improve to save all images
-            images = iifManifestParser.getAllImages(0)
-            metadata = iifManifestParser.getMetadata()
-            label = iifManifestParser.getLabel()
-            description = iifManifestParser.getDescription()
-            for inputImage,i in images
-              ImageHelper.saveImageUrl(inputImage, collectionName, i, (image) ->
-                ImageHelper.addImageInfo image.md5, image.path, collectionName
-                ImageHelper.updateCollectionInformation(collectionName, numberOfImages, imageCounter++)
-              )
-        else
-          ImageHelper.saveImage(image, process, numberOfImages, imageCounter++)
+    imageExists = false
+    if(numberOfImages == 1 and req.body.images[0].type != 'iiif')
+      #check if image exists
+      ImageHelper.imageExists(md5(req.body.images[0].value), (err, response) ->
+        if(response.imageAvailable)
+          send200(res, {collection: response.collection})
+          imageExists = true
+      )
+    if(!imageExists)
+      collectionName = RandomWordGenerator.generateRandomWord()
+      IoHelper.createImageCollectionFolders(collectionName)
+      ImageHelper.createCollectionInformation(collectionName, numberOfImages)
+      send200(res, {collection: collectionName})
+      process =
+        rootFolder: collectionName
+      imageCounter = 1
+      for image, i in req.body.images
+        switch image.type
+          when 'iiif'
+            iifManifestParser = new IiifManifestParser(image.value)
+            iifManifestParser.initialize().then ->
+              #TODO improve to save all images
+              images = iifManifestParser.getAllImages(0)
+              metadata = iifManifestParser.getMetadata()
+              label = iifManifestParser.getLabel()
+              description = iifManifestParser.getDescription()
+              for inputImage,i in images
+                ImageHelper.saveImageUrl(inputImage, collectionName, i, (image) ->
+                  ImageHelper.addImageInfo image.md5, image.path, collectionName
+                  ImageHelper.updateCollectionInformation(collectionName, numberOfImages, imageCounter++)
+                )
+          else
+            ImageHelper.saveImage(image, process, numberOfImages, imageCounter++)
 
 router.post '/jobs/:jobId', (req, res, next) ->
   logger.log 'info', 'jobs route called'

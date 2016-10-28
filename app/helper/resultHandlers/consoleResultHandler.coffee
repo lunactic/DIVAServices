@@ -11,6 +11,17 @@ class ConsoleResultHandler
   constructor: (filePath) ->
     @file = filePath
 
+  handleError: (error, process) ->
+    self = @
+    fs.stat @filename, (err, stat) ->
+      data =
+        status: 'done'
+        resultLink: process.resultLink
+        collectionName: process.rootFolder
+        statusMessage: error
+        statusCode: 500
+      fs.writeFileSync(self.filename,JSON.stringify(data), "utf8")
+
   handleResult: (error, stdout, stderr, process, callback) ->
     self = @
     if stderr.length > 0

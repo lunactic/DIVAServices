@@ -12,6 +12,7 @@ ResultHelper          = require '../helper/resultHelper'
 router                = require('express').Router()
 schemaValidator       = require '../validator/schemaValidator'
 ServicesInfoHelper    = require '../helper/servicesInfoHelper'
+Statistics            = require '../statistics/statistics'
 Swagger               = require '../swagger/swagger'
 QueueHandler          = require '../processingQueue/queueHandler'
 
@@ -134,11 +135,13 @@ router.put '/algorithms/:identifier', (req, res) ->
 router.post '/algorithms/:identifier/exceptions/:jobId', (req, res, next) ->
   AlgorithmManagement.recordException(req.params.identifier, req.text)
   #TODO rethink this process
-  #process = QueueHandler.getDockerJob(req.params.jobId)
+  process = QueueHandler.getDockerJob(req.params.jobId)
   #ResultHelper.removeResult(process)
   if(process.type is 'test')
     AlgorithmManagement.updateStatus(process.algorithmIdentifier, 'error', process.req.originalUrl, req.text)
-
+  else
+    Statistics.endRecording(req.params.jobId, process.req.originalUrl)
+    process.resultHandler.handleError('error running the algorithm', process)
   send200(res, {})
 
 router.get '/algorithms/:identifier/exceptions', (req, res) ->
