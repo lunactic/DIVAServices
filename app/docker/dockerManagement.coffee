@@ -8,6 +8,7 @@ nconf               = require 'nconf'
 path                = require 'path'
 sequest             = require 'sequest'
 IoHelper            = require '../helper/ioHelper'
+ResultHelper        = require '../helper/resultHelper'
 
 
 class DockerManagement
@@ -60,42 +61,43 @@ class DockerManagement
     archive.finalize()
 
   @removeImage: (imageName, callback) ->
-    callback null
-    ###@docker.getImage(imageName).remove( (err,data) ->
+    @docker.getImage(imageName).remove( (err,data) ->
       if(err?)
         logger.log 'error', err
       callback null
-    )###
+    )
 
   @createDockerFile: (algorithmInfos, outputFolder) ->
-    content = "FROM " + algorithmInfos.method.environment + "\n" +
-      "MAINTAINER marcel.wuersch@unifr.ch\n"
+    content = 'FROM ' + algorithmInfos.method.environment + '\n' +
+      'MAINTAINER marcel.wuersch@unifr.ch \n'
     switch nconf.get('baseImages:'+algorithmInfos.method.environment)
       when 'apk'
-        content += "RUN apk update\n" +
-            "RUN apk add curl\n"
+        content += 'RUN apk update \n' +
+            'RUN apk add curl \n'
       when 'apt'
-        content += "RUN apt-get update\n" +
-            "RUN apt-get install wget unzip curl -y\n"
+        content += 'RUN apt-get update \n' +
+            'RUN apt-get install wget unzip curl -y \n'
 
-    content += "RUN mkdir -p /data\n" +
-               "RUN mkdir -p /data/output\n"+
-               "WORKDIR /data\n" +
-               "COPY . .\n" +
-               'RUN ["chmod", "+x", "./script.sh"]\n' +
-               'RUN unzip algorithm.zip\n'
+    content += 'RUN mkdir -p /data \n' +
+               'RUN mkdir -p /data/output \n'+
+               'WORKDIR /data \n' +
+               'COPY . .\n' +
+               'RUN ["chmod", "+x", "./script.sh"] \n' +
+               'RUN unzip algorithm.zip \n'
 
     if algorithmInfos.method.executableType is 'bash'
-      content += 'RUN ["chmod", "+x", "./'+ algorithmInfos.method.executable_path+'"]\n'
+      content += 'RUN ["chmod", "+x", "./'+ algorithmInfos.method.executable_path+'"] \n'
 
-      #'ENTRYPOINT ["./script.sh"]'
+    #content +=  'ENTRYPOINT ["/bin/sh"]'
+
+    #'ENTRYPOINT ["./script.sh"]'
     fs.writeFileSync(outputFolder + path.sep + 'Dockerfile', content)
 
   @createBashScript: (identifier, algorithmInfos, outputFolder) ->
     content = "#!/bin/sh\n"
     
     if(_.find(algorithmInfos.input,{'inputImage':{}})?)
-      content += 'wget -O /data/inputImage.png $1\n'
+      content += 'curl -o /data/inputImage.png $1\n'
 
     #input count starts with 4. Params 1,2 and 3 are fix used
     # 1: inputImageUrl
@@ -195,14 +197,16 @@ class DockerManagement
         error =
           statusMessage: 'Execution did not finish properly! status code is: ' + data.StatusCode
 
-        if(proc.type is 'test')
-          ResultHelper.removeResult(process)
+      if(proc.type is 'test')
+        AlgorithmManagement.updateStatus(null, 'error', proc.req.originalUrl, 'Algorithm image did not execute properly')
+        ResultHelper.removeResult(proc)
 
         container.remove( (err, data) ->
           if(callback?)
             callback error, null
         )
     )
+
   getDockerInput = (input) ->
     return nconf.get('docker:paths:'+input)
 

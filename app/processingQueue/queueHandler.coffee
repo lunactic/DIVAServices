@@ -22,17 +22,17 @@ class QueueHandler
     @executableHelper = new ExecutableHelper()
     self = @
     @executableHelper.on 'processingFinished', () ->
-      self.executeLocalRequest()
+      executeLocalRequest()
 
   @addLocalRequestToQueue: (req, cb) ->
     self = @
     @executableHelper.preprocess req, @localProcessingQueue, 'regular', cb, () ->
-      self.executeLocalRequest()
+      executeLocalRequest()
 
   @addRemoteRequestToQueue: (req, cb) ->
     self = @
     @executableHelper.preprocess req, @remoteProcessingQueue, 'regular', cb, () ->
-      self.executeRemoteRequest()
+      executeRemoteRequest()
 
   #TODO use the callback in executeDockerRequest
   @addDockerRequestToQueue: (req, cb) ->

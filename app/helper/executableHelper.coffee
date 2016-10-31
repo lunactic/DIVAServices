@@ -109,7 +109,7 @@ class ExecutableHelper extends EventEmitter
       (callback) ->
         process.id = Statistics.startRecording(process.req.originalUrl,process)
         #fill executable path with parameter values
-        command = buildCommand(process.executablePath, process.programType, process.parameters.params)
+        command = buildCommand(process.executablePath, process.executableType, process.parameters.params)
         #if we have a console output, pipe the stdout to a file but keep stderr for error handling
         if(process.resultType == 'console')
           command += ' 1>' + process.tmpResultFile + ';mv ' + process.tmpResultFile + ' ' + process.resultFile
