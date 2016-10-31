@@ -8,7 +8,7 @@
       "anapsix/alpine-java:8",
       "divaservices/ocropus",
       "divaservices/matlab2014b-compiler-runtime-docker",
-      "kbai/kraken-docker",
+      "kbai/kraken",
       "divaservices/tesseract"
     ],
     "keys" :[
