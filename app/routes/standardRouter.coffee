@@ -83,39 +83,43 @@ router.post '/upload', (req, res) ->
 router.post '/jobs/:jobId', (req, res, next) ->
   logger.log 'info', 'jobs route called'
   process = Statistics.getProcess(req.params.jobId)
-  Statistics.endRecording(req.params.jobId, process.req.originalUrl)
-  async.waterfall [
-    (callback) ->
-      process.result = req.body
-      ResultHelper.saveResult(process, callback)
-      return
-    (callback) ->
-      #Todo: check the schema here already
-      process.resultHandler.handleResult(null, null, null, process, (error, data, processId) ->
-        if(error)
-          callback error
-        else
-          callback null
+  if(process?)
+    Statistics.endRecording(req.params.jobId, process.req.originalUrl)
+    async.waterfall [
+      (callback) ->
+        process.result = req.body
+        ResultHelper.saveResult(process, callback)
         return
-      )
-  ], (err) ->
-    if(err)
-      AlgorithmManagement.updateStatus(null, 'error', process.req.originalUrl, err.statusMessage)
-      sendError(res, err)
-    else if(process.type is 'test')
-      schemaValidator.validate(IoHelper.loadFile(process.resultFile), 'responseSchema', (error) ->
-        if error
-          AlgorithmManagement.updateStatus(null, 'error', process.req.originalUrl, error.statusText)
-          ResultHelper.removeResult(process)
-          sendError(res, error)
-        else
-          AlgorithmManagement.updateStatus(null, 'ok', process.req.originalUrl)
-          ResultHelper.removeResult(process)
-          send200(res, {status: 'valid'})
-      )
-    else
-      res.status '200'
-      res.send()
+      (callback) ->
+        #Todo: check the schema here already
+        process.resultHandler.handleResult(null, null, null, process, (error, data, processId) ->
+          if(error)
+            callback error
+          else
+            callback null
+          return
+        )
+    ], (err) ->
+      if(err)
+        AlgorithmManagement.updateStatus(null, 'error', process.req.originalUrl, err.statusMessage)
+        sendError(res, err)
+      else if(process.type is 'test')
+        schemaValidator.validate(IoHelper.loadFile(process.resultFile), 'responseSchema', (error) ->
+          if error
+            AlgorithmManagement.updateStatus(null, 'error', process.req.originalUrl, error.statusText)
+            ResultHelper.removeResult(process)
+            sendError(res, error)
+          else
+            AlgorithmManagement.updateStatus(null, 'ok', process.req.originalUrl)
+            ResultHelper.removeResult(process)
+            send200(res, {status: 'valid'})
+        )
+      else
+        res.status '200'
+        res.send()
+  else
+    res.status '500'
+    res.send()
 
 router.post '/validate/:schema', (req, res, next) ->
   switch req.params.schema

@@ -32,7 +32,10 @@ class Statistics
 
   @getProcess: (rand) ->
     execution = @currentExecutions.filter (x) -> x.rand == rand
-    return execution[0].process
+    if(execution.length > 0)
+      return execution[0].process
+    else
+      return null
 
   @startRecording: (reqPath, job) ->
     @startTime = process.hrtime()

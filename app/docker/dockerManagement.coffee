@@ -197,7 +197,7 @@ class DockerManagement
         error =
           statusMessage: 'Execution did not finish properly! status code is: ' + data.StatusCode
 
-      if(proc.type is 'test')
+      if(proc.type is 'test' and data.StatusCode isnt 0)
         AlgorithmManagement.updateStatus(null, 'error', proc.req.originalUrl, 'Algorithm image did not execute properly')
         ResultHelper.removeResult(proc)
 
