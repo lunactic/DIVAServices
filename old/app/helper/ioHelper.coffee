@@ -6,18 +6,18 @@
 # Copyright &copy; Marcel Würsch, GPL v3.0 licensed.
 
 # Module dependecies
-_         = require 'lodash'
-archiver  = require 'archiver'
-fs        = require 'fs'
-http      = require 'http'
-https     = require 'https'
-mkdirp    = require 'mkdirp'
-nconf     = require 'nconf'
-path      = require 'path'
-rmdir     = require 'rimraf'
-unzip     = require 'unzip2'
-url       = require 'url'
-logger    = require '../logging/logger'
+_ = require 'lodash'
+archiver = require 'archiver'
+fs = require 'fs'
+http = require 'http'
+https = require 'https'
+mkdirp = require 'mkdirp'
+nconf = require 'nconf'
+path = require 'path'
+rmdir = require 'rimraf'
+unzip = require 'unzip2'
+url = require 'url'
+logger = require '../logging/logger'
 
 
 # expose IoHelper
@@ -42,12 +42,12 @@ class IoHelper
     )
 
   @zipFolder: (folder) ->
-    archive = archiver('zip',{})
+    archive = archiver('zip', {})
     folders = folder.split(path.sep)
 
-    fullFileName = nconf.get('paths:imageRootPath') + path.sep + folders[folders.length-2] + '_' + folders[folders.length-1] + '.zip'
-    fileName = folders[folders.length-2] + '_' + folders[folders.length-1] + '.zip'
-    
+    fullFileName = nconf.get('paths:imageRootPath') + path.sep + folders[folders.length - 2] + '_' + folders[folders.length - 1] + '.zip'
+    fileName = folders[folders.length - 2] + '_' + folders[folders.length - 1] + '.zip'
+
     output = fs.createWriteStream(fullFileName)
     output.on 'close', ->
       return
@@ -57,23 +57,23 @@ class IoHelper
     archive.pipe output
     archive.bulk([
       expand: true
-      cwd: folder+'/'
-      src: ['*.png','**/*.png']
+      cwd: folder + '/'
+      src: ['*.png', '**/*.png']
     ])
     archive.finalize()
     return fileName
 
   @getOutputFolderForImages: (rootFolder, service, unique) ->
-    #check which folder is to be used
+#check which folder is to be used
     imagePath = nconf.get('paths:imageRootPath')
     rootPath = imagePath + '/' + rootFolder
     #read all folders in the current directory
     folders = fs.readdirSync(rootPath).filter (file) ->
-      fs.statSync(path.join(rootPath,file)).isDirectory()
+      fs.statSync(path.join(rootPath, file)).isDirectory()
 
     #filter for folders matching the service name
-    folders = _.filter folders,  (folder) ->
-      _.includes folder,service.service
+    folders = _.filter folders, (folder) ->
+      _.includes folder, service.service
 
 
     if(folders.length > 0 and not unique)
@@ -94,7 +94,7 @@ class IoHelper
       fs.statSync(path.join(rootPath, file)).isDirectory()
 
     folders = _.filter(folders, (folder) ->
-      _.includes(folder,service.service)
+      _.includes(folder, service.service)
     )
 
     if(folders.length > 0 and not unique)
@@ -114,16 +114,16 @@ class IoHelper
   @buildTempFilePath: (path, fileName) ->
     return path + '/' + fileName + '_temp.json'
 
-  # ---
-  # **loadFile**</br>
-  # Loads existing file from the disk</br>
-  # `params`
-  #   *filePath* path to the file
+# ---
+# **loadFile**</br>
+# Loads existing file from the disk</br>
+# `params`
+#   *filePath* path to the file
   @loadFile: (filePath) ->
     try
       stats = fs.statSync(filePath)
       if stats.isFile()
-        content = JSON.parse(fs.readFileSync(filePath,'utf8'))
+        content = JSON.parse(fs.readFileSync(filePath, 'utf8'))
         return content
       else
         return null
@@ -131,9 +131,9 @@ class IoHelper
       logger.log 'error', 'Could not read file: ' + filePath
       return null
 
-  # ---
-  # **/br>
-  # saves the a file to disk</br>
+# ---
+# **/br>
+# saves the a file to disk</br>
   @saveFile: (filePath, content, callback) ->
     try
       fs.writeFileSync filePath, JSON.stringify(content, null, '\t')
@@ -157,7 +157,7 @@ class IoHelper
       fs.statSync filePath
     catch error
       try
-        fs.writeFileSync filePath, JSON.stringify({status :'planned'})
+        fs.writeFileSync filePath, JSON.stringify({status: 'planned'})
       catch error
         logger.log 'error', error
     return
@@ -186,7 +186,7 @@ class IoHelper
     return 'http://' + rootUrl + '/images/' + relativefilePath
 
   @getStaticDataUrlWithFullPath: (fullPath) ->
-    relPath = fullPath.replace(nconf.get('paths:dataRootPath') + '/','')
+    relPath = fullPath.replace(nconf.get('paths:dataRootPath') + '/', '')
     return @getStaticDataUrlWithRelPath(relPath)
 
   @getStaticImageUrlWithFullPath: (fullPath) ->
@@ -194,7 +194,7 @@ class IoHelper
     return @getStaticImageUrlWithRelPath(relPath)
 
   @downloadFile: (fileUrl, localFolder, fileType, callback) ->
-    @checkFileType(fileType,fileUrl, (error) ->
+    @checkFileType(fileType, fileUrl, (error) ->
       if(error?)
         callback error
         return
@@ -222,7 +222,7 @@ class IoHelper
   @checkFileType: (fileType, fileUrl, callback) ->
     if(fileType?)
       urlInfo = url.parse(fileUrl)
-      options = {method: 'HEAD', hostname: urlInfo.hostname, path: urlInfo.path, port: urlInfo.port }
+      options = {method: 'HEAD', hostname: urlInfo.hostname, path: urlInfo.path, port: urlInfo.port}
       req = http.request(options, (res) ->
         if(res.headers['content-type'] isnt fileType)
           callback {error: 'non matching fileType'}
@@ -264,7 +264,7 @@ class IoHelper
         return
       return
     )
-    
+
   @checkFileExists: (filePath) ->
     try
       stats = fs.statSync(filePath)

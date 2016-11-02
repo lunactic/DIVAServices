@@ -1,0 +1,356 @@
+{
+  "createSchema": {
+    "id": "createSchema",
+    "$schema": "http://json-schema.org/schema#",
+    "description": "schema for algorithm creation",
+    "definitions": {
+      "name": {
+        "type": "string",
+        "minLength": 3,
+        "maxLength": 25
+      },
+      "highlighter": {
+        "type": "object",
+        "required":[
+          "type"
+        ],
+        "properties": {
+          "type": {
+            "enum": [
+              "polygon",
+              "rectangle",
+              "circle",
+              "line"
+            ]
+          }
+        }
+      },
+      "description": {
+        "type": "string",
+        "minLength": 3,
+        "maxLength": 255
+      },
+      "number": {
+        "type": "object",
+        "required": [
+          "name",
+          "description",
+          "options"
+        ],
+        "properties": {
+          "name": {
+            "$ref": "#/definitions/name"
+          },
+          "description": {
+            "$ref": "#/definitions/description"
+          },
+          "options": {
+            "type": "object",
+            "required": [
+              "required",
+              "default"
+            ],
+            "properties": {
+              "required": {
+                "type": "boolean"
+              },
+              "default": {
+                "type": "number"
+              },
+              "min": {
+                "type": "number"
+              },
+              "max": {
+                "type": "number"
+              },
+              "steps": {
+                "type": "number"
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      },
+      "json":{
+        "type":"object",
+        "required":[
+          "name",
+          "description",
+          "options"
+        ],
+        "properties":{
+          "name":{
+            "$ref":"#/definitions/name"
+          },
+          "description":{
+            "$ref":"#/definitions/description"
+          },
+          "options":{
+            "type":"object",
+            "required":[
+              "required"
+            ],
+            "properties":{
+              "required":{
+                "type":"boolean"
+              }
+            }
+          }
+        }
+      },
+      "text": {
+        "type": "object",
+        "required": [
+          "name",
+          "description",
+          "options"
+        ],
+        "properties": {
+          "name": {
+            "$ref": "#/definitions/name"
+          },
+          "description": {
+            "$ref": "#/definitions/description"
+          },
+          "options": {
+            "type": "object",
+            "required": [
+              "required",
+              "default"
+            ],
+            "properties": {
+              "required": {
+                "type": "boolean"
+              },
+              "default": {
+                "type": "string"
+              },
+              "min": {
+                "type": "number"
+              },
+              "max": {
+                "type": "number"
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      },
+      "select": {
+        "type": "object",
+        "required": [
+          "name",
+          "description",
+          "options"
+        ],
+        "properties": {
+          "name": {
+            "$ref": "#/definitions/name"
+          },
+          "description": {
+            "$ref": "#/definitions/description"
+          },
+          "options": {
+            "type": "object",
+            "required": [
+              "required",
+              "values",
+              "default"
+            ],
+            "properties": {
+              "required": {
+                "type": "boolean"
+              },
+              "values": {
+                "type": "array",
+                "minItems": 1,
+                "uniqueItems": true,
+                "items": {
+                  "type": "string"
+                },
+                "additionalItems": false
+              },
+              "default": {
+                "type": "number"
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      },
+      "checkbox": {
+        "type": "object",
+        "required": [
+          "name",
+          "description",
+          "options"
+        ],
+        "properties": {
+          "name": {
+            "$ref": "#/definitions/name"
+          },
+          "description": {
+            "$ref": "#/definitions/description"
+          },
+          "options": {
+            "type": "object",
+            "required": [
+              "required",
+              "default"
+            ],
+            "properties": {
+              "required": {
+                "type": "boolean"
+              },
+              "default": {
+                "type": "number"
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "type": "object",
+    "required": [
+     "general",
+     "input",
+     "method"
+    ],
+    "properties": {
+      "general":{
+        "type":"object",
+        "required":[
+          "name",
+          "description",
+          "author",
+          "type",
+          "email"
+        ],
+        "properties":{
+          "name": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 50
+          },
+          "description": {
+            "type": "string",
+            "minLength": 5
+          },
+          "url": {
+            "type": "string",
+            "format": "uri"
+          },
+          "author": {
+            "type": "string",
+            "minLenght": 5,
+            "maxLength": 50
+          },
+          "type":{
+            "type":"string",
+            "minLength":3,
+            "maxLength":50
+          },
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "website": {
+            "type": "string",
+            "format": "uri"
+          },
+          "DOI": {
+            "type": "string"
+          },
+          "purpose": {
+            "type": "string"
+          },
+          "license": {
+            "type": "string"
+          }
+        }
+      },
+      "input": {
+        "type": "array",
+        "items": {
+          "description": "Input types",
+          "type": "object",
+          "properties": {
+            "highlighter": {
+              "$ref": "#/definitions/highlighter"
+            },
+            "number": {
+              "$ref": "#/definitions/number"
+            },
+            "text": {
+              "$ref": "#/definitions/text"
+            },
+            "select": {
+              "$ref": "#/definitions/select"
+            },
+            "checkbox": {
+              "$ref": "#/definitions/checkbox"
+            },
+            "json":{
+              "$ref":"#/definitions/json"
+            },
+            "inputImage":{
+              "type":"object"
+            },
+            "inputFile":{
+              "type":"object"
+            },
+            "outputImage":{
+              "type":"object"
+            },
+            "resultFile":{
+              "type":"object"
+            },
+            "inputFileExtension":{
+              "type":"object"
+            },
+            "outputFolder":{
+              "type":"object"
+            },"host":{
+              "type":"object"
+            },
+            "mcr2014b":{
+              "type":"object"
+            }
+          },
+          "additionalProperties": false
+        },
+        "additionalItems": false
+      },
+      "method": {
+        "type": "object",
+        "properties": {
+          "file": {
+            "type": "string",
+            "format":"uri"
+          },
+          "environment": {
+            "type": "string"
+          },
+          "executableType": {
+            "type": "string"
+          },
+          "executable_path": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "file",
+          "environment",
+          "executableType",
+          "executable_path"
+        ]
+      }
+    },
+    "additionalProperties": false
+  }
+}

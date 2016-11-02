@@ -1,0 +1,87 @@
+{
+  "name":{
+    "type":"string",
+    "displayText": "Algorithm Name",
+    "infoText":"Name of the algorithm",
+    "minLength":2,
+    "maxLength":50,
+    "required":true,
+    "regex": "^([a-z A-Z0-9]*)$"
+  },
+  "description":{
+    "type":"string",
+    "displayText":"Description",
+    "infoText":"Description of what the algorithm performs",
+    "minLength":5,
+    "maxLength":255,
+    "required":true,
+    "multiline":true
+  },
+  "author":{
+    "infoText":"Author of the method",
+    "displayText":"Contact Author",
+    "type":"string",
+    "minLength":5,
+    "maxLength":50,
+    "required":true
+  },
+  "affiliation":{
+    "infoText":"Affiliation of the contact author",
+    "displayText":"Affiliation",
+    "type":"string",
+    "minLength":3,
+    "maxLength":125,
+    "required":true
+  },
+  "email":{
+    "displayText":"E-Mail Address",
+    "infoText":"Contact email address",
+    "type":"string",
+    "format":"email",
+    "required":true
+  },
+  "website":{
+    "displayText":"Project website",
+    "infoText":"Project website",
+    "type":"string",
+    "format":"uri",
+    "required":false
+  },
+  "DOI":{
+    "displayText":"Digital Object Identifier (DOI)",
+    "infoText":"DOI of a related paper to cite when using this method",
+    "type":"string",
+    "required":false
+  },
+  "purpose":{
+    "displayText":"Purpose",
+    "infoText":"Purpose of this method",
+    "type":"string",
+    "required":false
+  },
+  "license":{
+    "displayText":"License",
+    "infoText":"License of this method",
+    "type":"enum",
+    "values":[
+      "MIT",
+      "Apache",
+      "Other"
+    ],
+    "keys":[
+      "MIT",
+      "Apache",
+      "Other"
+    ],
+    "required":true
+  },
+  "type":{
+    "displayText":"Type",
+    "infoText":"Type of this method  (e.g. OCR, binarization,...)",
+    "type":"string",
+    "required":true,
+    "minLength":3,
+    "maxLength":15,
+    "regex": "^([a-zA-Z]*)$"
+  }
+}
