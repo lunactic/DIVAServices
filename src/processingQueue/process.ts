@@ -4,6 +4,7 @@
 
 "use strict"
 import Image = require("../models/image");
+import {IoHelper} from "../helper/ioHelper";
 /**
  *Class representing a process to be executed
  */
@@ -18,10 +19,10 @@ class Process {
     public outputFolder: string;
     public methodFolder: string;
     public neededParameters;
-    public inputParameters: string;
-    public inputHighlighters: string;
+    public inputParameters: any;
+    public inputHighlighters: any;
     public inputFolder: string;
-    public parameters;
+    public parameters : any;
     public programType: string;
     public executablePath: string;
     public resultHandler;
@@ -45,6 +46,14 @@ class Process {
     constructor() {
         this.hasFiles = false;
         this.hasImages = false;
+    }
+
+    buildGetUrl() : string {
+        if(this.hasImages){
+            return IoHelper.getStaticImageUrlFull(this.resultFile);
+        }else{
+            return IoHelper.getStaticDataUrlFull(this.resultFile);
+        }
     }
 }
 export = Process;

@@ -19,7 +19,6 @@ nconf.add("createSchema", {type: "file", file: "./conf/schemas/createAlgorithmSc
 import * as bodyParser from "body-parser";
 import * as express from "express";
 import * as path from "path";
-import * as indexRoute from "./routes/index";
 /**
  * The server.
  *
@@ -93,10 +92,8 @@ class Server {
         router = express.Router();
 
         //create routes
-        let index: indexRoute.Index = new indexRoute.Index();
 
         //home page
-        router.get("/", index.index.bind(index.index));
 
         //use router middleware
         this.app.use(router);

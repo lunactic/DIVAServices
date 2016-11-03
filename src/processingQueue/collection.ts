@@ -2,27 +2,55 @@
  * Created by lunactic on 02.11.16.
  */
 "use strict";
+import Image = require("../models/image");
+import Process = require("./process");
+import {IoHelper} from "../helper/ioHelper";
 
 /**
  * Class represanting a collection
  */
 class Collection {
-    public static method: string = "";
-    public static name: string  = "";
-    public static outputLink: string  = "";
-    public static outputFolder: string  = "";
-    public static inputParameters = {};
-    public static inputHighlighters = {};
-    public static neededParameters = {};
-    public static parameters = null;
-    public static image = {};
-    public static processes = [];
-    public static result = null;
-    public static resultFile: string  = "";
-    public static rootFolder: string  = "";
+    public method: string;
+    public name: string;
+    public outputLink: string;
+    public outputFolder: string;
+    public inputParameters: any;
+    public inputHighlighters: any;
+    public neededParameters: any;
+    public parameters: any;
+    public image: Image;
+    public processes: Process[];
+    public result: any;
+    public resultFile: string;
+    public rootFolder: string;
+    public hasFiles: boolean;
+    public hasImages: boolean;
 
-    public static hasFiles: boolean = false;
-    public static hasImages: boolean  = false;
+    constructor() {
+        this.method = "";
+        this.name = "";
+        this.outputFolder = "";
+        this.outputLink = "";
+        this.inputParameters = {};
+        this.inputHighlighters = [];
+        this.neededParameters = {};
+        this.parameters = {};
+        this.image = new Image();
+        this.processes = [];
+        this.result = {};
+        this.resultFile = "";
+        this.rootFolder = "";
+        this.hasFiles = false;
+        this.hasImages = false;
+    }
+
+    buildGetUrl(): string {
+        if (this.hasImages) {
+            return IoHelper.getStaticImageUrlFull(this.resultFile);
+        } else {
+            return IoHelper.getStaticDataUrlFull(this.resultFile);
+        }
+    }
 }
 
 export = Collection;
