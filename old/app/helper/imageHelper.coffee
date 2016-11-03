@@ -112,7 +112,7 @@ class ImageHelper
       (callback) ->
         request.head(url).on('response', (response) ->
           imgExtension = getImageExtension(response.headers['content-type'])
-          callback null, imgExtension
+          callback null, imgExtensionfs
         )
       (imgExtension, callback) ->
         request(url).pipe(fs.createWriteStream(imagePath + 'temp_' + counter + '.' + imgExtension)).on 'close', (cb) ->

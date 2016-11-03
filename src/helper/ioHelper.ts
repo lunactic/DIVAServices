@@ -18,7 +18,7 @@ let unzip = require("unzip");
 import * as url from "url";
 import logger = require("../logging/logger");
 
-class IoHelper {
+export class IoHelper {
 
 
     static fileExists(filePath: string): boolean {
@@ -30,7 +30,7 @@ class IoHelper {
         }
     }
 
-    static loadFile(filePath: string) {
+    static loadFile(filePath: string) : any {
         try {
             let stats = fs.statSync(filePath);
             if (stats.isFile()) {
