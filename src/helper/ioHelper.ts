@@ -61,6 +61,10 @@ export class IoHelper {
         fs.unlink(file);
     }
 
+    static createFolder(folder: string): void{
+        mkdirp.sync(folder);
+    }
+
     static deleteFolder(folder: string): void {
         rmdir(folder, function () {
             logger.log("info", "successfully deleted folder: " + folder, "IoHelper");

@@ -42,6 +42,7 @@
     "archiver": "^1.1.0",
     "async": "^2.1.2",
     "body-parser": "^1.15.2",
+    "crypto": "0.0.3",
     "deasync": "^0.1.9",
     "express": "^4.14.0",
     "grunt": "^1.0.1",
