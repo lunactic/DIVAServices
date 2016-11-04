@@ -13,8 +13,8 @@ declare class Process {
     outputFolder: string;
     methodFolder: string;
     neededParameters: any;
-    inputParameters: string;
-    inputHighlighters: string;
+    inputParameters: any;
+    inputHighlighters: any;
     inputFolder: string;
     parameters: any;
     programType: string;
@@ -35,5 +35,6 @@ declare class Process {
     hasFiles: boolean;
     hasImages: boolean;
     constructor();
+    buildGetUrl(): string;
 }
 export = Process;

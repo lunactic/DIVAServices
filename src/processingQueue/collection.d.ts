@@ -1,21 +1,25 @@
+import Image = require("../models/image");
+import Process = require("./process");
 /**
  * Class represanting a collection
  */
 declare class Collection {
-    static method: string;
-    static name: string;
-    static outputLink: string;
-    static outputFolder: string;
-    static inputParameters: {};
-    static inputHighlighters: {};
-    static neededParameters: {};
-    static parameters: any;
-    static image: {};
-    static processes: any[];
-    static result: any;
-    static resultFile: string;
-    static rootFolder: string;
-    static hasFiles: boolean;
-    static hasImages: boolean;
+    method: string;
+    name: string;
+    outputLink: string;
+    outputFolder: string;
+    inputParameters: any;
+    inputHighlighters: any;
+    neededParameters: any;
+    parameters: any;
+    image: Image;
+    processes: Process[];
+    result: any;
+    resultFile: string;
+    rootFolder: string;
+    hasFiles: boolean;
+    hasImages: boolean;
+    constructor();
+    buildGetUrl(): string;
 }
 export = Collection;
