@@ -5,14 +5,14 @@
 import * as _ from "lodash";
 import {AlgorithmManagement} from "../management/algorithmManagement";
 import * as archiver from "archiver";
-import logger = require("../logging/logger");
-let Docker = require("dockerode");
 import * as fs from "fs";
 import * as nconf from "nconf";
 import * as path from "path";
-let sequest = require("sequest");
 import {IoHelper} from "../helper/ioHelper";
 import {ResultHelper} from "../helper/resultHelper";
+import logger = require("../logging/logger");
+let Docker = require("dockerode");
+let sequest = require("sequest");
 import Process = require("../processingQueue/process");
 
 export class DockerManagement {
@@ -181,13 +181,65 @@ export class DockerManagement {
         fs.writeFileSync(outputFolder + path.sep + "script.sh", content);
     }
 
-    //TODO STOPPED WORKING HERE
     static runDockerImage(process: Process, imageName: string, callback: Function): void {
         let params = process.parameters.params;
         let neededParams = process.neededParameters;
         let paramsPath = "";
 
+        for (let key in params) {
+            let value = params[key];
+            if (key === "highlighter") {
+                paramsPath += _.map(params.highlighter.split(" "), function (item: any) {
+                    return "'" + item + "'";
+                }).join(" ");
+            } else if (_.find(neededParams, key) != null && _.find(neededParams, key)[key] in ["url"]) {
+                let originalKey = key.replace("url", "");
+                let originalValue = params[originalKey];
+                let url = "";
+                if (process.hasImages) {
+                    url = IoHelper.getStaticImageUrlFull(originalValue);
+                } else {
+                    url = IoHelper.getStaticDataUrlFull(originalValue);
+                }
+                paramsPath += "'" + url + "'";
+            } else {
+                paramsPath += "'" + value + "'";
+            }
+        }
 
+        let command = "./script.sh " + process.inputImageUrl + " " + process.remoteResultUrl + " " + process.remoteErrorUrl + " " + paramsPath;
+        logger.log("info", command, "DockerManagement");
+        this.docker.run(imageName, ["sh", "-c", command], process.stdout, function (error: any, data: any, container: any) {
+            if (error != null) {
+                logger.log("error", error, "DockerManagement");
+                if (callback != null) {
+                    callback(error, null);
+                }
+            }
+            if (data != null && data.statusCode === 0) {
+                container.remove(function (error: any, data: any) {
+                    if (callback != null) {
+                        callback(null, null);
+                    }
+                });
+            } else if (data != null && data.statusCode !== 0) {
+                logger.log("error", "Execution did not finish properly! status code is: " + data.statusCode, "DockerManagement");
+                var err = {
+                    statusMessage: "Execution did not finish properly! status code is: " + data.statusCode
+                };
+            }
+
+            if (process.type === "test" && data.status !== 0) {
+                AlgorithmManagement.updateStatus(null, "error", process.req.originalUrl, "Algorithm image did not execute properly");
+                ResultHelper.removeResult(process);
+
+                container.remove(function (error: any, data: any) {
+                    if (callback != null) {
+                        callback(err, null);
+                    }
+                })
+            }
+        });
     }
 
     private static getDockerInput(input: string): string {

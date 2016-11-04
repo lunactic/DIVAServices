@@ -37,9 +37,11 @@ class Process implements IProcess {
     public resultLink: string;
     public data: string;
     public remoteResultUrl: string;
+    public remoteErrorUrl: string;
     public remotePaths;
     public type: string;
-
+    public stdout: any;
+    public stdin: any;
 
     public hasFiles: boolean;
     public hasImages: boolean;
