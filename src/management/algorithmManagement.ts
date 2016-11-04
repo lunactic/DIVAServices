@@ -176,6 +176,27 @@ export class AlgorithmManagement {
         }
     }
 
+    static addRemotePath(identifier: string, parameterName: string, remotePath: string): void {
+        let content = IoHelper.loadFile(nconf.get("paths:servicesInfoFile"));
+        if (identifier != null && _.find(content.services, {"identifier": identifier}) != null) {
+            let currentInfo: any = _.find(content.services, {"identifier": identifier});
+            let info: any = {};
+            let exists: boolean = false;
+            _.forEach(currentInfo.remotePaths, function (value: any, key: any) {
+                if (_.has(value, parameterName)) {
+                    exists = true;
+                }
+            });
+
+            if (!exists) {
+                info[parameterName] = remotePath;
+                currentInfo.remotePaths.push(info);
+            }
+            IoHelper.saveFile(nconf.get("paths:servicesInfoFile"), content, "utf8", null);
+        }
+    }
+
+
     static recordException(identifier: string, exception: any): void {
         let content = IoHelper.loadFile(nconf.get("paths:servicesInfoFile"));
         if (identifier != null && _.find(content.services, {"identifier": identifier}) != null) {
