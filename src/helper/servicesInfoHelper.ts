@@ -7,7 +7,7 @@ import * as _ from "lodash";
 import * as nconf from "nconf";
 import {IoHelper} from "./ioHelper";
 
-class ServicesInfoHelper {
+export class ServicesInfoHelper {
 
     static fileContent = IoHelper.loadFile(nconf.get("paths:servicesInfoFile"));
 
@@ -59,5 +59,3 @@ class ServicesInfoHelper {
         return fileParameters.length > 0;
     }
 }
-
-export  = ServicesInfoHelper;

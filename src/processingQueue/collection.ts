@@ -5,11 +5,12 @@
 import Image = require("../models/image");
 import Process = require("./process");
 import {IoHelper} from "../helper/ioHelper";
+import IProcess = require("./iProcess");
 
 /**
  * Class represanting a collection
  */
-class Collection {
+class Collection implements IProcess {
     public method: string;
     public name: string;
     public outputLink: string;

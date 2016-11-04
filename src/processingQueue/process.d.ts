@@ -1,8 +1,9 @@
 import Image = require("../models/image");
+import IProcess = require("./iProcess");
 /**
  *Class representing a process to be executed
  */
-declare class Process {
+declare class Process implements IProcess {
     id: string;
     algorithmIdentifier: string;
     executableType: string;

@@ -1,9 +1,10 @@
 import Image = require("../models/image");
 import Process = require("./process");
+import IProcess = require("./iProcess");
 /**
  * Class represanting a collection
  */
-declare class Collection {
+declare class Collection implements IProcess {
     method: string;
     name: string;
     outputLink: string;

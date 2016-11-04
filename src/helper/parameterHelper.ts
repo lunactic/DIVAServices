@@ -11,8 +11,9 @@ import * as hash from "object-hash";
 import {IoHelper} from "./ioHelper";
 import logger = require("../logging/logger");
 import Process = require("../processingQueue/process");
+import IProcess = require("../processingQueue/iProcess");
 
-class ParameterHelper {
+export class ParameterHelper {
     static getParamValue(parameter: string, inputParameter: string): string {
         if (inputParameter.hasOwnProperty(parameter)) {
             return inputParameter[parameter];
@@ -160,12 +161,12 @@ class ParameterHelper {
                 IoHelper.saveFile(methodPath, content, "utf8", null);
             }
         } catch (error) {
-            content.push(data)
+            content.push(data);
             IoHelper.saveFile(methodPath, content, "utf8", null);
         }
     }
 
-    static loadParamInfo(process: Process): void {
+    static loadParamInfo(process: IProcess): void {
         let paramPath = "";
         if (process.hasImages) {
             paramPath = nconf.get("paths:imageRootPath") + path.sep + process.rootFolder + path.sep + process.method + ".json";
@@ -180,7 +181,7 @@ class ParameterHelper {
         try {
             fs.statSync(paramPath).isFile();
             let content = IoHelper.loadFile(paramPath);
-            let info: any = {}
+            let info: any = {};
             if (info = _.filter(content, {
                         "parameters": data.parameters,
                         "highlighters": data.highlighters
@@ -219,18 +220,16 @@ class ParameterHelper {
                     "parameters": data.parameters,
                     "highlighters": data.highlighters
                 }).length > 0) {
-                _.remove(content, {'parameters': data.parameters, 'highlighters': data.highlighters});
+                _.remove(content, {"parameters": data.parameters, "highlighters": data.highlighters});
                 IoHelper.saveFile(paramPath, content, "utf8", null);
             }
-        } catch (error ){
+        } catch (error) {
             return;
         }
     }
 
-    static checkReservedParameters(parameter: string) : boolean {
+    static checkReservedParameters(parameter: string): boolean {
         let reservedParameters = nconf.get("reservedWords");
         return parameter in reservedParameters;
     }
 }
-
-export = ParameterHelper;

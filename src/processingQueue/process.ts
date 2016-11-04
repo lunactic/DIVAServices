@@ -2,13 +2,14 @@
  * Created by lunactic on 02.11.16.
  */
 
-"use strict"
+"use strict";
 import Image = require("../models/image");
 import {IoHelper} from "../helper/ioHelper";
+import IProcess = require("./iProcess");
 /**
  *Class representing a process to be executed
  */
-class Process {
+class Process implements IProcess {
     public id: string;
     public algorithmIdentifier: string;
     public executableType: string;
@@ -22,7 +23,7 @@ class Process {
     public inputParameters: any;
     public inputHighlighters: any;
     public inputFolder: string;
-    public parameters : any;
+    public parameters: any;
     public programType: string;
     public executablePath: string;
     public resultHandler;
@@ -48,10 +49,10 @@ class Process {
         this.hasImages = false;
     }
 
-    buildGetUrl() : string {
-        if(this.hasImages){
+    buildGetUrl(): string {
+        if (this.hasImages) {
             return IoHelper.getStaticImageUrlFull(this.resultFile);
-        }else{
+        } else {
             return IoHelper.getStaticDataUrlFull(this.resultFile);
         }
     }

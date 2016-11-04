@@ -1,4 +1,4 @@
-declare class ServicesInfoHelper {
+export declare class ServicesInfoHelper {
     static fileContent: any;
     static getInfoByPath(path: string): any;
     static getInfoByName(name: string): any;
@@ -8,4 +8,3 @@ declare class ServicesInfoHelper {
     static methodRequireFiles(serviceInfo: any): boolean;
     static methodRequireData(serviceInfo: any): boolean;
 }
-export = ServicesInfoHelper;
