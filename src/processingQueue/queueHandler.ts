@@ -4,11 +4,11 @@
 "use strict";
 
 import * as _ from "lodash";
-
 import {Logger}  from "../logging/logger";
-import Statistics = require("../statistics/statistics");
+import {Statistics} from "../statistics/statistics";
 import {ProcessingQueue} from "./processingQueue";
 import {Process} from "./process";
+import {ExecutableHelper} from "../helper/executableHelper";
 
 
 export class QueueHandler {
@@ -17,6 +17,8 @@ export class QueueHandler {
     static remoteProcessingQueue: ProcessingQueue = null;
     static dockerProcessingQueue: ProcessingQueue = null;
     static runningDockerJobs: Process[] = null;
+
+    static executableHelper = new ExecutableHelper();
 
     static initialize(): void {
         if (QueueHandler.localProcessingQueue === null) {
@@ -33,16 +35,25 @@ export class QueueHandler {
         //TODO add executable helper
     }
 
-    static addLocalRequest(req: any, cb: void): void {
-        //TODO complete
+    static addLocalRequest(req: any, cb: Function): void {
+        let self = this;
+        QueueHandler.executableHelper.preprocess(req, QueueHandler.localProcessingQueue, "regular", cb, function () {
+            self.executeLocalRequest();
+        });
     }
 
-    static addRemoteRequest(req: any, cb: void): void {
-        //TODO complete
+    static addRemoteRequest(req: any, cb: Function): void {
+        let self = this;
+        QueueHandler.executableHelper.preprocess(req, QueueHandler.remoteProcessingQueue, "regular", cb, function () {
+            self.executeRemoteRequest();
+        });
     }
 
-    static addDockerRequest(req: any, cb: void): void {
-        //TODO complete
+    static addDockerRequest(req: any, cb: Function): void {
+        let self = this;
+        QueueHandler.executableHelper.preprocess(req, QueueHandler.dockerProcessingQueue, "regular", cb, function () {
+            self.executeDockerRequest();
+        });
     }
 
     static getDockerJob(jobId: string): Object {
@@ -51,36 +62,49 @@ export class QueueHandler {
         return job;
     }
 
-    private dockerRequestAvailable(): boolean {
+    private static dockerRequestAvailable(): boolean {
         return QueueHandler.dockerProcessingQueue.getSize() > 0;
     }
 
-    private localRequestAvailable(): boolean {
+    private static localRequestAvailable(): boolean {
         return QueueHandler.localProcessingQueue.getSize() > 0;
     }
 
-    private remoteRequestAvailable(): boolean {
+    private static remoteRequestAvailable(): boolean {
         return QueueHandler.remoteProcessingQueue.getSize() > 0;
     }
 
-    private getNextLocalRequest(): Process {
+    private static getNextLocalRequest(): Process {
         return QueueHandler.localProcessingQueue.getNext();
     }
 
-    private getNextRemoteRequest(): Process {
+    private static getNextRemoteRequest(): Process {
         return QueueHandler.remoteProcessingQueue.getNext();
     }
 
-    private getNextDockerRequest(): Process {
+    private static getNextDockerRequest(): Process {
         return QueueHandler.dockerProcessingQueue.getNext();
     }
 
-    private executeDockerRequest(): void {
+    private static executeDockerRequest(): void {
         Logger.log("info", "execute docker request", "QueueHandler");
         if (this.dockerRequestAvailable()) {
             let job = this.getNextDockerRequest();
             QueueHandler.runningDockerJobs.push(job);
             //TODO Execute the request
+        }
+    }
+
+    private static executeLocalRequest(): void {
+        if (Statistics.getNumberOfCurrentExecutions() < 2 && this.localRequestAvailable()) {
+            QueueHandler.executableHelper.executeLocalRequest(this.getNextLocalRequest());
+        }
+    }
+
+    private static executeRemoteRequest(): void {
+        Logger.log("info", "execute remote request", "QueueHandler");
+        if (this.remoteRequestAvailable()) {
+            QueueHandler.executableHelper.executeRemoteRequest(this.getNextRemoteRequest());
         }
     }
 

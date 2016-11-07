@@ -88,6 +88,15 @@ export class Statistics {
         }
     }
 
+    static getNumberOfExecutions(reqPath: string): number {
+        if (_.find(Statistics.currentStatistics.services, {"path": reqPath}) != null) {
+            let stats: any = _.find(Statistics.currentStatistics.services, {"path": reqPath});
+            return stats.statistics.executions;
+        } else {
+            return 0;
+        }
+    }
+
     static loadStatistics(): void {
         if (Object.keys(Statistics.currentStatistics).length === 0) {
             try {
