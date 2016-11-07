@@ -16,7 +16,7 @@ import * as path from "path";
 let rmdir = require("rmdir");
 let unzip = require("unzip");
 import * as url from "url";
-import logger = require("../logging/logger");
+import {Logger} from "../logging/logger";
 
 export class IoHelper {
 
@@ -30,7 +30,7 @@ export class IoHelper {
         }
     }
 
-    static loadFile(filePath: string) : any {
+    static loadFile(filePath: string): any {
         try {
             let stats = fs.statSync(filePath);
             if (stats.isFile()) {
@@ -40,7 +40,7 @@ export class IoHelper {
                 return null;
             }
         } catch (error) {
-            logger.log("error", "Could not read file: " + filePath, "IoHelper");
+            Logger.log("error", "Could not read file: " + filePath, "IoHelper");
             return null;
         }
     }
@@ -52,7 +52,7 @@ export class IoHelper {
                 callback(null);
             }
         } catch (error) {
-            logger.log("error", "Could not write file due to error " + error, "IoHelper");
+            Logger.log("error", "Could not write file due to error " + error, "IoHelper");
         }
     }
 
@@ -61,13 +61,13 @@ export class IoHelper {
         fs.unlink(file);
     }
 
-    static createFolder(folder: string): void{
+    static createFolder(folder: string): void {
         mkdirp.sync(folder);
     }
 
     static deleteFolder(folder: string): void {
         rmdir(folder, function () {
-            logger.log("info", "successfully deleted folder: " + folder, "IoHelper");
+            Logger.log("info", "successfully deleted folder: " + folder, "IoHelper");
         });
     }
 
@@ -112,7 +112,7 @@ export class IoHelper {
             return;
         });
         archive.on("error", function (error: Object) {
-            logger.log("error", JSON.stringify(error), "IoHelper");
+            Logger.log("error", JSON.stringify(error), "IoHelper");
         });
 
         archive.pipe(output);
@@ -128,7 +128,7 @@ export class IoHelper {
     static unzipFile(zipFile: string, folder: string, callback: Function): void {
         mkdirp(folder, function (error: Object) {
             if (error) {
-                logger.log("error", JSON.stringify(error), "IoHelper");
+                Logger.log("error", JSON.stringify(error), "IoHelper");
                 callback(error);
             } else {
                 let reader = fs.createReadStream(zipFile);
@@ -152,7 +152,7 @@ export class IoHelper {
         let rootFolder = nconf.get("paths:dataRootPath") + path.sep + service.service + path.sep + "original";
         mkdirp(rootFolder, function (error: any) {
             if (error !== null) {
-                logger.log("error", JSON.stringify(error), "IoHelper");
+                Logger.log("error", JSON.stringify(error), "IoHelper");
             }
         });
     }
@@ -161,7 +161,7 @@ export class IoHelper {
         let rootFolder = nconf.get("paths:imagesRootPath") + path.sep + collection + path.sep + "original";
         mkdirp(rootFolder, function (error: any) {
             if (error !== null) {
-                logger.log("error", JSON.stringify(error), "IoHelper");
+                Logger.log("error", JSON.stringify(error), "IoHelper");
             }
         });
     }
@@ -170,7 +170,7 @@ export class IoHelper {
         let rootFolder = nconf.get("paths:imagesRootPath") + path.sep + collection + path.sep;
         rmdir(rootFolder, function (error: any) {
             if (error !== null) {
-                logger.log("error", JSON.stringify(error), "IoHelper");
+                Logger.log("error", JSON.stringify(error), "IoHelper");
             }
         });
     }

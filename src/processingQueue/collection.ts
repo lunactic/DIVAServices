@@ -3,14 +3,14 @@
  */
 "use strict";
 import Image = require("../models/image");
-import Process = require("./process");
+import {Process}  from "./process";
 import {IoHelper} from "../helper/ioHelper";
 import IProcess = require("./iProcess");
 
 /**
  * Class represanting a collection
  */
-class Collection implements IProcess {
+export class Collection implements IProcess {
     public method: string;
     public name: string;
     public outputLink: string;
@@ -53,5 +53,3 @@ class Collection implements IProcess {
         }
     }
 }
-
-export = Collection;

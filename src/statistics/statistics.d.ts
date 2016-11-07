@@ -1,4 +1,4 @@
-import Process = require("../processingQueue/process");
+import {Process} from "../processingQueue/process";
 declare class Statistics {
     static currentExecutions: any[];
     static currentStatistics: any;

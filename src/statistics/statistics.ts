@@ -6,11 +6,11 @@
 import * as _ from "lodash";
 import * as nconf from "nconf";
 import * as fs from "fs";
-import logger = require("../logging/logger");
-import Process = require("../processingQueue/process");
+import {Logger} from "../logging/logger";
+import {Process} from "../processingQueue/process";
 
 
-class Statistics {
+export class Statistics {
     public static currentExecutions = [];
     public static currentStatistics: any = {};
 
@@ -37,13 +37,13 @@ class Statistics {
         }
     }
 
-    static startRecording(reqPath: string, proc: Process): any {
+    static startRecording(proc: Process): any {
         let startTime = process.hrtime();
         let rand = Math.random().toString(36).substring(2);
         Statistics.currentExecutions.push({
             rand: rand,
             startTime: startTime,
-            path: reqPath,
+            path: proc.req.originalUrl,
             process: proc
         });
 
@@ -93,10 +93,8 @@ class Statistics {
             try {
                 Statistics.currentStatistics = JSON.parse(fs.readFileSync(nconf.get("paths:serviesInfoFile"), "utf-8"));
             } catch (error) {
-                logger.log("error", "No statistics file found", "Statistics");
+                Logger.log("error", "No statistics file found", "Statistics");
             }
         }
     }
 }
-
-export = Statistics;

@@ -77,7 +77,7 @@ class ExecutableHelper extends EventEmitter
 
 # ---
   # **executeCommand**</br>
-  # Executes a command using the [childProcess](https://nodejs.org/api/child_process.html) module
+  # Executes a command using the pro
   # Returns the data as received from the stdout.</br>
   # `params`
   #   *command* the command to execute

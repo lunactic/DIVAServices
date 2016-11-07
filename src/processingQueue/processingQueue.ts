@@ -3,10 +3,10 @@
  */
 
 "use strict";
-import Process = require("./process");
+import {Process}  from "./process";
 
 
-class ProcessingQueue {
+export class ProcessingQueue {
 
     static queue: Process[] = [];
 
@@ -14,7 +14,7 @@ class ProcessingQueue {
      * Add a process to the processing queue
      * @param the process
      */
-    addElement(element : Process) : void {
+    addElement(element: Process): void {
         ProcessingQueue.queue.push(element);
     }
 
@@ -22,7 +22,7 @@ class ProcessingQueue {
      * Returns the next process
      * @returns {undefined|Process}
      */
-    getNext() : Process {
+    getNext(): Process {
         return ProcessingQueue.queue.shift();
     }
 
@@ -30,10 +30,8 @@ class ProcessingQueue {
      * Returns the size
      * @returns {number}
      */
-    getSize() : Number {
+    getSize(): Number {
         return ProcessingQueue.queue.length;
     }
 
 }
-
-export = ProcessingQueue;

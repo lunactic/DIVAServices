@@ -5,13 +5,13 @@
 
 import * as _ from "lodash";
 
-import logger = require("../logging/logger");
+import {Logger}  from "../logging/logger";
 import Statistics = require("../statistics/statistics");
-import ProcessingQueue = require("./processingQueue");
-import Process = require("./process");
+import {ProcessingQueue} from "./processingQueue";
+import {Process} from "./process";
 
 
-class QueueHandler {
+export class QueueHandler {
 
     static localProcessingQueue: ProcessingQueue = null;
     static remoteProcessingQueue: ProcessingQueue = null;
@@ -76,7 +76,7 @@ class QueueHandler {
     }
 
     private executeDockerRequest(): void {
-        logger.log("info", "execute docker request", "QueueHandler");
+        Logger.log("info", "execute docker request", "QueueHandler");
         if (this.dockerRequestAvailable()) {
             let job = this.getNextDockerRequest();
             QueueHandler.runningDockerJobs.push(job);
@@ -87,5 +87,3 @@ class QueueHandler {
     //TODO execute local and remote
 }
 
-
-export = QueueHandler;

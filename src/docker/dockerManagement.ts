@@ -10,10 +10,10 @@ import * as nconf from "nconf";
 import * as path from "path";
 import {IoHelper} from "../helper/ioHelper";
 import {ResultHelper} from "../helper/resultHelper";
-import logger = require("../logging/logger");
+import {Logger}  from "../logging/logger";
 let Docker = require("dockerode");
 let sequest = require("sequest");
-import Process = require("../processingQueue/process");
+import {Process} from "../processingQueue/process";
 
 export class DockerManagement {
     static docker = new Docker({host: nconf.get("docker:host"), port: nconf.get("docker:port")});
@@ -33,7 +33,7 @@ export class DockerManagement {
                 let hasError: boolean = false;
                 let errorMessage: string = "";
                 if (error != null) {
-                    logger.log("error", error, "DockerManagement");
+                    Logger.log("error", error, "DockerManagement");
                     errorMessage = error;
                     hasError = true;
                 } else {
@@ -59,7 +59,7 @@ export class DockerManagement {
                     });
                     response.on("end", function () {
                         if (!hasError) {
-                            logger.log("info", "successfully build the image", "DockerManagement");
+                            Logger.log("info", "successfully build the image", "DockerManagement");
                             callback(null, id);
                         }
                     });
@@ -79,7 +79,7 @@ export class DockerManagement {
     static removeImage(imageName: string, callback: Function): void {
         this.docker.getImage(imageName).remove(function (err: any, data: any) {
             if (err != null) {
-                logger.log("error", err, "DockerManagement");
+                Logger.log("error", err, "DockerManagement");
             }
             callback(null);
         });
@@ -186,7 +186,7 @@ export class DockerManagement {
         let neededParams = process.neededParameters;
         let paramsPath = "";
 
-        for (let key in params) {
+        for (let key of params) {
             let value = params[key];
             if (key === "highlighter") {
                 paramsPath += _.map(params.highlighter.split(" "), function (item: any) {
@@ -208,10 +208,13 @@ export class DockerManagement {
         }
 
         let command = "./script.sh " + process.inputImageUrl + " " + process.remoteResultUrl + " " + process.remoteErrorUrl + " " + paramsPath;
-        logger.log("info", command, "DockerManagement");
+        Logger.log("info", command, "DockerManagement");
         this.docker.run(imageName, ["sh", "-c", command], process.stdout, function (error: any, data: any, container: any) {
+            let err = {
+                statusMessage: "Execution did not finish properly! status code is: " + data.statusCode
+            };
             if (error != null) {
-                logger.log("error", error, "DockerManagement");
+                Logger.log("error", error, "DockerManagement");
                 if (callback != null) {
                     callback(error, null);
                 }
@@ -223,10 +226,7 @@ export class DockerManagement {
                     }
                 });
             } else if (data != null && data.statusCode !== 0) {
-                logger.log("error", "Execution did not finish properly! status code is: " + data.statusCode, "DockerManagement");
-                var err = {
-                    statusMessage: "Execution did not finish properly! status code is: " + data.statusCode
-                };
+                Logger.log("error", "Execution did not finish properly! status code is: " + data.statusCode, "DockerManagement");
             }
 
             if (process.type === "test" && data.status !== 0) {
@@ -237,7 +237,7 @@ export class DockerManagement {
                     if (callback != null) {
                         callback(err, null);
                     }
-                })
+                });
             }
         });
     }

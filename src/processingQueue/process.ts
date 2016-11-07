@@ -9,7 +9,7 @@ import IProcess = require("./iProcess");
 /**
  *Class representing a process to be executed
  */
-class Process implements IProcess {
+export class Process implements IProcess {
     public id: string;
     public algorithmIdentifier: string;
     public executableType: string;
@@ -59,4 +59,3 @@ class Process implements IProcess {
         }
     }
 }
-export = Process;

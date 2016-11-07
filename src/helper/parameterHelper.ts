@@ -9,8 +9,8 @@ import * as nconf from "nconf";
 import * as path from "path";
 import * as hash from "object-hash";
 import {IoHelper} from "./ioHelper";
-import logger = require("../logging/logger");
-import Process = require("../processingQueue/process");
+import {Logger} from "../logging/logger";
+import {Process} from "../processingQueue/process";
 import IProcess = require("../processingQueue/iProcess");
 
 export class ParameterHelper {
@@ -116,15 +116,15 @@ export class ParameterHelper {
         return algorithm.replace(/\//g, "");
     }
 
-    static saveParamInfo(process: Process, parameters: any, rootFolder: string, outputFolder: string, method: string): void {
+    static saveParamInfo(process: Process): void {
         if (process.result !== null) {
             return;
         }
         let methodPath = "";
         if (process.hasImages) {
-            methodPath = nconf.get("paths:imageRootPath") + path.sep + rootFolder + path.sep + method + ".json";
+            methodPath = nconf.get("paths:imageRootPath") + path.sep + process.rootFolder + path.sep + process.method + ".json";
         } else {
-            methodPath = nconf.get("paths:dataRootPath") + path.sep + rootFolder + path.sep + method + ".json";
+            methodPath = nconf.get("paths:dataRootPath") + path.sep + process.rootFolder + path.sep + process.method + ".json";
         }
 
         let content = [];
@@ -133,13 +133,13 @@ export class ParameterHelper {
             data = {
                 highlighters: _.clone(process.inputHighlighters),
                 parameters: hash(process.inputParameters),
-                folder: outputFolder
+                folder: process.outputFolder
             };
         } else {
             data = {
                 highlighters: {},
                 parameters: hash(process.inputParameters),
-                folder: outputFolder
+                folder: process.outputFolder
             };
         }
 
@@ -148,9 +148,9 @@ export class ParameterHelper {
             data.highlighters[key] = String(value);
         });
 
-        logger.log("info", "saveParamInfo", "ParameterHelper");
-        logger.log("info", JSON.stringify(process.inputParameters), "ParameterHelper");
-        logger.log("info", "hash: " + data.parameters, "ParameterHelper");
+        Logger.log("info", "saveParamInfo", "ParameterHelper");
+        Logger.log("info", JSON.stringify(process.inputParameters), "ParameterHelper");
+        Logger.log("info", "hash: " + data.parameters, "ParameterHelper");
 
         try {
             fs.statSync(methodPath).isFile();

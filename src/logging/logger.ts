@@ -12,7 +12,7 @@ let logger = log4js.getLogger("server");
 logger.setLevel(nconf.get("logger:lever"));
 
 
-class Logger {
+export class Logger {
 
     static log(level: string, msg: string, module: string) {
         level = level || "info";
@@ -25,5 +25,3 @@ class Logger {
     }
 }
 
-
-export = Logger;

@@ -11,8 +11,8 @@ import md5 = require("md5");
 import * as nconf from "nconf";
 import * as path from "path";
 import * as request from "request";
-import logger = require("../logging/logger");
-import Process = require("../processingQueue/process");
+import {Logger} from "../logging/logger";
+import {Process} from "../processingQueue/process";
 import Image = require("../models/image");
 
 export class ImageHelper {
@@ -26,7 +26,7 @@ export class ImageHelper {
                 this.saveBase64(inputImage.value, process.rootFolder, counter, function (image: Image) {
                     self.addImageInfo(image.md5, image.path, process.rootFolder);
                     self.updateCollectionInformation(process.rootFolder, numberOfImages, counter);
-                    logger.log("trace", "saved image", "ImageHelper");
+                    Logger.log("trace", "saved image", "ImageHelper");
                 });
                 break;
 
@@ -73,7 +73,7 @@ export class ImageHelper {
                     callback(image);
                 });
             } else {
-                logger.log("error", "error saving the image", "ImageHelper");
+                Logger.log("error", "error saving the image", "ImageHelper");
             }
         });
     }
@@ -118,7 +118,7 @@ export class ImageHelper {
                                 callback(null, image);
                             });
                             source.on("error", function (error: any) {
-                                logger.log("error", JSON.stringify(error), "ImageHelper");
+                                Logger.log("error", JSON.stringify(error), "ImageHelper");
                                 callback(null, image);
                             });
                         }
@@ -127,7 +127,7 @@ export class ImageHelper {
             }
         ], function (err: any, image: Image) {
             if (err !== null) {
-                logger.log("error", JSON.stringify(err), "ImageHelper");
+                Logger.log("error", JSON.stringify(err), "ImageHelper");
             } else {
                 cb(image);
             }
@@ -192,7 +192,7 @@ export class ImageHelper {
                     images.push(image);
                 }
             } else {
-                logger.log("error", "Tried to load collection: " + collectionName + " which does not exist", "ImageHelper");
+                Logger.log("error", "Tried to load collection: " + collectionName + " which does not exist", "ImageHelper");
                 return [];
             }
         } else {
@@ -213,7 +213,7 @@ export class ImageHelper {
                 }
                 return images;
             } catch (error) {
-                logger.log("error", "Tried to load collection: " + collectionName + " which does not exist", "ImageHelper");
+                Logger.log("error", "Tried to load collection: " + collectionName + " which does not exist", "ImageHelper");
                 return [];
             }
         }

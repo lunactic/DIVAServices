@@ -6,12 +6,12 @@ import * as _ from "lodash";
 import * as fs from "fs";
 import * as path from "path";
 import * as nconf from "nconf";
-import logger = require("../../logging/logger");
+import {Logger} from "../../logging/logger";
 import {ImageHelper} from "../imageHelper";
 import {IoHelper} from "../ioHelper";
 
 import IResultHandler = require("./iResultHandler");
-import Process = require("../../processingQueue/process");
+import {Process} from "../../processingQueue/process";
 
 export class FileResultHandler implements IResultHandler {
     filename: string;
@@ -122,7 +122,7 @@ export class FileResultHandler implements IResultHandler {
                             data["resultZipLink"] = "http://" + nconf.get("server:rootUrl") + "/collection/" + process.rootFolder + "/" + process.methodFolder;
                             IoHelper.saveFile(self.filename, data, "utf8", null);
                         } catch (error) {
-                            logger.log("error", error, "FileResultHandler");
+                            Logger.log("error", error, "FileResultHandler");
                             let err = {
                                 statusCode: 500,
                                 statusMessage: "Could not parse result"
@@ -133,7 +133,7 @@ export class FileResultHandler implements IResultHandler {
                     }
                 });
             } else {
-                logger.log("error", error, "FileResultHandler");
+                Logger.log("error", error, "FileResultHandler");
                 callback(error, null, null);
             }
         });

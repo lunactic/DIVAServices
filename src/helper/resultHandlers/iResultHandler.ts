@@ -1,4 +1,4 @@
-import Process = require("../../processingQueue/process");
+import {Process} from "../../processingQueue/process";
 /**
  * Created by lunactic on 04.11.16.
  */

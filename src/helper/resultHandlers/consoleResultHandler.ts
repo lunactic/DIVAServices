@@ -4,10 +4,10 @@
 
 import * as fs from "fs";
 import * as nconf from "nconf";
-import logger = require("../../logging/logger");
+import {Logger}  from "../../logging/logger";
 import {ImageHelper} from "../imageHelper";
 import IResultHandler = require("./iResultHandler");
-import Process = require("../../processingQueue/process");
+import {Process} from "../../processingQueue/process";
 import {IoHelper} from "../ioHelper";
 
 export class ConsoleResultHandler implements IResultHandler {
@@ -18,7 +18,7 @@ export class ConsoleResultHandler implements IResultHandler {
     }
 
     handleError(error: any, process: Process): void {
-        logger.log("error", error, "ConsoleResultHandler");
+        Logger.log("error", error, "ConsoleResultHandler");
     }
 
     handleResult(error: any, stdout: any, stderr: any, process: Process, callback: Function) {
@@ -34,7 +34,7 @@ export class ConsoleResultHandler implements IResultHandler {
                 if (err == null) {
                     fs.readFile(self.filename, "utf8", function (err: any, data: any) {
                         if (err != null) {
-                            logger.log("error", err, "ConsoleResultHandler");
+                            Logger.log("error", err, "ConsoleResultHandler");
                             callback(err, null, null);
                         } else {
                             try {
@@ -52,13 +52,13 @@ export class ConsoleResultHandler implements IResultHandler {
                                 data["resultZipLink"] = "http://" + nconf.get("server:rootUrl") + "/collection/" + process.rootFolder + "/" + process.methodFolder;
                                 IoHelper.saveFile(self.filename, data, "utf8", null);
                             } catch (error) {
-                                logger.log("error", error, "ConsoleResultHandler");
+                                Logger.log("error", error, "ConsoleResultHandler");
                             }
                             callback(null, data, process.id);
                         }
                     });
                 } else {
-                    logger.log("error", err, "ConsoleResultHandler");
+                    Logger.log("error", err, "ConsoleResultHandler");
                     callback(err, null, null);
                 }
             });

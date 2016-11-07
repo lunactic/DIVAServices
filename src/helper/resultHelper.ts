@@ -9,8 +9,8 @@ import * as path from "path";
 import {ImageHelper} from "./imageHelper";
 import {IoHelper} from "./ioHelper";
 import {ParameterHelper} from "./parameterHelper";
-import Collection = require("../processingQueue/collection");
-import Process = require("../processingQueue/process");
+import {Collection} from "../processingQueue/collection";
+import {Process}  from "../processingQueue/process";
 import IProcess = require("../processingQueue/iProcess");
 import Image = require("../models/image");
 
@@ -47,7 +47,7 @@ export class ResultHelper {
 
     static loadAvailableResults(folder: string, image: Image): any {
         let files: string[] = IoHelper.readFolder(folder);
-        let results = []
+        let results = [];
         if (files !== null) {
             files = _.filter(files, function (file: string) {
                 return file.endsWith("json");

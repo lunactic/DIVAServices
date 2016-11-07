@@ -3,9 +3,9 @@
  */
 
 import * as fs from "fs";
-import logger = require("../../logging/logger");
+import {Logger} from "../../logging/logger";
 import IResultHandler = require("./iResultHandler");
-import Process = require("../../processingQueue/process");
+import {Process}  from "../../processingQueue/process";
 import {IoHelper} from "../ioHelper";
 
 export class NoResultHandler implements IResultHandler {
@@ -16,7 +16,7 @@ export class NoResultHandler implements IResultHandler {
     }
 
     handleError(error: any, process: Process): void {
-        logger.log("error", error, "NoResultHandler");
+        Logger.log("error", error, "NoResultHandler");
 
     }
 
