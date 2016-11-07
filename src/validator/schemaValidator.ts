@@ -5,9 +5,9 @@
 
 import * as nconf from "nconf";
 import * as jsonschema from "jsonschema";
-import logger = require("../logging/logger");
+import {Logger} from "../logging/logger";
 
-class SchemaValidator {
+export class SchemaValidator {
     static validator = new jsonschema.Validator();
 
     static validate(input: Object, schema: string, callback: Function): void {
@@ -24,7 +24,7 @@ class SchemaValidator {
                 callback(null);
             }
         } catch (error) {
-            logger.log("error", error, "SchemaValidator");
+            Logger.log("error", error, "SchemaValidator");
         }
     }
 }

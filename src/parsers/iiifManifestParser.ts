@@ -13,10 +13,10 @@ export class IiifManifestParser {
         this.manifestUrl = manifestUrl;
     }
 
-    public initialize(): void {
+    public initialize(): Promise<any> {
         let self = this;
-        manifesto.loadManifest(this.manifestUrl).then(function (manifest: any) {
-            self.manifest = manifesto.create(manifest);
+        return manifesto.loadManifest(this.manifestUrl).then(function (manifest: any) {
+            return self.manifest = manifesto.create(manifest);
         });
     }
 

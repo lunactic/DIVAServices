@@ -26,7 +26,7 @@ export class Statistics {
         return executionInfo.length > 0;
     }
 
-    static getProcess(rand: string, reqPath: string): Process {
+    static getProcess(rand: string): Process {
         let execution = Statistics.currentExecutions.filter(function (x: any) {
             return x.rand === rand;
         });

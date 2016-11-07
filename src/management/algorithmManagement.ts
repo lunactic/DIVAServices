@@ -5,7 +5,7 @@
 import * as _ from "lodash";
 let crypto = require("crypto");
 import {IoHelper} from "../helper/ioHelper";
-import logger = require("../logging/logger");
+import {Logger} from "../logging/logger";
 import * as mkdirp from "mkdirp";
 import * as nconf from "nconf";
 import * as path from "path";
@@ -75,9 +75,9 @@ export class AlgorithmManagement {
 
         IoHelper.saveFile(folder + path.sep + "info.json", data, "utf8", function (err: any) {
             if (err != null) {
-                logger.log("error", err, "AlgorithmManagement");
+                Logger.log("error", err, "AlgorithmManagement");
             } else {
-                logger.log("info", "saved file", "AlgorithmManagement");
+                Logger.log("info", "saved file", "AlgorithmManagement");
             }
         });
     }

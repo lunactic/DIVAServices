@@ -6,6 +6,8 @@
 import Image = require("../models/image");
 import {IoHelper} from "../helper/ioHelper";
 import IProcess = require("./iProcess");
+import IResultHandler = require("../helper/resultHandlers/iResultHandler");
+import * as express from "express";
 /**
  *Class representing a process to be executed
  */
@@ -13,7 +15,7 @@ export class Process implements IProcess {
     public id: string;
     public algorithmIdentifier: string;
     public executableType: string;
-    public req = null;
+    public req: express.Request = null;
     public method: string;
     public image: Image;
     public rootFolder: string;
@@ -26,7 +28,7 @@ export class Process implements IProcess {
     public parameters: any;
     public programType: string;
     public executablePath: string;
-    public resultHandler;
+    public resultHandler: IResultHandler;
     public resultType: string;
     public resultFile: string;
     public tmpResultFile: string;
