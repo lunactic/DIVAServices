@@ -1,6 +1,5 @@
 /// <reference path="_all.d.ts" />
 "use strict";
-
 if (!(process.env.NODE_ENV != null) || process.env.NODE_ENV in ["dev", "test", "prod"]) {
     console.log("please set NODE_ENV to [dev, test, prod]. going to exit");
     process.exit(0);
@@ -84,6 +83,21 @@ class Server {
             err.status = 404;
             next(err);
         });
+
+        //set up helper for text/plain
+        this.app.use(function (req: express.Request, res: express.Response, next: express.NextFunction) {
+            if (req.is("text/*")) {
+                req["text"] = "";
+                req.setEncoding("utf8");
+                req.on("data", function (chunk) {
+                    req["text"] += chunk;
+                });
+                req.on("end", next);
+            } else {
+                next();
+            }
+        });
+
     }
 
     private routes() {

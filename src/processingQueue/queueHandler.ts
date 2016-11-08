@@ -56,7 +56,7 @@ export class QueueHandler {
         });
     }
 
-    static getDockerJob(jobId: string): Object {
+    static getDockerJob(jobId: string): Process {
         let job = _.find(QueueHandler.runningDockerJobs, {"id": jobId});
         _.remove(QueueHandler.runningDockerJobs, {"id": jobId});
         return job;

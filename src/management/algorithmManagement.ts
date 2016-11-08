@@ -3,6 +3,7 @@
  */
 
 import * as _ from "lodash";
+import * as express from "express";
 let crypto = require("crypto");
 import {IoHelper} from "../helper/ioHelper";
 import {Logger} from "../logging/logger";
@@ -10,8 +11,117 @@ import * as mkdirp from "mkdirp";
 import * as nconf from "nconf";
 import * as path from "path";
 import {ServicesInfoHelper} from "../helper/servicesInfoHelper";
+import {DockerManagement} from "../docker/dockerManagement";
+import {ExecutableHelper} from "../helper/executableHelper";
+import {QueueHandler} from "../processingQueue/queueHandler";
+import {Swagger} from "../swagger/swagger";
 
 export class AlgorithmManagement {
+
+
+    static createAlgorithm(req: express.Request, res: express.Response, route: string, identifier: string, imageName: string, callback: Function): void {
+        AlgorithmManagement.updateServicesFile(req.body, identifier, route, imageName);
+        IoHelper.downloadFile(req.body.method.file, nconf.get("paths:executablePath") + path.sep + route, "application/zip", function (err: any, filename: string) {
+            if (err != null) {
+                AlgorithmManagement.updateStatus(identifier, "error", null, "algorithm file has the wrong format");
+                let error = {
+                    statusCode: 500,
+                    identifier: identifier,
+                    statusText: "fileUrl does not point to a correct zip file",
+                    errorType: "WrongFileFormat"
+                };
+                callback(error, null);
+            } else {
+                //create docker file
+                DockerManagement.createDockerFile(req.body, nconf.get("paths:executablePath") + path.sep + route);
+                //create bash script
+                DockerManagement.createBashScript(identifier, req.body, nconf.get("paths:executablePath") + path.sep + route);
+                //update services file
+                AlgorithmManagement.updateStatus(identifier, "createing", "/" + route, null);
+                let response = {
+                    statusCode: 200,
+                    identifier: identifier,
+                    statusText: "Started Algorithm Creation"
+                };
+                callback(null, response);
+            }
+            DockerManagement.buildImage(nconf.get("paths:executablePath") + path.sep + route, imageName, function (error: any, response: any) {
+                if (error != null) {
+                    AlgorithmManagement.updateStatus(identifier, "error", null, error.statusMessage);
+                } else {
+                    AlgorithmManagement.updateStatus(identifier, "testing", null, null);
+                    let executableHelper = new ExecutableHelper();
+                    let inputs = {};
+                    let highlighter = {};
+                    for (let input of req.body.input) {
+                        if (!(_.keys(input)[0] in nconf.get("reservedWords")) || _.keys(input)[0] === "highlighter") {
+                            switch (_.keys(input)[0]) {
+                                case "select":
+                                    inputs[input.select.name] = input.select.options.values[input.select.options.default];
+                                    break;
+                                case "number":
+                                    inputs[input.number.name] = input.number.options.default;
+                                    break;
+                                case "text":
+                                    inputs[input.text.name] = input.text.options.default;
+                                    break;
+                                case "json":
+                                    inputs[input.json.name] = IoHelper.loadFile(nconf.get("paths:testPath") + path.sep + "json" + path.sep + "array.json");
+                                    break;
+                                case "highlighter":
+                                    switch (input.highlighter.type) {
+                                        case "polygon":
+                                            highlighter = {
+                                                type: "polygon",
+                                                closed: true,
+                                                segments: [[1, 1], [1, 150], [350, 150], [350, 1]]
+                                            };
+                                            break;
+                                        case "rectangle":
+                                        case "polygon":
+                                            highlighter = {
+                                                type: "rectangle",
+                                                closed: true,
+                                                segments: [[1, 1], [1, 150], [350, 150], [350, 1]]
+                                            };
+                                            break;
+                                    }
+                                    break;
+                            }
+                        }
+                    }
+                    inputs["highlighter"] = highlighter;
+                    let testRequest = {
+                        originalUrl: "/" + route,
+                        body: [{
+                            images: [{
+                                type: "collection",
+                                value: "test"
+                            }]
+                        }],
+                        inputs: inputs
+                    };
+                    executableHelper.preprocess(testRequest, QueueHandler.dockerProcessingQueue, "test", function (error: any, response: any) {
+                        if (error != null) {
+                            Logger.log("error", error, "AlgorithmManagement");
+                        }
+                    }, function () {
+                        let job = QueueHandler.dockerProcessingQueue.getNext();
+                        QueueHandler.runningDockerJobs.push(job);
+                        executableHelper.executeDockerRequest(job, function (error: any, data: any) {
+                            if (error == null) {
+                                AlgorithmManagement.updateRootInfoFile(req.body, route);
+                                AlgorithmManagement.createInfoFile(req.body, nconf.get("paths:jsonPath") + path.sep + route);
+                                //Add to swagger
+                                let info = IoHelper.loadFile(nconf.get("paths:jsonPath") + path.sep + route + path.sep + "info.json");
+                                Swagger.createEntry(info, route);
+                            }
+                        });
+                    });
+                }
+            });
+        });
+    }
 
     static getStatusByIdentifier(identifier: string): any {
         let content = IoHelper.loadFile(nconf.get("paths:servicesInfoFile"));
