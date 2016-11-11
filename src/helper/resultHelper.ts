@@ -29,7 +29,7 @@ export class ResultHelper {
 
     static checkProcessResultAvailable(process: Process): boolean {
         ParameterHelper.loadParamInfo(process);
-        return process.resultFile !== null && IoHelper.fileExists(process.resultFile);
+        return process.resultFile != null && IoHelper.fileExists(process.resultFile);
     }
 
     static loadResult(info: IProcess): any {
@@ -48,7 +48,7 @@ export class ResultHelper {
     static loadAvailableResults(folder: string, image: DivaImage): any {
         let files: string[] = IoHelper.readFolder(folder);
         let results = [];
-        if (files !== null) {
+        if (files != null) {
             files = _.filter(files, function (file: string) {
                 return file.endsWith("json");
             });

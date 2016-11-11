@@ -71,7 +71,7 @@ router.post("/upload", function (req: express.Request, res: express.Response) {
                             //TODO improve to save all images
                             let images = iiifManifestParser.getAllImages(0);
                             images.forEach((inputImage: any, i: number) => {
-                                ImageHelper.saveUrl(inputImage, collectionName, imageCounter, function (image: Image) {
+                                ImageHelper.saveUrl(inputImage, collectionName, imageCounter, function (image: DivaImage) {
                                     ImageHelper.addImageInfo(image.md5, image.path, collectionName);
                                     ImageHelper.updateCollectionInformation(collectionName, numOfImages, imageCounter++);
                                 });
@@ -79,8 +79,8 @@ router.post("/upload", function (req: express.Request, res: express.Response) {
                         });
                         break;
                     default:
-                        ImageHelper.saveBase64(image, collectionName, imageCounter, function (image: Image) {
-                            ImageHelper.addImageInfo(image.md5, image.path, collectionName);
+                        ImageHelper.saveBase64(image, collectionName, imageCounter, function (divaImage: DivaImage) {
+                            ImageHelper.addImageInfo(divaImage.md5, divaImage.path, collectionName);
                             ImageHelper.updateCollectionInformation(collectionName, numOfImages, imageCounter++);
                         });
                         break;
@@ -100,7 +100,6 @@ router.post("/jobs/:jobId", function (req: express.Request, res: express.Respons
                 process.result = req.body;
                 ResultHelper.saveResult(process, callback);
             }, function (callback: Function) {
-                //TODO: Check the schema here already
                 process.resultHandler.handleResult(null, null, null, process, function (error: any, data: any, processId: string) {
                     if (error != null) {
                         callback(error);
@@ -336,7 +335,7 @@ function sendError(res: express.Response, error: any) {
 }
 
 function unlike(req: express.Request, path: string) {
-    if (req.path.contains(path)) {
+    if (req.path.search(path) >= 0) {
         return false;
     } else {
         return true;

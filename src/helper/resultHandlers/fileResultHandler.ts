@@ -72,7 +72,7 @@ export class FileResultHandler implements IResultHandler {
                                 if (file.file["mime-type"].startsWith("image")) {
                                     ImageHelper.saveJson(file.file.content, process, file.file.name);
                                     if (process.hasImages) {
-                                        file.file["url"] = IoHelper.getStaticImageUrl(process.rootFolder + path.sep + process.methodFolder, file.file.name + ".png");
+                                        file.file["url"] = IoHelper.getStaticImageUrl(process.rootFolder + path.sep + process.methodFolder, file.file.name + "." + ImageHelper.getImageExtensionBase64(file.file.content));
                                     } else if (process.hasFiles) {
                                         file.file["url"] = IoHelper.getStaticDataUrl(process.rootFolder + path.sep + process.methodFolder, file.file.name + "txt");
                                     }

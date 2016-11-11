@@ -232,7 +232,7 @@ export class ExecutableHelper extends EventEmitter {
                 for (let process of collection.processes) {
                     if (!(process.result != null)) {
                         ParameterHelper.saveParamInfo(process);
-                        IoHelper.saveFile(process.tmpResultFile, {status: "planned"}, "utf8", null);
+                        IoHelper.saveFile(process.resultFile, {status: "planned"}, "utf8", null);
                     }
                 }
                 callback(null, collection);

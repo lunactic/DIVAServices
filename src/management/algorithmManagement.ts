@@ -7,7 +7,6 @@ import * as express from "express";
 let crypto = require("crypto");
 import {IoHelper} from "../helper/ioHelper";
 import {Logger} from "../logging/logger";
-import * as mkdirp from "mkdirp";
 import * as nconf from "nconf";
 import * as path from "path";
 import {ServicesInfoHelper} from "../helper/servicesInfoHelper";

@@ -117,7 +117,7 @@ export class ParameterHelper {
     }
 
     static saveParamInfo(process: Process): void {
-        if (process.result !== null) {
+        if (process.result != null) {
             return;
         }
         let methodPath = "";
@@ -129,7 +129,7 @@ export class ParameterHelper {
 
         let content = [];
         let data: any = {};
-        if (process.inputHighlighters !== null) {
+        if (process.inputHighlighters != null) {
             data = {
                 highlighters: _.clone(process.inputHighlighters),
                 parameters: hash(process.inputParameters),
@@ -188,7 +188,7 @@ export class ParameterHelper {
                     }).length > 0) {
                 //found some method information
                 if (process.hasImages) {
-                    if (process.image !== null) {
+                    if (process.image != null) {
                         process.resultFile = IoHelper.buildResultfilePath(info[0].folder, process.image.name);
                     } else {
                         process.resultFile = IoHelper.buildResultfilePath(info[0].folder, path.basename(info[0].folder));

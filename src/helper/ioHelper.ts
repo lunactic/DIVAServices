@@ -10,7 +10,7 @@ import * as archiver from "archiver";
 import * as fs from "fs";
 import * as http from "http";
 import * as https from "https";
-import * as mkdirp from "mkdirp";
+import * as fse from "fs-extra";
 import * as nconf from "nconf";
 import * as path from "path";
 let rmdir = require("rmdir");
@@ -62,7 +62,7 @@ export class IoHelper {
     }
 
     static createFolder(folder: string): void {
-        mkdirp.sync(folder);
+        fse.mkdirsSync(folder);
     }
 
     static deleteFolder(folder: string): void {
@@ -73,7 +73,7 @@ export class IoHelper {
 
     static downloadFile(fileUrl: string, localFolder: string, fileType: string, callback: Function): void {
         this.checkFileType(fileType, fileUrl, function (error: any) {
-            if (error !== null) {
+            if (error != null) {
                 callback(error);
             } else {
                 let filename = path.basename(url.parse(fileUrl).pathname);
@@ -126,7 +126,8 @@ export class IoHelper {
     }
 
     static unzipFile(zipFile: string, folder: string, callback: Function): void {
-        mkdirp(folder, function (error: Object) {
+
+        fse.mkdirs(folder, function (error: Error) {
             if (error) {
                 Logger.log("error", JSON.stringify(error), "IoHelper");
                 callback(error);
@@ -150,26 +151,23 @@ export class IoHelper {
 
     static createDataCollectionFolders(service: any): void {
         let rootFolder = nconf.get("paths:dataRootPath") + path.sep + service.service + path.sep + "original";
-        mkdirp(rootFolder, function (error: any) {
-            if (error !== null) {
+        fse.mkdirs(rootFolder, function (error: Error) {
+            if (error != null) {
                 Logger.log("error", JSON.stringify(error), "IoHelper");
             }
         });
     }
 
     static createImageCollectionFolders(collection: string): void {
-        let rootFolder = nconf.get("paths:imagesRootPath") + path.sep + collection + path.sep + "original";
-        mkdirp(rootFolder, function (error: any) {
-            if (error !== null) {
-                Logger.log("error", JSON.stringify(error), "IoHelper");
-            }
-        });
+        let rootFolder = nconf.get("paths:imageRootPath") + path.sep + collection + path.sep + "original";
+        fse.mkdirsSync(rootFolder);
+
     }
 
     static deleteImageCollectionFolders(collection: string): void {
-        let rootFolder = nconf.get("paths:imagesRootPath") + path.sep + collection + path.sep;
+        let rootFolder = nconf.get("paths:imageRootPath") + path.sep + collection + path.sep;
         rmdir(rootFolder, function (error: any) {
-            if (error !== null) {
+            if (error != null) {
                 Logger.log("error", JSON.stringify(error), "IoHelper");
             }
         });
@@ -248,7 +246,7 @@ export class IoHelper {
 
     static getStaticImageUrlFull(fullFilePath: string): string {
         let relPath = fullFilePath.replace(nconf.get("paths:imageRootPath") + path.sep, "");
-        return this.getStaticDataUrlRelative(relPath);
+        return this.getStaticImageUrlRelative(relPath);
     }
 
     static checkFileType(fileType: string, fileUrl: string, callback: Function): void {

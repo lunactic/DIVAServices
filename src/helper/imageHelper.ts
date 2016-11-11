@@ -52,7 +52,7 @@ export class ImageHelper {
 
     static saveBase64(image: any, folder: string, counter: number, callback: Function) {
         let imagePath = nconf.get("paths:imageRootPath");
-        let base64Data = image.replace(/^data:image\/png;base64,/, "");
+        let base64Data = image.value.replace(/^data:image\/png;base64,/, "");
         let md5String = md5(base64Data);
 
         let imageObject = new DivaImage();
@@ -69,8 +69,8 @@ export class ImageHelper {
             if (err === null) {
                 return image;
             } else if (err.code === "ENOENT") {
-                fs.writeFile(image.path, base64Data, "base64", function (err: any) {
-                    callback(image);
+                fs.writeFile(imageObject.path, base64Data, "base64", function (err: any) {
+                    callback(imageObject);
                 });
             } else {
                 Logger.log("error", "error saving the image", "ImageHelper");
@@ -81,7 +81,7 @@ export class ImageHelper {
     static saveJson(image: any, process: Process, filename: string) {
         process.image.extension = this.getImageExtensionBase64(image);
         let base64Data = image.replace(/^data:image\/png;base64,/, "");
-        fs.writeFileSync(process.outputFolder + path.sep + filename + "." + process.image.extension, "base64");
+        fs.writeFileSync(process.outputFolder + path.sep + filename + "." + process.image.extension, base64Data, "base64");
     }
 
     static saveUrl(url: string, folder: string, counter: number, cb: Function) {
@@ -106,7 +106,7 @@ export class ImageHelper {
                     image.md5 = md5String;
 
                     fs.stat(image.path, function (err: any, stat: fs.Stats) {
-                        if (err !== null) {
+                        if (err != null) {
                             fs.unlink(imagePath + "temp_" + counter + "." + imgExtension);
                             callback(null, image);
                         } else if (err.code === "ENONENT") {
@@ -126,7 +126,7 @@ export class ImageHelper {
                 });
             }
         ], function (err: any, image: DivaImage) {
-            if (err !== null) {
+            if (err != null) {
                 Logger.log("error", JSON.stringify(err), "ImageHelper");
             } else {
                 cb(image);
@@ -239,7 +239,7 @@ export class ImageHelper {
     }
 
     static saveImageInfo(): void {
-        IoHelper.saveFile(nconf.get("paths.imageInfoFile"), this.imageInfo, "utf-8", null);
+        IoHelper.saveFile(nconf.get("paths:imageInfoFile"), this.imageInfo, "utf-8", null);
     }
 
     /**static handleMd5(image: DivaImage, process: Process, collection: string, serviceInfo: any, parameterHelper: ParameterHelper, req: any) : void {
@@ -252,7 +252,7 @@ export class ImageHelper {
             statusMessage: "Downloaded 0 of " + images + " images",
             percentage: 0
         };
-        IoHelper.saveFile(nconf.get("paths:imagesRootPath") + path.sep + collectionName + path.sep + "status.json", status, "utf-8", null);
+        IoHelper.saveFile(nconf.get("paths:imageRootPath") + path.sep + collectionName + path.sep + "status.json", status, "utf-8", null);
     }
 
     static checkCollectionAvailable(collection: string): boolean {
@@ -265,14 +265,15 @@ export class ImageHelper {
     }
 
     static updateCollectionInformation(collection: string, images: number, downloaded: number): void {
+        let status = {};
         if (downloaded !== images) {
-            let status = {
+            status = {
                 statusCode: 110,
                 statusMessage: "Downloaded " + downloaded + " of " + images + " images",
                 percentage: (downloaded / images) * 100
             };
         } else {
-            let status = {
+            status = {
                 statusCode: 200,
                 statusMessage: "Collection is available",
                 percentage: 100
