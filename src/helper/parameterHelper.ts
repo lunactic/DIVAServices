@@ -182,10 +182,10 @@ export class ParameterHelper {
             fs.statSync(paramPath).isFile();
             let content = IoHelper.loadFile(paramPath);
             let info: any = {};
-            if (info = _.filter(content, {
+            if ((info = _.filter(content, {
                         "parameters": data.parameters,
                         "highlighters": data.highlighters
-                    }).length > 0) {
+                    })).length > 0) {
                 //found some method information
                 if (process.hasImages) {
                     if (process.image != null) {
