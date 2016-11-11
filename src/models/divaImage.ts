@@ -5,7 +5,7 @@
 import * as path from "path";
 import * as nconf from "nconf";
 
-class Image {
+export class DivaImage {
 
     public rootFolder: string;
     public folder: string;
@@ -34,5 +34,3 @@ class Image {
     }
 
 }
-
-export = Image;

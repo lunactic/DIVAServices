@@ -12,7 +12,7 @@ import {ParameterHelper} from "./parameterHelper";
 import {Collection} from "../processingQueue/collection";
 import {Process}  from "../processingQueue/process";
 import IProcess = require("../processingQueue/iProcess");
-import Image = require("../models/image");
+import {DivaImage} from "../models/divaImage";
 
 export class ResultHelper {
 
@@ -45,7 +45,7 @@ export class ResultHelper {
         IoHelper.deleteFolder(process.outputFolder);
     }
 
-    static loadAvailableResults(folder: string, image: Image): any {
+    static loadAvailableResults(folder: string, image: DivaImage): any {
         let files: string[] = IoHelper.readFolder(folder);
         let results = [];
         if (files !== null) {
@@ -67,7 +67,7 @@ export class ResultHelper {
     }
 
     static loadResultsForMd5(md5: string): any {
-        let images: Image[] = ImageHelper.loadImagesMd5(md5);
+        let images: DivaImage[] = ImageHelper.loadImagesMd5(md5);
         let response = [];
 
         for (let image of images) {

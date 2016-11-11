@@ -230,6 +230,6 @@ export class ParameterHelper {
 
     static checkReservedParameters(parameter: string): boolean {
         let reservedParameters = nconf.get("reservedWords");
-        return parameter in reservedParameters;
+        return reservedParameters.indexOf(parameter) >= 0;
     }
 }

@@ -70,7 +70,7 @@ class GetHandler
       #locate the image folder
       ImageHelper.imageExists(queryParams.md5, (err, data) ->
         if(err?)
-          error = createError(404,'Image not available')
+          error = createError(404,'DivaImage not available')
           callback error, null
           return
         if(data.imageAvailable)

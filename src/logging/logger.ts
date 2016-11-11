@@ -7,7 +7,7 @@
 import * as log4js from "log4js";
 import * as nconf from "nconf";
 
-log4js.configure({appenders: nconf.get("loggers:appenders")});
+log4js.configure({appenders: nconf.get("logger:appenders")});
 let logger = log4js.getLogger("server");
 logger.setLevel(nconf.get("logger:lever"));
 

@@ -28,13 +28,13 @@ export class GetHandler {
                     let algo = AlgorithmManagement.getStatusByRoute(req.originalUrl);
                     let error = null;
                     if (algo != null) {
-                        error = this.createError(algo.status.statusCode, algo.status.statusMessage);
+                        error = GetHandler.createError(algo.status.statusCode, algo.status.statusMessage);
                     } else {
-                        error = this.createError(404, "This algorithm is not available");
+                        error = GetHandler.createError(404, "This algorithm is not available");
                     }
                     callback(error, null);
                 } else {
-                    data = data.replace(new RegExp("\\$BASEURL$\\", "g"), nconf.get("server:rootUrl"));
+                    data = data.replace(new RegExp("\\$BASEURL\\$", "g"), nconf.get("server:rootUrl"));
                     data = JSON.parse(data);
 
                     //add additional information if available
@@ -58,7 +58,7 @@ export class GetHandler {
         if (queryParams["md5"] != null) {
             ImageHelper.imageExists(queryParams.md5, function (err: any, data: any) {
                 if (err != null) {
-                    let error = this.createError(404, "Image not available");
+                    let error = GetHandler.createError(404, "DivaImage not available");
                     callback(error, null);
                 } else {
                     if (data.imageAvailable) {
@@ -66,7 +66,7 @@ export class GetHandler {
                         for (let image of images) {
                             let process = new Process();
                             process.image = image;
-                            this.prepareQueryParams(process, queryParams);
+                            GetHandler.prepareQueryParams(process, queryParams);
                             process.parameters = ParameterHelper.matchParams(process, req);
                             process.method = serviceInfo.service;
                             process.rootFolder = image.folder.split(path.sep)[image.folder.split(path.sep).length - 2];
@@ -79,7 +79,7 @@ export class GetHandler {
                                 callback(null, process.result);
                             }
                         }
-                        callback(this.createError(404, "This result is not available"), null);
+                        callback(GetHandler.createError(404, "This result is not available"), null);
                     }
                 }
             });

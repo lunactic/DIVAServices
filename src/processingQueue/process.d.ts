@@ -1,4 +1,4 @@
-import Image = require("../models/image");
+import {DivaImage} from "../models/divaImage";
 import IProcess = require("./iProcess");
 /**
  *Class representing a process to be executed

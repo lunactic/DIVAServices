@@ -100,7 +100,7 @@ export class Statistics {
     static loadStatistics(): void {
         if (Object.keys(Statistics.currentStatistics).length === 0) {
             try {
-                Statistics.currentStatistics = JSON.parse(fs.readFileSync(nconf.get("paths:serviesInfoFile"), "utf-8"));
+                Statistics.currentStatistics = JSON.parse(fs.readFileSync(nconf.get("paths:servicesInfoFile"), "utf-8"));
             } catch (error) {
                 Logger.log("error", "No statistics file found", "Statistics");
             }

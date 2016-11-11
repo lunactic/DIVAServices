@@ -13,6 +13,7 @@ import {ResultHelper} from "../helper/resultHelper";
 import {Logger}  from "../logging/logger";
 let Docker = require("dockerode");
 let sequest = require("sequest");
+import * as os from "os";
 import {Process} from "../processingQueue/process";
 
 export class DockerManagement {
@@ -47,7 +48,7 @@ export class DockerManagement {
                         }
                         try {
                             let json = JSON.parse(data.toString());
-                            let id = json.stream.split(":")[1].replace("\n", "");
+                            let id = json.stream.split(":")[1].replace(os.EOL, "");
                         } catch (error) {
                             hasError = true;
                             let err = {
@@ -65,15 +66,15 @@ export class DockerManagement {
                     });
                 }
             });
-            archive.pipe(output);
-            archive.bulk([{
-                expand: true,
-                cwd: inputFolder + path.sep,
-                src: ["*", "**/*"]
-            }
-            ]);
-            archive.finalize();
         });
+        archive.pipe(output);
+        archive.bulk([{
+            expand: true,
+            cwd: inputFolder + path.sep,
+            src: ["*", "**/*"]
+        }
+        ]);
+        archive.finalize();
     }
 
     static removeImage(imageName: string, callback: Function): void {
@@ -86,37 +87,37 @@ export class DockerManagement {
     }
 
     static createDockerFile(algorithmInfos: any, outputFolder: string): void {
-        let content: string = "FROM " + algorithmInfos.method.environment + "\n" +
-            "MAINTAINER marcel.wuersch@unifr.ch \n";
+        let content: string = "FROM " + algorithmInfos.method.environment + os.EOL +
+            'MAINTAINER marcel.wuersch@unifr.ch' + os.EOL;
 
         switch (nconf.get("baseImages:" + algorithmInfos.method.environment)) {
             case "apk":
-                content += "RUN apk update \n" +
-                    "RUN apk add curl \n";
+                content += 'RUN apk update' + os.EOL +
+                    'RUN apk add curl' + os.EOL;
                 break;
             case "apt":
-                content += "RUN apt-get update \n" +
-                    "RUN apt-get install wget unzip curl -y \n";
+                content += 'RUN apt-get update' + os.EOL +
+                    'RUN apt-get install wget unzip curl -y' + os.EOL;
                 break;
         }
 
-        content += "RUN mkdir -p /data/output \n" +
-            "WORKDIR /data \n" +
-            "COPY . . \n" +
-            "RUN ['chmod', '+x', './script.sh'] \n" +
-            "RUN unzip algorithm.zip \n";
+        content += 'RUN mkdir -p /data/output' + os.EOL +
+            'WORKDIR /data' + os.EOL +
+            'COPY . .' + os.EOL +
+            'RUN ["chmod", "+x", "./script.sh"]' + os.EOL +
+            'RUN unzip algorithm.zip' + os.EOL;
 
         if (algorithmInfos.method.executableType === "bash") {
-            content += "RUN ['chmod', '+x', './" + algorithmInfos.method.executable_path + "'] \n";
+            content += 'RUN ["chmod", "+x", "./' + algorithmInfos.method.executable_path + '"]' + os.EOL;
         }
-        IoHelper.saveFile(outputFolder + path.sep + "Dockerfile", content, "utf8", null);
+        fs.writeFileSync(outputFolder + path.sep + "Dockerfile", content);
     }
 
     static createBashScript(identifier: string, algorithmInfos: any, outputFolder: string): void {
-        let content: string = "#!/bin/sh\n";
+        let content: string = '#!/bin/sh' + os.EOL;
 
         if (_.find(algorithmInfos.input, {"inputImage": {}}) != null) {
-            content += "curl -o /data/inputImage.png $1\n";
+            content += 'curl -o /data/inputImage.png $1' + os.EOL;
         }
         //input count starts with 4. Params 1,2 and 3 are fix used
         // 1: inputImageUrl
@@ -128,8 +129,8 @@ export class DockerManagement {
         //check if additional files need to be downloaded
         algorithmInfos.input.forEach((input: any, index: any) => {
             let key = _.keys(algorithmInfos.input[index])[0];
-            if (key in ["json", "file"]) {
-                content += "curl -o /data/" + input[key].name + ".json $" + inputCount + "\n";
+            if (["json", "file"].indexOf(key) >= 0) {
+                content += "curl -o /data/" + input[key].name + ".json $" + inputCount + os.EOL;
                 AlgorithmManagement.addUrlParameter(identifier, input[key].name + "url");
                 AlgorithmManagement.addRemotePath(identifier, input[key].name, "/data/" + input[key].name + ".json");
                 inputCount++;
@@ -138,20 +139,20 @@ export class DockerManagement {
 
         switch (algorithmInfos.method.executableType) {
             case "java":
-                content += "java -Djava.awt.headless=true -Xmx4096m -jar /data/ " + algorithmInfos.method.executable_path + " ";
+                content += 'java -Djava.awt.headless=true -Xmx4096m -jar /data/' + algorithmInfos.method.executable_path + ' ';
                 break;
             case "coffeescript":
-                content += "coffee " + algorithmInfos.method.executable_path + " ";
+                content += 'coffee ' + algorithmInfos.method.executable_path + ' ';
                 break;
             case "bash":
             case "matlab":
-                content += "/data/" + algorithmInfos.method.executable_path + " ";
+                content += '/data/' + algorithmInfos.method.executable_path + ' ';
                 break;
         }
 
-        algorithmInfos.inputs.forEach((input: any, index: number) => {
+        algorithmInfos.input.forEach((input: any, index: number) => {
             let key = _.keys(algorithmInfos.input[index])[0];
-            if (key in nconf.get("reservedWords") && key in nconf.get("docker:replacePaths")) {
+            if (nconf.get("reservedWords").indexOf(key) >= 0 && nconf.get("docker:replacePaths").indexOf(key) >= 0) {
                 content += this.getDockerInput(key) + " ";
                 inputCount++;
             } else {
@@ -166,18 +167,18 @@ export class DockerManagement {
         });
 
         if (algorithmInfos.method.executableType === "matlab") {
-            content += ">1 /data/result.json \n";
+            content += '>1 /data/result.json' + os.EOL;
         } else {
-            content += ">1 /data/result.json 2> /data/error.txt \n";
+            content += '>1 /data/result.json 2> /data/error.txt' + os.EOL;
         }
-        content += "if [ -s '/data/error.txt' ] \n";
-        content += "then \n";
-        content += "    curl -H 'Content-Type: text/plain' --data @/data/error.txt $3 \n";
-        content += "fi \n";
-        content += "if [ -s '/data/result.json' ] \n";
-        content += "then \n";
-        content += "    curl -H 'Content-Type: application/json' --data @/data/result.json $2 \n";
-        content += "fi";
+        content += 'if [ -s "/data/error.txt" ]' + os.EOL;
+        content += 'then' + os.EOL;
+        content += '    curl -H "Content-Type: text/plain" --data @/data/error.txt $3' + os.EOL;
+        content += 'fi' + os.EOL;
+        content += 'if [ -s "/data/result.json" ]' + os.EOL;
+        content += 'then' + os.EOL;
+        content += '    curl -H "Content-Type: application/json" --data @/data/result.json $2' + os.EOL;
+        content += 'fi';
         fs.writeFileSync(outputFolder + path.sep + "script.sh", content);
     }
 
@@ -186,30 +187,32 @@ export class DockerManagement {
         let neededParams = process.neededParameters;
         let paramsPath = "";
 
-        for (let key of params) {
-            let value = params[key];
-            if (key === "highlighter") {
-                paramsPath += _.map(params.highlighter.split(" "), function (item: any) {
-                    return "'" + item + "'";
-                }).join(" ");
-            } else if (_.find(neededParams, key) != null && _.find(neededParams, key)[key] in ["url"]) {
-                let originalKey = key.replace("url", "");
-                let originalValue = params[originalKey];
-                let url = "";
-                if (process.hasImages) {
-                    url = IoHelper.getStaticImageUrlFull(originalValue);
+        for (let key in params) {
+            if (params.hasOwnProperty(key)) {
+                let value = params[key];
+                if (key === "highlighter") {
+                    paramsPath += _.map(params.highlighter.split(" "), function (item: any) {
+                        return "'" + item + "'";
+                    }).join(" ");
+                } else if (_.find(neededParams, key) != null && ["url"].indexOf(_.find(neededParams, key)[key]) >= 0) {
+                    let originalKey = key.replace("url", "");
+                    let originalValue = params[originalKey];
+                    let url = "";
+                    if (process.hasImages) {
+                        url = IoHelper.getStaticImageUrlFull(originalValue);
+                    } else {
+                        url = IoHelper.getStaticDataUrlFull(originalValue);
+                    }
+                    paramsPath += "'" + url + "' ";
                 } else {
-                    url = IoHelper.getStaticDataUrlFull(originalValue);
+                    paramsPath += "'" + value + "' ";
                 }
-                paramsPath += "'" + url + "'";
-            } else {
-                paramsPath += "'" + value + "'";
             }
         }
 
         let command = "./script.sh " + process.inputImageUrl + " " + process.remoteResultUrl + " " + process.remoteErrorUrl + " " + paramsPath;
         Logger.log("info", command, "DockerManagement");
-        this.docker.run(imageName, ["sh", "-c", command], process.stdout, function (error: any, data: any, container: any) {
+        this.docker.run(imageName, ['sh', '-c', command], process.stdout, function (error: any, data: any, container: any) {
             let err = {
                 statusMessage: "Execution did not finish properly! status code is: " + data.statusCode
             };
@@ -219,17 +222,17 @@ export class DockerManagement {
                     callback(error, null);
                 }
             }
-            if (data != null && data.statusCode === 0) {
+            if (data != null && data.StatusCode === 0) {
                 container.remove(function (error: any, data: any) {
                     if (callback != null) {
                         callback(null, null);
                     }
                 });
-            } else if (data != null && data.statusCode !== 0) {
+            } else if (data != null && data.StatusCode !== 0) {
                 Logger.log("error", "Execution did not finish properly! status code is: " + data.statusCode, "DockerManagement");
             }
 
-            if (process.type === "test" && data.status !== 0) {
+            if (process.type === "test" && data.StatusCode !== 0) {
                 AlgorithmManagement.updateStatus(null, "error", process.req.originalUrl, "Algorithm image did not execute properly");
                 ResultHelper.removeResult(process);
 

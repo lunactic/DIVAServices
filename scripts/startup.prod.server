@@ -1,0 +1,9 @@
+#!/bin/bash
+
+set -e #exit on errors
+
+#set environment variables
+export NODE_ENV=prod
+export PYTHONIOENCODING=UTF-8
+
+forever -m 5 --minUptime 1000 --spinSleepTime 5000 --watch -c coffee server.coffee

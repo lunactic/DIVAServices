@@ -46,7 +46,7 @@ export class ServicesInfoHelper {
 
     static methodRequireFiles(serviceInfo: any): boolean {
         let fileParameters = _.filter(serviceInfo.parameters, function(parameter: string){
-           return _.keys(parameter)[0] in ["inputImage", "inputFile"];
+           return ["inputImage", "inputFile"].indexOf(_.keys(parameter)[0]) >= 0;
         });
 
         return fileParameters.length > 0;
@@ -54,7 +54,7 @@ export class ServicesInfoHelper {
 
     static methodRequireData(serviceInfo: any) : boolean {
         let fileParameters = _.filter(serviceInfo.parameters, function(parameter: string){
-            return _.keys(parameter)[0] in ["json"];
+            return ["json"].indexOf(_.keys(parameter)[0]) >= 0;
         });
         return fileParameters.length > 0;
     }

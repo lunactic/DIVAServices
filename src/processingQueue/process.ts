@@ -3,7 +3,7 @@
  */
 
 "use strict";
-import Image = require("../models/image");
+import {DivaImage} from "../models/divaImage";
 import {IoHelper} from "../helper/ioHelper";
 import IProcess = require("./iProcess");
 import IResultHandler = require("../helper/resultHandlers/iResultHandler");
@@ -17,7 +17,7 @@ export class Process implements IProcess {
     public executableType: string;
     public req: express.Request = null;
     public method: string;
-    public image: Image;
+    public image: DivaImage;
     public rootFolder: string;
     public outputFolder: string;
     public methodFolder: string;

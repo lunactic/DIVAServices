@@ -292,6 +292,7 @@ export class ExecutableHelper extends EventEmitter {
                         process.req = _.clone(req);
                         process.rootFolder = collection.name;
                         process.type = executionType;
+                        process.image = image;
                         process.hasImages = true;
                         collection.processes.push(process);
                     }
@@ -330,7 +331,7 @@ export class ExecutableHelper extends EventEmitter {
     }
 
     private setCollectionHighlighter(collection: Collection, req: any): void {
-        if (req.body.inputs.highlighter != null) {
+        if (req.body.inputs != null && req.body.inputs.highlighter != null) {
             collection.inputHighlighters = _.clone(req.body.inputs.highlighter);
         } else {
             collection.inputHighlighters = {};

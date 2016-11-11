@@ -1,4 +1,4 @@
-import Image = require("../models/image");
+import {DivaImage} from "../models/divaImage";
 /**
  * Created by lunactic on 04.11.16.
  */
@@ -15,7 +15,7 @@ interface IProcess {
     rootFolder: string;
     hasFiles: boolean;
     hasImages: boolean;
-    image: Image;
+    image: DivaImage;
 }
 
 export = IProcess;

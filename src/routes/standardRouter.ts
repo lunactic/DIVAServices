@@ -17,8 +17,9 @@ import {ResultHelper} from "../helper/resultHelper";
 import {AlgorithmManagement} from "../management/algorithmManagement";
 import {SchemaValidator} from "../validator/schemaValidator";
 import md5 = require("md5");
-import Image = require("../models/image");
+import {DivaImage} from "../models/divaImage";
 import {PostHandler} from "./postHandler";
+import {GetHandler} from "./getHandler";
 
 let router = express.Router();
 
@@ -276,6 +277,16 @@ router.get("/openapi", function (req: express.Request, res: express.Response) {
     let swagger = IoHelper.loadFile(nconf.get("paths:swaggerFile"));
     swagger = JSON.parse(JSON.stringify(swagger).replace(new RegExp("\\$BASEURL$\\", "g"), nconf.get("server:rootUrl")));
     sendResponse(res, null, swagger);
+});
+
+router.get("*", function (req: express.Request, res: express.Response, next: express.NextFunction) {
+    if (unlike(req, "/algorithms")) {
+        GetHandler.handleRequest(req, function (error: any, response: any) {
+            sendResponse(res, error, response);
+        });
+    } else {
+        next();
+    }
 });
 
 function validate(req: express.Request, res: express.Response, schema: string) {

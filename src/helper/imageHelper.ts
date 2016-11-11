@@ -13,7 +13,7 @@ import * as path from "path";
 import * as request from "request";
 import {Logger} from "../logging/logger";
 import {Process} from "../processingQueue/process";
-import Image = require("../models/image");
+import {DivaImage} from "../models/divaImage";
 
 export class ImageHelper {
 
@@ -23,7 +23,7 @@ export class ImageHelper {
         let self = this;
         switch (inputImage.type) {
             case "image":
-                this.saveBase64(inputImage.value, process.rootFolder, counter, function (image: Image) {
+                this.saveBase64(inputImage.value, process.rootFolder, counter, function (image: DivaImage) {
                     self.addImageInfo(image.md5, image.path, process.rootFolder);
                     self.updateCollectionInformation(process.rootFolder, numberOfImages, counter);
                     Logger.log("trace", "saved image", "ImageHelper");
@@ -31,7 +31,7 @@ export class ImageHelper {
                 break;
 
             case "url":
-                this.saveUrl(inputImage.value, process.rootFolder, counter, function (image: Image) {
+                this.saveUrl(inputImage.value, process.rootFolder, counter, function (image: DivaImage) {
                     self.addImageInfo(image.md5, image.path, process.rootFolder);
                     self.updateCollectionInformation(process.rootFolder, numberOfImages, counter);
                 });
@@ -55,7 +55,7 @@ export class ImageHelper {
         let base64Data = image.replace(/^data:image\/png;base64,/, "");
         let md5String = md5(base64Data);
 
-        let imageObject = new Image();
+        let imageObject = new DivaImage();
         let imgFolder = imagePath + path.sep + folder + path.sep + "original" + path.sep;
         let imgName = "input" + counter;
         let imgExtension = this.getImageExtensionBase64(base64Data);
@@ -86,7 +86,7 @@ export class ImageHelper {
 
     static saveUrl(url: string, folder: string, counter: number, cb: Function) {
         let imagePath = nconf.get("paths:imageRootPath");
-        let image = new Image();
+        let image = new DivaImage();
         async.waterfall([
             function (callback: Function) {
                 request.head(url).on("response", function (response: any) {
@@ -125,7 +125,7 @@ export class ImageHelper {
                     });
                 });
             }
-        ], function (err: any, image: Image) {
+        ], function (err: any, image: DivaImage) {
             if (err !== null) {
                 Logger.log("error", JSON.stringify(err), "ImageHelper");
             } else {
@@ -134,17 +134,17 @@ export class ImageHelper {
         });
     }
 
-    static loadImagesMd5(md5: string): Image[] {
-        let filtered = this.imageInfo.filter(function (item: Image) {
+    static loadImagesMd5(md5: string): DivaImage[] {
+        let filtered = this.imageInfo.filter(function (item: DivaImage) {
             return item.md5 === md5;
         });
-        let images: Image[] = [];
+        let images: DivaImage[] = [];
         let sync: boolean = false;
 
         for (let i = 0; i < filtered.length; i++) {
             let item = filtered[i];
             let imagePath = item.file;
-            let image: Image = new Image();
+            let image: DivaImage = new DivaImage();
             image.rootFolder = path.join(path.dirname(imagePath), "..");
             image.folder = path.dirname(imagePath);
             image.extension = path.extname(imagePath).substring(1);
@@ -175,7 +175,7 @@ export class ImageHelper {
     static loadCollection(collectionName: string, newCollection: boolean) {
         let imagePath = nconf.get("paths:imageRootPath");
         let imageFolder = imagePath + path.sep + collectionName + path.sep;
-        let images: Image[] = [];
+        let images: DivaImage[] = [];
 
         if (!newCollection) {
             let filtered = _.filter(this.imageInfo, function (image: any) {
@@ -183,14 +183,15 @@ export class ImageHelper {
             });
             if (filtered.length > 0) {
                 for (let item of filtered) {
-                    let image = new Image();
+                    let image = new DivaImage();
                     image.folder = imageFolder;
                     image.name = path.basename(item.file).split(".")[0];
-                    image.extension = path.basename(item.file).replace(".", "");
+                    image.extension = path.extname(item.file).replace(".", "");
                     image.path = item.file;
                     image.md5 = item.md5;
                     images.push(image);
                 }
+                return images;
             } else {
                 Logger.log("error", "Tried to load collection: " + collectionName + " which does not exist", "ImageHelper");
                 return [];
@@ -203,7 +204,7 @@ export class ImageHelper {
                 for (let file of files) {
                     let base64 = fs.readFileSync(imageFolder + path.sep + "original" + path.sep + file, "base64");
                     let md5String = md5(base64);
-                    let image = new Image();
+                    let image = new DivaImage();
                     image.folder = imagePath + path.sep + collectionName + path.sep;
                     image.name = file.split(".")[0];
                     image.extension = file.split(".")[1];
@@ -241,7 +242,7 @@ export class ImageHelper {
         IoHelper.saveFile(nconf.get("paths.imageInfoFile"), this.imageInfo, "utf-8", null);
     }
 
-    /**static handleMd5(image: Image, process: Process, collection: string, serviceInfo: any, parameterHelper: ParameterHelper, req: any) : void {
+    /**static handleMd5(image: DivaImage, process: Process, collection: string, serviceInfo: any, parameterHelper: ParameterHelper, req: any) : void {
 
     }*/
 

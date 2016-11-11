@@ -1,5 +1,5 @@
-import Image = require("../models/image");
-import Process = require("./process");
+import {DivaImage} from "../models/divaImage";
+import {Process} from "./process";
 import IProcess = require("./iProcess");
 /**
  * Class represanting a collection
@@ -13,7 +13,7 @@ declare class Collection implements IProcess {
     inputHighlighters: any;
     neededParameters: any;
     parameters: any;
-    image: Image;
+    image: DivaImage;
     processes: Process[];
     result: any;
     resultFile: string;

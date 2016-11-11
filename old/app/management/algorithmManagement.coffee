@@ -106,7 +106,7 @@ class AlgorithmManagement
     switch status
       when 'creating'
         currentInfo.status.statusCode = 100
-        currentInfo.status.statusMessage = 'Building Algorithm Image'
+        currentInfo.status.statusMessage = 'Building Algorithm DivaImage'
       when 'testing'
         currentInfo.status.statusCode = 110
         currentInfo.status.statusMessage = 'Testing Algorithm'

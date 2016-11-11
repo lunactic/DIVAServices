@@ -2,10 +2,10 @@
  * Created by lunactic on 02.11.16.
  */
 "use strict";
-import Image = require("../models/image");
 import {Process}  from "./process";
 import {IoHelper} from "../helper/ioHelper";
 import IProcess = require("./iProcess");
+import {DivaImage} from "../models/divaImage";
 
 /**
  * Class represanting a collection
@@ -19,7 +19,7 @@ export class Collection implements IProcess {
     public inputHighlighters: any;
     public neededParameters: any;
     public parameters: any;
-    public image: Image;
+    public image: DivaImage;
     public processes: Process[];
     public result: any;
     public resultFile: string;
@@ -36,9 +36,9 @@ export class Collection implements IProcess {
         this.inputHighlighters = [];
         this.neededParameters = {};
         this.parameters = {};
-        this.image = new Image();
+        this.image = new DivaImage();
         this.processes = [];
-        this.result = {};
+        this.result = null;
         this.resultFile = "";
         this.rootFolder = "";
         this.hasFiles = false;

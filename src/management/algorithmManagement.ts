@@ -37,7 +37,7 @@ export class AlgorithmManagement {
                 //create bash script
                 DockerManagement.createBashScript(identifier, req.body, nconf.get("paths:executablePath") + path.sep + route);
                 //update services file
-                AlgorithmManagement.updateStatus(identifier, "createing", "/" + route, null);
+                AlgorithmManagement.updateStatus(identifier, "creating", "/" + route, null);
                 let response = {
                     statusCode: 200,
                     identifier: identifier,
@@ -54,7 +54,7 @@ export class AlgorithmManagement {
                     let inputs = {};
                     let highlighter = {};
                     for (let input of req.body.input) {
-                        if (!(_.keys(input)[0] in nconf.get("reservedWords")) || _.keys(input)[0] === "highlighter") {
+                        if (!(nconf.get("reservedWords").indexOf(_.keys(input)[0]) >= 0) || _.keys(input)[0] === "highlighter") {
                             switch (_.keys(input)[0]) {
                                 case "select":
                                     inputs[input.select.name] = input.select.options.values[input.select.options.default];
@@ -93,13 +93,13 @@ export class AlgorithmManagement {
                     inputs["highlighter"] = highlighter;
                     let testRequest = {
                         originalUrl: "/" + route,
-                        body: [{
+                        body: {
                             images: [{
                                 type: "collection",
                                 value: "test"
-                            }]
-                        }],
-                        inputs: inputs
+                            }],
+                            inputs: inputs
+                        }
                     };
                     executableHelper.preprocess(testRequest, QueueHandler.dockerProcessingQueue, "test", function (error: any, response: any) {
                         if (error != null) {
@@ -154,7 +154,7 @@ export class AlgorithmManagement {
     }
 
     static generateRoute(algorithm: any): string {
-        return algorithm.general.type.toLowerCase() + "/" + algorithm.general.name.replace(/\s/g, "") + "/1";
+        return algorithm.general.type.toLowerCase() + "/" + algorithm.general.name.replace(/\s/g, "").toLowerCase() + "/1";
     }
 
     static generateFolders(route: string): void {
@@ -234,7 +234,7 @@ export class AlgorithmManagement {
         switch (status) {
             case "creating":
                 currentInfo.status.statusCode = 100;
-                currentInfo.status.statusMessage = "Building Algorithm Image";
+                currentInfo.status.statusMessage = "Building Algorithm DivaImage";
                 break;
             case "testing":
                 currentInfo.status.statusCode = 110;
@@ -344,7 +344,7 @@ export class AlgorithmManagement {
             });
 
             let newServiceEntry = {
-                serivce: route.replace(/\//g, "").toLowerCase(),
+                service: route.replace(/\//g, "").toLowerCase(),
                 identifier: identifier,
                 path: "/" + route,
                 executablePath: nconf.get("paths:executablePath") + path.sep + route + path.sep + algorithm.method.executable_path,

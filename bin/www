@@ -1,19 +1,23 @@
 #!/usr/bin/env node
 "use strict";
 
+var nconf = require("nconf");
+
+
+
 //module dependencies.
 var app = require("../src/server");
 var debug = require("debug")("express:server");
 var http = require("http");
 
 //get port from environment and store in Express.
-var port = normalizePort(process.env.PORT || 8080);
+var port = normalizePort(nconf.get("server:httpPort") || 8080);
 //app.set("port", port);
 
 
 //create http server
 var server = http.createServer(app);
-
+server.timeout = nconf.get("server:timeout");
 //listen on provided ports
 server.listen(port);
 

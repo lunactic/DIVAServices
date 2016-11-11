@@ -1,6 +1,6 @@
 /// <reference path="_all.d.ts" />
 "use strict";
-if (!(process.env.NODE_ENV != null) || process.env.NODE_ENV in ["dev", "test", "prod"]) {
+if (!(process.env.NODE_ENV != null) || ["dev", "test", "prod"].indexOf(process.env.NODE_ENV) < 0) {
     console.log("please set NODE_ENV to [dev, test, prod]. going to exit");
     process.exit(0);
 }
@@ -18,6 +18,15 @@ nconf.add("createSchema", {type: "file", file: "./conf/schemas/createAlgorithmSc
 import * as bodyParser from "body-parser";
 import * as express from "express";
 import * as path from "path";
+import * as fs from "fs";
+import * as morgan from "morgan";
+import {Logger} from "./logging/logger";
+import {Statistics} from "./statistics/statistics";
+import {ImageHelper} from "./helper/imageHelper";
+import {QueueHandler} from "./processingQueue/queueHandler";
+let router = require("./routes/standardRouter");
+let algorithmRouter = require("./routes/algorithmRouter");
+
 /**
  * The server.
  *
@@ -65,24 +74,35 @@ class Server {
      * @return void
      */
     private config() {
-        //mount logger
-        //this.app.use(logger("dev"));
+        Statistics.loadStatistics();
+        QueueHandler.initialize();
 
         //mount json form parser
-        this.app.use(bodyParser.json());
+        this.app.use(bodyParser.json({limit: "50mb"}));
 
         //mount query string parser
-        this.app.use(bodyParser.urlencoded({extended: true}));
+        this.app.use(bodyParser.urlencoded({extended: true, limit: "50mb"}));
 
-        //add static paths
-        this.app.use(express.static(path.join(__dirname, "public")));
 
         // catch 404 and forward to error handler
         this.app.use(function (err: any, req: express.Request, res: express.Response, next: express.NextFunction) {
-            var error = new Error("Not Found");
-            err.status = 404;
-            next(err);
+            if (err.status === 400 && err.name === "SyntaxError" && err.body != null) {
+                let error = {
+                    status: 500,
+                    message: "Json Body parser error: " + err.body.slice(0, 100).toString(),
+                    type: "SyntaxError"
+                };
+                res.status(error.status);
+                res.json(error);
+            } else {
+                var error = new Error("Not Found");
+                err.status = 404;
+                next(err);
+            }
         });
+
+        let accessLogStream = fs.createWriteStream(__dirname + path.sep + "../logs" + path.sep + "access.log", {flags: "a"});
+        this.app.use(morgan("combined", {stream: accessLogStream}));
 
         //set up helper for text/plain
         this.app.use(function (req: express.Request, res: express.Response, next: express.NextFunction) {
@@ -97,22 +117,25 @@ class Server {
                 next();
             }
         });
-
     }
 
     private routes() {
-        //get router
-        let router: express.Router;
-        router = express.Router();
-
-        //create routes
-
-        //home page
+        //set up static file handler!
+        this.app.use("/images", express.static(nconf.get("paths:imageRootPath")));
+        this.app.use("/data", express.static(nconf.get("paths:dataRootPath")));
 
         //use router middleware
         this.app.use(router);
+        this.app.use(algorithmRouter);
     }
 }
 
+
+//shudown handler
+process.on("SIGTERM", function () {
+    Logger.log("info", "RECEIVED SIGTERM", "Server");
+    ImageHelper.saveImageInfo();
+    process.exit(0);
+});
 var server = Server.bootstrap();
 export = server.app;
