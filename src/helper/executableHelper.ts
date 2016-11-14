@@ -184,7 +184,7 @@ export class ExecutableHelper extends EventEmitter {
                         process.outputFolder = collection.outputFolder;
                         IoHelper.createFolder(process.outputFolder);
                         process.inputParameters = _.clone(req.body.inputs);
-                        process.inputHighlighters = _.clone(req.body.inputs.highlighters);
+                        process.inputHighlighters = _.clone(req.body.inputs.highlighter);
                         process.neededParameters = serviceInfo.parameters;
                         process.remotePaths = serviceInfo.remotePaths;
                         process.method = collection.method;

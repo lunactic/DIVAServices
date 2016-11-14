@@ -51,7 +51,7 @@ export class ParameterHelper {
             case "noisingXmlFile":
                 return nconf.get("paths:noisingXmlPath");
             case "mcr2014b":
-                return nconf.get("paths.mcr2014b");
+                return nconf.get("paths:mcr2014b");
         }
     }
 

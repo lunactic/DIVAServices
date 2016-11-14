@@ -167,9 +167,9 @@ export class DockerManagement {
         });
 
         if (algorithmInfos.method.executableType === "matlab") {
-            content += '>1 /data/result.json' + os.EOL;
+            content += '1> /data/result.json' + os.EOL;
         } else {
-            content += '>1 /data/result.json 2> /data/error.txt' + os.EOL;
+            content += '1> /data/result.json 2> /data/error.txt' + os.EOL;
         }
         content += 'if [ -s "/data/error.txt" ]' + os.EOL;
         content += 'then' + os.EOL;
@@ -192,7 +192,7 @@ export class DockerManagement {
                 let value = params[key];
                 if (key === "highlighter") {
                     paramsPath += _.map(params.highlighter.split(" "), function (item: any) {
-                        return "'" + item + "'";
+                        return '"' + item + '"';
                     }).join(" ");
                 } else if (_.find(neededParams, key) != null && ["url"].indexOf(_.find(neededParams, key)[key]) >= 0) {
                     let originalKey = key.replace("url", "");
@@ -203,14 +203,14 @@ export class DockerManagement {
                     } else {
                         url = IoHelper.getStaticDataUrlFull(originalValue);
                     }
-                    paramsPath += "'" + url + "' ";
+                    paramsPath += '"' + url + '" ';
                 } else {
-                    paramsPath += "'" + value + "' ";
+                    paramsPath += '"' + value + '" ';
                 }
             }
         }
 
-        let command = "./script.sh " + process.inputImageUrl + " " + process.remoteResultUrl + " " + process.remoteErrorUrl + " " + paramsPath;
+        let command = './script.sh ' + process.inputImageUrl + ' ' + process.remoteResultUrl + ' ' + process.remoteErrorUrl + ' ' + paramsPath;
         Logger.log("info", command, "DockerManagement");
         this.docker.run(imageName, ['sh', '-c', command], process.stdout, function (error: any, data: any, container: any) {
             let err = {
