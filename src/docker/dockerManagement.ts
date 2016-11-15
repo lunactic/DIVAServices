@@ -212,7 +212,7 @@ export class DockerManagement {
 
         let command = './script.sh ' + process.inputImageUrl + ' ' + process.remoteResultUrl + ' ' + process.remoteErrorUrl + ' ' + paramsPath;
         Logger.log("info", command, "DockerManagement");
-        this.docker.run(imageName, ['sh', '-c', command], process.stdout, function (error: any, data: any, container: any) {
+        this.docker.run(imageName, ['-c', command], process.stdout, {entrypoint: '/bin/sh'}, function (error: any, data: any, container: any) {
             let err = {
                 statusMessage: "Execution did not finish properly! status code is: " + data.statusCode
             };
