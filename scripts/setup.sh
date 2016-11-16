@@ -45,9 +45,8 @@ function test_all_mandatory_programs {
 }
 
 function install_global_npm_packages {
-  packages=('coffee' 'forever')
+  packages=('typescript' 'forever')
   elements=${#packages[@]}
-  coffee="coffee-script"
 
   for ((i=0;i<$elements;i++)); do
     package=${packages[${i}]}
@@ -78,8 +77,8 @@ function npm_package_is_installed {
 header "Testing if mandatory programs are installed..."
 test_all_mandatory_programs
 
-header "Installing global npm packages"
-install_global_npm_packages
+#header "Installing global npm packages"
+#install_global_npm_packages
 
 header "Installing local npm packages"
 npm install
@@ -111,6 +110,3 @@ cp conf/swagger.json ${swaggerInfoFile}
 
 header "Copying Files"
 cp /data/input0.jpg ${imageFolder}/test/original/
-
-header "Compiling Sources"
-coffee -mc .

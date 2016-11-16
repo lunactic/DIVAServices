@@ -1,4 +1,3 @@
-/// <reference path="_all.d.ts" />
 "use strict";
 if (!(process.env.NODE_ENV != null) || ["dev", "test", "prod"].indexOf(process.env.NODE_ENV) < 0) {
     console.log("please set NODE_ENV to [dev, test, prod]. going to exit");
@@ -6,15 +5,6 @@ if (!(process.env.NODE_ENV != null) || ["dev", "test", "prod"].indexOf(process.e
 }
 
 import * as nconf from "nconf";
-
-nconf.add("server", {type: "file", file: "./conf/server." + process.env.NODE_ENV + ".json"});
-nconf.add("baseImages", {type: "file", file: "./conf/baseImages.json"});
-nconf.add("detailsAlgorithmSchema", {type: "file", file: "./conf/schemas/detailsAlgorithmSchema.json"});
-nconf.add("generalAlgorithmSchema", {type: "file", file: "./conf/schemas/generalAlgorithmSchema.json"});
-nconf.add("hostSchema", {type: "file", file: "./conf/schemas/hostSchema.json"});
-nconf.add("responseSchema", {type: "file", file: "./conf/schemas/responseSchema.json"});
-nconf.add("createSchema", {type: "file", file: "./conf/schemas/createAlgorithmSchema.json"});
-
 import * as bodyParser from "body-parser";
 import * as express from "express";
 import * as path from "path";

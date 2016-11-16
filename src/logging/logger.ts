@@ -18,7 +18,7 @@ export class Logger {
         level = level || "info";
 
         if (module != null) {
-            logger[level](msg + (" [ " + module + "]"));
+            logger[level](msg + (" [" + module + "]"));
         } else {
             logger[level](msg);
         }
