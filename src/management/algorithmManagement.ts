@@ -107,7 +107,7 @@ export class AlgorithmManagement {
                     }, function () {
                         let job = QueueHandler.dockerProcessingQueue.getNext();
                         QueueHandler.runningDockerJobs.push(job);
-                        executableHelper.executeDockerRequest(job, function (error: any, data: any) {
+                        ExecutableHelper.executeDockerRequest(job, function (error: any, data: any) {
                             if (error == null) {
                                 AlgorithmManagement.updateRootInfoFile(req.body, route);
                                 AlgorithmManagement.createInfoFile(req.body, nconf.get("paths:jsonPath") + path.sep + route);

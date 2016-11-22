@@ -60,6 +60,10 @@ export class FileResultHandler implements IResultHandler {
                                         value["mime-type"] = value.mimetype;
                                         delete value.mimetype;
                                     }
+                                    if (value.hasOwnProperty("options") && value.options.hasOwnProperty("visualization")) {
+                                        delete value.options.visualization;
+                                        value.options["visualization"] = true;
+                                    }
                                     newObject[newKey] = value;
                                     data.output.push(newObject);
                                 });
@@ -121,6 +125,7 @@ export class FileResultHandler implements IResultHandler {
                             data["collectionName"] = process.rootFolder;
                             data["resultZipLink"] = "http://" + nconf.get("server:rootUrl") + "/collection/" + process.rootFolder + "/" + process.methodFolder;
                             IoHelper.saveFile(self.filename, data, "utf8", null);
+                            callback(null, data, process.id);
                         } catch (error) {
                             Logger.log("error", error, "FileResultHandler");
                             let err = {
@@ -129,7 +134,6 @@ export class FileResultHandler implements IResultHandler {
                             };
                             callback(err, null, null);
                         }
-                        callback(null, data, process.id);
                     }
                 });
             } else {

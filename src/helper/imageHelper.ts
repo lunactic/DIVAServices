@@ -172,15 +172,23 @@ export class ImageHelper {
         return collections;
     }
 
-    static loadCollection(collectionName: string, newCollection: boolean) {
+    static loadCollection(collectionName: string, hashes: string[], newCollection: boolean) {
         let imagePath = nconf.get("paths:imageRootPath");
         let imageFolder = imagePath + path.sep + collectionName + path.sep;
         let images: DivaImage[] = [];
 
         if (!newCollection) {
-            let filtered = _.filter(this.imageInfo, function (image: any) {
-                return image.collection === collectionName;
-            });
+            let filtered = null;
+
+            if (hashes != null) {
+                filtered = _.filter(this.imageInfo, function (image: any) {
+                    return image.collection === collectionName && _.includes(hashes, image.md5);
+                });
+            } else {
+                filtered = _.filter(this.imageInfo, function (image: any) {
+                    return image.collection === collectionName;
+                });
+            }
             if (filtered.length > 0) {
                 for (let item of filtered) {
                     let image = new DivaImage();
@@ -232,7 +240,7 @@ export class ImageHelper {
     }
 
     static addImageInfoCollection(collection: string): void {
-        let images = this.loadCollection(collection, true);
+        let images = this.loadCollection(collection, null, true);
         for (let image of images) {
             this.addImageInfo(image.md5, image.path, collection);
         }

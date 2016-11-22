@@ -129,7 +129,7 @@ export class ExecutableHelper extends EventEmitter {
         });
     }
 
-    public executeDockerRequest(process: Process, callback: Function): void {
+    public static executeDockerRequest(process: Process, callback: Function): void {
         process.id = Statistics.startRecording(process);
         process.remoteResultUrl = "http://" + nconf.get("docker:reportHost") + "/jobs/" + process.id;
         process.remoteErrorUrl = "http://" + nconf.get("docker:reportHost") + "/algorithms/" + process.algorithmIdentifier + "/exceptions/" + process.id;
@@ -151,6 +151,10 @@ export class ExecutableHelper extends EventEmitter {
                         collection.name = req.body.images[0].value;
                         outputFolder = IoHelper.getOutputFolderForImages(collection.name, serviceInfo, serviceInfo.uniqueOnCollection);
                         collection.hasImages = true;
+                    } else if (req.body.images != null && req.body.images[0].type === "image") {
+                        collection.name = ImageHelper.getImageInfo(req.body.images[0].value).collection;
+                        outputFolder = IoHelper.getOutputFolderForImages(collection.name, serviceInfo, serviceInfo.uniqueOnCollection);
+                        collection.hasImages = true;
                     } else {
                         let err = {
                             statusCode: 500,
@@ -170,7 +174,12 @@ export class ExecutableHelper extends EventEmitter {
                     outputFolder = IoHelper.getOutputFolderForData(serviceInfo, serviceInfo.uniqueOnCollection);
                 }
                 collection.outputFolder = outputFolder;
-                self.preprocessCollection(collection, req, serviceInfo, executionType, callback);
+                if (req.body.images[0].type === "collection") {
+                    self.preprocessCollection(collection, null, req, executionType, callback);
+                } else if (req.body.images[0].type === "image") {
+                    let hashes: string[] = [req.body.images[0].value];
+                    self.preprocessCollection(collection, hashes, req, executionType, callback);
+                }
             }, function (collection: Collection, callback: Function) {
                 //step 2
                 //immediate callback if collection.result is available
@@ -268,7 +277,7 @@ export class ExecutableHelper extends EventEmitter {
         });
     }
 
-    private preprocessCollection(collection: Collection, req: any, serviceInof: any, executionType: string, callback: Function): void {
+    private preprocessCollection(collection: Collection, hashes: string[], req: any, executionType: string, callback: Function): void {
         //handle collections with/without images differently
         if (collection.hasImages) {
             if (!(ImageHelper.checkCollectionAvailable(collection.name))) {
@@ -279,14 +288,13 @@ export class ExecutableHelper extends EventEmitter {
                 };
                 callback(err, null);
             } else {
-                let folder = nconf.get("paths:imageRootPath") + path.sep + collection.name;
                 collection.inputParameters = _.clone(req.body.inputs);
                 this.setCollectionHighlighter(collection, req);
                 if (ResultHelper.checkCollectionResultsAvailable(collection)) {
                     collection.result = ResultHelper.loadResult(collection);
                     callback(null, collection);
                 } else {
-                    let images = ImageHelper.loadCollection(collection.name, false);
+                    let images = ImageHelper.loadCollection(collection.name, hashes, false);
                     for (let image of images) {
                         let process = new Process();
                         process.req = _.clone(req);

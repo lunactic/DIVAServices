@@ -14,20 +14,22 @@
     "level": "DEBUG"
   },
   "docker":{
-    "host":"192.168.56.101",
+    "host":"134.21.72.80",
     "port":"2375",
     "reportHost":"134.21.72.48:8080",
     "replacePaths":[
       "inputImage",
       "inputFolder",
       "outputFolder",
-      "resultFile"
+      "resultFile",
+      "outputImage"
     ],
     "paths":{
       "inputImage":"/data/inputImage.png",
       "inputFolder":"/data",
       "outputFolder":"/data/output",
-      "resultFile":"/data/result.json"
+      "resultFile":"/data/result.json",
+      "outputImage":"/data/outputImage.png"
     }
   },
   "server": {

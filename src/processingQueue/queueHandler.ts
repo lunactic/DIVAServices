@@ -91,7 +91,7 @@ export class QueueHandler {
         if (this.dockerRequestAvailable()) {
             let job = this.getNextDockerRequest();
             QueueHandler.runningDockerJobs.push(job);
-            QueueHandler.executableHelper.executeDockerRequest(job, function (error: any, data: any) {
+            ExecutableHelper.executeDockerRequest(job, function (error: any, data: any) {
                 if (error != null) {
                     Logger.log("error", error, "QueueHandler");
                 }

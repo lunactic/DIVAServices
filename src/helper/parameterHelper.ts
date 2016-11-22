@@ -166,17 +166,17 @@ export class ParameterHelper {
         }
     }
 
-    static loadParamInfo(process: IProcess): void {
+    static loadParamInfo(proc: IProcess): void {
         let paramPath = "";
-        if (process.hasImages) {
-            paramPath = nconf.get("paths:imageRootPath") + path.sep + process.rootFolder + path.sep + process.method + ".json";
+        if (proc.hasImages) {
+            paramPath = nconf.get("paths:imageRootPath") + path.sep + proc.rootFolder + path.sep + proc.method + ".json";
         } else {
-            paramPath = nconf.get("paths:dataRootPath") + path.sep + process.rootFolder + path.sep + process.method + ".json";
+            paramPath = nconf.get("paths:dataRootPath") + path.sep + proc.rootFolder + path.sep + proc.method + ".json";
         }
 
         let data = {
-            highlighters: process.inputHighlighters,
-            parameters: hash(process.inputParameters)
+            highlighters: proc.inputHighlighters,
+            parameters: hash(proc.inputParameters)
         };
         try {
             fs.statSync(paramPath).isFile();
@@ -187,16 +187,16 @@ export class ParameterHelper {
                         "highlighters": data.highlighters
                     })).length > 0) {
                 //found some method information
-                if (process.hasImages) {
-                    if (process.image != null) {
-                        process.resultFile = IoHelper.buildResultfilePath(info[0].folder, process.image.name);
+                if (proc.hasImages) {
+                    if (proc.image != null) {
+                        proc.resultFile = IoHelper.buildResultfilePath(info[0].folder, proc.image.name);
                     } else {
-                        process.resultFile = IoHelper.buildResultfilePath(info[0].folder, path.basename(info[0].folder));
+                        proc.resultFile = IoHelper.buildResultfilePath(info[0].folder, path.basename(info[0].folder));
                     }
                 } else {
-                    process.resultFile = IoHelper.buildResultfilePath(info[0].folder, path.basename(info[0].folder));
+                    proc.resultFile = IoHelper.buildResultfilePath(info[0].folder, path.basename(info[0].folder));
                 }
-                process.outputFolder = info[0].folder;
+                proc.outputFolder = info[0].folder;
             } else {
                 //found no information about that method
                 return;

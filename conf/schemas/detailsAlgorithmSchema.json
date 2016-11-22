@@ -299,6 +299,9 @@
           },
           "resultFile": {
             "$ref": "http://134.21.72.48:8080/schemas/details#/definitions/nonuser"
+          },
+          "outputImage":{
+            "$ref":"http://134.21.72.48:8080/schemas/details#/definitions/nonuser"
           }
         },
         "additionalProperties": false
