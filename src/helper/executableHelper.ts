@@ -6,6 +6,7 @@ import * as _ from "lodash";
 import * as async from "async";
 import * as childProcess from "child_process";
 import {EventEmitter} from "events";
+import * as express from "express";
 import * as nconf from "nconf";
 import {Logger} from "../logging/logger";
 import {Collection} from "../processingQueue/collection";
@@ -137,7 +138,7 @@ export class ExecutableHelper extends EventEmitter {
         DockerManagement.runDockerImage(process, serviceInfo.image_name, callback);
     }
 
-    public preprocess(req: any, processingQueue: ProcessingQueue, executionType: string, requestCallback: Function, queueCallback: Function): void {
+    public preprocess(req: express.Request, processingQueue: ProcessingQueue, executionType: string, requestCallback: Function, queueCallback: Function): void {
         let serviceInfo = ServicesInfoHelper.getInfoByPath(req.originalUrl);
         let collection = new Collection();
         collection.method = serviceInfo.service;
@@ -191,62 +192,35 @@ export class ExecutableHelper extends EventEmitter {
                     collection.resultFile = collection.outputFolder + path.sep + "result.json";
                     let processNumber: number = 0;
                     for (let process of collection.processes) {
-                        process.number = processNumber;
+                        self.preprocessImage(process, collection, req, serviceInfo, processNumber);
                         processNumber = processNumber + 1;
-                        process.algorithmIdentifier = serviceInfo.identifier;
-                        process.executableType = serviceInfo.executableType;
-                        process.outputFolder = collection.outputFolder;
-                        IoHelper.createFolder(process.outputFolder);
-                        process.inputParameters = _.clone(req.body.inputs);
-                        process.inputHighlighters = _.clone(req.body.inputs.highlighter);
-                        process.neededParameters = serviceInfo.parameters;
-                        process.remotePaths = serviceInfo.remotePaths;
-                        process.method = collection.method;
-                        process.parameters = ParameterHelper.matchParams(process, req);
-                        if (ResultHelper.checkProcessResultAvailable(process)) {
-                            process.result = ResultHelper.loadResult(process);
-                        } else {
-                            process.methodFolder = path.basename(process.outputFolder);
-                            if (process.image != null) {
-                                process.resultFile = IoHelper.buildResultfilePath(process.outputFolder, process.image.name);
-                                process.tmpResultFile = IoHelper.buildTempResultfilePath(process.outputFolder, process.image.name);
-                                process.inputImageUrl = process.image.getImageUrl(process.rootFolder);
-                            } else {
-                                process.resultFile = IoHelper.buildResultfilePath(process.outputFolder, process.methodFolder);
-                                process.tmpResultFile = IoHelper.buildTempResultfilePath(process.outputFolder, process.methodFolder);
-                            }
-                            if (req.body.requireOutputImage != null) {
-                                process.requireOutputImage = req.body.requireOutputImage;
-                            }
-                            process.programType = serviceInfo.programType;
-                            process.executablePath = serviceInfo.executablePath;
-                            process.resultType = serviceInfo.output;
-                            process.resultLink = process.buildGetUrl();
-                            let resultHandler = null;
-                            switch (serviceInfo.output) {
-                                case "console":
-                                    resultHandler = new ConsoleResultHandler(process.resultFile);
-                                    break;
-                                case "file":
-                                    process.parameters.params["resultFile"] = process.resultFile;
-                                    resultHandler = new FileResultHandler(process.resultFile);
-                                    break;
-                                case "none":
-                                    resultHandler = new NoResultHandler(process.resultFile);
-                                    break;
-                            }
-                            process.resultHandler = resultHandler;
-                        }
                     }
                     callback(null, collection);
                 }
             },
             function (collection: Collection, callback: Function) {
                 //Step 3
-                for (let process of collection.processes) {
-                    if (!(process.result != null)) {
-                        ParameterHelper.saveParamInfo(process);
-                        IoHelper.saveFile(process.resultFile, {status: "planned"}, "utf8", null);
+                if (collection.result == null) {
+                    for (let process of collection.processes) {
+                        if (!(process.result != null)) {
+                            ParameterHelper.saveParamInfo(process);
+                            IoHelper.saveFile(process.resultFile, {status: "planned"}, "utf8", null);
+                        }
+                    }
+                } else {
+                    //produce only the results for the unprocessed images
+                    for (let process of collection.processes) {
+                        let result = _.filter(collection.result.results, function (item: any) {
+                            return item.md5 === process.image.md5;
+                        });
+                        if (result.length === 0) {
+                            ParameterHelper.saveParamInfo(process);
+                            IoHelper.saveFile(process.resultFile, {status: "planned"}, "utf8", null);
+                        } else {
+                            _.remove(collection.processes, function (item: Process) {
+                                return item.algorithmIdentifier === process.algorithmIdentifier;
+                            });
+                        }
                     }
                 }
                 callback(null, collection);
@@ -258,6 +232,23 @@ export class ExecutableHelper extends EventEmitter {
             }
             let results = [];
             if (collection.result != null) {
+                //add the new processes to the result files
+                if (collection.processes.length > 0) {
+                    for (let process of collection.processes) {
+                        if (process.resultLink != null) {
+                            collection.result.results.push({
+                                "md5": process.image.md5,
+                                "resultLink": process.resultLink
+                            });
+                        }
+                        if (process.result == null) {
+                            processingQueue.addElement(process);
+                            queueCallback();
+                        }
+                        ResultHelper.saveResult(collection, null);
+                        requestCallback(null, collection.result);
+                    }
+                }
                 requestCallback(null, collection.result);
             } else {
                 for (let process of collection.processes) {
@@ -282,6 +273,55 @@ export class ExecutableHelper extends EventEmitter {
         });
     }
 
+    private preprocessImage(process: Process, collection: Collection, req: express.Request, serviceInfo: any, processNumber: number): void {
+
+        process.number = processNumber;
+        process.algorithmIdentifier = serviceInfo.identifier;
+        process.executableType = serviceInfo.executableType;
+        process.outputFolder = collection.outputFolder;
+        IoHelper.createFolder(process.outputFolder);
+        process.inputParameters = _.clone(req.body.inputs);
+        process.inputHighlighters = _.clone(req.body.inputs.highlighter);
+        process.neededParameters = serviceInfo.parameters;
+        process.remotePaths = serviceInfo.remotePaths;
+        process.method = collection.method;
+        process.parameters = ParameterHelper.matchParams(process, req);
+        if (ResultHelper.checkProcessResultAvailable(process)) {
+            process.result = ResultHelper.loadResult(process);
+        } else {
+            process.methodFolder = path.basename(process.outputFolder);
+            if (process.image != null) {
+                process.resultFile = IoHelper.buildResultfilePath(process.outputFolder, process.image.name);
+                process.tmpResultFile = IoHelper.buildTempResultfilePath(process.outputFolder, process.image.name);
+                process.inputImageUrl = process.image.getImageUrl(process.rootFolder);
+            } else {
+                process.resultFile = IoHelper.buildResultfilePath(process.outputFolder, process.methodFolder);
+                process.tmpResultFile = IoHelper.buildTempResultfilePath(process.outputFolder, process.methodFolder);
+            }
+            if (req.body.requireOutputImage != null) {
+                process.requireOutputImage = req.body.requireOutputImage;
+            }
+            process.programType = serviceInfo.programType;
+            process.executablePath = serviceInfo.executablePath;
+            process.resultType = serviceInfo.output;
+            process.resultLink = process.buildGetUrl();
+            let resultHandler = null;
+            switch (serviceInfo.output) {
+                case "console":
+                    resultHandler = new ConsoleResultHandler(process.resultFile);
+                    break;
+                case "file":
+                    process.parameters.params["resultFile"] = process.resultFile;
+                    resultHandler = new FileResultHandler(process.resultFile);
+                    break;
+                case "none":
+                    resultHandler = new NoResultHandler(process.resultFile);
+                    break;
+            }
+            process.resultHandler = resultHandler;
+        }
+    }
+
     private preprocessCollection(collection: Collection, hashes: string[], req: any, executionType: string, callback: Function): void {
         //handle collections with/without images differently
         if (collection.hasImages) {
@@ -295,20 +335,20 @@ export class ExecutableHelper extends EventEmitter {
             } else {
                 collection.inputParameters = _.clone(req.body.inputs);
                 this.setCollectionHighlighter(collection, req);
+                let images = ImageHelper.loadCollection(collection.name, hashes, false);
+                for (let image of images) {
+                    let process = new Process();
+                    process.req = _.clone(req);
+                    process.rootFolder = collection.name;
+                    process.type = executionType;
+                    process.image = image;
+                    process.hasImages = true;
+                    collection.processes.push(process);
+                }
                 if (ResultHelper.checkCollectionResultsAvailable(collection)) {
                     collection.result = ResultHelper.loadResult(collection);
                     callback(null, collection);
                 } else {
-                    let images = ImageHelper.loadCollection(collection.name, hashes, false);
-                    for (let image of images) {
-                        let process = new Process();
-                        process.req = _.clone(req);
-                        process.rootFolder = collection.name;
-                        process.type = executionType;
-                        process.image = image;
-                        process.hasImages = true;
-                        collection.processes.push(process);
-                    }
                     callback(null, collection);
                 }
             }
@@ -321,6 +361,10 @@ export class ExecutableHelper extends EventEmitter {
             this.setCollectionHighlighter(collection, req);
             if (ResultHelper.checkCollectionResultsAvailable(collection)) {
                 collection.result = ResultHelper.loadResult(collection);
+                process.req = _.clone(req);
+                process.rootFolder = collection.name;
+                process.type = executionType;
+                collection.processes.push(process);
                 callback(null, collection);
             } else {
                 process.req = _.clone(req);
