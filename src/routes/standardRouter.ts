@@ -27,6 +27,7 @@ let router = express.Router();
 //TODO provide a way to upload other data (currently all sent as req.body.data)
 router.post("/upload", function (req: express.Request, res: express.Response) {
     let numOfImages: number = 0;
+    let counter: number = 0;
     async.each(req.body.images, function (image: any, callback: Function) {
         switch (image.type) {
             case "iiif":
@@ -42,6 +43,7 @@ router.post("/upload", function (req: express.Request, res: express.Response) {
                 callback();
                 break;
         }
+        counter++;
     }, function (error: any) {
         let imageExists: boolean = false;
         if (numOfImages === 1 && req.body.images.type !== "iiif") {
@@ -81,8 +83,9 @@ router.post("/upload", function (req: express.Request, res: express.Response) {
                     default:
                         ImageHelper.saveBase64(image, collectionName, imageCounter, function (divaImage: DivaImage) {
                             ImageHelper.addImageInfo(divaImage.md5, divaImage.path, collectionName);
-                            ImageHelper.updateCollectionInformation(collectionName, numOfImages, imageCounter++);
+                            ImageHelper.updateCollectionInformation(collectionName, numOfImages, imageCounter);
                         });
+                        imageCounter = imageCounter + 1;
                         break;
                 }
             });
@@ -201,7 +204,7 @@ router.get("/collections/:collection/:execution", function (req: express.Request
 
 router.get("/image/:collection", function (req: express.Request, res: express.Response) {
     let collection = req.params.collection;
-    let images = ImageHelper.loadCollection(collection, false);
+    let images = ImageHelper.loadCollection(collection, null, false);
     let imgs = [];
     for (let image of images) {
         imgs.push({

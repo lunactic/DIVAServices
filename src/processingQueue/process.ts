@@ -13,6 +13,7 @@ import * as express from "express";
  */
 export class Process implements IProcess {
     public id: string;
+    public number: number;
     public algorithmIdentifier: string;
     public executableType: string;
     public req: express.Request = null;
@@ -35,7 +36,7 @@ export class Process implements IProcess {
     public requireOutputImage;
     public inputImageUrl: string;
     public outputImageUrl: string;
-    public result;
+    public result: any;
     public resultLink: string;
     public data: string;
     public remoteResultUrl: string;

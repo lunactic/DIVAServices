@@ -68,10 +68,10 @@ class Server {
         QueueHandler.initialize();
 
         //mount json form parser
-        this.app.use(bodyParser.json({limit: "50mb"}));
+        this.app.use(bodyParser.json({limit: "250mb"}));
 
         //mount query string parser
-        this.app.use(bodyParser.urlencoded({extended: true, limit: "50mb"}));
+        this.app.use(bodyParser.urlencoded({extended: true, limit: "250mb"}));
 
 
         // catch 404 and forward to error handler

@@ -148,10 +148,12 @@ export class ExecutableHelper extends EventEmitter {
                 let outputFolder = "";
                 if (ServicesInfoHelper.methodRequireFiles(serviceInfo)) {
                     if (req.body.images != null && req.body.images[0].type === "collection") {
+                        //run it on the whole collection
                         collection.name = req.body.images[0].value;
                         outputFolder = IoHelper.getOutputFolderForImages(collection.name, serviceInfo, serviceInfo.uniqueOnCollection);
                         collection.hasImages = true;
                     } else if (req.body.images != null && req.body.images[0].type === "image") {
+                        //run it on a single image
                         collection.name = ImageHelper.getImageInfo(req.body.images[0].value).collection;
                         outputFolder = IoHelper.getOutputFolderForImages(collection.name, serviceInfo, serviceInfo.uniqueOnCollection);
                         collection.hasImages = true;
@@ -187,7 +189,10 @@ export class ExecutableHelper extends EventEmitter {
                     callback(null, collection);
                 } else {
                     collection.resultFile = collection.outputFolder + path.sep + "result.json";
+                    let processNumber: number = 0;
                     for (let process of collection.processes) {
+                        process.number = processNumber;
+                        processNumber = processNumber + 1;
                         process.algorithmIdentifier = serviceInfo.identifier;
                         process.executableType = serviceInfo.executableType;
                         process.outputFolder = collection.outputFolder;
@@ -257,7 +262,7 @@ export class ExecutableHelper extends EventEmitter {
             } else {
                 for (let process of collection.processes) {
                     if (process.resultLink != null) {
-                        results.push({"resultLink": process.resultLink});
+                        results.push({"md5": process.image.md5, "resultLink": process.resultLink});
                     }
                     if (process.result == null) {
                         processingQueue.addElement(process);
