@@ -64,7 +64,7 @@ router.post("/upload", function (req: express.Request, res: express.Response) {
             let process = {
                 rootFolder: collectionName
             };
-            let imageCounter: number = 1;
+            let imageCounter: number = 0;
             req.body.images.forEach((image: any, index: number) => {
                 switch (image.type) {
                     case "iiif":

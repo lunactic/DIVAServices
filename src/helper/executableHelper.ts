@@ -185,12 +185,30 @@ export class ExecutableHelper extends EventEmitter {
                 }
             }, function (collection: Collection, callback: Function) {
                 //step 2
-                //immediate callback if collection.result is available
+
                 if (collection.result != null) {
+                    //preprocess the unprocessed images
+                    //TODO get max number
+                    let processNumber: number = collection.result.results.length;
+                    let md5ToRemove = [];
+                    for (let process of collection.processes) {
+                        let result = _.filter(collection.result.results, function (item: any) {
+                            return item.md5 === process.image.md5;
+                        });
+                        if (result.length === 0) {
+                            self.preprocessImage(process, collection, req, serviceInfo, processNumber);
+                            processNumber = processNumber + 1;
+                        } else {
+                            md5ToRemove.push(process.image.md5);
+                        }
+                    }
+                    _.remove(collection.processes, function (item) {
+                        return md5ToRemove.indexOf(item.image.md5) > -1;
+                    });
                     callback(null, collection);
                 } else {
-                    collection.resultFile = collection.outputFolder + path.sep + "result.json";
                     let processNumber: number = 0;
+                    collection.resultFile = collection.outputFolder + path.sep + "result.json";
                     for (let process of collection.processes) {
                         self.preprocessImage(process, collection, req, serviceInfo, processNumber);
                         processNumber = processNumber + 1;
@@ -210,17 +228,8 @@ export class ExecutableHelper extends EventEmitter {
                 } else {
                     //produce only the results for the unprocessed images
                     for (let process of collection.processes) {
-                        let result = _.filter(collection.result.results, function (item: any) {
-                            return item.md5 === process.image.md5;
-                        });
-                        if (result.length === 0) {
-                            ParameterHelper.saveParamInfo(process);
-                            IoHelper.saveFile(process.resultFile, {status: "planned"}, "utf8", null);
-                        } else {
-                            _.remove(collection.processes, function (item: Process) {
-                                return item.algorithmIdentifier === process.algorithmIdentifier;
-                            });
-                        }
+                        ParameterHelper.saveParamInfo(process);
+                        IoHelper.saveFile(process.resultFile, {status: "planned"}, "utf8", null);
                     }
                 }
                 callback(null, collection);
@@ -245,11 +254,13 @@ export class ExecutableHelper extends EventEmitter {
                             processingQueue.addElement(process);
                             queueCallback();
                         }
-                        ResultHelper.saveResult(collection, null);
-                        requestCallback(null, collection.result);
                     }
+                    ResultHelper.saveResult(collection, null);
+                    requestCallback(null, collection.result);
+                } else {
+                    //now new stuff to add, just respond
+                    requestCallback(null, collection.result);
                 }
-                requestCallback(null, collection.result);
             } else {
                 for (let process of collection.processes) {
                     if (process.resultLink != null) {
