@@ -23,8 +23,8 @@ import {RemoteExecution} from "../remoteExecution/remoteExecution";
 import {ResultHelper} from "./resultHelper";
 import {ServicesInfoHelper} from "./servicesInfoHelper";
 import {Statistics} from "../statistics/statistics";
-import IResultHandler = require("./resultHandlers/iResultHandler");
 import {ProcessingQueue} from "../processingQueue/processingQueue";
+import IResultHandler = require("./resultHandlers/iResultHandler");
 
 
 export class ExecutableHelper extends EventEmitter {
@@ -138,7 +138,7 @@ export class ExecutableHelper extends EventEmitter {
         DockerManagement.runDockerImage(process, serviceInfo.image_name, callback);
     }
 
-    public preprocess(req: express.Request, processingQueue: ProcessingQueue, executionType: string, requestCallback: Function, queueCallback: Function): void {
+    public preprocess(req: any, processingQueue: ProcessingQueue, executionType: string, requestCallback: Function, queueCallback: Function): void {
         let serviceInfo = ServicesInfoHelper.getInfoByPath(req.originalUrl);
         let collection = new Collection();
         collection.method = serviceInfo.service;
@@ -185,7 +185,6 @@ export class ExecutableHelper extends EventEmitter {
                 }
             }, function (collection: Collection, callback: Function) {
                 //step 2
-
                 if (collection.result != null) {
                     //preprocess the unprocessed images
                     //TODO get max number
@@ -202,7 +201,7 @@ export class ExecutableHelper extends EventEmitter {
                             md5ToRemove.push(process.image.md5);
                         }
                     }
-                    _.remove(collection.processes, function (item) {
+                    _.remove(collection.processes, function (item: any) {
                         return md5ToRemove.indexOf(item.image.md5) > -1;
                     });
                     callback(null, collection);

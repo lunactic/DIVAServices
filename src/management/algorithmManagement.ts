@@ -1,10 +1,8 @@
 /**
  * Created by lunactic on 04.11.16.
  */
-
 import * as _ from "lodash";
 import * as express from "express";
-let crypto = require("crypto");
 import {IoHelper} from "../helper/ioHelper";
 import {Logger} from "../logging/logger";
 import * as nconf from "nconf";
@@ -14,6 +12,7 @@ import {DockerManagement} from "../docker/dockerManagement";
 import {ExecutableHelper} from "../helper/executableHelper";
 import {QueueHandler} from "../processingQueue/queueHandler";
 import {Swagger} from "../swagger/swagger";
+let crypto = require("crypto");
 
 export class AlgorithmManagement {
 
