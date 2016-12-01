@@ -13,6 +13,7 @@ import * as https from "https";
 import * as fse from "fs-extra";
 import * as nconf from "nconf";
 import * as path from "path";
+let request = require("sync-request");
 let rmdir = require("rmdir");
 let unzip = require("unzip");
 import * as url from "url";
@@ -71,7 +72,14 @@ export class IoHelper {
         });
     }
 
-    static downloadFile(fileUrl: string, localFolder: string, fileType: string, callback: Function): void {
+
+    static downloadFileSync(fileUrl: string, localFolder: string, localFilename): string {
+        let res = request("GET", fileUrl);
+        IoHelper.saveFile(localFolder + path.sep + localFilename, res.getBody("utf8").toString(), "utf8", null);
+        return localFolder + path.sep + localFilename;
+    }
+
+    static downloadFileWithTypecheck(fileUrl: string, localFolder: string, fileType: string, callback: Function): void {
         this.checkFileType(fileType, fileUrl, function (error: any) {
             if (error != null) {
                 callback(error);
@@ -261,13 +269,16 @@ export class IoHelper {
 
             let req = http.request(options, function (response: http.IncomingMessage) {
                 if (response.headers["content-type"] !== fileType) {
+                    Logger.log("error", "non matching file type", "IoHelper");
                     callback({error: "non matching file type"});
                 } else {
+                    Logger.log("info", "downloaded file: " + fileUrl, "IoHelper");
                     callback(null);
                 }
             });
             req.end();
         } else {
+            Logger.log("error", "no filetype provided", "IoHelper");
             callback(null);
         }
 

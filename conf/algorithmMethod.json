@@ -1,6 +1,6 @@
 {
   "environment": {
-    "displayText":"Environment",
+    "displayText": "Environment",
     "infoText": "Necessary environment to run the algorithm",
     "type": "enum",
     "values": [
@@ -9,20 +9,22 @@
       "divaservices/ocropus",
       "divaservices/matlab2014b-compiler-runtime-docker",
       "kbai/kraken",
-      "divaservices/tesseract"
+      "divaservices/tesseract",
+      "divaservices/noise"
     ],
-    "keys" :[
+    "keys": [
       "Java 7",
       "Java 8",
       "Ocropus",
       "Matlab Compiler Runtime 2014b (on Ubuntu)",
       "kraken",
-      "Tesseract"
+      "Tesseract",
+      "Noise Generation"
     ],
     "required": true
   },
   "executableType": {
-    "displayText":"Executable Type",
+    "displayText": "Executable Type",
     "infoText": "Type of the executable",
     "type": "enum",
     "values": [
@@ -39,9 +41,9 @@
     ],
     "required": true
   },
-  "executable_path":{
-    "displayText":"Executable Path",
-    "infoText":"Relative path to the executbale inside the zip file",
+  "executable_path": {
+    "displayText": "Executable Path",
+    "infoText": "Relative path to the executbale inside the zip file",
     "type": "string",
     "minLength": 1,
     "maxLength": 255,

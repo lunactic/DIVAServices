@@ -67,17 +67,19 @@ export class GetHandler {
                             let process = new Process();
                             process.image = image;
                             GetHandler.prepareQueryParams(process, queryParams);
-                            process.parameters = ParameterHelper.matchParams(process, req);
-                            process.method = serviceInfo.service;
-                            process.rootFolder = image.folder.split(path.sep)[image.folder.split(path.sep).length - 2];
-                            //TODO is this needed in the futur, when everything is starting from the point of acollection?
-                            if (ResultHelper.checkProcessResultAvailable(process)) {
-                                process.result = ResultHelper.loadResult(process);
-                                if (!(process.result.hasOwnProperty("status"))) {
-                                    process.result["status"] = "done";
+                            ParameterHelper.matchParams(process, req, function (parameters) {
+                                process.parameters = parameters;
+                                process.method = serviceInfo.service;
+                                process.rootFolder = image.folder.split(path.sep)[image.folder.split(path.sep).length - 2];
+                                //TODO is this needed in the futur, when everything is starting from the point of acollection?
+                                if (ResultHelper.checkProcessResultAvailable(process)) {
+                                    process.result = ResultHelper.loadResult(process);
+                                    if (!(process.result.hasOwnProperty("status"))) {
+                                        process.result["status"] = "done";
+                                    }
+                                    callback(null, process.result);
                                 }
-                                callback(null, process.result);
-                            }
+                            });
                         }
                         callback(GetHandler.createError(404, "This result is not available"), null);
                     }
@@ -88,22 +90,24 @@ export class GetHandler {
             GetHandler.prepareQueryParams(process, queryParams);
             process.neededParameters = serviceInfo.parameters;
             GetHandler.prepareNeededParameters(process);
-            process.parameters = ParameterHelper.matchParams(process, req);
-            process.method = serviceInfo.service;
-            process.rootFolder = queryParams["rootFolder"];
-            if (ResultHelper.checkProcessResultAvailable(process)) {
-                process.result = ResultHelper.loadResult(process);
-                if (queryParams.requireOutputImage === false && process.result["image"] != null) {
-                    delete process.result["image"];
+            ParameterHelper.matchParams(process, req, function (parameters) {
+                process.parameters = parameters;
+                process.method = serviceInfo.service;
+                process.rootFolder = queryParams["rootFolder"];
+                if (ResultHelper.checkProcessResultAvailable(process)) {
+                    process.result = ResultHelper.loadResult(process);
+                    if (queryParams.requireOutputImage === false && process.result["image"] != null) {
+                        delete process.result["image"];
+                    }
+                    if (!(process.result.hasOwnProperty("status"))) {
+                        process.result["status"] = "done";
+                    }
+                    callback(null, process.result);
+                } else {
+                    let error = GetHandler.createError(400, "Malformed request");
+                    callback(error, null);
                 }
-                if (!(process.result.hasOwnProperty("status"))) {
-                    process.result["status"] = "done";
-                }
-                callback(null, process.result);
-            } else {
-                let error = GetHandler.createError(400, "Malformed request");
-                callback(error, null);
-            }
+            });
         } else {
             let error = GetHandler.createError(500, "Could not parse this request");
             callback(error, null);

@@ -86,6 +86,7 @@
     "ocropyLanguageModelsPath",
     "startUp",
     "noisingXmlFile",
-    "mcr2014b"
+    "mcr2014b",
+    "inputFile"
   ]
 }

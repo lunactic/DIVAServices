@@ -19,7 +19,7 @@ export class AlgorithmManagement {
 
     static createAlgorithm(req: express.Request, res: express.Response, route: string, identifier: string, imageName: string, callback: Function): void {
         AlgorithmManagement.updateServicesFile(req.body, identifier, route, imageName);
-        IoHelper.downloadFile(req.body.method.file, nconf.get("paths:executablePath") + path.sep + route, "application/zip", function (err: any, filename: string) {
+        IoHelper.downloadFileWithTypecheck(req.body.method.file, nconf.get("paths:executablePath") + path.sep + route, "application/zip", function (err: any, filename: string) {
             if (err != null) {
                 AlgorithmManagement.updateStatus(identifier, "error", null, "algorithm file has the wrong format");
                 let error = {
@@ -52,7 +52,7 @@ export class AlgorithmManagement {
                     let inputs = {};
                     let highlighter = {};
                     for (let input of req.body.input) {
-                        if (!(nconf.get("reservedWords").indexOf(_.keys(input)[0]) >= 0) || _.keys(input)[0] === "highlighter") {
+                        if (!(nconf.get("reservedWords").indexOf(_.keys(input)[0]) >= 0) || _.keys(input)[0] === "highlighter" || _.keys(input)[0] === 'inputFile') {
                             switch (_.keys(input)[0]) {
                                 case "select":
                                     inputs[input.select.name] = input.select.options.values[input.select.options.default];
@@ -65,6 +65,9 @@ export class AlgorithmManagement {
                                     break;
                                 case "json":
                                     inputs[input.json.name] = IoHelper.loadFile(nconf.get("paths:testPath") + path.sep + "json" + path.sep + "array.json");
+                                    break;
+                                case "inputFile":
+                                    inputs[input.inputFile.name] = input.inputFile.options.default;
                                     break;
                                 case "highlighter":
                                     switch (input.highlighter.type) {

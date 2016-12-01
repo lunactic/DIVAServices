@@ -1,13 +1,14 @@
 {
   "baseImages": {
-    "anapsix/alpine-java":{
-      "7":"apk",
-      "8":"apk"
+    "anapsix/alpine-java": {
+      "7": "apk",
+      "8": "apk"
     },
-    "anapsix/alpine-java:8":"apk",
-    "divaservices/ocropus":"apt",
-    "divaservices/matlab2014b-compiler-runtime-docker":"apt",
-    "kbai/kraken":"apk",
-    "divaservices/tesseract":"apt"
+    "anapsix/alpine-java:8": "apk",
+    "divaservices/ocropus": "apt",
+    "divaservices/matlab2014b-compiler-runtime-docker": "apt",
+    "divaservices/noise": "apk",
+    "kbai/kraken": "apk",
+    "divaservices/tesseract": "apt"
   }
 }

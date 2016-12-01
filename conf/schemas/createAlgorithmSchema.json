@@ -11,7 +11,7 @@
       },
       "highlighter": {
         "type": "object",
-        "required":[
+        "required": [
           "type"
         ],
         "properties": {
@@ -29,6 +29,40 @@
         "type": "string",
         "minLength": 3,
         "maxLength": 255
+      },
+      "inputFile": {
+        "type": "object",
+        "required": [
+          "name",
+          "description",
+          "options"
+        ],
+        "properties": {
+          "name": {
+            "$ref": "#/definitions/name"
+          },
+          "description": {
+            "$ref": "#/definitions/description"
+          },
+          "options": {
+            "type": "object",
+            "required": [
+              "required",
+              "default"
+            ],
+            "properties": {
+              "required": {
+                "type": "boolean"
+              },
+              "default": {
+                "type": "string"
+              },
+              "fileType": {
+                "type": "string"
+              }
+            }
+          }
+        }
       },
       "number": {
         "type": "object",
@@ -72,28 +106,28 @@
         },
         "additionalProperties": false
       },
-      "json":{
-        "type":"object",
-        "required":[
+      "json": {
+        "type": "object",
+        "required": [
           "name",
           "description",
           "options"
         ],
-        "properties":{
-          "name":{
-            "$ref":"#/definitions/name"
+        "properties": {
+          "name": {
+            "$ref": "#/definitions/name"
           },
-          "description":{
-            "$ref":"#/definitions/description"
+          "description": {
+            "$ref": "#/definitions/description"
           },
-          "options":{
-            "type":"object",
-            "required":[
+          "options": {
+            "type": "object",
+            "required": [
               "required"
             ],
-            "properties":{
-              "required":{
-                "type":"boolean"
+            "properties": {
+              "required": {
+                "type": "boolean"
               }
             }
           }
@@ -217,21 +251,21 @@
     },
     "type": "object",
     "required": [
-     "general",
-     "input",
-     "method"
+      "general",
+      "input",
+      "method"
     ],
     "properties": {
-      "general":{
-        "type":"object",
-        "required":[
+      "general": {
+        "type": "object",
+        "required": [
           "name",
           "description",
           "author",
           "type",
           "email"
         ],
-        "properties":{
+        "properties": {
           "name": {
             "type": "string",
             "minLength": 2,
@@ -250,10 +284,10 @@
             "minLenght": 5,
             "maxLength": 50
           },
-          "type":{
-            "type":"string",
-            "minLength":3,
-            "maxLength":50
+          "type": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 50
           },
           "email": {
             "type": "string",
@@ -295,31 +329,32 @@
             "checkbox": {
               "$ref": "#/definitions/checkbox"
             },
-            "json":{
-              "$ref":"#/definitions/json"
+            "json": {
+              "$ref": "#/definitions/json"
             },
-            "inputImage":{
-              "type":"object"
+            "inputImage": {
+              "type": "object"
             },
-            "inputFile":{
-              "type":"object"
+            "inputFile": {
+              "$ref": "#/definitions/inputFile"
             },
-            "outputImage":{
-              "type":"object"
+            "outputImage": {
+              "type": "object"
             },
-            "resultFile":{
-              "type":"object"
+            "resultFile": {
+              "type": "object"
             },
-            "inputFileExtension":{
-              "type":"object"
+            "inputFileExtension": {
+              "type": "object"
             },
-            "outputFolder":{
-              "type":"object"
-            },"host":{
-              "type":"object"
+            "outputFolder": {
+              "type": "object"
             },
-            "mcr2014b":{
-              "type":"object"
+            "host": {
+              "type": "object"
+            },
+            "mcr2014b": {
+              "type": "object"
             }
           },
           "additionalProperties": false
@@ -331,7 +366,7 @@
         "properties": {
           "file": {
             "type": "string",
-            "format":"uri"
+            "format": "uri"
           },
           "environment": {
             "type": "string"

@@ -3,6 +3,7 @@
  */
 "use strict";
 
+import * as async from "async";
 import * as _ from "lodash";
 import * as fs from "fs";
 import * as nconf from "nconf";
@@ -55,46 +56,60 @@ export class ParameterHelper {
         }
     }
 
-    static matchParams(process: Process, req: any): any {
+    static matchParams(process: Process, req: any, cb: Function): void {
         let params = {};
         let outputParams = {};
-
-        for (let neededParameter of process.neededParameters) {
+        let self = this;
+        process.neededParameters.forEach(function (neededParameter: any, key: any) {
             //build parameters
             let paramKey = _.keys(neededParameter)[0];
             let paramValue = neededParameter[paramKey];
+            Logger.log("info", "processing parameter: " + paramKey, "ParameterHelper");
 
-            if (this.checkReservedParameters(paramKey)) {
+            if (self.checkReservedParameters(paramKey) || self.checkReservedParameters(paramValue)) {
                 //check if highlighter
-                if (paramKey === "highlighter") {
-                    params[paramKey] = this.getHighlighterParamValues(process.inputHighlighters.type, process.inputHighlighters.segments);
+                let value = self.getParamValue(paramKey, process.inputParameters);
+                if (paramValue === 'inputFile') {
+                    Logger.log("info", "found an inputFile", "ParameterHelper");
+                    let filename = IoHelper.downloadFileSync(value, process.outputFolder, path.basename(value));
+                    params[paramKey] = filename;
+                    outputParams[paramKey] = filename;
+                    Logger.log("info", "inputFile processed", "ParameterHelper");
+                    Logger.log("info", "finished processing parameter: " + paramKey, "ParameterHelper");
+                } else if (paramKey === "highlighter") {
+                    params[paramKey] = self.getHighlighterParamValues(process.inputHighlighters.type, process.inputHighlighters.segments);
+                    Logger.log("info", "finished processing parameter: " + paramKey, "ParameterHelper");
                 } else {
-                    params[paramKey] = this.getReservedParamValue(paramKey, process, req);
+                    params[paramKey] = self.getReservedParamValue(paramKey, process, req);
+                    Logger.log("info", "finished processing parameter: " + paramKey, "ParameterHelper");
                 }
             } else {
                 //handle json
-                let value = this.getParamValue(paramKey, process.inputParameters);
+                let value = self.getParamValue(paramKey, process.inputParameters);
                 if (value != null) {
                     if (paramValue === "json") {
                         let jsonFile = process.outputFolder + path.sep + "jsonInput.json";
-                        IoHelper.saveFile(jsonFile, value, "utf-8", null);
+                        IoHelper.saveFile(jsonFile, value, "utf8", null);
                         params[paramKey] = jsonFile;
                         outputParams[paramKey] = jsonFile;
+                        Logger.log("info", "finished processing parameter: " + paramKey, "ParameterHelper");
                     } else {
                         params[paramKey] = value;
                         outputParams[paramKey] = value;
+                        Logger.log("info", "finished processing parameter: " + paramKey, "ParameterHelper");
                     }
                 } else if (paramValue === "url") {
                     params[paramKey] = "";
                     outputParams[paramKey] = "";
+                    Logger.log("info", "finished processing parameter: " + paramKey, "ParameterHelper");
                 }
             }
-        }
+        });
         let result = {
             params: params,
             outputParams: outputParams
         };
-        return result;
+        cb(result);
     }
 
     static getHighlighterParamValues(neededHighlighter: string, inputHighlighter: any): any {
@@ -183,9 +198,9 @@ export class ParameterHelper {
             let content = IoHelper.loadFile(paramPath);
             let info: any = {};
             if ((info = _.filter(content, {
-                        "parameters": data.parameters,
-                        "highlighters": data.highlighters
-                    })).length > 0) {
+                    "parameters": data.parameters,
+                    "highlighters": data.highlighters
+                })).length > 0) {
                 //found some method information
                 if (proc.hasImages) {
                     if (proc.image != null) {

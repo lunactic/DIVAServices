@@ -129,10 +129,10 @@ export class DockerManagement {
         //check if additional files need to be downloaded
         algorithmInfos.input.forEach((input: any, index: any) => {
             let key = _.keys(algorithmInfos.input[index])[0];
-            if (["json", "file"].indexOf(key) >= 0) {
-                content += "curl -o /data/" + input[key].name + ".json $" + inputCount + os.EOL;
+            if (["json", "file", "inputFile"].indexOf(key) >= 0) {
+                content += "curl -o /data/" + input[key].name + "." + input[key].options.fileType + " $" + inputCount + os.EOL;
                 AlgorithmManagement.addUrlParameter(identifier, input[key].name + "url");
-                AlgorithmManagement.addRemotePath(identifier, input[key].name, "/data/" + input[key].name + ".json");
+                AlgorithmManagement.addRemotePath(identifier, input[key].name, "/data/" + input[key].name + "." + input[key].options.fileType);
                 inputCount++;
             }
         });
@@ -187,10 +187,21 @@ export class DockerManagement {
         let neededParams = process.neededParameters;
         let paramsPath = "";
 
+        //get remote path keys
+        let remoteKeys = [];
+        for (let remote of process.remotePaths) {
+            remoteKeys.push(_.keys(remote)[0]);
+        }
+
         for (let key in params) {
             if (params.hasOwnProperty(key)) {
                 let value = params[key];
-                if (key === "highlighter") {
+                if (remoteKeys.indexOf(key) >= 0) {
+                    paramsPath += '"' + _ .find(process.remotePaths, function (remotePath: any) {
+                            return _.keys(remotePath)[0] === key;
+                        })[key] + '" ';
+                    Logger.log("info", "replace remote path!", "DockerManagement");
+                } else if (key === "highlighter") {
                     paramsPath += _.map(params.highlighter.split(" "), function (item: any) {
                         return '"' + item + '"';
                     }).join(" ");

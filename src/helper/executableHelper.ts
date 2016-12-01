@@ -295,41 +295,43 @@ export class ExecutableHelper extends EventEmitter {
         process.neededParameters = serviceInfo.parameters;
         process.remotePaths = serviceInfo.remotePaths;
         process.method = collection.method;
-        process.parameters = ParameterHelper.matchParams(process, req);
-        if (ResultHelper.checkProcessResultAvailable(process)) {
-            process.result = ResultHelper.loadResult(process);
-        } else {
-            process.methodFolder = path.basename(process.outputFolder);
-            if (process.image != null) {
-                process.resultFile = IoHelper.buildResultfilePath(process.outputFolder, process.image.name);
-                process.tmpResultFile = IoHelper.buildTempResultfilePath(process.outputFolder, process.image.name);
-                process.inputImageUrl = process.image.getImageUrl(process.rootFolder);
+        ParameterHelper.matchParams(process, req, function (parameters) {
+            process.parameters = parameters;
+            if (ResultHelper.checkProcessResultAvailable(process)) {
+                process.result = ResultHelper.loadResult(process);
             } else {
-                process.resultFile = IoHelper.buildResultfilePath(process.outputFolder, process.methodFolder);
-                process.tmpResultFile = IoHelper.buildTempResultfilePath(process.outputFolder, process.methodFolder);
+                process.methodFolder = path.basename(process.outputFolder);
+                if (process.image != null) {
+                    process.resultFile = IoHelper.buildResultfilePath(process.outputFolder, process.image.name);
+                    process.tmpResultFile = IoHelper.buildTempResultfilePath(process.outputFolder, process.image.name);
+                    process.inputImageUrl = process.image.getImageUrl(process.rootFolder);
+                } else {
+                    process.resultFile = IoHelper.buildResultfilePath(process.outputFolder, process.methodFolder);
+                    process.tmpResultFile = IoHelper.buildTempResultfilePath(process.outputFolder, process.methodFolder);
+                }
+                if (req.body.requireOutputImage != null) {
+                    process.requireOutputImage = req.body.requireOutputImage;
+                }
+                process.programType = serviceInfo.programType;
+                process.executablePath = serviceInfo.executablePath;
+                process.resultType = serviceInfo.output;
+                process.resultLink = process.buildGetUrl();
+                let resultHandler = null;
+                switch (serviceInfo.output) {
+                    case "console":
+                        resultHandler = new ConsoleResultHandler(process.resultFile);
+                        break;
+                    case "file":
+                        process.parameters.params["resultFile"] = process.resultFile;
+                        resultHandler = new FileResultHandler(process.resultFile);
+                        break;
+                    case "none":
+                        resultHandler = new NoResultHandler(process.resultFile);
+                        break;
+                }
+                process.resultHandler = resultHandler;
             }
-            if (req.body.requireOutputImage != null) {
-                process.requireOutputImage = req.body.requireOutputImage;
-            }
-            process.programType = serviceInfo.programType;
-            process.executablePath = serviceInfo.executablePath;
-            process.resultType = serviceInfo.output;
-            process.resultLink = process.buildGetUrl();
-            let resultHandler = null;
-            switch (serviceInfo.output) {
-                case "console":
-                    resultHandler = new ConsoleResultHandler(process.resultFile);
-                    break;
-                case "file":
-                    process.parameters.params["resultFile"] = process.resultFile;
-                    resultHandler = new FileResultHandler(process.resultFile);
-                    break;
-                case "none":
-                    resultHandler = new NoResultHandler(process.resultFile);
-                    break;
-            }
-            process.resultHandler = resultHandler;
-        }
+        });
     }
 
     private preprocessCollection(collection: Collection, hashes: string[], req: any, executionType: string, callback: Function): void {
