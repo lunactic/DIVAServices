@@ -13,7 +13,7 @@ import * as https from "https";
 import * as fse from "fs-extra";
 import * as nconf from "nconf";
 import * as path from "path";
-let request = require("sync-request");
+;
 let rmdir = require("rmdir");
 let unzip = require("unzip");
 import * as url from "url";
@@ -74,8 +74,10 @@ export class IoHelper {
 
 
     static downloadFileSync(fileUrl: string, localFolder: string, localFilename): string {
-        let res = request("GET", fileUrl);
-        IoHelper.saveFile(localFolder + path.sep + localFilename, res.getBody("utf8").toString(), "utf8", null);
+        http.get(fileUrl, function (response: http.IncomingMessage) {
+            response.pipe(fs.createWriteStream(localFolder + path.sep + localFilename));
+        });
+        //IoHelper.saveFile(localFolder + path.sep + localFilename, res.getBody("utf8").toString(), "utf8", null);
         return localFolder + path.sep + localFilename;
     }
 

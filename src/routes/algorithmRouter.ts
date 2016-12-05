@@ -173,6 +173,7 @@ router.post("/algorithms/:identifier/exceptions/:jobId", function (req: express.
     let process = QueueHandler.getDockerJob(req.params.jobId);
     if (process.type === "test") {
         AlgorithmManagement.updateStatus(process.algorithmIdentifier, "error", process.req.originalUrl, req["text"]);
+        ResultHelper.removeResult(process);
     } else {
         Statistics.endRecording(req.params.jobId, process.req.originalUrl);
         process.resultHandler.handleError("error running the algorithm", process);

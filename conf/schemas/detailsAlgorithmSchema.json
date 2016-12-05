@@ -111,6 +111,35 @@
       },
       "additionalProperties": false
     },
+    "inputFile":{
+      "type":"object",
+      "required":[
+        "name",
+        "options"
+      ],
+      "properties":{
+        "name": {
+          "$ref": "http://134.21.72.48:8080/schemas/details#/definitions/name"
+        },
+        "description": {
+          "$ref": "http://134.21.72.48:8080/schemas/details#/definitions/description"
+        },
+        "options":{
+          "type":"object",
+          "required":[
+            "required"
+          ],
+          "properties":{
+            "required":{
+              "type":"boolean"
+            },
+            "default":{
+              "type":"string"
+            }
+          }
+        }
+      }
+    },
     "json":{
       "type":"object",
       "required":[
