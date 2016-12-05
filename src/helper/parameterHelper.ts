@@ -64,44 +64,43 @@ export class ParameterHelper {
             //build parameters
             let paramKey = _.keys(neededParameter)[0];
             let paramValue = neededParameter[paramKey];
-            Logger.log("info", "processing parameter: " + paramKey, "ParameterHelper");
-
             if (self.checkReservedParameters(paramKey) || self.checkReservedParameters(paramValue)) {
                 //check if highlighter
                 let value = self.getParamValue(paramKey, process.inputParameters);
-                if (paramValue === 'inputFile') {
-                    Logger.log("info", "found an inputFile", "ParameterHelper");
-                    let filename = IoHelper.downloadFileSync(value, process.outputFolder, path.basename(value));
-                    params[paramKey] = filename;
-                    outputParams[paramKey] = filename;
-                    Logger.log("info", "inputFile processed", "ParameterHelper");
-                    Logger.log("info", "finished processing parameter: " + paramKey, "ParameterHelper");
-                } else if (paramKey === "highlighter") {
-                    params[paramKey] = self.getHighlighterParamValues(process.inputHighlighters.type, process.inputHighlighters.segments);
-                    Logger.log("info", "finished processing parameter: " + paramKey, "ParameterHelper");
-                } else {
-                    params[paramKey] = self.getReservedParamValue(paramKey, process, req);
-                    Logger.log("info", "finished processing parameter: " + paramKey, "ParameterHelper");
+                switch (paramValue) {
+                    case 'inputFile':
+                        let filename = IoHelper.downloadFileSync(value, process.outputFolder, path.basename(value));
+                        params[paramKey] = filename;
+                        outputParams[paramKey] = filename;
+                        break;
+                    case 'highlighter':
+                        params[paramKey] = self.getHighlighterParamValues(process.inputHighlighters.type, process.inputHighlighters.segments);
+                        break;
+                    case 'inputImage':
+                        params[paramKey] = process.inputImageUrl;
+                        outputParams[paramKey] = process.inputImageUrl;
+                        break;
+                    default:
+                        params[paramKey] = self.getReservedParamValue(paramKey, process, req);
+                        break;
                 }
             } else {
                 //handle json
                 let value = self.getParamValue(paramKey, process.inputParameters);
                 if (value != null) {
                     if (paramValue === "json") {
+                        //TODO Fix here with counter
                         let jsonFile = process.outputFolder + path.sep + "jsonInput.json";
                         IoHelper.saveFile(jsonFile, value, "utf8", null);
                         params[paramKey] = jsonFile;
                         outputParams[paramKey] = jsonFile;
-                        Logger.log("info", "finished processing parameter: " + paramKey, "ParameterHelper");
                     } else {
                         params[paramKey] = value;
                         outputParams[paramKey] = value;
-                        Logger.log("info", "finished processing parameter: " + paramKey, "ParameterHelper");
                     }
                 } else if (paramValue === "url") {
                     params[paramKey] = "";
                     outputParams[paramKey] = "";
-                    Logger.log("info", "finished processing parameter: " + paramKey, "ParameterHelper");
                 }
             }
         });

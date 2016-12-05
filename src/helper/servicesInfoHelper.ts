@@ -22,7 +22,7 @@ export class ServicesInfoHelper {
 
     static getInfoByName(name: string): any {
         this.reload();
-        let serviceInfo = this.fileContent.filter(function (item: any) {
+        let serviceInfo = this.fileContent.services.filter(function (item: any) {
             return item.service === name;
         });
         return serviceInfo[0];
@@ -30,7 +30,7 @@ export class ServicesInfoHelper {
 
     static getInfoByIdentifier(identifier: string): any {
         this.reload();
-        let serviceInfo = this.fileContent.filter(function (item: any) {
+        let serviceInfo = this.fileContent.services.filter(function (item: any) {
             return item.identifier === identifier;
         });
         return serviceInfo[0];

@@ -116,23 +116,22 @@ export class DockerManagement {
     static createBashScript(identifier: string, algorithmInfos: any, outputFolder: string): void {
         let content: string = '#!/bin/sh' + os.EOL;
 
-        if (_.find(algorithmInfos.input, {"inputImage": {}}) != null) {
-            content += 'curl -o /data/inputImage.png $1' + os.EOL;
-        }
         //input count starts with 4. Params 1,2 and 3 are fix used
-        // 1: inputImageUrl
-        // 2: resultResponseUrl
-        // 3: eroorResponseUrl
+        // 1: resultResponseUrl
+        // 2: errorResponseUrl
         // increase it for every additional file that needs to be downloaded
-        let inputCount: number = 4;
+        let inputCount: number = 3;
 
         //check if additional files need to be downloaded
         algorithmInfos.input.forEach((input: any, index: any) => {
             let key = _.keys(algorithmInfos.input[index])[0];
-            if (["json", "file", "inputFile"].indexOf(key) >= 0) {
-                content += "curl -o /data/" + input[key].name + "." + input[key].options.fileType + " $" + inputCount + os.EOL;
+            if (['json', 'file', 'inputFile'].indexOf(key) >= 0) {
+                content += 'curl -o /data/' + input[key].name + '.' + input[key].options.fileType + ' $' + inputCount + os.EOL;
                 AlgorithmManagement.addUrlParameter(identifier, input[key].name + "url");
                 AlgorithmManagement.addRemotePath(identifier, input[key].name, "/data/" + input[key].name + "." + input[key].options.fileType);
+                inputCount++;
+            } else if (key === 'inputImage') {
+                content += 'curl -o /data/inputImage.png $' + inputCount + os.EOL;
                 inputCount++;
             }
         });
@@ -154,7 +153,9 @@ export class DockerManagement {
             let key = _.keys(algorithmInfos.input[index])[0];
             if (nconf.get("reservedWords").indexOf(key) >= 0 && nconf.get("docker:replacePaths").indexOf(key) >= 0) {
                 content += this.getDockerInput(key) + " ";
-                inputCount++;
+                if (key !== 'inputImage') {
+                    inputCount++;
+                }
             } else {
                 //TODO add switch for highlighters
                 if (key === "highlighter") {
@@ -173,11 +174,11 @@ export class DockerManagement {
         }
         content += 'if [ -s "/data/error.txt" ]' + os.EOL;
         content += 'then' + os.EOL;
-        content += '    curl -H "Content-Type: text/plain" --data @/data/error.txt $3' + os.EOL;
+        content += '    curl -H "Content-Type: text/plain" --data @/data/error.txt $2' + os.EOL;
         content += 'fi' + os.EOL;
         content += 'if [ -s "/data/result.json" ]' + os.EOL;
         content += 'then' + os.EOL;
-        content += '    curl -H "Content-Type: application/json" --data @/data/result.json $2' + os.EOL;
+        content += '    curl -H "Content-Type: application/json" --data @/data/result.json $1' + os.EOL;
         content += 'fi';
         fs.writeFileSync(outputFolder + path.sep + "script.sh", content);
     }
@@ -200,7 +201,6 @@ export class DockerManagement {
                     paramsPath += '"' + _ .find(process.remotePaths, function (remotePath: any) {
                             return _.keys(remotePath)[0] === key;
                         })[key] + '" ';
-                    Logger.log("info", "replace remote path!", "DockerManagement");
                 } else if (key === "highlighter") {
                     paramsPath += _.map(params.highlighter.split(" "), function (item: any) {
                         return '"' + item + '"';
@@ -221,7 +221,7 @@ export class DockerManagement {
             }
         }
 
-        let command = './script.sh ' + process.inputImageUrl + ' ' + process.remoteResultUrl + ' ' + process.remoteErrorUrl + ' ' + paramsPath;
+        let command = './script.sh ' + process.remoteResultUrl + ' ' + process.remoteErrorUrl + ' ' + paramsPath;
         Logger.log("info", command, "DockerManagement");
         this.docker.run(imageName, ['-c', command], process.stdout, {entrypoint: '/bin/sh'}, function (error: any, data: any, container: any) {
             let err = {

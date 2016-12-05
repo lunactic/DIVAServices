@@ -295,20 +295,20 @@ export class ExecutableHelper extends EventEmitter {
         process.neededParameters = serviceInfo.parameters;
         process.remotePaths = serviceInfo.remotePaths;
         process.method = collection.method;
-        ParameterHelper.matchParams(process, req, function (parameters) {
+        if (process.image != null) {
+            process.resultFile = IoHelper.buildResultfilePath(process.outputFolder, process.image.name);
+            process.tmpResultFile = IoHelper.buildTempResultfilePath(process.outputFolder, process.image.name);
+            process.inputImageUrl = process.image.getImageUrl(process.rootFolder);
+        } else {
+            process.resultFile = IoHelper.buildResultfilePath(process.outputFolder, process.methodFolder);
+            process.tmpResultFile = IoHelper.buildTempResultfilePath(process.outputFolder, process.methodFolder);
+        }
+        ParameterHelper.matchParams(process, req, function (parameters: any) {
             process.parameters = parameters;
             if (ResultHelper.checkProcessResultAvailable(process)) {
                 process.result = ResultHelper.loadResult(process);
             } else {
                 process.methodFolder = path.basename(process.outputFolder);
-                if (process.image != null) {
-                    process.resultFile = IoHelper.buildResultfilePath(process.outputFolder, process.image.name);
-                    process.tmpResultFile = IoHelper.buildTempResultfilePath(process.outputFolder, process.image.name);
-                    process.inputImageUrl = process.image.getImageUrl(process.rootFolder);
-                } else {
-                    process.resultFile = IoHelper.buildResultfilePath(process.outputFolder, process.methodFolder);
-                    process.tmpResultFile = IoHelper.buildTempResultfilePath(process.outputFolder, process.methodFolder);
-                }
                 if (req.body.requireOutputImage != null) {
                     process.requireOutputImage = req.body.requireOutputImage;
                 }
