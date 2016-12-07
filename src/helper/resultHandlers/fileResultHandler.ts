@@ -13,9 +13,16 @@ import {IoHelper} from "../ioHelper";
 import IResultHandler = require("./iResultHandler");
 import {Process} from "../../processingQueue/process";
 
+/**
+ * A Result Hanlder that reads the results from a file
+ */
 export class FileResultHandler implements IResultHandler {
     filename: string;
 
+    /**
+     * Constructor
+     * @param {string} filename The file that will contain the results
+     */
     constructor(filename: string) {
         this.filename = filename;
     }

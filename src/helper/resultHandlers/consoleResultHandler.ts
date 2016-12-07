@@ -10,6 +10,9 @@ import IResultHandler = require("./iResultHandler");
 import {Process} from "../../processingQueue/process";
 import {IoHelper} from "../ioHelper";
 
+/**
+ * A Result Handler implementation for results coming from the console
+ */
 export class ConsoleResultHandler implements IResultHandler {
     filename: string;
 

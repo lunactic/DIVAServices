@@ -110,7 +110,7 @@ class Server {
     }
 
     private routes() {
-        //set up static file handler!
+        //set up static file handlers!
         this.app.use("/images", express.static(nconf.get("paths:imageRootPath")));
         this.app.use("/data", express.static(nconf.get("paths:dataRootPath")));
 
@@ -127,5 +127,7 @@ process.on("SIGTERM", function () {
     ImageHelper.saveImageInfo();
     process.exit(0);
 });
+
+//expose the application
 var server = Server.bootstrap();
 export = server.app;
