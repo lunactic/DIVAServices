@@ -39,11 +39,7 @@
     ],
     "typedef": [
       true,
-      "call-signature",
-      "parameter",
-      "property-declaration",
-      "variable-declaration",
-      "member-variable-declaration"
+      "parameter"
     ],
     "variable-name": [
       true,

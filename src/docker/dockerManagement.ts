@@ -11,13 +11,13 @@ import * as path from "path";
 import {IoHelper} from "../helper/ioHelper";
 import {ResultHelper} from "../helper/resultHelper";
 import {Logger}  from "../logging/logger";
-let Docker = require("dockerode");
+let docker = require("dockerode");
 let sequest = require("sequest");
 import * as os from "os";
 import {Process} from "../processingQueue/process";
 
 export class DockerManagement {
-    static docker = new Docker({host: nconf.get("docker:host"), port: nconf.get("docker:port")});
+    static docker = new docker({host: nconf.get("docker:host"), port: nconf.get("docker:port")});
 
     static buildImage(inputFolder: string, imageName: string, callback: Function): void {
         //create tar file

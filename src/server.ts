@@ -16,7 +16,6 @@ import {ImageHelper} from "./helper/imageHelper";
 import {QueueHandler} from "./processingQueue/queueHandler";
 let router = require("./routes/standardRouter");
 let algorithmRouter = require("./routes/algorithmRouter");
-
 /**
  * The server.
  *
@@ -99,7 +98,7 @@ class Server {
             if (req.is("text/*")) {
                 req["text"] = "";
                 req.setEncoding("utf8");
-                req.on("data", function (chunk) {
+                req.on("data", function (chunk: any) {
                     req["text"] += chunk;
                 });
                 req.on("end", next);
@@ -127,5 +126,5 @@ process.on("SIGTERM", function () {
     ImageHelper.saveImageInfo();
     process.exit(0);
 });
-var server = Server.bootstrap();
-export = server.app;
+
+export = Server.bootstrap().app;

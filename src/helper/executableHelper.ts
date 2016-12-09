@@ -61,7 +61,9 @@ export class ExecutableHelper extends EventEmitter {
         let params = _.clone(process.parameters.params);
         _.forIn(params, function (value: any, key: any) {
             switch (key) {
-                case "inputImage", "outputImage", "resultFile":
+                case "inputImage":
+                case "outputImage":
+                case "resultFile":
                     let extension = path.extname(value);
                     let filename = path.basename(value, extension);
                     params[key] = process.rootFolder + path.sep + filename + extension;

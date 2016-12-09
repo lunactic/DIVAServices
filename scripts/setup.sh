@@ -84,6 +84,8 @@ header "Installing local npm packages"
 npm install
 echo "done"
 
+header "Compiling codebase"
+tsc --project .
 
 header "Creating Folders"
 imageFolder=($(cat conf/server.dev.json | jq -r '.paths.imageRootPath'))

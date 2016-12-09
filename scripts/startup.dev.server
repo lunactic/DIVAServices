@@ -11,5 +11,5 @@ export PYTHONIOENCODING=UTF-8
 ./scripts/cleanUp.sh
 
 #this can be used once we're stable
-#forever -m 5 --minUptime 1000 --spinSleepTime 5000 --watch -c coffee server.coffee
-coffee server.coffee
+#forever -m 5 --minUptime 1000 --spinSleepTime 5000 --watch -c
+node bin/www

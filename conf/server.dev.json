@@ -49,8 +49,6 @@
   "paths": {
     "imageRootPath": "/data/images",
     "dataRootPath":"/data/data",
-    "matlabPath": "/usr/local/bin/matlab",
-    "matlabScriptsPath": "/data/matlab",
     "testPath":"/data/testData",
     "jsonPath":"/data/json",
     "imageInfoFile": "/data/images/imageInfo.json",
@@ -61,10 +59,7 @@
     "mcr2014b":"$LD_LIBRARY_PATH"
   },
   "remotePaths": {
-    "matlabPath": "/opt/matlab/R2012b/bin/matlab",
-    "matlabScriptsPath": "data/matlab",
     "jsonPath":"data/json",
-    "ocropyLanguageModelsPath": "data/ocropyLanguageModels",
     "noisingXmlPath": "/data/noise/scripts/realistic.xml",
     "mcr2014b":"$LD_LIBRARY_PATH"
   },
@@ -74,16 +69,12 @@
     "inputImageUrl",
     "outputImage",
     "resultFile",
-    "matlabPath",
     "imageRootPath",
-    "matlabScriptsPath",
     "host",
     "inputFileExtension",
     "outputFolder",
     "highlighter",
-    "ocropyLanguageModelsPath",
     "startUp",
-    "noisingXmlFile",
     "mcr2014b",
     "inputFile"
   ]

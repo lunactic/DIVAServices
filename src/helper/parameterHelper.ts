@@ -25,10 +25,6 @@ export class ParameterHelper {
 
     static getReservedParamValue(parameter: string, process: Process, req: any): string {
         switch (parameter) {
-            case "matlabPath":
-                return nconf.get("paths:matlabPath");
-            case "matlabScriptsPath":
-                return nconf.get("paths:matlabScriptsPath");
             case "inputFileExtension":
                 return path.extname(process.image.path).slice(1);
             case "inputFolder":
@@ -43,14 +39,8 @@ export class ParameterHelper {
                 return process.outputFolder;
             case "host":
                 return nconf.get("server:rootUrl");
-            case "ocropyLanguageModelsPath":
-                return nconf.get("paths:ocropyLanguageModelsPath");
-            case "startUp":
-                return process.neededParameters["startUp"];
             case "outputImage":
                 return "##outputImage##";
-            case "noisingXmlFile":
-                return nconf.get("paths:noisingXmlPath");
             case "mcr2014b":
                 return nconf.get("paths:mcr2014b");
         }
