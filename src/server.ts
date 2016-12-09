@@ -109,7 +109,7 @@ class Server {
     }
 
     private routes() {
-        //set up static file handler!
+        //set up static file handlers!
         this.app.use("/images", express.static(nconf.get("paths:imageRootPath")));
         this.app.use("/data", express.static(nconf.get("paths:dataRootPath")));
 

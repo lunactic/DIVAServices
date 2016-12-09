@@ -27,10 +27,16 @@ import {ProcessingQueue} from "../processingQueue/processingQueue";
 import IResultHandler = require("./resultHandlers/iResultHandler");
 
 
+/**
+ * A class the provides all functionality needed before a process can be executed
+ */
 export class ExecutableHelper extends EventEmitter {
 
     remoteExecution: RemoteExecution;
 
+    /**
+     * Constructor
+     */
     constructor() {
         super();
         this.remoteExecution = new RemoteExecution(nconf.get("remoteServer:ip"), nconf.get("remoteServer:user"));
@@ -38,9 +44,7 @@ export class ExecutableHelper extends EventEmitter {
 
     /**
      * Builds the command line executable command
-     * @param executablePath The path to the executable
-     * @param programType The type of the program
-     * @param params The parameters of the executable
+     * @param {Process} process the process to execute
      */
     private buildCommand(process: Process): string {
         let execType = this.getExecutionType(process.executableType);
@@ -54,8 +58,8 @@ export class ExecutableHelper extends EventEmitter {
     }
 
     /**
-     * Build the remote command for eecution on a qsub cluster
-     * @param process
+     * Build the remote command for execution on a Sun Grid Engine using qsub
+     * @param {Process} process The process to execute
      */
     private buildRemoteCommand(process: Process): string {
         let params = _.clone(process.parameters.params);
@@ -97,6 +101,10 @@ export class ExecutableHelper extends EventEmitter {
         });
     }
 
+    /**
+     * Executes a process on the same host as this DivaServices instance is running
+     * @param {Process} process The process to execute
+     */
     public executeLocalRequest(process: Process): void {
         let self = this;
         async.waterfall([
@@ -113,6 +121,10 @@ export class ExecutableHelper extends EventEmitter {
         });
     }
 
+    /**
+     * Executes a request on the Sun Grid Engine
+     * @param {Process} process The process to execute
+     */
     public executeRemoteRequest(process: Process): void {
         let self = this;
         async.waterfall([
@@ -132,6 +144,11 @@ export class ExecutableHelper extends EventEmitter {
         });
     }
 
+    /**
+     * Executes a request on a docker instance
+     * @param {Process} process The process to execute
+     * @param {Function} callback The callback
+     */
     public static executeDockerRequest(process: Process, callback: Function): void {
         process.id = Statistics.startRecording(process);
         process.remoteResultUrl = "http://" + nconf.get("docker:reportHost") + "/jobs/" + process.id;
@@ -140,7 +157,16 @@ export class ExecutableHelper extends EventEmitter {
         DockerManagement.runDockerImage(process, serviceInfo.image_name, callback);
     }
 
-    public preprocess(req: any, processingQueue: ProcessingQueue, executionType: string, requestCallback: Function, queueCallback: Function): void {
+    /**
+     * preprocess all the necessary information from the incoming POST request
+     * This will either lead to the execution of one single image or the whole collection
+     * @param {express.Request} req The incoming request
+     * @param {ProcessingQueue} processingQueue The Processing Queue to use
+     * @param {string} executionType The execution type (e.g. java)
+     * @param {Function} requestCallback The callback for the incoming request
+     * @param {Function} queueCallback The callback for the processing queue
+     */
+    public preprocess(req: express.Request, processingQueue: ProcessingQueue, executionType: string, requestCallback: Function, queueCallback: Function): void {
         let serviceInfo = ServicesInfoHelper.getInfoByPath(req.originalUrl);
         let collection = new Collection();
         collection.method = serviceInfo.service;
@@ -285,6 +311,14 @@ export class ExecutableHelper extends EventEmitter {
         });
     }
 
+    /**
+     * preprocess the required information from a single input image
+     * @param {Process} process The process to update the inforation with
+     * @param {Collection} collection The collection this process belongs to
+     * @param {express.Request} req The incoming request
+     * @param {any} serviceInfo an object containing information about the method
+     * @param {number} processNumber the running process number
+     */
     private preprocessImage(process: Process, collection: Collection, req: express.Request, serviceInfo: any, processNumber: number): void {
 
         process.number = processNumber;
@@ -336,7 +370,15 @@ export class ExecutableHelper extends EventEmitter {
         });
     }
 
-    private preprocessCollection(collection: Collection, hashes: string[], req: any, executionType: string, callback: Function): void {
+    /**
+     * preprocesses all the necessry information for a collection
+     * @param {Collection} collection the collection object to update
+     * @param {string[]} hashes the hashes of the images to use
+     * @param {express.Request} req The incoming request
+     * @param {string} executionType The execution type
+     * @param {Function(Collection)} callback A callback containing the updated collection
+     */
+    private preprocessCollection(collection: Collection, hashes: string[], req: express.Request, executionType: string, callback: Function): void {
         //handle collections with/without images differently
         if (collection.hasImages) {
             if (!(ImageHelper.checkCollectionAvailable(collection.name))) {
@@ -390,6 +432,11 @@ export class ExecutableHelper extends EventEmitter {
         }
     }
 
+    /**
+     * Get the execution type
+     * @param programType
+     * @returns {string}
+     */
     private getExecutionType(programType: string): string {
         switch (programType) {
             case "java":
@@ -401,6 +448,11 @@ export class ExecutableHelper extends EventEmitter {
         }
     }
 
+    /**
+     * Set the highlighter object on a collection
+     * @param collection
+     * @param req
+     */
     private setCollectionHighlighter(collection: Collection, req: any): void {
         if (req.body.inputs != null && req.body.inputs.highlighter != null) {
             collection.inputHighlighters = _.clone(req.body.inputs.highlighter);
