@@ -29,13 +29,20 @@ import IResultHandler = require("./resultHandlers/iResultHandler");
 
 /**
  * A class the provides all functionality needed before a process can be executed
+ * 
+ * @export
+ * @class ExecutableHelper
+ * @extends {EventEmitter}
  */
 export class ExecutableHelper extends EventEmitter {
 
     remoteExecution: RemoteExecution;
 
     /**
-     * Constructor
+     * Creates an instance of ExecutableHelper.
+     * 
+     * 
+     * @memberOf ExecutableHelper
      */
     constructor() {
         super();
@@ -88,9 +95,9 @@ export class ExecutableHelper extends EventEmitter {
 
     /**
      * executes a command using the [childProcess](https://nodejs.org/api/child_process.html) module
-     * @param command the command to execute
-     * @param process the process
-     * @param callback the callback function
+     * @param {string} command the command to execute
+     * @param {Process} process the process
+     * @param {Function} callback the callback function
      */
     private executeCommand(command: string, process: Process, callback: Function): void {
         let exec = childProcess.exec;
@@ -376,7 +383,7 @@ export class ExecutableHelper extends EventEmitter {
      * @param {string[]} hashes the hashes of the images to use
      * @param {express.Request} req The incoming request
      * @param {string} executionType The execution type
-     * @param {Function(Collection)} callback A callback containing the updated collection
+     * @param {Function} callback A callback containing the updated collection
      */
     private preprocessCollection(collection: Collection, hashes: string[], req: express.Request, executionType: string, callback: Function): void {
         //handle collections with/without images differently
@@ -434,8 +441,8 @@ export class ExecutableHelper extends EventEmitter {
 
     /**
      * Get the execution type
-     * @param programType
-     * @returns {string}
+     * @param {string} programType the type of the program
+     * @returns {string} the executable code for this program type
      */
     private getExecutionType(programType: string): string {
         switch (programType) {
@@ -450,8 +457,8 @@ export class ExecutableHelper extends EventEmitter {
 
     /**
      * Set the highlighter object on a collection
-     * @param collection
-     * @param req
+     * @param {Collection} collection the collection to set the highlighter for
+     * @param {*} req the incoming POST request
      */
     private setCollectionHighlighter(collection: Collection, req: any): void {
         if (req.body.inputs != null && req.body.inputs.highlighter != null) {

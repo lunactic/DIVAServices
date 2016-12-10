@@ -27,6 +27,14 @@ export class FileResultHandler implements IResultHandler {
         this.filename = filename;
     }
 
+    /**
+     * Handling errors
+     * 
+     * @param {*} error the error that occured
+     * @param {Process} process the process the error occured in
+     * 
+     * @memberOf FileResultHandler
+     */
     handleError(error: any, process: Process): void {
         let self = this;
         fs.stat(this.filename, function (error: any, stat: fs.Stats) {
@@ -41,6 +49,17 @@ export class FileResultHandler implements IResultHandler {
         });
     }
 
+    /**
+     * The result handler
+     * 
+     * @param {*} error any possible errors
+     * @param {*} stdout the standard output (not used)
+     * @param {*} stderr the standard error output (not used)
+     * @param {Process} process the process of the result
+     * @param {Function} callback the callback function
+     * 
+     * @memberOf FileResultHandler
+     */
     handleResult(error: any, stdout: any, stderr: any, process: Process, callback: Function) {
         let self = this;
         fs.stat(this.filename, function (error: any, stat: fs.Stats) {

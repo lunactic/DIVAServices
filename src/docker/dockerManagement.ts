@@ -27,9 +27,10 @@ export class DockerManagement {
 
     /**
      * Create a new image
+     * 
      * @param {string} inputFolder The folder where the container contents are stored
      * @param {string} imageName The name of the image to create
-     * @param {Function(Error, string)} callback A callback containing either the error message or the id of the created image
+     * @param {Function} callback A callback containing either the error message or the id of the created image
      */
     static buildImage(inputFolder: string, imageName: string, callback: Function): void {
         //create tar file
@@ -98,7 +99,7 @@ export class DockerManagement {
     /**
      * Remove an image from the docker server
      * @param {String} imageName the name of the image to remove
-     * @param {Function(any)} callback - callback for handling returns
+     * @param {Function} callback - callback for handling returns
      */
     static removeImage(imageName: string, callback: Function): void {
         this.docker.getImage(imageName).remove(function (err: any, data: any) {
@@ -229,7 +230,7 @@ export class DockerManagement {
      *
      * @param {Process} process The process to run
      * @param {string} imageName The name of the image to use
-     * @param {Function(Error)} callback The callback called with an error if one occured
+     * @param {Function} callback The callback called with an error if one occured
      */
     static runDockerImage(process: Process, imageName: string, callback: Function): void {
         let params = process.parameters.params;
@@ -313,6 +314,15 @@ export class DockerManagement {
         });
     }
 
+    /**
+     * 
+     * @private
+     * @static
+     * @param {string} input the path that needs to be looked up
+     * @returns {string} the path within the docker image
+     * 
+     * @memberOf DockerManagement
+     */
     private static getDockerInput(input: string): string {
         return nconf.get("docker:paths:" + input);
     }

@@ -16,14 +16,41 @@ import {IoHelper} from "../ioHelper";
 export class ConsoleResultHandler implements IResultHandler {
     filename: string;
 
+    /**
+     * Creates an instance of ConsoleResultHandler.
+     * 
+     * @param {string} filename the result file
+     * 
+     * @memberOf ConsoleResultHandler
+     */
     constructor(filename: string) {
         this.filename = filename;
     }
 
+    /**
+     * 
+     * handles possible errors
+     * 
+     * @param {*} error the error that occured
+     * @param {Process} process the process the error occured in
+     * 
+     * @memberOf ConsoleResultHandler
+     */
     handleError(error: any, process: Process): void {
         Logger.log("error", error, "ConsoleResultHandler");
     }
 
+    /**
+     * handle the results
+     * 
+     * @param {*} error any possible errors
+     * @param {*} stdout the standard output to read the results from
+     * @param {*} stderr the standard error output to read possible errors from
+     * @param {Process} process the process the result is from
+     * @param {Function} callback the callback function
+     * 
+     * @memberOf ConsoleResultHandler
+     */
     handleResult(error: any, stdout: any, stderr: any, process: Process, callback: Function) {
         let self = this;
         if (stderr.length > 0) {
