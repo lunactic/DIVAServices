@@ -160,13 +160,13 @@ export class ExecutableHelper extends EventEmitter {
     /**
      * preprocess all the necessary information from the incoming POST request
      * This will either lead to the execution of one single image or the whole collection
-     * @param {express.Request} req The incoming request
+     * @param {any} req The incoming request
      * @param {ProcessingQueue} processingQueue The Processing Queue to use
      * @param {string} executionType The execution type (e.g. java)
      * @param {Function} requestCallback The callback for the incoming request
      * @param {Function} queueCallback The callback for the processing queue
      */
-    public preprocess(req: express.Request, processingQueue: ProcessingQueue, executionType: string, requestCallback: Function, queueCallback: Function): void {
+    public preprocess(req: any, processingQueue: ProcessingQueue, executionType: string, requestCallback: Function, queueCallback: Function): void {
         let serviceInfo = ServicesInfoHelper.getInfoByPath(req.originalUrl);
         let collection = new Collection();
         collection.method = serviceInfo.service;
