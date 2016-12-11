@@ -14,8 +14,23 @@ import {Process}  from "../processingQueue/process";
 import IProcess = require("../processingQueue/iProcess");
 import {DivaImage} from "../models/divaImage";
 
+/**
+ * Helper class for all result related things
+ * 
+ * @export
+ * @class ResultHelper
+ */
 export class ResultHelper {
 
+    /**
+     * check if results for a specific collection are available
+     * 
+     * @static
+     * @param {Collection} collection the collection to check
+     * @returns {boolean} indication wheter results are available or not
+     * 
+     * @memberOf ResultHelper
+     */
     static checkCollectionResultsAvailable(collection: Collection): boolean {
         collection.rootFolder = collection.name;
         _.forIn(collection.inputHighlighters, function (value: any, key: string) {
@@ -27,24 +42,69 @@ export class ResultHelper {
         return IoHelper.fileExists(collection.resultFile);
     }
 
+    /**
+     * check if results for a process are available
+     * 
+     * @static
+     * @param {Process} process the process to check
+     * @returns {boolean} indication wheter results are available or not
+     * 
+     * @memberOf ResultHelper
+     */
     static checkProcessResultAvailable(process: Process): boolean {
         ParameterHelper.loadParamInfo(process);
         return process.resultFile != null && IoHelper.fileExists(process.resultFile);
     }
 
-    static loadResult(info: IProcess): any {
-        return IoHelper.openFile(info.resultFile);
+    /**
+     * load the results for a process / collection
+     * 
+     * @static
+     * @param {IProcess} process the process to load results for
+     * @returns {*}
+     * 
+     * @memberOf ResultHelper
+     */
+    static loadResult(process: IProcess): any {
+        return IoHelper.openFile(process.resultFile);
     }
 
-    static saveResult(info: IProcess, callback: Function): void {
+    /**
+     * save the results for a process / collection
+     * 
+     * @static
+     * @param {IProcess} info the process to save results for
+     * @param {Function} [callback] the callback function
+     * 
+     * @memberOf ResultHelper
+     */
+    static saveResult(info: IProcess, callback?: Function): void {
         IoHelper.saveFile(info.resultFile, info.result, "utf8", callback);
     }
 
+    /**
+     * delete the results for a process
+     * 
+     * @static
+     * @param {Process} process the process to delete results for
+     * 
+     * @memberOf ResultHelper
+     */
     static removeResult(process: Process): void {
         ParameterHelper.removeParamInfo(process);
         IoHelper.deleteFolder(process.outputFolder);
     }
 
+    /**
+     * load all available results computed on a specific image
+     * 
+     * @static
+     * @param {string} folder the folder to load results from
+     * @param {DivaImage} image the image to load results for
+     * @returns {*}
+     * 
+     * @memberOf ResultHelper
+     */
     static loadAvailableResults(folder: string, image: DivaImage): any {
         let files: string[] = IoHelper.readFolder(folder);
         let results = [];
@@ -66,6 +126,15 @@ export class ResultHelper {
         return results;
     }
 
+    /**
+     * load results based on an md5 hash of an image
+     * 
+     * @static
+     * @param {string} md5 the md5 hash
+     * @returns {*} the available results
+     * 
+     * @memberOf ResultHelper
+     */
     static loadResultsForMd5(md5: string): any {
         let images: DivaImage[] = ImageHelper.loadImagesMd5(md5);
         let response = [];

@@ -14,6 +14,12 @@ import {Logger} from "../logging/logger";
 import {Process} from "../processingQueue/process";
 import IProcess = require("../processingQueue/iProcess");
 
+/**
+ * Helping class for everything related to help matching parameters to the executables
+ * 
+ * @export
+ * @class ParameterHelper
+ */
 export class ParameterHelper {
     static getParamValue(parameter: string, inputParameter: string): string {
         if (inputParameter.hasOwnProperty(parameter)) {
@@ -23,6 +29,18 @@ export class ParameterHelper {
         }
     }
 
+    /**
+     * 
+     * get the values for reserved parameters defined in the conf/server.xxx.json file
+     * 
+     * @static
+     * @param {string} parameter the parameter name
+     * @param {Process} process the process to run
+     * @param {*} req the incoming POST request
+     * @returns {string} the parameter value
+     * 
+     * @memberOf ParameterHelper
+     */
     static getReservedParamValue(parameter: string, process: Process, req: any): string {
         switch (parameter) {
             case "inputFileExtension":
@@ -46,6 +64,18 @@ export class ParameterHelper {
         }
     }
 
+    /**
+     * perform parameter matching
+     * 
+     * this method checks what parameters are needed and matches them to the provided parameters from the POST request
+     * 
+     * @static
+     * @param {Process} process the process to execute
+     * @param {*} req the incoming POST request
+     * @param {Function} cb the callback function
+     * 
+     * @memberOf ParameterHelper
+     */
     static matchParams(process: Process, req: any, cb: Function): void {
         let params = {};
         let outputParams = {};
@@ -101,6 +131,22 @@ export class ParameterHelper {
         cb(result);
     }
 
+    /**
+     * Get parameter values for highlighters
+     * 
+     * This method will return the parameter value for highlighters currently these are the following:
+     * 
+     * - rectangle: topLeftX topLeftY topRightX topRightY bottomRightX bottomRightY bottomLeftX bottomRightY
+     * - polygon: X1 Y1 X2 Y2 ... XN YN
+     * - circle: centerX centerY radius
+     * 
+     * @static
+     * @param {string} neededHighlighter the name of the highlighter
+     * @param {*} inputHighlighter the provided highlighter values
+     * @returns {*} the correct values as string
+     * 
+     * @memberOf ParameterHelper
+     */
     static getHighlighterParamValues(neededHighlighter: string, inputHighlighter: any): any {
         switch (neededHighlighter) {
             case "polygon":
@@ -116,10 +162,28 @@ export class ParameterHelper {
         }
     }
 
+    /**
+     * get the method name 
+     * 
+     * @static
+     * @param {string} algorithm the name of the algorithm
+     * @returns {string} the algorithm name for DIVAServices
+     * 
+     * @memberOf ParameterHelper
+     */
     static getMethodName(algorithm: string): string {
         return algorithm.replace(/\//g, "");
     }
 
+    /**
+     * Save the parameter information to enable finding of already computed parameters
+     * 
+     * @static
+     * @param {Process} process the process with all parameter information
+     * @returns {void}
+     * 
+     * @memberOf ParameterHelper
+     */
     static saveParamInfo(process: Process): void {
         if (process.result != null) {
             return;
@@ -134,6 +198,7 @@ export class ParameterHelper {
         let content = [];
         let data: any = {};
         if (process.inputHighlighters != null) {
+            //TODO: incorporate the highlighter into the hash and store one single value (or add the hash as additional info to enable better computation of statistics)
             data = {
                 highlighters: _.clone(process.inputHighlighters),
                 parameters: hash(process.inputParameters),
@@ -170,6 +235,17 @@ export class ParameterHelper {
         }
     }
 
+    /**
+     * Load parameter information for a process
+     * 
+     * Checks if some parameter information is already available
+     * 
+     * @static
+     * @param {IProcess} proc the process to search information for
+     * @returns {void}
+     * 
+     * @memberOf ParameterHelper
+     */
     static loadParamInfo(proc: IProcess): void {
         let paramPath = "";
         if (proc.hasImages) {
@@ -210,6 +286,16 @@ export class ParameterHelper {
         }
     }
 
+    /**
+     * 
+     * Removes parameter information for a process
+     * 
+     * @static
+     * @param {Process} process the process to delete parameter values for
+     * @returns {void}
+     * 
+     * @memberOf ParameterHelper
+     */
     static removeParamInfo(process: Process): void {
         let paramPath = nconf.get("paths:imageRootPath") + path.sep + process.rootFolder + path.sep + process.method + ".json";
         let data = {
@@ -232,6 +318,15 @@ export class ParameterHelper {
         }
     }
 
+    /**
+     * Checks if a parameter value is in the list of system wide reserved keys
+     * 
+     * @static
+     * @param {string} parameter the name of the parameter
+     * @returns {boolean} indicating wheter the parameter is reserved or not
+     * 
+     * @memberOf ParameterHelper
+     */
     static checkReservedParameters(parameter: string): boolean {
         let reservedParameters = nconf.get("reservedWords");
         return reservedParameters.indexOf(parameter) >= 0;
