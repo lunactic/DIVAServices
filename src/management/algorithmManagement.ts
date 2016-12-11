@@ -3,20 +3,45 @@
  */
 import * as _ from "lodash";
 import * as express from "express";
-import {IoHelper} from "../helper/ioHelper";
-import {Logger} from "../logging/logger";
+import { IoHelper } from "../helper/ioHelper";
+import { Logger } from "../logging/logger";
 import * as nconf from "nconf";
 import * as path from "path";
-import {ServicesInfoHelper} from "../helper/servicesInfoHelper";
-import {DockerManagement} from "../docker/dockerManagement";
-import {ExecutableHelper} from "../helper/executableHelper";
-import {QueueHandler} from "../processingQueue/queueHandler";
-import {Swagger} from "../swagger/swagger";
+import { ServicesInfoHelper } from "../helper/servicesInfoHelper";
+import { DockerManagement } from "../docker/dockerManagement";
+import { ExecutableHelper } from "../helper/executableHelper";
+import { QueueHandler } from "../processingQueue/queueHandler";
+import { Swagger } from "../swagger/swagger";
 let crypto = require("crypto");
 
+/**
+ * class for automated algorithm management
+ * 
+ * The functionality of this class is closely related to DIVAServices-Management (see: https://github.com/lunactic/DIVAServices-Management)
+ * 
+ * @export
+ * @class AlgorithmManagement
+ */
 export class AlgorithmManagement {
 
-
+    /**
+     * Create a new algorithm on DIVAServices
+     * 
+     * This method performs the following steps:
+     *  - update the services file
+     *  - create the docker image
+     *  - run the image once with default values
+     * 
+     * @static
+     * @param {express.Request} req the incoming POST request
+     * @param {express.Response} res the HTTP response object
+     * @param {string} route the called route
+     * @param {string} identifier the identifier to use
+     * @param {string} imageName the name of the image
+     * @param {Function} callback the callback function
+     * 
+     * @memberOf AlgorithmManagement
+     */
     static createAlgorithm(req: express.Request, res: express.Response, route: string, identifier: string, imageName: string, callback: Function): void {
         AlgorithmManagement.updateServicesFile(req.body, identifier, route, imageName);
         IoHelper.downloadFileWithTypecheck(req.body.method.file, nconf.get("paths:executablePath") + path.sep + route, "application/zip", function (err: any, filename: string) {
@@ -124,9 +149,18 @@ export class AlgorithmManagement {
         });
     }
 
+    /**
+     * get the status of an algorithm based on its identifier
+     * 
+     * @static
+     * @param {string} identifier the identifier
+     * @returns {*} the current status
+     * 
+     * @memberOf AlgorithmManagement
+     */
     static getStatusByIdentifier(identifier: string): any {
         let content = IoHelper.openFile(nconf.get("paths:servicesInfoFile"));
-        let info: any = _.find(content.services, {"identifier": identifier});
+        let info: any = _.find(content.services, { "identifier": identifier });
         if (info != null) {
             let message = {
                 status: info.status,
@@ -138,9 +172,18 @@ export class AlgorithmManagement {
         }
     }
 
+    /**
+     * get the status of an algorithm based off the route
+     * 
+     * @static
+     * @param {string} route the route of the algorithm
+     * @returns {*} the current status
+     * 
+     * @memberOf AlgorithmManagement
+     */
     static getStatusByRoute(route: string): any {
         let content = IoHelper.openFile(nconf.get("paths:servicesInfoFile"));
-        let status = _.find(content.services, {"path": route});
+        let status = _.find(content.services, { "path": route });
         if (status != null) {
             return status;
         } else {
@@ -148,25 +191,68 @@ export class AlgorithmManagement {
         }
     }
 
+    /**
+     * create a new algorithm identifier
+     * 
+     * @static
+     * @returns {string} the new identifier
+     * 
+     * @memberOf AlgorithmManagement
+     */
     static createIdentifier(): string {
         let currentDate = (new Date()).valueOf().toString();
         let random = Math.random().toString();
         return crypto.createHash("sha1").update(currentDate + random).digest("hex");
     }
 
+    /**
+     * create a new route for an algorithm
+     * 
+     * @static
+     * @param {*} algorithm the name of the algorithm
+     * @returns {string} the dynamic route for this algorithm
+     * 
+     * @memberOf AlgorithmManagement
+     */
     static generateRoute(algorithm: any): string {
         return algorithm.general.type.toLowerCase() + "/" + algorithm.general.name.replace(/\s/g, "").toLowerCase() + "/1";
     }
 
+    /**
+     * generate all necessary folders for a method
+     * 
+     * @static
+     * @param {string} route the route of the new method
+     * 
+     * @memberOf AlgorithmManagement
+     */
     static generateFolders(route: string): void {
         IoHelper.createFolder(nconf.get("paths:executablePath") + path.sep + route);
         IoHelper.createFolder(nconf.get("paths:jsonPath") + path.sep + route);
     }
 
+    /**
+     * generate the name of the image
+     * 
+     * @static
+     * @param {*} algorithm the new algorithm
+     * @returns {string} the name for the image
+     * 
+     * @memberOf AlgorithmManagement
+     */
     static generateImageName(algorithm: any): string {
         return algorithm.general.type.toLowerCase() + algorithm.general.name.toLowerCase().replace(/\s/g, "_");
     }
 
+    /**
+     * create the algorithm information file
+     * 
+     * @static
+     * @param {*} algorithm the algorithm information
+     * @param {string} folder the algorithm folder
+     * 
+     * @memberOf AlgorithmManagement
+     */
     static createInfoFile(algorithm: any, folder: string) {
         let data = _.cloneDeep(algorithm);
         let reservedWords = _.clone(nconf.get("reservedWords"));
@@ -193,10 +279,27 @@ export class AlgorithmManagement {
         });
     }
 
+    /**
+     * delete the algorithm information file
+     * 
+     * @static
+     * @param {string} folder the folder of the file
+     * 
+     * @memberOf AlgorithmManagement
+     */
     static deleteInfoFile(folder: string): void {
         IoHelper.deleteFile(folder + path.sep + "info.json");
     }
 
+    /**
+     * add the new algorithm to the root information file
+     * 
+     * @static
+     * @param {*} algorithm the new algorithm information
+     * @param {string} route the route of the new algorithm
+     * 
+     * @memberOf AlgorithmManagement
+     */
     static updateRootInfoFile(algorithm: any, route: string): void {
         let fileContent = IoHelper.openFile(nconf.get("paths:rootInfoFile"));
         let newEntry = {
@@ -209,6 +312,14 @@ export class AlgorithmManagement {
         IoHelper.saveFile(nconf.get("paths:rootInfoFile"), fileContent, "utf8", null);
     }
 
+    /**
+     * remove algorithm information for the root info file
+     * 
+     * @static
+     * @param {string} route the route to remove
+     * 
+     * @memberOf AlgorithmManagement
+     */
     static removeFromRootInfoFile(route: string): void {
         let fileContent = IoHelper.openFile(nconf.get("paths:rootInfoFile"));
         _.remove(fileContent, function (entry: any) {
@@ -217,19 +328,38 @@ export class AlgorithmManagement {
         IoHelper.saveFile(nconf.get("paths:rootInfoFile"), fileContent, "utf8", null);
     }
 
+    /**
+     * remove algorithm information from the service information file
+     * 
+     * @static
+     * @param {string} route the route to remove
+     * 
+     * @memberOf AlgorithmManagement
+     */
     static removeFromServiceInfoFile(route: string): void {
         let fileContent = IoHelper.openFile(nconf.get("paths:servicesInfoFile"));
-        _.remove(fileContent.services, {"path": route});
+        _.remove(fileContent.services, { "path": route });
         IoHelper.saveFile(nconf.get("paths:servicesInfoFile"), fileContent, "utf8", null);
     }
 
-    static updateStatus(identifier: string, status: any, route: string, message: string): void {
+    /**
+     * update the status of an algorithm
+     * 
+     * @static
+     * @param {string} identifier the algorithm information
+     * @param {string} status the new status information
+     * @param {string} route the route
+     * @param {string} message the new message
+     * 
+     * @memberOf AlgorithmManagement
+     */
+    static updateStatus(identifier: string, status: string, route: string, message: string): void {
         let content = IoHelper.openFile(nconf.get("paths:servicesInfoFile"));
         let currentInfo: any = {};
-        if (identifier != null && _.find(content.services, {"identifier": identifier}) != null) {
-            currentInfo = _.find(content.services, {"identifier": identifier});
-        } else if (route != null && _.find(content.services, {"path": route}) != null) {
-            currentInfo = _.find(content.services, {"path": route});
+        if (identifier != null && _.find(content.services, { "identifier": identifier }) != null) {
+            currentInfo = _.find(content.services, { "identifier": identifier });
+        } else if (route != null && _.find(content.services, { "path": route }) != null) {
+            currentInfo = _.find(content.services, { "path": route });
         }
 
         switch (status) {
@@ -257,19 +387,39 @@ export class AlgorithmManagement {
         IoHelper.saveFile(nconf.get("paths:servicesInfoFile"), content, "utf8", null);
     }
 
+    /**
+     * update the route for an existing algorithm when the algorithm is updated
+     * 
+     * @static
+     * @param {string} identifier the identifier to update
+     * @param {string} route the new route 
+     * 
+     * @memberOf AlgorithmManagement
+     */
     static updateRoute(identifier: string, route: string): void {
         let content = IoHelper.openFile(nconf.get("paths:servicesInfoFile"));
-        if (identifier != null && _.find(content.services, {"identifier": identifier}) != null) {
-            let currentInfo: any = _.find(content.services, {"identifier": identifier});
+        if (identifier != null && _.find(content.services, { "identifier": identifier }) != null) {
+            let currentInfo: any = _.find(content.services, { "identifier": identifier });
             currentInfo.path = route;
             IoHelper.saveFile(nconf.get("paths:servicesInfoFile"), content, "utf8", null);
         }
     }
 
+    /**
+     * add a url parameter to a method
+     * 
+     * this is used when a method requires additional input files that need to be downloaded
+     * 
+     * @static
+     * @param {string} identifier the algorithm identifier
+     * @param {string} parameterName the name of the parameter
+     * 
+     * @memberOf AlgorithmManagement
+     */
     static addUrlParameter(identifier: string, parameterName: string): void {
         let content = IoHelper.openFile(nconf.get("paths:servicesInfoFile"));
-        if (identifier != null && _.find(content.services, {"identifier": identifier}) != null) {
-            let currentInfo: any = _.find(content.services, {"identifier": identifier});
+        if (identifier != null && _.find(content.services, { "identifier": identifier }) != null) {
+            let currentInfo: any = _.find(content.services, { "identifier": identifier });
             let info: any = {};
             let exists: boolean = false;
 
@@ -287,10 +437,23 @@ export class AlgorithmManagement {
         }
     }
 
+    /**
+     * 
+     * add a remote path to a method
+     * 
+     * this is used for the replacement of fix remote paths
+     * 
+     * @static
+     * @param {string} identifier the algorithm identifier
+     * @param {string} parameterName the name of the parameter
+     * @param {string} remotePath the remote path value
+     * 
+     * @memberOf AlgorithmManagement
+     */
     static addRemotePath(identifier: string, parameterName: string, remotePath: string): void {
         let content = IoHelper.openFile(nconf.get("paths:servicesInfoFile"));
-        if (identifier != null && _.find(content.services, {"identifier": identifier}) != null) {
-            let currentInfo: any = _.find(content.services, {"identifier": identifier});
+        if (identifier != null && _.find(content.services, { "identifier": identifier }) != null) {
+            let currentInfo: any = _.find(content.services, { "identifier": identifier });
             let info: any = {};
             let exists: boolean = false;
             _.forEach(currentInfo.remotePaths, function (value: any, key: any) {
@@ -307,11 +470,19 @@ export class AlgorithmManagement {
         }
     }
 
-
+    /**
+     * record an execution exception for an algorithm
+     * 
+     * @static
+     * @param {string} identifier the algorithm identifier
+     * @param {*} exception the execution that occured
+     * 
+     * @memberOf AlgorithmManagement
+     */
     static recordException(identifier: string, exception: any): void {
         let content = IoHelper.openFile(nconf.get("paths:servicesInfoFile"));
-        if (identifier != null && _.find(content.services, {"identifier": identifier}) != null) {
-            let currentInfo: any = _.find(content.services, {"identifier": identifier});
+        if (identifier != null && _.find(content.services, { "identifier": identifier }) != null) {
+            let currentInfo: any = _.find(content.services, { "identifier": identifier });
             let message = {
                 date: new Date().toJSON(),
                 errorMessage: exception
@@ -321,17 +492,37 @@ export class AlgorithmManagement {
         }
     }
 
+    /**
+     * get all exceptions of an algorithm
+     * 
+     * @static
+     * @param {string} identifier the algorithm identifier
+     * @returns {*} all occured exceptions
+     * 
+     * @memberOf AlgorithmManagement
+     */
     static getExceptions(identifier: string): any {
         let content = IoHelper.openFile(nconf.get("paths:servicesInfoFile"));
-        if (identifier != null && _.find(content.services, {"identifier": identifier}) != null) {
-            let currentInfo: any = _.find(content.services, {"identifier": identifier});
+        if (identifier != null && _.find(content.services, { "identifier": identifier }) != null) {
+            let currentInfo: any = _.find(content.services, { "identifier": identifier });
             return currentInfo.exceptions;
         }
         return null;
     }
 
-    //TODO make changes for docker or create a separate method
+    /**
+     * update the serivce info file
+     * 
+     * @static
+     * @param {*} algorithm the new algorithm information
+     * @param {string} identifier the algorithm identifier
+     * @param {string} route the algorithm route
+     * @param {string} imageName the name of the docker image
+     * 
+     * @memberOf AlgorithmManagement
+     */
     static updateServicesFile(algorithm: any, identifier: string, route: string, imageName: string): void {
+    //TODO make changes for docker or create a separate method
         ServicesInfoHelper.reload();
         if ((this.getStatusByIdentifier(identifier) == null) && (this.getStatusByRoute(route) == null)) {
             let newContent = _.cloneDeep(ServicesInfoHelper.fileContent);
@@ -373,9 +564,18 @@ export class AlgorithmManagement {
         }
     }
 
+    /**
+     * update the identifier of an algorithm
+     * 
+     * @static
+     * @param {string} route the route of the algorithm
+     * @param {string} identifier the new algorithm identifier
+     * 
+     * @memberOf AlgorithmManagement
+     */
     static updateIdentifier(route: string, identifier: string): void {
         let content = IoHelper.openFile(nconf.get("paths:servicesInfoFile"));
-        let service: any = _.find(content.services, {"path": route});
+        let service: any = _.find(content.services, { "path": route });
         service.identifier = identifier;
         ServicesInfoHelper.update(content);
         ServicesInfoHelper.reload();

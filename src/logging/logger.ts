@@ -11,10 +11,25 @@ log4js.configure({appenders: nconf.get("logger:appenders")});
 let logger = log4js.getLogger("server");
 logger.setLevel(nconf.get("logger:lever"));
 
-
+/**
+ * Logger class making use of log4js
+ * 
+ * @export
+ * @class Logger
+ */
 export class Logger {
 
-    static log(level: string, msg: string, module: string) {
+    /**
+     * log method
+     * 
+     * @static
+     * @param {string} level the log level
+     * @param {string} msg the information to log
+     * @param {string} [module] the module
+     * 
+     * @memberOf Logger
+     */
+    static log(level: string, msg: string, module?: string) {
         level = level || "info";
 
         if (module != null) {
