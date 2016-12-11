@@ -245,7 +245,7 @@ export class ImageHelper {
     static getAllCollections(): String[] {
         let collections = [];
 
-        let imageInfo: any = IoHelper.loadFile(nconf.get("paths:imageInfoFile"));
+        let imageInfo: any = IoHelper.openFile(nconf.get("paths:imageInfoFile"));
         _.forEach(imageInfo, function (image: any) {
             if (!(collections.indexOf(image.collection) > -1)) {
                 collections.push(image.collection);
@@ -416,7 +416,7 @@ export class ImageHelper {
      */
     static getCollectionInformation(collection: string): any {
         let statusFile = nconf.get("paths:imageRootPath") + path.sep + collection + path.sep + "status.json";
-        return IoHelper.loadFile(statusFile);
+        return IoHelper.openFile(statusFile);
     }
 
     /**

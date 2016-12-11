@@ -13,7 +13,7 @@ import * as util from "util";
 export class Swagger {
 
     static createEntry(algorithmInfos: any, route: string): void {
-        let currentSwagger = IoHelper.loadFile(nconf.get("paths:swaggerFile"));
+        let currentSwagger = IoHelper.openFile(nconf.get("paths:swaggerFile"));
 
         let inputs = _.filter(algorithmInfos.input, function (input: any) {
             return input[_.keys(input)[0]].userdefined;

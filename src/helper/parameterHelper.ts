@@ -158,7 +158,7 @@ export class ParameterHelper {
 
         try {
             fs.statSync(methodPath).isFile();
-            let content = IoHelper.loadFile(methodPath);
+            let content = IoHelper.openFile(methodPath);
             //only save the information if it is not already present
             if (_.filter(content, {"parameters": data.parameters, "highlighters": data.highlighters}).length > 0) {
                 content.push(data);
@@ -184,7 +184,7 @@ export class ParameterHelper {
         };
         try {
             fs.statSync(paramPath).isFile();
-            let content = IoHelper.loadFile(paramPath);
+            let content = IoHelper.openFile(paramPath);
             let info: any = {};
             if ((info = _.filter(content, {
                     "parameters": data.parameters,
@@ -218,7 +218,7 @@ export class ParameterHelper {
         };
         try {
             fs.statSync(paramPath).isFile();
-            let content = IoHelper.loadFile(paramPath);
+            let content = IoHelper.openFile(paramPath);
             let info: any = {};
             if (_.filter(content, {
                     "parameters": data.parameters,

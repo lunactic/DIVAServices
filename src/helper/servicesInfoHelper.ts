@@ -9,7 +9,7 @@ import {IoHelper} from "./ioHelper";
 
 export class ServicesInfoHelper {
 
-    static fileContent = IoHelper.loadFile(nconf.get("paths:servicesInfoFile"));
+    static fileContent = IoHelper.openFile(nconf.get("paths:servicesInfoFile"));
 
     static getInfoByPath(path: string): any {
         this.reload();
@@ -41,7 +41,7 @@ export class ServicesInfoHelper {
     }
 
     static reload(): void {
-        this.fileContent = IoHelper.loadFile(nconf.get("paths:servicesInfoFile"));
+        this.fileContent = IoHelper.openFile(nconf.get("paths:servicesInfoFile"));
     }
 
     static methodRequireFiles(serviceInfo: any): boolean {

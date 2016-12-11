@@ -33,7 +33,7 @@ export class ResultHelper {
     }
 
     static loadResult(info: IProcess): any {
-        return IoHelper.loadFile(info.resultFile);
+        return IoHelper.openFile(info.resultFile);
     }
 
     static saveResult(info: IProcess, callback: Function): void {
@@ -55,9 +55,9 @@ export class ResultHelper {
         }
 
         for (let file of files) {
-            let methodResults = IoHelper.loadFile(folder + path.sep + file);
+            let methodResults = IoHelper.openFile(folder + path.sep + file);
             for (let methodResult of methodResults) {
-                let processResult = IoHelper.loadFile(methodResult.folder + path.sep + image.name + ".json");
+                let processResult = IoHelper.openFile(methodResult.folder + path.sep + image.name + ".json");
                 processResult["method"] = file.split(".")[0];
                 processResult["parameters"] = methodResult.parameters;
                 results.push(processResult);

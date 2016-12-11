@@ -64,7 +64,7 @@ export class AlgorithmManagement {
                                     inputs[input.text.name] = input.text.options.default;
                                     break;
                                 case "json":
-                                    inputs[input.json.name] = IoHelper.loadFile(nconf.get("paths:testPath") + path.sep + "json" + path.sep + "array.json");
+                                    inputs[input.json.name] = IoHelper.openFile(nconf.get("paths:testPath") + path.sep + "json" + path.sep + "array.json");
                                     break;
                                 case "inputFile":
                                     inputs[input.inputFile.name] = input.inputFile.options.default;
@@ -114,7 +114,7 @@ export class AlgorithmManagement {
                                 AlgorithmManagement.updateRootInfoFile(req.body, route);
                                 AlgorithmManagement.createInfoFile(req.body, nconf.get("paths:jsonPath") + path.sep + route);
                                 //Add to swagger
-                                let info = IoHelper.loadFile(nconf.get("paths:jsonPath") + path.sep + route + path.sep + "info.json");
+                                let info = IoHelper.openFile(nconf.get("paths:jsonPath") + path.sep + route + path.sep + "info.json");
                                 Swagger.createEntry(info, route);
                             }
                         });
@@ -125,7 +125,7 @@ export class AlgorithmManagement {
     }
 
     static getStatusByIdentifier(identifier: string): any {
-        let content = IoHelper.loadFile(nconf.get("paths:servicesInfoFile"));
+        let content = IoHelper.openFile(nconf.get("paths:servicesInfoFile"));
         let info: any = _.find(content.services, {"identifier": identifier});
         if (info != null) {
             let message = {
@@ -139,7 +139,7 @@ export class AlgorithmManagement {
     }
 
     static getStatusByRoute(route: string): any {
-        let content = IoHelper.loadFile(nconf.get("paths:servicesInfoFile"));
+        let content = IoHelper.openFile(nconf.get("paths:servicesInfoFile"));
         let status = _.find(content.services, {"path": route});
         if (status != null) {
             return status;
@@ -198,7 +198,7 @@ export class AlgorithmManagement {
     }
 
     static updateRootInfoFile(algorithm: any, route: string): void {
-        let fileContent = IoHelper.loadFile(nconf.get("paths:rootInfoFile"));
+        let fileContent = IoHelper.openFile(nconf.get("paths:rootInfoFile"));
         let newEntry = {
             name: algorithm.general.name,
             description: algorithm.general.description,
@@ -210,7 +210,7 @@ export class AlgorithmManagement {
     }
 
     static removeFromRootInfoFile(route: string): void {
-        let fileContent = IoHelper.loadFile(nconf.get("paths:rootInfoFile"));
+        let fileContent = IoHelper.openFile(nconf.get("paths:rootInfoFile"));
         _.remove(fileContent, function (entry: any) {
             return entry.url === "http://$BASEURL$" + route;
         });
@@ -218,13 +218,13 @@ export class AlgorithmManagement {
     }
 
     static removeFromServiceInfoFile(route: string): void {
-        let fileContent = IoHelper.loadFile(nconf.get("paths:servicesInfoFile"));
+        let fileContent = IoHelper.openFile(nconf.get("paths:servicesInfoFile"));
         _.remove(fileContent.services, {"path": route});
         IoHelper.saveFile(nconf.get("paths:servicesInfoFile"), fileContent, "utf8", null);
     }
 
     static updateStatus(identifier: string, status: any, route: string, message: string): void {
-        let content = IoHelper.loadFile(nconf.get("paths:servicesInfoFile"));
+        let content = IoHelper.openFile(nconf.get("paths:servicesInfoFile"));
         let currentInfo: any = {};
         if (identifier != null && _.find(content.services, {"identifier": identifier}) != null) {
             currentInfo = _.find(content.services, {"identifier": identifier});
@@ -258,7 +258,7 @@ export class AlgorithmManagement {
     }
 
     static updateRoute(identifier: string, route: string): void {
-        let content = IoHelper.loadFile(nconf.get("paths:servicesInfoFile"));
+        let content = IoHelper.openFile(nconf.get("paths:servicesInfoFile"));
         if (identifier != null && _.find(content.services, {"identifier": identifier}) != null) {
             let currentInfo: any = _.find(content.services, {"identifier": identifier});
             currentInfo.path = route;
@@ -267,7 +267,7 @@ export class AlgorithmManagement {
     }
 
     static addUrlParameter(identifier: string, parameterName: string): void {
-        let content = IoHelper.loadFile(nconf.get("paths:servicesInfoFile"));
+        let content = IoHelper.openFile(nconf.get("paths:servicesInfoFile"));
         if (identifier != null && _.find(content.services, {"identifier": identifier}) != null) {
             let currentInfo: any = _.find(content.services, {"identifier": identifier});
             let info: any = {};
@@ -288,7 +288,7 @@ export class AlgorithmManagement {
     }
 
     static addRemotePath(identifier: string, parameterName: string, remotePath: string): void {
-        let content = IoHelper.loadFile(nconf.get("paths:servicesInfoFile"));
+        let content = IoHelper.openFile(nconf.get("paths:servicesInfoFile"));
         if (identifier != null && _.find(content.services, {"identifier": identifier}) != null) {
             let currentInfo: any = _.find(content.services, {"identifier": identifier});
             let info: any = {};
@@ -309,7 +309,7 @@ export class AlgorithmManagement {
 
 
     static recordException(identifier: string, exception: any): void {
-        let content = IoHelper.loadFile(nconf.get("paths:servicesInfoFile"));
+        let content = IoHelper.openFile(nconf.get("paths:servicesInfoFile"));
         if (identifier != null && _.find(content.services, {"identifier": identifier}) != null) {
             let currentInfo: any = _.find(content.services, {"identifier": identifier});
             let message = {
@@ -322,7 +322,7 @@ export class AlgorithmManagement {
     }
 
     static getExceptions(identifier: string): any {
-        let content = IoHelper.loadFile(nconf.get("paths:servicesInfoFile"));
+        let content = IoHelper.openFile(nconf.get("paths:servicesInfoFile"));
         if (identifier != null && _.find(content.services, {"identifier": identifier}) != null) {
             let currentInfo: any = _.find(content.services, {"identifier": identifier});
             return currentInfo.exceptions;
@@ -374,7 +374,7 @@ export class AlgorithmManagement {
     }
 
     static updateIdentifier(route: string, identifier: string): void {
-        let content = IoHelper.loadFile(nconf.get("paths:servicesInfoFile"));
+        let content = IoHelper.openFile(nconf.get("paths:servicesInfoFile"));
         let service: any = _.find(content.services, {"path": route});
         service.identifier = identifier;
         ServicesInfoHelper.update(content);
