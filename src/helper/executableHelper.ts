@@ -352,9 +352,6 @@ export class ExecutableHelper extends EventEmitter {
                 process.result = ResultHelper.loadResult(process);
             } else {
                 process.methodFolder = path.basename(process.outputFolder);
-                if (req.body.requireOutputImage != null) {
-                    process.requireOutputImage = req.body.requireOutputImage;
-                }
                 process.programType = serviceInfo.programType;
                 process.executablePath = serviceInfo.executablePath;
                 process.resultType = serviceInfo.output;

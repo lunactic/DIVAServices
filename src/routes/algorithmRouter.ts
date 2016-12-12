@@ -24,6 +24,10 @@ import {QueueHandler} from "../processingQueue/queueHandler";
 
 let router = express.Router();
 
+/**
+ * routes are not documented, check the swagger.json file
+ */
+
 router.get("/algorithms/:identifier", function (req: express.Request, res: express.Response) {
     let identifier = req.params.identifier;
     let status = AlgorithmManagement.getStatusByIdentifier(identifier);

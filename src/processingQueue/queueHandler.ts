@@ -10,16 +10,66 @@ import {ProcessingQueue} from "./processingQueue";
 import {Process} from "./process";
 import {ExecutableHelper} from "../helper/executableHelper";
 
-
+/**
+ * class for handling the different processing queues
+ * 
+ * @export
+ * @class QueueHandler
+ */
 export class QueueHandler {
 
+    /**
+     * queue for local processes
+     * 
+     * @static
+     * @type {ProcessingQueue}
+     * @memberOf QueueHandler
+     */
     static localProcessingQueue: ProcessingQueue = null;
+    
+    /**
+     * queue for remote processes 
+     * 
+     * @static
+     * @type {ProcessingQueue}
+     * @memberOf QueueHandler
+     */
     static remoteProcessingQueue: ProcessingQueue = null;
+    
+    /**
+     * queue for docker requests
+     * 
+     * @static
+     * @type {ProcessingQueue}
+     * @memberOf QueueHandler
+     */
     static dockerProcessingQueue: ProcessingQueue = null;
+
+    /**
+     * the array of docker jobs currently running
+     * 
+     * @static
+     * @type {Process[]}
+     * @memberOf QueueHandler
+     */
     static runningDockerJobs: Process[] = null;
 
+    /**
+     * the executable helper
+     * 
+     * @static
+     * 
+     * @memberOf QueueHandler
+     */
     static executableHelper = new ExecutableHelper();
 
+    /**
+     * initialize all queues
+     * 
+     * @static
+     * 
+     * @memberOf QueueHandler
+     */
     static initialize(): void {
         if (QueueHandler.localProcessingQueue === null) {
             QueueHandler.localProcessingQueue = new ProcessingQueue();
@@ -35,6 +85,15 @@ export class QueueHandler {
         //TODO add executable helper
     }
 
+    /**
+     * add a request to the local queue
+     * 
+     * @static
+     * @param {*} req the incoming POST request
+     * @param {Function} cb the callback function
+     * 
+     * @memberOf QueueHandler
+     */
     static addLocalRequest(req: any, cb: Function): void {
         let self = this;
         QueueHandler.executableHelper.preprocess(req, QueueHandler.localProcessingQueue, "regular", cb, function () {
@@ -42,6 +101,15 @@ export class QueueHandler {
         });
     }
 
+    /**
+     * add a request to the remote queue
+     * 
+     * @static
+     * @param {*} req the incoming POST request
+     * @param {Function} cb the callback function
+     * 
+     * @memberOf QueueHandler
+     */
     static addRemoteRequest(req: any, cb: Function): void {
         let self = this;
         QueueHandler.executableHelper.preprocess(req, QueueHandler.remoteProcessingQueue, "regular", cb, function () {
@@ -49,6 +117,15 @@ export class QueueHandler {
         });
     }
 
+    /**
+     * add a request to the docker queue
+     * 
+     * @static
+     * @param {*} req the incoming POST request
+     * @param {Function} cb the callback function
+     * 
+     * @memberOf QueueHandler
+     */
     static addDockerRequest(req: any, cb: Function): void {
         let self = this;
         QueueHandler.executableHelper.preprocess(req, QueueHandler.dockerProcessingQueue, "regular", cb, function () {
@@ -56,36 +133,107 @@ export class QueueHandler {
         });
     }
 
+    /**
+     * get the docker job from the queue
+     * 
+     * @static
+     * @param {string} jobId the job-id to retrieve
+     * @returns {Process} the process
+     * 
+     * @memberOf QueueHandler
+     */
     static getDockerJob(jobId: string): Process {
         let job = _.find(QueueHandler.runningDockerJobs, {"id": jobId});
         _.remove(QueueHandler.runningDockerJobs, {"id": jobId});
         return job;
     }
 
+    /**
+     * check if the docker queue contains a job
+     * 
+     * @private
+     * @static
+     * @returns {boolean} true if there is a job in the queue
+     * 
+     * @memberOf QueueHandler
+     */
     private static dockerRequestAvailable(): boolean {
         return QueueHandler.dockerProcessingQueue.getSize() > 0;
     }
 
+    /**
+     *  check if the local queue contains a job
+     * 
+     * @private
+     * @static
+     * @returns {boolean} true if there is a job in the queue
+     * 
+     * @memberOf QueueHandler
+     */
     private static localRequestAvailable(): boolean {
         return QueueHandler.localProcessingQueue.getSize() > 0;
     }
 
+    /**
+     * check if the remote queue contains a job
+     * 
+     * @private
+     * @static
+     * @returns {boolean} true if there is a job in the queue
+     * 
+     * @memberOf QueueHandler
+     */
     private static remoteRequestAvailable(): boolean {
         return QueueHandler.remoteProcessingQueue.getSize() > 0;
     }
 
+    /**
+     * get the next process from the local queue to execute
+     * 
+     * @private
+     * @static
+     * @returns {Process} the process to execute
+     * 
+     * @memberOf QueueHandler
+     */
     private static getNextLocalRequest(): Process {
         return QueueHandler.localProcessingQueue.getNext();
     }
 
+    /**
+     * get the next process from the remote queue to execute
+     * 
+     * @private
+     * @static
+     * @returns {Process} the process to execute
+     * 
+     * @memberOf QueueHandler
+     */
     private static getNextRemoteRequest(): Process {
         return QueueHandler.remoteProcessingQueue.getNext();
     }
 
+    /**
+     * get the next process from the docker queue to execute
+     * 
+     * @private
+     * @static
+     * @returns {Process} the process to execute
+     * 
+     * @memberOf QueueHandler
+     */
     private static getNextDockerRequest(): Process {
         return QueueHandler.dockerProcessingQueue.getNext();
     }
 
+    /**
+     * execute a process from the docker queue
+     * 
+     * @private
+     * @static
+     * 
+     * @memberOf QueueHandler
+     */
     private static executeDockerRequest(): void {
         Logger.log("info", "execute docker request", "QueueHandler");
         if (this.dockerRequestAvailable()) {
@@ -99,12 +247,28 @@ export class QueueHandler {
         }
     }
 
+    /**
+     * execute a process from the local queue
+     * 
+     * @private
+     * @static
+     * 
+     * @memberOf QueueHandler
+     */
     private static executeLocalRequest(): void {
         if (Statistics.getNumberOfCurrentExecutions() < 2 && this.localRequestAvailable()) {
             QueueHandler.executableHelper.executeLocalRequest(this.getNextLocalRequest());
         }
     }
 
+    /**
+     * execute a process from the remote queue
+     * 
+     * @private
+     * @static
+     * 
+     * @memberOf QueueHandler
+     */
     private static executeRemoteRequest(): void {
         Logger.log("info", "execute remote request", "QueueHandler");
         if (this.remoteRequestAvailable()) {

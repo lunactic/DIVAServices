@@ -10,8 +10,23 @@ import * as nconf from "nconf";
 import * as request from "request";
 import * as util from "util";
 
+/**
+ * class for handling swagger/openAPI things
+ * 
+ * @export
+ * @class Swagger
+ */
 export class Swagger {
 
+    /**
+     * create an entry for a method to the swagger file
+     * 
+     * @static
+     * @param {*} algorithmInfos the algorithm infos
+     * @param {string} route the method route
+     * 
+     * @memberOf Swagger
+     */
     static createEntry(algorithmInfos: any, route: string): void {
         let currentSwagger = IoHelper.openFile(nconf.get("paths:swaggerFile"));
 
@@ -123,5 +138,6 @@ export class Swagger {
         IoHelper.saveFile(nconf.get("paths:swaggerFile"), currentSwagger, "utf8", null);
     }
 
+    //TODO: Some things missing
 
 }

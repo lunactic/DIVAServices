@@ -5,9 +5,21 @@
 "use strict";
 import {Process}  from "./process";
 
-
+/**
+ * class representing a processing queue
+ * 
+ * @export
+ * @class ProcessingQueue
+ */
 export class ProcessingQueue {
 
+    /**
+     * the queue array
+     * 
+     * @static
+     * @type {Process[]}
+     * @memberOf ProcessingQueue
+     */
     static queue: Process[] = [];
 
     /**

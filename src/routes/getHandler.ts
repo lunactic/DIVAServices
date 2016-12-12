@@ -4,22 +4,38 @@
  */
 
 import * as _ from "lodash";
-import {AlgorithmManagement} from "../management/algorithmManagement";
+import { AlgorithmManagement } from "../management/algorithmManagement";
 import * as fs from "fs";
 import * as nconf from "nconf";
 import * as path from "path";
-import {Collection} from "../processingQueue/collection";
-import {Statistics} from "../statistics/statistics";
-import {ParameterHelper} from "../helper/parameterHelper";
-import {Process} from "../processingQueue/process";
-import {ResultHelper} from "../helper/resultHelper";
-import {ImageHelper} from "../helper/imageHelper";
-import {ServicesInfoHelper} from "../helper/servicesInfoHelper";
-import {IoHelper} from "../helper/ioHelper";
+import * as express from "express";
+import { Collection } from "../processingQueue/collection";
+import { Statistics } from "../statistics/statistics";
+import { ParameterHelper } from "../helper/parameterHelper";
+import { Process } from "../processingQueue/process";
+import { ResultHelper } from "../helper/resultHelper";
+import { ImageHelper } from "../helper/imageHelper";
+import { ServicesInfoHelper } from "../helper/servicesInfoHelper";
+import { IoHelper } from "../helper/ioHelper";
 
+/**
+ * handler for all get requests that are not handled by a specific route
+ * 
+ * @export
+ * @class GetHandler
+ */
 export class GetHandler {
 
-    static handleRequest(req: any, callback: Function): void {
+    /**
+     * request handler
+     * 
+     * @static
+     * @param {*} req the incoming GET request
+     * @param {Function} callback the callback function
+     * 
+     * @memberOf GetHandler
+     */
+    static handleRequest(req: express.Request, callback: Function): void {
         if (Object.keys(req.query).length !== 0) {
             GetHandler.getWithQuery(req, callback);
         } else {
@@ -50,11 +66,24 @@ export class GetHandler {
         }
     }
 
+    /**
+     * handler for GET requests with query parameters
+     * 
+     * @private
+     * @static
+     * @param {*} req the incoming GET request
+     * @param {Function} callback the callback function
+     * 
+     * @memberOf GetHandler
+     */
     private static getWithQuery(req: any, callback: Function) {
+        //TODO: this is outdated and could need some refactoring
+
         let serviceInfo = ServicesInfoHelper.getInfoByPath(req.originalUrl);
         let queryParams = _.clone(req.query);
         let neededParams = _.clone(serviceInfo.parameters);
 
+        //check if there is an md5 hash referenced
         if (queryParams["md5"] != null) {
             ImageHelper.imageExists(queryParams.md5, function (err: any, data: any) {
                 if (err != null) {
@@ -85,6 +114,7 @@ export class GetHandler {
                     }
                 }
             });
+            //check if a root folder is referenced
         } else if (queryParams["rootFolder"] != null) {
             let process = new Process();
             GetHandler.prepareQueryParams(process, queryParams);
@@ -114,6 +144,18 @@ export class GetHandler {
         }
     }
 
+    /**
+     * prepare query parameters
+     * 
+     * removes unnecessary parameters
+     * 
+     * @private
+     * @static
+     * @param {Process} proc the process
+     * @param {*} queryParams the query parameters
+     * 
+     * @memberOf GetHandler
+     */
     private static prepareQueryParams(proc: Process, queryParams: any): void {
         proc.inputParameters = _.clone(queryParams);
         _.unset(proc.inputParameters, "md5");
@@ -135,12 +177,32 @@ export class GetHandler {
         }
     }
 
+    /**
+     * remove reserved words from the needed parameters
+     * 
+     * @private
+     * @static
+     * @param {Process} process the process
+     * 
+     * @memberOf GetHandler
+     */
     private static prepareNeededParameters(process: Process): void {
         for (let reservedWord of nconf.get("reservedWords")) {
             _.unset(process.neededParameters, reservedWord);
         }
     }
 
+    /**
+     * create an error message
+     * 
+     * @private
+     * @static
+     * @param {number} status the error status
+     * @param {string} message the error message
+     * @returns {*}
+     * 
+     * @memberOf GetHandler
+     */
     private static createError(status: number, message: string): any {
         let error = {
             statusCode: status,
