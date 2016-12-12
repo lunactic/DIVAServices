@@ -395,7 +395,7 @@ export class ExecutableHelper extends EventEmitter {
             } else {
                 collection.inputParameters = _.clone(req.body.inputs);
                 this.setCollectionHighlighter(collection, req);
-                let images = ImageHelper.loadCollection(collection.name, hashes, false);
+                let images = ImageHelper.loadCollection(collection.name, hashes);
                 for (let image of images) {
                     let process = new Process();
                     process.req = _.clone(req);

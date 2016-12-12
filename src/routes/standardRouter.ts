@@ -204,7 +204,7 @@ router.get("/collections/:collection/:execution", function (req: express.Request
 
 router.get("/image/:collection", function (req: express.Request, res: express.Response) {
     let collection = req.params.collection;
-    let images = ImageHelper.loadCollection(collection, null, false);
+    let images = ImageHelper.loadCollection(collection, null);
     let imgs = [];
     for (let image of images) {
         imgs.push({
