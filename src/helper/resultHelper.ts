@@ -110,14 +110,14 @@ export class ResultHelper {
         let results = [];
         if (files != null) {
             files = _.filter(files, function (file: string) {
-                return file.endsWith("json");
+                return file.endsWith("json") && !(file === 'status.json');
             });
         }
 
         for (let file of files) {
             let methodResults = IoHelper.openFile(folder + path.sep + file);
             for (let methodResult of methodResults) {
-                let processResult = IoHelper.openFile(methodResult.folder + path.sep + image.name + ".json");
+                let processResult = IoHelper.openFile(methodResult.folder + path.sep + image.name + "json");
                 processResult["method"] = file.split(".")[0];
                 processResult["parameters"] = methodResult.parameters;
                 results.push(processResult);

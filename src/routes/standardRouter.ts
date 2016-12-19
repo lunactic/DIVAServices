@@ -202,7 +202,7 @@ router.get("/collections/:collection/:execution", function (req: express.Request
     res.json({zipLink: "http://" + nconf.get("server:rootUrl") + "/static/" + filename});
 });
 
-router.get("/image/:collection", function (req: express.Request, res: express.Response) {
+router.get("/images/:collection", function (req: express.Request, res: express.Response) {
     let collection = req.params.collection;
     let images = ImageHelper.loadCollection(collection, null);
     let imgs = [];
@@ -221,13 +221,13 @@ router.get("/image/:collection", function (req: express.Request, res: express.Re
     sendResponse(res, null, response);
 });
 
-router.get("/image/check/:md5", function (req: express.Request, res: express.Response) {
+router.get("/images/check/:md5", function (req: express.Request, res: express.Response) {
     ImageHelper.imageExists(req.params.md5, function (error: any, response: any) {
         sendResponse(res, error, response);
     });
 });
 
-router.get("/image/results/:md5", function (req: express.Request, res: express.Response) {
+router.get("/images/results/:md5", function (req: express.Request, res: express.Response) {
     ImageHelper.imageExists(req.params.md5, function (error: any, response: any) {
         let err = null;
         if (response.imageAvailable) {

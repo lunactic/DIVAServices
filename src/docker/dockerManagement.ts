@@ -3,18 +3,18 @@
  */
 
 import * as _ from "lodash";
-import {AlgorithmManagement} from "../management/algorithmManagement";
+import { AlgorithmManagement } from "../management/algorithmManagement";
 import * as archiver from "archiver";
 import * as fs from "fs";
 import * as nconf from "nconf";
 import * as path from "path";
-import {IoHelper} from "../helper/ioHelper";
-import {ResultHelper} from "../helper/resultHelper";
-import {Logger}  from "../logging/logger";
+import { IoHelper } from "../helper/ioHelper";
+import { ResultHelper } from "../helper/resultHelper";
+import { Logger } from "../logging/logger";
 let DOCKER = require("dockerode");
 let sequest = require("sequest");
 import * as os from "os";
-import {Process} from "../processingQueue/process";
+import { Process } from "../processingQueue/process";
 
 /**
  * A class for managing, and running docker images
@@ -23,7 +23,7 @@ export class DockerManagement {
     /**
      * The Docker communication object
      */
-    static docker = new DOCKER({host: nconf.get("docker:host"), port: nconf.get("docker:port")});
+    static docker = new DOCKER({ host: nconf.get("docker:host"), port: nconf.get("docker:port") });
 
     /**
      * Create a new image
@@ -250,14 +250,14 @@ export class DockerManagement {
                 let value = params[key];
 
                 if (remoteKeys.indexOf(key) >= 0) {
-                //handle remote keys
-                    executableString += '"' + _ .find(process.remotePaths, function (remotePath: any) {
-                            return _.keys(remotePath)[0] === key;
-                        })[key] + '" ';
+                    //handle remote keys
+                    executableString += _.find(process.remotePaths, function (remotePath: any) {
+                        return _.keys(remotePath)[0] === key;
+                    })[key] + ' ';
                 } else if (key === "highlighter") {
                     //handle highlighters
                     executableString += _.map(params.highlighter.split(" "), function (item: any) {
-                        return '"' + item + '"';
+                        return item;
                     }).join(" ");
                 } else if (_.find(neededParams, key) != null && ["url"].indexOf(_.find(neededParams, key)[key]) >= 0) {
                     //handle url parameters
@@ -269,10 +269,10 @@ export class DockerManagement {
                     } else {
                         url = IoHelper.getStaticDataUrlFull(originalValue);
                     }
-                    executableString += '"' + url + '" ';
+                    executableString += url + ' ';
                 } else {
                     //handle regular parameters
-                    executableString += '"' + value + '" ';
+                    executableString += value + ' ';
                 }
             }
         }
@@ -281,10 +281,12 @@ export class DockerManagement {
         let command = './script.sh ' + process.remoteResultUrl + ' ' + process.remoteErrorUrl + ' ' + executableString;
         Logger.log("info", command, "DockerManagement");
         //run the docker image (see: https://docs.docker.com/engine/reference/run/)
-        this.docker.run(imageName, ['-c', command], process.stdout, {entrypoint: '/bin/sh'}, function (error: any, data: any, container: any) {
-            let err = {
-                statusMessage: "Execution did not finish properly! status code is: " + data.statusCode
-            };
+        this.docker.run(imageName, ['-c', command], process.stdout, { entrypoint: '/bin/sh' }, function (error: any, data: any, container: any) {
+            if (data != null) {
+                let err = {
+                    statusMessage: "Execution did not finish properly! status code is: " + data.statusCode
+                };
+            }
             if (error != null) {
                 Logger.log("error", error, "DockerManagement");
                 if (callback != null) {

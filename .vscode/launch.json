@@ -5,24 +5,16 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "DIVAServices",
-            "type": "node2",
-            "request": "launch",
-            "program": "${workspaceRoot}/bin/www",
-            "cwd": "${workspaceRoot}",
+            "name": "Attach to Process",
+            "type": "node",
+            "request": "attach",
+            "port": 9929,
+            "address": "localhost",
             "outFiles": [],
             "sourceMaps": true,
-            "env":{
-                "NODE_ENV":"dev"
-            }
-        },
-        {
-            "name": "Attach to Process",
-            "type": "node2",
-            "request": "attach",
-            "port": 9229,
-            "outFiles": [],
-            "sourceMaps": true
+            "restart": false,
+            "localRoot": "${workspaceRoot}",
+            "remoteRoot": "/mnt/d/DEV/DIVAServices"
         }
     ]
 }

@@ -201,13 +201,15 @@ export class ParameterHelper {
             //TODO: incorporate the highlighter into the hash and store one single value (or add the hash as additional info to enable better computation of statistics)
             data = {
                 highlighters: _.clone(process.inputHighlighters),
-                parameters: hash(process.inputParameters),
+                parameters: _.clone(process.inputParameters),
+                hash: hash(process.inputParameters),
                 folder: process.outputFolder
             };
         } else {
             data = {
                 highlighters: {},
-                parameters: hash(process.inputParameters),
+                parameters: _.clone(process.inputParameters),
+                hash: hash(process.inputParameters),
                 folder: process.outputFolder
             };
         }
@@ -255,15 +257,16 @@ export class ParameterHelper {
         }
 
         let data = {
+            parameters: _.clone(proc.inputParameters),
             highlighters: proc.inputHighlighters,
-            parameters: hash(proc.inputParameters)
+            hash: hash(proc.inputParameters)
         };
         try {
             fs.statSync(paramPath).isFile();
             let content = IoHelper.openFile(paramPath);
             let info: any = {};
             if ((info = _.filter(content, {
-                    "parameters": data.parameters,
+                    "hash": data.hash,
                     "highlighters": data.highlighters
                 })).length > 0) {
                 //found some method information
@@ -300,17 +303,17 @@ export class ParameterHelper {
         let paramPath = nconf.get("paths:imageRootPath") + path.sep + process.rootFolder + path.sep + process.method + ".json";
         let data = {
             highlighters: process.inputHighlighters,
-            parameters: hash(process.inputParameters)
+            hash: hash(process.inputParameters)
         };
         try {
             fs.statSync(paramPath).isFile();
             let content = IoHelper.openFile(paramPath);
             let info: any = {};
             if (_.filter(content, {
-                    "parameters": data.parameters,
+                    "parameters": data.hash,
                     "highlighters": data.highlighters
                 }).length > 0) {
-                _.remove(content, {"parameters": data.parameters, "highlighters": data.highlighters});
+                _.remove(content, {"parameters": data.hash, "highlighters": data.highlighters});
                 IoHelper.saveFile(paramPath, content, "utf8", null);
             }
         } catch (error) {

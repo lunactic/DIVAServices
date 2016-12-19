@@ -295,12 +295,7 @@ export class IoHelper {
      */
     static createImageCollectionFolders(collection: string): void {
         let rootFolder = nconf.get("paths:imageRootPath") + path.sep + collection + path.sep + "original";
-        fse.mkdirs(rootFolder, function (error: Error) {
-            if (error != null) {
-                Logger.log("error", JSON.stringify(error), "IoHelper");
-            }
-        });
-
+        fse.mkdirsSync(rootFolder);
     }
 
     /**
