@@ -4,22 +4,22 @@
 "use strict";
 
 import * as async from "async";
-import {IiifManifestParser} from "../parsers/iiifManifestParser";
+import { IiifManifestParser } from "../parsers/iiifManifestParser";
 import * as express from "express";
-import {ImageHelper} from "../helper/imageHelper";
-import {RandomWordGenerator} from "../randomizer/randomWordGenerator";
-import {IoHelper} from "../helper/ioHelper";
-import {Logger} from "../logging/logger";
+import { ImageHelper } from "../helper/imageHelper";
+import { RandomWordGenerator } from "../randomizer/randomWordGenerator";
+import { IoHelper } from "../helper/ioHelper";
+import { Logger } from "../logging/logger";
 import * as nconf from "nconf";
 import * as path from "path";
-import {Statistics} from "../statistics/statistics";
-import {ResultHelper} from "../helper/resultHelper";
-import {AlgorithmManagement} from "../management/algorithmManagement";
-import {SchemaValidator} from "../validator/schemaValidator";
+import { Statistics } from "../statistics/statistics";
+import { ResultHelper } from "../helper/resultHelper";
+import { AlgorithmManagement } from "../management/algorithmManagement";
+import { SchemaValidator } from "../validator/schemaValidator";
 import md5 = require("md5");
-import {DivaImage} from "../models/divaImage";
-import {PostHandler} from "./postHandler";
-import {GetHandler} from "./getHandler";
+import { DivaImage } from "../models/divaImage";
+import { PostHandler } from "./postHandler";
+import { GetHandler } from "./getHandler";
 
 let router = express.Router();
 
@@ -50,7 +50,7 @@ router.post("/upload", function (req: express.Request, res: express.Response) {
             //check if image exists
             ImageHelper.imageExists(md5(req.body.images[0].value), function (err: any, response: any) {
                 if (response.imageAvailable) {
-                    send200(res, {collection: response.collection});
+                    send200(res, { collection: response.collection });
                     imageExists = true;
                 }
             });
@@ -60,7 +60,7 @@ router.post("/upload", function (req: express.Request, res: express.Response) {
             let collectionName = RandomWordGenerator.generateRandomWord();
             IoHelper.createImageCollectionFolders(collectionName);
             ImageHelper.createCollectionInformation(collectionName, numOfImages);
-            send200(res, {collection: collectionName});
+            send200(res, { collection: collectionName });
             let process = {
                 rootFolder: collectionName
             };
@@ -73,12 +73,19 @@ router.post("/upload", function (req: express.Request, res: express.Response) {
                             //TODO improve to save all images
                             let images = iiifManifestParser.getAllImages(0);
                             images.forEach((inputImage: any, i: number) => {
-                                ImageHelper.saveUrl(inputImage, collectionName, imageCounter, function (image: DivaImage) {
+                                ImageHelper.saveUrl(inputImage, collectionName + path.sep, imageCounter, function (image: DivaImage) {
                                     ImageHelper.addImageInfo(image.md5, image.path, collectionName);
                                     ImageHelper.updateCollectionInformation(collectionName, numOfImages, imageCounter++);
                                 });
                             });
                         });
+                        break;
+                    case "url":
+                        ImageHelper.saveUrl(image.value, collectionName, imageCounter, function (divaImage: DivaImage) {
+                            ImageHelper.addImageInfo(divaImage.md5, divaImage.path, collectionName);
+                            ImageHelper.updateCollectionInformation(collectionName, numOfImages, imageCounter);
+                        });
+                        imageCounter = imageCounter + 1;
                         break;
                     default:
                         ImageHelper.saveBase64(image, collectionName, imageCounter, function (divaImage: DivaImage) {
@@ -124,7 +131,7 @@ router.post("/jobs/:jobId", function (req: express.Request, res: express.Respons
                     } else {
                         AlgorithmManagement.updateStatus(null, "ok", process.req.originalUrl, "");
                         ResultHelper.removeResult(process);
-                        send200(res, {status: "valid"});
+                        send200(res, { status: "valid" });
                     }
                 });
             } else {
@@ -199,7 +206,7 @@ router.get("/collections/:collection/:execution", function (req: express.Request
     //TODO Fix here to distinguish between collection.hasFiles and collection.hasImages
     let filename = IoHelper.zipFolder(nconf.get("paths:imageRootPath") + path.sep + req.params.collection + path.sep + req.params.execution);
     res.status(200);
-    res.json({zipLink: "http://" + nconf.get("server:rootUrl") + "/static/" + filename});
+    res.json({ zipLink: "http://" + nconf.get("server:rootUrl") + "/static/" + filename });
 });
 
 router.get("/images/:collection", function (req: express.Request, res: express.Response) {
@@ -296,7 +303,7 @@ function validate(req: express.Request, res: express.Response, schema: string) {
         if (error != null) {
             sendError(res, error);
         } else {
-            send200(res, {status: "valud"});
+            send200(res, { status: "valud" });
         }
     });
 }

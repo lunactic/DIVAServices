@@ -47,7 +47,7 @@ export class ImageHelper {
         let self = this;
         switch (inputImage.type) {
             case "image":
-                this.saveBase64(inputImage.value, process.rootFolder, counter, function (image: DivaImage) {
+                self.saveBase64(inputImage.value, process.rootFolder, counter, function (image: DivaImage) {
                     self.addImageInfo(image.md5, image.path, process.rootFolder);
                     self.updateCollectionInformation(process.rootFolder, numberOfImages, counter);
                     Logger.log("trace", "saved image", "ImageHelper");
@@ -55,7 +55,7 @@ export class ImageHelper {
                 break;
 
             case "url":
-                this.saveUrl(inputImage.value, process.rootFolder, counter, function (image: DivaImage) {
+                self.saveUrl(inputImage.value, process.rootFolder, counter, function (image: DivaImage) {
                     self.addImageInfo(image.md5, image.path, process.rootFolder);
                     self.updateCollectionInformation(process.rootFolder, numberOfImages, counter);
                 });
@@ -152,17 +152,18 @@ export class ImageHelper {
     static saveUrl(url: string, folder: string, counter: number, cb: Function) {
         let imagePath = nconf.get("paths:imageRootPath");
         let image = new DivaImage();
+        let self = this;
         async.waterfall([
             function (callback: Function) {
                 request.head(url).on("response", function (response: any) {
-                    let imageExtension = this.getImageExtension(response.headers["content-type"]);
+                    let imageExtension = self.getImageExtension(response.headers["content-type"]);
                     callback(null, imageExtension);
                 });
             }, function (imgExtension: string, callback: Function) {
-                request(url).pipe(fs.createWriteStream(imagePath + "temp_" + counter + "." + imgExtension)).on("close", function (cb: Function) {
-                    let base64 = fs.readFileSync(imagePath + "temp_" + counter + "." + imgExtension, "base64");
+                request(url).pipe(fs.createWriteStream(imagePath + path.sep + "temp_" + counter + "." + imgExtension)).on("close", function (cb: Function) {
+                    let base64 = fs.readFileSync(imagePath + path.sep + "temp_" + counter + "." + imgExtension, "base64");
                     let md5String = md5(base64);
-                    let imgFolder = imagePath + "original" + path.sep;
+                    let imgFolder = imagePath + path.sep + folder + path.sep + "original" + path.sep;
                     let imgName = "input" + counter;
                     image.rootFolder = path.join(path.dirname(imgFolder), "..");
                     image.folder = imgFolder;
@@ -171,21 +172,11 @@ export class ImageHelper {
                     image.md5 = md5String;
 
                     fs.stat(image.path, function (err: any, stat: fs.Stats) {
-                        if (err != null) {
-                            fs.unlink(imagePath + "temp_" + counter + "." + imgExtension);
+                        if (err == null) {
+                            fs.unlink(imagePath + path.sep + "temp_" + counter + "." + imgExtension);
                             callback(null, image);
-                        } else if (err.code === "ENONENT") {
-                            let source = fs.createReadStream(imagePath + "temp_" + counter + "." + imgExtension);
-                            let destination = fs.createWriteStream(image.path);
-                            source.pipe(destination);
-                            source.on("end", function () {
-                                fs.unlink(imagePath + "temp_" + counter + "." + imgExtension);
-                                callback(null, image);
-                            });
-                            source.on("error", function (error: any) {
-                                Logger.log("error", JSON.stringify(error), "ImageHelper");
-                                callback(null, image);
-                            });
+                        } else if (err.code === "ENOENT") {
+                            fs.renameSync(imagePath + path.sep + "temp_" + counter + "." + imgExtension, image.path);
                         }
                     });
                 });
