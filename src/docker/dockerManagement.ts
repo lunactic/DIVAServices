@@ -163,13 +163,12 @@ export class DockerManagement {
         algorithmInfos.input.forEach((input: any, index: any) => {
             let key = _.keys(algorithmInfos.input[index])[0];
             if (['json', 'file', 'inputFile'].indexOf(key) >= 0) {
-                content += 'curl -o /data/' + input[key].name + '.' + input[key].options.fileType + ' $' + inputCount + os.EOL;
+                //TODO fix this to use the correct input number of the input image
+                content += 'curl -o /data/' + input[key].name + '.' + input[key].options.fileType + ' $' + (inputCount + index) + os.EOL;
                 AlgorithmManagement.addUrlParameter(identifier, input[key].name + "url");
                 AlgorithmManagement.addRemotePath(identifier, input[key].name, "/data/" + input[key].name + "." + input[key].options.fileType);
-                inputCount++;
             } else if (key === 'inputImage') {
-                content += 'curl -o /data/inputImage.png $' + inputCount + os.EOL;
-                inputCount++;
+                content += 'curl -o /data/inputImage.png $' + (inputCount + index) + os.EOL;
             }
         });
 
@@ -192,9 +191,10 @@ export class DockerManagement {
             let key = _.keys(algorithmInfos.input[index])[0];
             if (nconf.get("reservedWords").indexOf(key) >= 0 && nconf.get("docker:replacePaths").indexOf(key) >= 0) {
                 content += this.getDockerInput(key) + " ";
-                if (key !== 'inputImage') {
+                inputCount++;
+                /*if (key !== 'inputImage') {
                     inputCount++;
-                }
+                }*/
             } else {
                 //TODO add switch for highlighters
                 if (key === "highlighter") {
@@ -309,7 +309,7 @@ export class DockerManagement {
 
                 container.remove(function (error: any, data: any) {
                     if (callback != null) {
-                        callback(err);
+                        callback(error);
                     }
                 });
             }

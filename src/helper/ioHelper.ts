@@ -371,9 +371,10 @@ export class IoHelper {
 
         if (folders.length > 0 && !unique) {
             let splitFolders = _.invokeMap(folders, String.prototype.split, "_");
-            let numbers: number[] = _.forEach(splitFolders, function (number: any) {
-                return parseInt(number[1]);
-            });
+            let numbers: number[] = []
+            for (let splitFolder of splitFolders) {
+                numbers.push(parseInt(splitFolder[1]));
+            }
             let maxNumber: number = _.max(numbers);
             return rootPath + path.sep + service.service + "_" + (maxNumber + 1);
         } else {
@@ -438,7 +439,7 @@ export class IoHelper {
         let rootUrl = nconf.get("server:rootUrl");
         return "http://" + rootUrl + "/data/" + folder + "/" + filename;
     }
-    
+
     /**
      * get the static image url with a specific extension
      * 
