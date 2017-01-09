@@ -153,10 +153,9 @@ export class DockerManagement {
     static createBashScript(identifier: string, algorithmInfos: any, outputFolder: string): void {
         let content: string = '#!/bin/sh' + os.EOL;
 
-        //input count starts with 4. Params 1,2 and 3 are fix used
+        //input count starts with 3. Params 1 and 2 are fix used
         // 1: resultResponseUrl
         // 2: errorResponseUrl
-        // increase it for every additional file that needs to be downloaded
         let inputCount: number = 3;
 
         //check if additional files need to be downloaded
@@ -192,9 +191,6 @@ export class DockerManagement {
             if (nconf.get("reservedWords").indexOf(key) >= 0 && nconf.get("docker:replacePaths").indexOf(key) >= 0) {
                 content += this.getDockerInput(key) + " ";
                 inputCount++;
-                /*if (key !== 'inputImage') {
-                    inputCount++;
-                }*/
             } else {
                 //TODO add switch for highlighters
                 if (key === "highlighter") {
