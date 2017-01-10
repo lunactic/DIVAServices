@@ -38,12 +38,13 @@ export class AlgorithmManagement {
      * @param {string} route the called route
      * @param {string} identifier the identifier to use
      * @param {string} imageName the name of the image
+     * @param {number} version the version number
      * @param {Function} callback the callback function
      * 
      * @memberOf AlgorithmManagement
      */
-    static createAlgorithm(req: express.Request, res: express.Response, route: string, identifier: string, imageName: string, callback: Function): void {
-        AlgorithmManagement.updateServicesFile(req.body, identifier, route, imageName);
+    static createAlgorithm(req: express.Request, res: express.Response, route: string, identifier: string, imageName: string, version: number, callback: Function): void {
+        AlgorithmManagement.updateServicesFile(req.body, identifier, route, imageName, version);
         IoHelper.downloadFileWithTypecheck(req.body.method.file, nconf.get("paths:executablePath") + path.sep + route, "application/zip", function (err: any, filename: string) {
             if (err != null) {
                 AlgorithmManagement.updateStatus(identifier, "error", null, "algorithm file has the wrong format");
@@ -191,6 +192,16 @@ export class AlgorithmManagement {
         }
     }
 
+    static getVersionByBaseRoute(route: string): number {
+        let content = IoHelper.openFile(nconf.get("paths:servicesInfoFile"));
+        let algorithm: any = _.find(content.services, { "baseroute": route });
+        if (algorithm != null) {
+            return algorithm.version;
+        } else {
+            return 1;
+        }
+    }
+
     /**
      * create a new algorithm identifier
      * 
@@ -214,8 +225,8 @@ export class AlgorithmManagement {
      * 
      * @memberOf AlgorithmManagement
      */
-    static generateRoute(algorithm: any): string {
-        return algorithm.general.type.toLowerCase() + "/" + algorithm.general.name.replace(/\s/g, "").toLowerCase() + "/1";
+    static generateBaseRoute(algorithm: any): string {
+        return "methods/" + algorithm.general.type.toLowerCase() + "/" + algorithm.general.name.replace(/\s/g, "").toLowerCase();
     }
 
     /**
@@ -236,12 +247,13 @@ export class AlgorithmManagement {
      * 
      * @static
      * @param {*} algorithm the new algorithm
+     * @param {number} version the version of the algorithm
      * @returns {string} the name for the image
      * 
      * @memberOf AlgorithmManagement
      */
-    static generateImageName(algorithm: any): string {
-        return algorithm.general.type.toLowerCase() + algorithm.general.name.toLowerCase().replace(/\s/g, "_");
+    static generateImageName(algorithm: any, version: number): string {
+        return algorithm.general.type.toLowerCase() + algorithm.general.name.toLowerCase().replace(/\s/g, "_") + ":" + String(version);
     }
 
     /**
@@ -518,11 +530,13 @@ export class AlgorithmManagement {
      * @param {string} identifier the algorithm identifier
      * @param {string} route the algorithm route
      * @param {string} imageName the name of the docker image
+     * @param {number} version the version number of the algorithm
+     * @param {string} baseRoute the base route without the version number
      * 
      * @memberOf AlgorithmManagement
      */
-    static updateServicesFile(algorithm: any, identifier: string, route: string, imageName: string): void {
-    //TODO make changes for docker or create a separate method
+    static updateServicesFile(algorithm: any, identifier: string, route: string, imageName: string, version: number, baseRoute: string): void {
+        //TODO make changes for docker or create a separate method
         ServicesInfoHelper.reload();
         if ((this.getStatusByIdentifier(identifier) == null) && (this.getStatusByRoute(route) == null)) {
             let newContent = _.cloneDeep(ServicesInfoHelper.fileContent);
@@ -537,6 +551,7 @@ export class AlgorithmManagement {
 
             let newServiceEntry = {
                 service: route.replace(/\//g, "").toLowerCase(),
+                baseRoute: "/" + baseRoute,
                 identifier: identifier,
                 path: "/" + route,
                 executablePath: nconf.get("paths:executablePath") + path.sep + route + path.sep + algorithm.method.executable_path,
@@ -547,6 +562,7 @@ export class AlgorithmManagement {
                 image_name: imageName,
                 parameters: parameters,
                 remotePaths: [],
+                version: version,
                 status: {
                     statusCode: -1,
                     statusMessage: ""

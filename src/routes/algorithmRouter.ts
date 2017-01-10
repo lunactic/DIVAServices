@@ -5,22 +5,22 @@
 
 
 import * as _ from "lodash";
-import {AlgorithmManagement} from "../management/algorithmManagement";
+import { AlgorithmManagement } from "../management/algorithmManagement";
 import * as async from "async";
-import {DockerManagement} from "../docker/dockerManagement";
-import {ExecutableHelper} from "../helper/executableHelper";
+import { DockerManagement } from "../docker/dockerManagement";
+import { ExecutableHelper } from "../helper/executableHelper";
 import * as fs from "fs";
-import {IoHelper} from "../helper/ioHelper";
-import {Logger} from "../logging/logger";
+import { IoHelper } from "../helper/ioHelper";
+import { Logger } from "../logging/logger";
 import * as nconf from "nconf";
 import * as path from "path";
-import {ResultHelper} from "../helper/resultHelper";
+import { ResultHelper } from "../helper/resultHelper";
 import * as express from "express";
-import {SchemaValidator} from "../validator/schemaValidator";
-import {ServicesInfoHelper} from "../helper/servicesInfoHelper";
-import {Statistics} from "../statistics/statistics";
-import {Swagger} from "../swagger/swagger";
-import {QueueHandler} from "../processingQueue/queueHandler";
+import { SchemaValidator } from "../validator/schemaValidator";
+import { ServicesInfoHelper } from "../helper/servicesInfoHelper";
+import { Statistics } from "../statistics/statistics";
+import { Swagger } from "../swagger/swagger";
+import { QueueHandler } from "../processingQueue/queueHandler";
 
 let router = express.Router();
 
@@ -51,10 +51,12 @@ router.post("/algorithms", function (req: express.Request, res: express.Response
             sendError(res, error);
         } else {
             //2) generate route
-            let route = AlgorithmManagement.generateRoute(req.body);
+            let route = AlgorithmManagement.generateBaseRoute(req.body);
+            let version = AlgorithmManagement.getVersionByBaseRoute("/" + route);
+            route += "/" + version;
             //check if we have this route already
             let status = AlgorithmManagement.getStatusByRoute("/" + route);
-            let imageName = AlgorithmManagement.generateImageName(req.body);
+            let imageName = AlgorithmManagement.generateImageName(req.body, version);
             if (status != null) {
                 switch (status.status.statusCode) {
                     case 200:
@@ -68,7 +70,7 @@ router.post("/algorithms", function (req: express.Request, res: express.Response
                     case 410:
                         //algorithm was deleted, create a new one
                         let identifier = AlgorithmManagement.createIdentifier();
-                        AlgorithmManagement.createAlgorithm(req, res, route, identifier, imageName, function (error: any, response: any) {
+                        AlgorithmManagement.createAlgorithm(req, res, route, identifier, imageName, version, function (error: any, response: any) {
                             if (error != null) {
                                 sendError(res, error);
                             } else {
@@ -82,7 +84,7 @@ router.post("/algorithms", function (req: express.Request, res: express.Response
                             if (error == null) {
                                 let identifier = AlgorithmManagement.createIdentifier();
                                 AlgorithmManagement.updateIdentifier("/" + route, identifier);
-                                AlgorithmManagement.createAlgorithm(req, res, route, identifier, imageName, function (error: any, response: any) {
+                                AlgorithmManagement.createAlgorithm(req, res, route, identifier, imageName, version, function (error: any, response: any) {
                                     if (error != null) {
                                         sendError(res, error);
                                     } else {
@@ -105,7 +107,7 @@ router.post("/algorithms", function (req: express.Request, res: express.Response
                 //create a new algorithm
                 let identifier = AlgorithmManagement.createIdentifier();
                 AlgorithmManagement.generateFolders(route);
-                AlgorithmManagement.createAlgorithm(req, res, route, identifier, imageName, function (error: any, response: any) {
+                AlgorithmManagement.createAlgorithm(req, res, route, identifier, imageName, version, function (error: any, response: any) {
                     if (error != null) {
                         sendError(res, error);
                     } else {
@@ -129,6 +131,7 @@ router.put("/algorithms/:identifier", function (req: express.Request, res: expre
         //increase the number
         routeParts[routeParts.length - 1]++;
         let newRoute = routeParts.join("/");
+        let version: number = parseInt(routeParts[routeParts.length - 1]);
         switch (serviceInfo.status.statusCode) {
             case 410:
                 //error recovery
@@ -148,9 +151,9 @@ router.put("/algorithms/:identifier", function (req: express.Request, res: expre
                         sendError(res, error);
                     } else {
                         let identifier = AlgorithmManagement.createIdentifier();
-                        let imageName = AlgorithmManagement.generateImageName(req.body);
+                        let imageName = AlgorithmManagement.generateImageName(req.body, version);
                         AlgorithmManagement.generateFolders(newRoute);
-                        AlgorithmManagement.createAlgorithm(req, res, newRoute, identifier, imageName, function (error: any, response: any) {
+                        AlgorithmManagement.createAlgorithm(req, res, newRoute, identifier, imageName, version, function (error: any, response: any) {
                             if (error != null) {
                                 sendError(res, error);
                             } else {
