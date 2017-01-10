@@ -191,7 +191,6 @@ router.get("/collections/", function (req: express.Request, res: express.Respons
             });
         }
     }
-
     let response = {
         collections: collectionInfo
     };
