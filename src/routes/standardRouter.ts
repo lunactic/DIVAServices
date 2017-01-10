@@ -180,8 +180,20 @@ router.post("*", function (req: express.Request, res: express.Response, next: ex
 
 router.get("/collections/", function (req: express.Request, res: express.Response) {
     let collections = ImageHelper.getAllCollections();
+    let collectionInfo = [];
+    for (let collection of collections) {
+        if (collection != "test") {
+            collectionInfo.push({
+                "collection": {
+                    name: collection,
+                    url: 'http://' + nconf.get("server:rootUrl") + "/collections" + "/" + collection
+                }
+            });
+        }
+    }
+
     let response = {
-        collections: collections
+        collections: collectionInfo
     };
     send200(res, response);
 });
@@ -190,6 +202,17 @@ router.get("/collections/:collection", function (req: express.Request, res: expr
     let collection = req.params.collection;
     if (ImageHelper.checkCollectionAvailable(collection)) {
         let status = ImageHelper.getCollectionInformation(collection);
+        let images = ImageHelper.loadCollection(collection, null);
+        let imgs = [];
+        for (let image of images) {
+            imgs.push({
+                "image": {
+                    md5: image.md5,
+                    url: image.getImageUrl(collection + path.sep + "original" + path.sep)
+                }
+            });
+        }
+        status['images'] = imgs;
         send200(res, status);
     } else {
         let error = {

@@ -77,7 +77,7 @@ export class DivaImage {
     getImageUrl(folder: string): string {
         //TODO: check if the folder parameter can be replace
         let rootUrl = nconf.get("server:rootUrl");
-        return "http://" + rootUrl + "/images/" + folder + "/original/" + this.name + "." + this.extension;
+        return "http://" + rootUrl + "/images/" + folder + this.name + "." + this.extension;
     }
 
 }
