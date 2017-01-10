@@ -39,12 +39,13 @@ export class AlgorithmManagement {
      * @param {string} identifier the identifier to use
      * @param {string} imageName the name of the image
      * @param {number} version the version number
+     * @param {string} baseroute the base route information
      * @param {Function} callback the callback function
      * 
      * @memberOf AlgorithmManagement
      */
-    static createAlgorithm(req: express.Request, res: express.Response, route: string, identifier: string, imageName: string, version: number, callback: Function): void {
-        AlgorithmManagement.updateServicesFile(req.body, identifier, route, imageName, version);
+    static createAlgorithm(req: express.Request, res: express.Response, route: string, identifier: string, imageName: string, version: number, baseroute:string, callback: Function): void {
+        AlgorithmManagement.updateServicesFile(req.body, identifier, route, imageName, version, baseroute);
         IoHelper.downloadFileWithTypecheck(req.body.method.file, nconf.get("paths:executablePath") + path.sep + route, "application/zip", function (err: any, filename: string) {
             if (err != null) {
                 AlgorithmManagement.updateStatus(identifier, "error", null, "algorithm file has the wrong format");
