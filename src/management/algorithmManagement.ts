@@ -227,7 +227,7 @@ export class AlgorithmManagement {
      * @memberOf AlgorithmManagement
      */
     static generateBaseRoute(algorithm: any): string {
-        return "methods/" + algorithm.general.type.toLowerCase() + "/" + algorithm.general.name.replace(/\s/g, "").toLowerCase();
+        return algorithm.general.type.toLowerCase() + "/" + algorithm.general.name.replace(/\s/g, "").toLowerCase();
     }
 
     /**

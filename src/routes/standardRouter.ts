@@ -24,7 +24,6 @@ import { GetHandler } from "./getHandler";
 let router = express.Router();
 
 //set up a special route for image uploading
-//TODO provide a way to upload other data (currently all sent as req.body.data)
 router.post("/upload", function (req: express.Request, res: express.Response) {
     let numOfImages: number = 0;
     let counter: number = 0;
