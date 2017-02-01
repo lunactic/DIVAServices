@@ -80,6 +80,8 @@ router.post("/algorithms", function (req: express.Request, res: express.Response
                         break;
                     case 500:
                         //currently in error. Delete the current image and create a new one
+                        AlgorithmManagement.removeFromRootInfoFile("/" + route);
+                        AlgorithmManagement.removeFromServiceInfoFile("/" + route);
                         DockerManagement.removeImage(status.image_name, function (error: any) {
                             if (error == null) {
                                 let identifier = AlgorithmManagement.createIdentifier();

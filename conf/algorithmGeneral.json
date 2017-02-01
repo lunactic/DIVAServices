@@ -17,16 +17,16 @@
     "required":true,
     "multiline":true
   },
-  "author":{
-    "infoText":"Author of the method",
-    "displayText":"Contact Author",
+  "developer":{
+    "infoText":"Developer of the method",
+    "displayText":"Method Developer",
     "type":"string",
     "minLength":5,
-    "maxLength":50,
+    "maxLength":150,
     "required":true
   },
   "affiliation":{
-    "infoText":"Affiliation of the contact author",
+    "infoText":"Affiliation of the method developer",
     "displayText":"Affiliation",
     "type":"string",
     "minLength":3,
@@ -38,6 +38,14 @@
     "infoText":"Contact email address",
     "type":"string",
     "format":"email",
+    "required":true
+  },
+  "author":{
+    "infoText":"Author of the method",
+    "displayText":"Method Author",
+    "type":"string",
+    "minLength":5,
+    "maxLength":150,
     "required":true
   },
   "website":{
@@ -59,6 +67,15 @@
     "type":"string",
     "required":false
   },
+  "type":{
+    "displayText":"Type",
+    "infoText":"Type of this method  (e.g. OCR, binarization,...)",
+    "type":"string",
+    "required":true,
+    "minLength":3,
+    "maxLength":15,
+    "regex": "^([a-zA-Z]*)$"
+  },
   "license":{
     "displayText":"License",
     "infoText":"License of this method",
@@ -75,13 +92,10 @@
     ],
     "required":true
   },
-  "type":{
-    "displayText":"Type",
-    "infoText":"Type of this method  (e.g. OCR, binarization,...)",
-    "type":"string",
-    "required":true,
-    "minLength":3,
-    "maxLength":15,
-    "regex": "^([a-zA-Z]*)$"
+  "ownsCopyright":{
+    "infoText":"Do you own the copyright to all the material you have submitted?",
+    "displayText":"Copyright",
+    "type":"boolean",
+    "required":true
   }
 }

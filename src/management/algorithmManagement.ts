@@ -44,7 +44,7 @@ export class AlgorithmManagement {
      * 
      * @memberOf AlgorithmManagement
      */
-    static createAlgorithm(req: express.Request, res: express.Response, route: string, identifier: string, imageName: string, version: number, baseroute:string, callback: Function): void {
+    static createAlgorithm(req: express.Request, res: express.Response, route: string, identifier: string, imageName: string, version: number, baseroute: string, callback: Function): void {
         AlgorithmManagement.updateServicesFile(req.body, identifier, route, imageName, version, baseroute);
         IoHelper.downloadFileWithTypecheck(req.body.method.file, nconf.get("paths:executablePath") + path.sep + route, "application/zip", function (err: any, filename: string) {
             if (err != null) {
@@ -138,11 +138,16 @@ export class AlgorithmManagement {
                         QueueHandler.runningDockerJobs.push(job);
                         ExecutableHelper.executeDockerRequest(job, function (error: any, data: any) {
                             if (error == null) {
-                                AlgorithmManagement.updateRootInfoFile(req.body, route);
-                                AlgorithmManagement.createInfoFile(req.body, nconf.get("paths:jsonPath") + path.sep + route);
-                                //Add to swagger
-                                let info = IoHelper.openFile(nconf.get("paths:jsonPath") + path.sep + route + path.sep + "info.json");
-                                Swagger.createEntry(info, route);
+                                if (!data) {
+                                    Logger.log("error", "did not receive any data from the method", "AlgorithmManagement");
+                                    AlgorithmManagement.updateStatus(identifier, "error", null, "Method did not return any data");
+                                } else {
+                                    AlgorithmManagement.updateRootInfoFile(req.body, route);
+                                    AlgorithmManagement.createInfoFile(req.body, nconf.get("paths:jsonPath") + path.sep + route);
+                                    //Add to swagger
+                                    let info = IoHelper.openFile(nconf.get("paths:jsonPath") + path.sep + route + path.sep + "info.json");
+                                    Swagger.createEntry(info, route);
+                                }
                             }
                         });
                     });

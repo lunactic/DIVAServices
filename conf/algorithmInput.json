@@ -3,6 +3,7 @@
     "displayText": "Highlighter",
     "infoText": "Indicating that this method requires a defined region of some sort on the input",
     "type": "object",
+    "userdefined": true,
     "properties": {
       "type": {
         "infoText": "Available highlighter types",
@@ -28,6 +29,7 @@
     "displayText": "Number",
     "infoText": "A parameter requiring a number value",
     "type": "object",
+    "userdefined": true,
     "properties": {
       "name": {
         "type": "string",
@@ -79,6 +81,7 @@
     "displayText": "Text",
     "infoText": "A parameter requiring textual input",
     "type": "object",
+    "userdefined": true,
     "properties": {
       "name": {
         "type": "string",
@@ -125,6 +128,7 @@
     "displayText": "JSON",
     "infoText": "Information in JSON format",
     "type": "object",
+    "userdefined": true,
     "properties": {
       "name": {
         "type": "string",
@@ -161,6 +165,7 @@
     "displayText": "Select",
     "infoText": "list of values from which one can be selected",
     "type": "object",
+    "userdefined": true,
     "properties": {
       "name": {
         "type": "string",
@@ -207,6 +212,7 @@
     "displayText": "Input File",
     "infoText": "Path to an input file should be provided as Url (e.g. a textfile)",
     "type": "object",
+    "userdefined": true,
     "properties": {
       "name": {
         "type": "string",
@@ -256,30 +262,37 @@
   },
   "mcr2014b": {
     "displayText": "MCR2014b Path",
-    "infoText": "Path to the MCR2014b Installation"
+    "infoText": "Path to the MCR2014b Installation. Needs to be passed as FIRST parameter to matlab compiled code!",
+    "userdefined": false
   },
   "inputImage": {
     "displayText": "Input Image",
-    "infoText": "Path to the input image"
+    "infoText": "Path to the input image",
+    "userdefined": false
   },
   "outputImage": {
     "displayText": "Output Image",
-    "infoText": "Path where to save the output image"
+    "infoText": "Path where to save the output image",
+    "userdefined": false
   },
   "resultFile": {
     "displayText": "Result File",
-    "infoText": "Path where to save the resulting json file (if output = file)"
+    "infoText": "Path where to save the resulting json file (if output = file)",
+    "userdefined": false
   },
   "inputFileExtension": {
     "displayText": "Input File Extension",
-    "infoText": "Extension of the input file"
+    "infoText": "Extension of the input file (e.g. jpg, png, txt, ...)", 
+    "userdefined": false
   },
   "outputFolder": {
     "displayText": "Output Folder",
-    "infoText": "Folder for saving results"
+    "infoText": "Folder for saving results",
+    "userdefined": false
   },
   "host": {
     "displayText": "Host",
-    "infoText": "Base Url of the server"
+    "infoText": "The base url of the server (e.g. divaservices.unifr.ch). Can be used to generate URL responses.",
+    "userdefined": false
   }
 }
