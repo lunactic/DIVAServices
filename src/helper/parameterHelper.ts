@@ -89,9 +89,8 @@ export class ParameterHelper {
                 let value = self.getParamValue(paramKey, process.inputParameters);
                 switch (paramValue) {
                     case 'inputFile':
-                        let filename = IoHelper.downloadFileSync(value, process.outputFolder, path.basename(value));
-                        params[paramKey] = filename;
-                        outputParams[paramKey] = filename;
+                        params[paramKey] = process.inputDataUrl;
+                        outputParams[paramKey] = process.inputDataUrl;
                         break;
                     case 'highlighter':
                         params[paramKey] = self.getHighlighterParamValues(process.inputHighlighters.type, process.inputHighlighters.segments);
@@ -118,9 +117,6 @@ export class ParameterHelper {
                         params[paramKey] = value;
                         outputParams[paramKey] = value;
                     }
-                } else if (paramValue === "url") {
-                    params[paramKey] = "";
-                    outputParams[paramKey] = "";
                 }
             }
         });

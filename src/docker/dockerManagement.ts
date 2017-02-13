@@ -127,7 +127,7 @@ export class DockerManagement {
                 break;
             case "apt":
                 content += 'RUN apt-get update' + os.EOL +
-                    'RUN apt-get install wget unzip curl -y' + os.EOL;
+                    'RUN apt-get install jq wget unzip curl -y' + os.EOL;
                 break;
         }
 
@@ -140,6 +140,12 @@ export class DockerManagement {
         if (algorithmInfos.method.executableType === "bash") {
             content += 'RUN ["chmod", "+x", "./' + algorithmInfos.method.executable_path + '"]' + os.EOL;
         }
+        switch (nconf.get("baseImages:" + algorithmInfos.method.environment)) {
+            case "apt":
+                content += 'RUN apt-get clean && rm -rf /tmp/* /var/lib/apt/lists/* /var/tmp/* .git' + os.EOL;
+                break;
+        }
+
         fs.writeFileSync(outputFolder + path.sep + "Dockerfile", content);
     }
 
@@ -164,8 +170,8 @@ export class DockerManagement {
             if (['json', 'file', 'inputFile'].indexOf(key) >= 0) {
                 //TODO fix this to use the correct input number of the input image
                 content += 'curl -o /data/' + input[key].name + '.' + input[key].options.fileType + ' $' + (inputCount + index) + os.EOL;
-                AlgorithmManagement.addUrlParameter(identifier, input[key].name + "url");
-                AlgorithmManagement.addRemotePath(identifier, input[key].name, "/data/" + input[key].name + "." + input[key].options.fileType);
+                //AlgorithmManagement.addUrlParameter(identifier, input[key].name + "url");
+                //AlgorithmManagement.addRemotePath(identifier, input[key].name, "/data/" + input[key].name + "." + input[key].options.fileType);
             } else if (key === 'inputImage') {
                 content += 'curl -o /data/inputImage.png $' + (inputCount + index) + os.EOL;
             }
@@ -188,11 +194,16 @@ export class DockerManagement {
         //add all parameters
         algorithmInfos.input.forEach((input: any, index: number) => {
             let key = _.keys(algorithmInfos.input[index])[0];
+            let value = _.values(algorithmInfos.input[index])[0].name;
             if (nconf.get("reservedWords").indexOf(key) >= 0 && nconf.get("docker:replacePaths").indexOf(key) >= 0) {
                 content += this.getDockerInput(key) + " ";
                 inputCount++;
+            } else if (nconf.get("reservedWords").indexOf(key) >= 0 && !(nconf.get("docker:replacePaths").indexOf(key) >= 0)) {
+                if (AlgorithmManagement.hasRemotePath(identifier, value)) {
+                    content += AlgorithmManagement.getRemotePath(identifier, value) + " ";
+                }
+                inputCount++;
             } else {
-                //TODO add switch for highlighters
                 if (key === "highlighter") {
                     content += "$" + inputCount++ + " " + "$" + inputCount++ + " " + "$" + inputCount++ + " " + "$" + inputCount++ + " " + "$" + inputCount++ + " " + "$" + inputCount++ + " " + "$" + inputCount++ + " " + "$" + inputCount++ + " ";
                 } else {
@@ -244,13 +255,7 @@ export class DockerManagement {
         for (let key in params) {
             if (params.hasOwnProperty(key)) {
                 let value = params[key];
-
-                if (remoteKeys.indexOf(key) >= 0) {
-                    //handle remote keys
-                    executableString += _.find(process.remotePaths, function (remotePath: any) {
-                        return _.keys(remotePath)[0] === key;
-                    })[key] + ' ';
-                } else if (key === "highlighter") {
+                 if (key === "highlighter") {
                     //handle highlighters
                     executableString += _.map(params.highlighter.split(" "), function (item: any) {
                         return item;
@@ -301,8 +306,7 @@ export class DockerManagement {
 
             if (process.type === "test" && data.StatusCode !== 0) {
                 AlgorithmManagement.updateStatus(null, "error", process.req.originalUrl, "Algorithm image did not execute properly");
-                ResultHelper.removeResult(process);
-
+                //ResultHelper.removeResult(process);
                 container.remove(function (error: any, data: any) {
                     if (callback != null) {
                         callback(error);

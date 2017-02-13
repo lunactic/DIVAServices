@@ -5,7 +5,7 @@
 
 import * as _ from "lodash";
 import * as nconf from "nconf";
-import {IoHelper} from "./ioHelper";
+import { IoHelper } from "./ioHelper";
 
 /**
  * helper class for all service information
@@ -108,16 +108,24 @@ export class ServicesInfoHelper {
      * 
      * @memberOf ServicesInfoHelper
      */
-    static methodRequireFiles(serviceInfo: any): boolean {
-        let fileParameters = _.filter(serviceInfo.parameters, function(parameter: string){
-           return ["inputImage", "inputFile"].indexOf(_.keys(parameter)[0]) >= 0;
+    static methodRequireImages(serviceInfo: any): boolean {
+        let fileParameters = _.filter(serviceInfo.parameters, function (parameter: string) {
+            return ["inputImage"].indexOf(String(_.values(parameter)[0])) >= 0;
+        });
+
+        return fileParameters.length > 0;
+    }
+
+    static methodRequireData(serviceInfo: any): boolean {
+        let fileParameters = _.filter(serviceInfo.parameters, function (parameter: string) {
+            return ["inputFile"].indexOf(String(_.values(parameter)[0])) >= 0;
         });
 
         return fileParameters.length > 0;
     }
 
     /**
-     * check if a method requires data
+     * check if a method requires json
      * 
      * @static
      * @param {*} serviceInfo the service information
@@ -125,9 +133,9 @@ export class ServicesInfoHelper {
      * 
      * @memberOf ServicesInfoHelper
      */
-    static methodRequireData(serviceInfo: any) : boolean {
-        let fileParameters = _.filter(serviceInfo.parameters, function(parameter: string){
-            return ["json"].indexOf(_.keys(parameter)[0]) >= 0;
+    static methodRequireJson(serviceInfo: any): boolean {
+        let fileParameters = _.filter(serviceInfo.parameters, function (parameter: string) {
+            return ["json"].indexOf(String(_.values(parameter)[0])) >= 0;
         });
         return fileParameters.length > 0;
     }

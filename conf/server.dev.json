@@ -52,6 +52,7 @@
     "testPath":"/data/testData",
     "jsonPath":"/data/json",
     "imageInfoFile": "/data/images/imageInfo.json",
+    "dataInfoFile":"/data/data/dataInfo.json",
     "rootInfoFile":"/data/json/info.json",
     "servicesInfoFile":"/data/json/services.json",
     "swaggerFile": "/data/json/swagger.json",

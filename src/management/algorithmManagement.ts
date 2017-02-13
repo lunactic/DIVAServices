@@ -126,6 +126,10 @@ export class AlgorithmManagement {
                                 type: "collection",
                                 value: "test"
                             }],
+                            data: [{
+                                type: "collection",
+                                value: "test"
+                            }],
                             inputs: inputs
                         }
                     };
@@ -138,16 +142,11 @@ export class AlgorithmManagement {
                         QueueHandler.runningDockerJobs.push(job);
                         ExecutableHelper.executeDockerRequest(job, function (error: any, data: any) {
                             if (error == null) {
-                                if (!data) {
-                                    Logger.log("error", "did not receive any data from the method", "AlgorithmManagement");
-                                    AlgorithmManagement.updateStatus(identifier, "error", null, "Method did not return any data");
-                                } else {
-                                    AlgorithmManagement.updateRootInfoFile(req.body, route);
-                                    AlgorithmManagement.createInfoFile(req.body, nconf.get("paths:jsonPath") + path.sep + route);
-                                    //Add to swagger
-                                    let info = IoHelper.openFile(nconf.get("paths:jsonPath") + path.sep + route + path.sep + "info.json");
-                                    Swagger.createEntry(info, route);
-                                }
+                                AlgorithmManagement.updateRootInfoFile(req.body, route);
+                                AlgorithmManagement.createInfoFile(req.body, nconf.get("paths:jsonPath") + path.sep + route);
+                                //Add to swagger
+                                let info = IoHelper.openFile(nconf.get("paths:jsonPath") + path.sep + route + path.sep + "info.json");
+                                Swagger.createEntry(info, route);
                             }
                         });
                     });
@@ -190,7 +189,7 @@ export class AlgorithmManagement {
      */
     static getStatusByRoute(route: string): any {
         let content = IoHelper.openFile(nconf.get("paths:servicesInfoFile"));
-        let status = _.find(content.services, { "path": route });
+        let status = _.find(content.services, { "baseRoute": route });
         if (status != null) {
             return status;
         } else {
@@ -356,8 +355,9 @@ export class AlgorithmManagement {
      */
     static removeFromServiceInfoFile(route: string): void {
         let fileContent = IoHelper.openFile(nconf.get("paths:servicesInfoFile"));
-        _.remove(fileContent.services, { "path": route });
+        _.remove(fileContent.services, { "baseRoute": route });
         IoHelper.saveFile(nconf.get("paths:servicesInfoFile"), fileContent, "utf8", null);
+        ServicesInfoHelper.reload();
     }
 
     /**
@@ -488,6 +488,30 @@ export class AlgorithmManagement {
         }
     }
 
+    static hasRemotePath(identifier: string, parameterName: string): boolean {
+        let content = IoHelper.openFile(nconf.get("paths:servicesInfoFile"));
+        if (identifier != null && _.find(content.services, { "identifier": identifier }) != null) {
+            let currentInfo: any = _.find(content.services, { "identifier": identifier });
+            let remotePath = _.find(currentInfo.remotePaths, function (path) {
+                return _.keys(path)[0] === parameterName;
+            });
+            return remotePath != null;
+        }
+        return false;
+    }
+
+    static getRemotePath(identifier: string, parameterName: string): string {
+        let content = IoHelper.openFile(nconf.get("paths:servicesInfoFile"));
+        if (identifier != null && _.find(content.services, { "identifier": identifier }) != null) {
+            let currentInfo: any = _.find(content.services, { "identifier": identifier });
+            let remotePath = _.find(currentInfo.remotePaths, function (path) {
+                return _.keys(path)[0] === parameterName;
+            });
+            return String(_.values(remotePath)[0]);
+        }
+        return "";
+    }
+
     /**
      * record an execution exception for an algorithm
      * 
@@ -544,7 +568,10 @@ export class AlgorithmManagement {
     static updateServicesFile(algorithm: any, identifier: string, route: string, imageName: string, version: number, baseRoute: string): void {
         //TODO make changes for docker or create a separate method
         ServicesInfoHelper.reload();
-        if ((this.getStatusByIdentifier(identifier) == null) && (this.getStatusByRoute(route) == null)) {
+        if (this.getStatusByIdentifier(identifier) != null || this.getStatusByRoute(baseRoute) != null) {
+            this.removeFromServiceInfoFile(baseRoute);
+        }
+        if ((this.getStatusByIdentifier(identifier) == null) && (this.getStatusByRoute(baseRoute) == null)) {
             let newContent = _.cloneDeep(ServicesInfoHelper.fileContent);
             let parameters: any = [];
             _.forEach(algorithm.input, function (input: any, key: any) {

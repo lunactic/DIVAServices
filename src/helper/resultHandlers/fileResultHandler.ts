@@ -121,12 +121,13 @@ export class FileResultHandler implements IResultHandler {
                                     }
                                     delete file.file.content;
                                 } else {
-                                    IoHelper.saveFile(process.outputFolder + path.sep + file.file.filename, file.file.content, "base64", null);
+                                    IoHelper.saveFile(process.outputFolder + path.sep + file.file.name, file.file.content, "base64", null);
                                     if (process.hasImages) {
                                         file.file["url"] = IoHelper.getStaticImageUrl(process.rootFolder + path.sep + process.methodFolder, file.file.name);
                                     } else if (process.hasFiles) {
                                         file.file["url"] = IoHelper.getStaticDataUrl(process.rootFolder + path.sep + process.methodFolder, file.file.name);
                                     }
+                                    delete file.file.content;
                                 }
                             }
                             //check if a visualization is available

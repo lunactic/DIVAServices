@@ -1,9 +1,11 @@
+import { DivaData } from '../models/divaData';
 /**
  * Created by lunactic on 02.11.16.
  */
 
 "use strict";
 import { DivaImage } from "../models/divaImage";
+import {DivaData} from "../models/divaData";
 import { IoHelper } from "../helper/ioHelper";
 import IProcess = require("./iProcess");
 import IResultHandler = require("../helper/resultHandlers/iResultHandler");
@@ -67,6 +69,14 @@ export class Process implements IProcess {
      * @memberOf Process
      */
     public image: DivaImage;
+
+    /**
+     * the input data
+     * 
+     * @type {DivaData}
+     * @memberOf Process
+     */
+    public data: DivaData;
 
     /**
      * the root folder
@@ -195,6 +205,16 @@ export class Process implements IProcess {
      * @memberOf Process
      */
     public outputImageUrl: string;
+
+    /**
+     * the static url to the input data
+     */
+    public inputDataUrl: string;
+
+    /**
+     * the static url to the output data
+     */
+    public outputDataUrl: string;
 
     /**
      * the computed results

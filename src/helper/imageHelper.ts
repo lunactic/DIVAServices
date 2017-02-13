@@ -133,9 +133,9 @@ export class ImageHelper {
      * @memberOf ImageHelper
      */
     static saveJson(image: any, process: Process, filename: string) {
-        process.image.extension = this.getImageExtensionBase64(image);
         let base64Data = image.replace(/^data:image\/png;base64,/, "");
-        fs.writeFileSync(process.outputFolder + path.sep + filename + "." + process.image.extension, base64Data, "base64");
+        let extension = this.getImageExtensionBase64(base64Data);
+        fs.writeFileSync(process.outputFolder + path.sep + filename + "." + extension, base64Data, "base64");
     }
 
     /**

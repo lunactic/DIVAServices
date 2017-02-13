@@ -94,6 +94,8 @@ jsonFolder=($(cat conf/server.dev.json | jq -r '.paths.jsonPath'))
 mkdir -p ${jsonFolder}
 ocropyLanguageModelsFolder=($(cat conf/server.dev.json | jq -r '.paths.ocropyLanguageModelsPath'))
 mkdir -p ${ocropyLanguageModelsFolder}
+dataFolder=($(cat conf/server.dev.json | jq -r '.paths.dataRootPath'))
+mkdir -p ${dataFolder}
 executableFolder=($(cat conf/server.dev.json | jq -r '.paths.executablePath'))
 mkdir -p ${executableFolder}
 mkdir -p ${imageFolder}/test/original
@@ -104,6 +106,8 @@ imageInfoFile=($(cat conf/server.dev.json | jq -r '.paths.imageInfoFile'))
 echo '[ {"md5":"1e5300b94a45423592a0f9011a63ba2a", "file":"/data/images/test/original/input0.jpg", "collection":"test"} ]' > ${imageInfoFile}
 servicesInfoFile=($(cat conf/server.dev.json | jq -r '.paths.servicesInfoFile'))
 echo '{"services":[]}' > ${servicesInfoFile}
+dataInfoFile=($(cat conf/server.dev.json | jq -r '.paths.dataInfoFile'))
+echo '[]' > ${dataInfoFile}
 rootInfoFile=($(cat conf/server.dev.json | jq -r '.paths.rootInfoFile'))
 echo "[]" > ${rootInfoFile}
 swaggerInfoFile=($(cat conf/server.dev.json | jq -r '.paths.swaggerFile'))

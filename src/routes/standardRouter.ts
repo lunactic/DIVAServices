@@ -7,6 +7,7 @@ import * as async from "async";
 import { IiifManifestParser } from "../parsers/iiifManifestParser";
 import * as express from "express";
 import { ImageHelper } from "../helper/imageHelper";
+import { DataHelper } from "../helper/dataHelper";
 import { RandomWordGenerator } from "../randomizer/randomWordGenerator";
 import { IoHelper } from "../helper/ioHelper";
 import { Logger } from "../logging/logger";
@@ -18,6 +19,7 @@ import { AlgorithmManagement } from "../management/algorithmManagement";
 import { SchemaValidator } from "../validator/schemaValidator";
 import md5 = require("md5");
 import { DivaImage } from "../models/divaImage";
+import { DivaData } from "../models/divaData";
 import { PostHandler } from "./postHandler";
 import { GetHandler } from "./getHandler";
 
@@ -99,11 +101,48 @@ router.post("/upload", function (req: express.Request, res: express.Response) {
     });
 });
 
+router.post("/uploadData", function (req: express.Request, res: express.Response) {
+    let numOfDataItems: number = 0;
+    let counter: number = 0;
+    async.each(req.body.data, function (item: any, callback: Function) {
+        switch (item.type) {
+            case "base64":
+            case "url":
+                numOfDataItems++;
+                callback();
+                break;
+        }
+    }, function (error: any) {
+        let collectionName = RandomWordGenerator.generateRandomWord();
+        IoHelper.createDataCollectionFolders(collectionName);
+        DataHelper.createCollectionInformation(collectionName, numOfDataItems);
+        //Create a data helper
+        send200(res, { collection: collectionName });
+        let process = {
+            rootFolder: collectionName
+        };
+        let dataCounter: number = 0;
+        req.body.data.forEach((item: any, index: number) => {
+            switch (item.type) {
+                case "url":
+                    DataHelper.saveUrl(item.value, collectionName, item.extension, dataCounter, function (dataItem: DivaData) {
+                        //add to data info
+                        //update data collection information
+                        DataHelper.addDataInfo(dataItem.md5, dataItem.path, collectionName);
+                        DataHelper.updateCollectionInformation(collectionName, numOfDataItems, dataCounter);
+                    });
+                    dataCounter++;
+                    break;
+            }
+        });
+    });
+})
+
 router.post("/jobs/:jobId", function (req: express.Request, res: express.Response) {
     Logger.log("info", "jobs route called", "StandardRouter");
     let process = Statistics.getProcess(req.params.jobId);
     if (process != null) {
-        Statistics.endRecording(req.params.jobId, process.req.originalUrl);
+        //Statistics.endRecording(req.params.jobId, process.req.originalUrl);
         async.waterfall([
             function (callback: Function) {
                 process.result = req.body;

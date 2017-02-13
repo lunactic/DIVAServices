@@ -276,13 +276,9 @@ export class IoHelper {
      * 
      * @memberOf IoHelper
      */
-    static createDataCollectionFolders(service: any): void {
-        let rootFolder = nconf.get("paths:dataRootPath") + path.sep + service.service + path.sep + "original";
-        fse.mkdirs(rootFolder, function (error: Error) {
-            if (error != null) {
-                Logger.log("error", JSON.stringify(error), "IoHelper");
-            }
-        });
+    static createDataCollectionFolders(collection: string): void {
+        let rootFolder = nconf.get("paths:dataRootPath") + path.sep + collection + path.sep + "original";
+        fse.mkdirpSync(rootFolder);
     }
 
     /**
@@ -295,7 +291,7 @@ export class IoHelper {
      */
     static createImageCollectionFolders(collection: string): void {
         let rootFolder = nconf.get("paths:imageRootPath") + path.sep + collection + path.sep + "original";
-        fse.mkdirsSync(rootFolder);
+        fse.mkdirpSync(rootFolder);
     }
 
     /**
@@ -319,15 +315,16 @@ export class IoHelper {
      * get the output folder for a data collection
      * 
      * @static
+     * @param {string} rootFolder the root folder of the collection
      * @param {*} service the service information
      * @param {boolean} unique indicating wheter or not there can be multiple computations
      * @returns {string} the path of the folder
      * 
      * @memberOf IoHelper
      */
-    static getOutputFolderForData(service: any, unique: boolean): string {
+    static getOutputFolderForData(rootFolder: string, service: any, unique: boolean): string {
         let dataPath = nconf.get("paths:dataRootPath");
-        let rootPath = dataPath + path.sep + service.service;
+        let rootPath = dataPath + path.sep + rootFolder;
         return IoHelper.getOutputFolder(rootPath, service, unique);
 
     }
