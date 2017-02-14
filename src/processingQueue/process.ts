@@ -1,4 +1,3 @@
-import { DivaData } from '../models/divaData';
 /**
  * Created by lunactic on 02.11.16.
  */

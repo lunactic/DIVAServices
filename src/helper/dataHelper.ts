@@ -111,7 +111,7 @@ export class DataHelper {
                             fs.unlink(dataPath + path.sep + "temp_" + counter + "." + imgExtension);
                             callback(null, data);
                         } else if (err.code === "ENOENT") {
-                            fs.renameSync(dataPath + path.sep + "temp_" + counter + "." + imgExtension, image.path);
+                            fs.renameSync(dataPath + path.sep + "temp_" + counter + "." + imgExtension, data.path);
                         }
                     });
                 });

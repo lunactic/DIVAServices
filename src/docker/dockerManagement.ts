@@ -194,7 +194,7 @@ export class DockerManagement {
         //add all parameters
         algorithmInfos.input.forEach((input: any, index: number) => {
             let key = _.keys(algorithmInfos.input[index])[0];
-            let value = _.values(algorithmInfos.input[index])[0].name;
+            let value = ((_.values(algorithmInfos.input[index])[0]) as any).name;
             if (nconf.get("reservedWords").indexOf(key) >= 0 && nconf.get("docker:replacePaths").indexOf(key) >= 0) {
                 content += this.getDockerInput(key) + " ";
                 inputCount++;
