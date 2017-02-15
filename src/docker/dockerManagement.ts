@@ -170,8 +170,8 @@ export class DockerManagement {
             if (['json', 'file', 'inputFile'].indexOf(key) >= 0) {
                 //TODO fix this to use the correct input number of the input image
                 content += 'curl -o /data/' + input[key].name + '.' + input[key].options.fileType + ' $' + (inputCount + index) + os.EOL;
+                AlgorithmManagement.addRemotePath(identifier, input[key].name, "/data/" + input[key].name + "." + input[key].options.fileType);
                 //AlgorithmManagement.addUrlParameter(identifier, input[key].name + "url");
-                //AlgorithmManagement.addRemotePath(identifier, input[key].name, "/data/" + input[key].name + "." + input[key].options.fileType);
             } else if (key === 'inputImage') {
                 content += 'curl -o /data/inputImage.png $' + (inputCount + index) + os.EOL;
             }
@@ -255,7 +255,7 @@ export class DockerManagement {
         for (let key in params) {
             if (params.hasOwnProperty(key)) {
                 let value = params[key];
-                 if (key === "highlighter") {
+                if (key === "highlighter") {
                     //handle highlighters
                     executableString += _.map(params.highlighter.split(" "), function (item: any) {
                         return item;
