@@ -217,7 +217,8 @@ export class DockerManagement {
         if (algorithmInfos.method.executableType === "matlab") {
             content += '1> /data/result.json' + os.EOL;
         } else {
-            content += '1> /data/result.json 2> /data/error.txt' + os.EOL;
+            content += '1> /data/result.json' + os.EOL;
+            //content += '1> /data/result.json 2> /data/error.txt' + os.EOL;
         }
         //add the response sending information
         content += 'if [ -s "/data/error.txt" ]' + os.EOL;
