@@ -123,11 +123,11 @@ export class DockerManagement {
         switch (nconf.get("baseImages:" + algorithmInfos.method.environment)) {
             case "apk":
                 content += 'RUN apk update' + os.EOL +
-                    'RUN apk add curl' + os.EOL;
+                    'RUN apk add curl bash' + os.EOL;
                 break;
             case "apt":
                 content += 'RUN apt-get update' + os.EOL +
-                    'RUN apt-get install jq wget unzip curl -y' + os.EOL;
+                    'RUN apt-get install bash jq wget unzip curl -y' + os.EOL;
                 break;
         }
 
@@ -157,7 +157,7 @@ export class DockerManagement {
      * @param {outputFolder} outputFolder
      */
     static createBashScript(identifier: string, algorithmInfos: any, outputFolder: string): void {
-        let content: string = '#!/bin/sh' + os.EOL;
+        let content: string = '#!/bin/bash' + os.EOL;
 
         //input count starts with 3. Params 1 and 2 are fix used
         // 1: resultResponseUrl

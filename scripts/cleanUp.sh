@@ -28,6 +28,7 @@ executableFolder=($(cat conf/server.dev.json | jq -r '.paths.executablePath'))
 mkdir -p ${dataFolder}
 mkdir -p ${executableFolder}
 mkdir -p ${imageFolder}/test/original
+mkdir -p ${dataFolder}/test/original
 
 header "Creating Files"
 imageInfoFile=($(cat conf/server.dev.json | jq -r '.paths.imageInfoFile'))
@@ -35,7 +36,7 @@ imageInfoFile=($(cat conf/server.dev.json | jq -r '.paths.imageInfoFile'))
 echo '[ {"md5":"1e5300b94a45423592a0f9011a63ba2a", "file":"/data/images/test/original/input0.jpg", "collection":"test"} ]' > ${imageInfoFile}
 
 dataInfoFile=($(cat conf/server.dev.json | jq -r '.paths.dataInfoFile'))
-echo '[]' > ${dataInfoFile}
+echo '[ {"md5":"1e5300b94a45423592a0f9011a63ba2a", "file":"/data/data/test/original/input.zip", "collection":"test"} ]' > ${dataInfoFile}
 
 servicesInfoFile=($(cat conf/server.dev.json | jq -r '.paths.servicesInfoFile'))
 echo '{"services":[]}' > ${servicesInfoFile}
@@ -48,3 +49,4 @@ cp conf/swagger.json ${swaggerInfoFile}
 
 header "Copying Files"
 cp /data/input0.jpg ${imageFolder}/test/original/
+cp /data/input.zip ${dataFolder}/test/original/
