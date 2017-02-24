@@ -100,11 +100,11 @@ export class FileResultHandler implements IResultHandler {
                             let visualization: boolean = false;
                             for (let file of files) {
                                 if (file.file["mime-type"].startsWith("image")) {
-                                    ImageHelper.saveJson(file.file.content, process, file.file.name + "_" + process.number);
+                                    ImageHelper.saveJson(file.file.content, process, file.file.name);
                                     if (process.hasImages) {
-                                        file.file["url"] = IoHelper.getStaticImageUrl(process.rootFolder + path.sep + process.methodFolder, file.file.name + "_" + process.number  + "." + ImageHelper.getImageExtensionBase64(file.file.content));
+                                        file.file["url"] = IoHelper.getStaticImageUrl(process.rootFolder + path.sep + process.methodFolder, file.file.name);
                                     } else if (process.hasFiles) {
-                                        file.file["url"] = IoHelper.getStaticDataUrl(process.rootFolder + path.sep + process.methodFolder, file.file.name + "txt");
+                                        file.file["url"] = IoHelper.getStaticDataUrl(process.rootFolder + path.sep + process.methodFolder, file.file.name);
                                     }
 
                                     if (file.file.options.visualization) {
@@ -113,11 +113,11 @@ export class FileResultHandler implements IResultHandler {
                                     }
                                     delete file.file.content;
                                 } else if (file.file["mime-type"] === "text/plain") {
-                                    IoHelper.saveFile(process.outputFolder + path.sep + file.file.name + "_" + process.number  + ".txt", file.file.content, "utf8", null);
+                                    IoHelper.saveFile(process.outputFolder + path.sep + file.file.name, file.file.content, "utf8", null);
                                     if (process.hasImages) {
-                                        file.file["url"] = IoHelper.getStaticImageUrl(process.rootFolder + path.sep + process.methodFolder, file.file.name + "_" + process.number  + ".txt");
+                                        file.file["url"] = IoHelper.getStaticImageUrl(process.rootFolder + path.sep + process.methodFolder, file.file.name);
                                     } else if (process.hasFiles) {
-                                        file.file["url"] = IoHelper.getStaticDataUrl(process.rootFolder + path.sep + process.methodFolder, file.file.name + "_" + process.number  + ".txt");
+                                        file.file["url"] = IoHelper.getStaticDataUrl(process.rootFolder + path.sep + process.methodFolder, file.file.name);
                                     }
                                     delete file.file.content;
                                 } else {
