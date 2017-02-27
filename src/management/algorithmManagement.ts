@@ -574,14 +574,17 @@ export class AlgorithmManagement {
         if ((this.getStatusByIdentifier(identifier) == null) && (this.getStatusByRoute(baseRoute) == null)) {
             let newContent = _.cloneDeep(ServicesInfoHelper.fileContent);
             let parameters: any = [];
+            let fileCount: number = 0;
             _.forEach(algorithm.input, function (input: any, key: any) {
                 let inputType = _.keys(input)[0];
                 key = _.get(algorithm, "input[" + key + "]." + inputType + ".name", inputType);
                 let info: any = {};
+                if(key === 'file'){
+                    fileCount++;
+                }
                 info[key] = inputType;
                 parameters.push(info);
             });
-
             let newServiceEntry = {
                 service: route.replace(/\//g, "").toLowerCase(),
                 baseRoute: "/" + baseRoute,
@@ -589,6 +592,7 @@ export class AlgorithmManagement {
                 path: "/" + route,
                 executablePath: nconf.get("paths:executablePath") + path.sep + route + path.sep + algorithm.method.executable_path,
                 allowParallel: true,
+                hasMultipleFiles: (fileCount > 1),
                 output: "file",
                 execute: "docker",
                 executableType: algorithm.method.executableType,

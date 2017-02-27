@@ -30,7 +30,7 @@
         "minLength": 3,
         "maxLength": 255
       },
-      "inputFile": {
+      "file": {
         "type": "object",
         "required": [
           "name",
@@ -48,16 +48,13 @@
             "type": "object",
             "required": [
               "required",
-              "default"
+              "mimeType"
             ],
             "properties": {
               "required": {
                 "type": "boolean"
               },
-              "default": {
-                "type": "string"
-              },
-              "fileType": {
+              "mimeType": {
                 "type": "string"
               }
             }
@@ -105,33 +102,6 @@
           }
         },
         "additionalProperties": false
-      },
-      "json": {
-        "type": "object",
-        "required": [
-          "name",
-          "description",
-          "options"
-        ],
-        "properties": {
-          "name": {
-            "$ref": "#/definitions/name"
-          },
-          "description": {
-            "$ref": "#/definitions/description"
-          },
-          "options": {
-            "type": "object",
-            "required": [
-              "required"
-            ],
-            "properties": {
-              "required": {
-                "type": "boolean"
-              }
-            }
-          }
-        }
       },
       "text": {
         "type": "object",
@@ -329,14 +299,8 @@
             "checkbox": {
               "$ref": "#/definitions/checkbox"
             },
-            "json": {
-              "$ref": "#/definitions/json"
-            },
-            "inputImage": {
-              "type": "object"
-            },
-            "inputFile": {
-              "$ref": "#/definitions/inputFile"
+            "file": {
+              "$ref": "#/definitions/file"
             },
             "outputImage": {
               "type": "object"

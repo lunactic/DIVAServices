@@ -14,7 +14,7 @@ import IResultHandler = require("./iResultHandler");
 import {Process} from "../../processingQueue/process";
 
 /**
- * A Result Hanlder that reads the results from a file
+ * A Result Handler that reads the results from a file
  */
 export class FileResultHandler implements IResultHandler {
     filename: string;
@@ -30,8 +30,8 @@ export class FileResultHandler implements IResultHandler {
     /**
      * Handling errors
      * 
-     * @param {*} error the error that occured
-     * @param {Process} process the process the error occured in
+     * @param {*} error the error that occurred
+     * @param {Process} process the process the error occurred in
      * 
      * @memberOf FileResultHandler
      */
