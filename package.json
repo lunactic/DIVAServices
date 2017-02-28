@@ -58,6 +58,7 @@
     "log4js": "^1.0.1",
     "manifesto.js": "^0.2.1",
     "md5": "^2.2.1",
+    "mime-types": "^2.1.14",
     "morgan": "^1.7.0",
     "nconf": "^0.8.4",
     "object-hash": "^1.1.4",

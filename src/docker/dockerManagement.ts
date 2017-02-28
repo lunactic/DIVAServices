@@ -13,6 +13,7 @@ import { ResultHelper } from "../helper/resultHelper";
 import { Logger } from "../logging/logger";
 let DOCKER = require("dockerode");
 let sequest = require("sequest");
+let mime = require("mime-types");
 import * as os from "os";
 import { Process } from "../processingQueue/process";
 
@@ -170,7 +171,7 @@ export class DockerManagement {
             if (['json', 'file', 'inputFile'].indexOf(key) >= 0) {
                 //TODO fix this to use the correct input number of the input image
                 content += 'curl -o /data/' + input[key].name + '.' + input[key].options.fileType + ' $' + (inputCount + index) + os.EOL;
-                AlgorithmManagement.addRemotePath(identifier, input[key].name, "/data/" + input[key].name + "." + input[key].options.fileType);
+                AlgorithmManagement.addRemotePath(identifier, input[key].name, "/data/" + input[key].name + "." + mime.extension(input[key].options.mimeType));
                 //AlgorithmManagement.addUrlParameter(identifier, input[key].name + "url");
             } else if (key === 'inputImage') {
                 content += 'curl -o /data/inputImage.png $' + (inputCount + index) + os.EOL;

@@ -61,21 +61,6 @@ export class Process implements IProcess {
      */
     public method: string;
 
-    /**
-     * the input image
-     * 
-     * @type {DivaImage}
-     * @memberOf Process
-     */
-    public image: DivaImage;
-
-    /**
-     * the input data
-     * 
-     * @type {DivaData}
-     * @memberOf Process
-     */
-    public data: DivaData;
 
     /**
      * the root folder
@@ -110,6 +95,14 @@ export class Process implements IProcess {
     public neededParameters: any;
 
     /**
+     * the needed data for the method
+     * 
+     * @type {*}
+     * @memberOf Process
+     */
+    public neededData: any;
+
+    /**
      * the provided input parameters
      * 
      * @type {*}
@@ -134,12 +127,26 @@ export class Process implements IProcess {
     public inputFolder: string;
 
     /**
-     * the matched parameters
+     * the global parameter values
      * 
      * @type {*}
      * @memberOf Process
      */
     public parameters: any;
+
+    /**
+     * the data to use
+     * @type {*}
+     * @memberOf Process
+     */
+    public data: any;
+
+    /**
+     * All paramater values in the correct order
+     * @type {*}
+     * @memberOf Process
+     */
+    public matchedParameters: any;
 
     /**
      * the type of the program
@@ -189,33 +196,7 @@ export class Process implements IProcess {
      */
     public tmpResultFile: string;
 
-    /**
-     * the static url to the input image
-     * 
-     * @type {string}
-     * @memberOf Process
-     */
-    public inputImageUrl: string;
-
-    /**
-     * the static url to the output image
-     * 
-     * @type {string}
-     * @memberOf Process
-     */
-    public outputImageUrl: string;
-
-    /**
-     * the static url to the input data
-     */
-    public inputDataUrl: string;
-
-    /**
-     * the static url to the output data
-     */
-    public outputDataUrl: string;
-
-    /**
+     /**
      * the computed results
      * 
      * @type {*}
@@ -279,22 +260,7 @@ export class Process implements IProcess {
      */
     public stdin: any;
 
-    /**
-     * process requires input files
-     * 
-     * @type {boolean}
-     * @memberOf Process
-     */
-    public hasFiles: boolean;
-
-    /**
-     * process requires input images
-     * 
-     * @type {boolean}
-     * @memberOf Process
-     */
-    public hasImages: boolean;
-
+  
     /**
      * Creates an instance of Process.
      * 
@@ -302,8 +268,6 @@ export class Process implements IProcess {
      * @memberOf Process
      */
     constructor() {
-        this.hasFiles = false;
-        this.hasImages = false;
     }
 
     /**
@@ -314,10 +278,6 @@ export class Process implements IProcess {
      * @memberOf Process
      */
     buildGetUrl(): string {
-        if (this.hasImages) {
-            return IoHelper.getStaticImageUrlFull(this.resultFile);
-        } else {
-            return IoHelper.getStaticDataUrlFull(this.resultFile);
-        }
+        return IoHelper.getStaticImageUrlFull(this.resultFile);
     }
 }

@@ -9,9 +9,10 @@ import * as fs from "fs";
 import * as nconf from "nconf";
 import * as path from "path";
 import * as hash from "object-hash";
-import {IoHelper} from "./ioHelper";
-import {Logger} from "../logging/logger";
-import {Process} from "../processingQueue/process";
+import { IoHelper } from "./ioHelper";
+import { Logger } from "../logging/logger";
+import { Process } from "../processingQueue/process";
+import { Collection } from "../processingQueue/collection";
 import IProcess = require("../processingQueue/iProcess");
 
 /**
@@ -41,18 +42,8 @@ export class ParameterHelper {
      * 
      * @memberOf ParameterHelper
      */
-    static getReservedParamValue(parameter: string, process: Process, req: any): string {
+    static getReservedParamValue(parameter: string, process: IProcess, req: any): string {
         switch (parameter) {
-            case "inputFileExtension":
-                return path.extname(process.image.path).slice(1);
-            case "inputFolder":
-                return process.inputFolder;
-            case "inputImage":
-                return process.image.path;
-            case "inputImageUrl":
-                return process.image.getImageUrl(process.image.md5);
-            case "imageRootPath":
-                return nconf.get("paths:imageRootPath");
             case "outputFolder":
                 return process.outputFolder;
             case "host":
@@ -64,67 +55,98 @@ export class ParameterHelper {
         }
     }
 
-    /**
-     * perform parameter matching
-     * 
-     * this method checks what parameters are needed and matches them to the provided parameters from the POST request
-     * 
-     * @static
-     * @param {Process} process the process to execute
-     * @param {*} req the incoming POST request
-     * @param {Function} cb the callback function
-     * 
-     * @memberOf ParameterHelper
-     */
-    static matchParams(process: Process, req: any, cb: Function): void {
-        let params = {};
-        let outputParams = {};
+
+    static async matchCollectionParams(collection: Collection, req: any): Promise<void> {
         let self = this;
-        process.neededParameters.forEach(function (neededParameter: any, key: any) {
-            //build parameters
-            let paramKey = _.keys(neededParameter)[0];
-            let paramValue = neededParameter[paramKey];
-            if (self.checkReservedParameters(paramKey) || self.checkReservedParameters(paramValue)) {
-                //check if highlighter
-                let value = self.getParamValue(paramKey, process.inputParameters);
-                switch (paramValue) {
-                    case 'inputFile':
-                        params[paramKey] = process.inputDataUrl;
-                        outputParams[paramKey] = process.inputDataUrl;
-                        break;
-                    case 'highlighter':
-                        params[paramKey] = self.getHighlighterParamValues(process.inputHighlighters.type, process.inputHighlighters.segments);
-                        break;
-                    case 'inputImage':
-                        params[paramKey] = process.inputImageUrl;
-                        outputParams[paramKey] = process.inputImageUrl;
-                        break;
-                    default:
-                        params[paramKey] = self.getReservedParamValue(paramKey, process, req);
-                        break;
-                }
-            } else {
-                //handle json
-                let value = self.getParamValue(paramKey, process.inputParameters);
-                if (value != null) {
-                    if (paramValue === "json") {
-                        //TODO Fix here with counter
-                        let jsonFile = process.outputFolder + path.sep + "jsonInput.json";
-                        IoHelper.saveFile(jsonFile, value, "utf8", null);
-                        params[paramKey] = jsonFile;
-                        outputParams[paramKey] = jsonFile;
-                    } else {
-                        params[paramKey] = value;
-                        outputParams[paramKey] = value;
+        return new Promise<void>((resolve, reject) => {
+            let params = {};
+            let outputParams = {};
+            collection.neededParameters.forEach(function (neededParameter: any, key: any) {
+                let paramKey = _.keys(neededParameter)[0];
+                let paramValue = neededParameter[paramKey];
+                if (self.checkReservedParameters(paramKey) || self.checkReservedParameters(paramValue)) {
+                    switch (paramValue) {
+                        case 'highlighter':
+                            params[paramKey] = self.getHighlighterParamValues(collection.inputHighlighters.type, collection.inputHighlighters.segments);
+                            break;
+                        default:
+                            params[paramKey] = self.getReservedParamValue(paramKey, collection, req);
                     }
+                } else {
+                    let value = self.getParamValue(paramKey, collection.inputParameters);
+                    params[paramKey] = value;
+                    outputParams[paramKey] = value;
+                }
+            });
+            let result = {
+                params: params,
+                outputParams: outputParams
+            };
+            collection.parameters = result;
+            resolve();
+        });
+
+    }
+
+    static async matchProcessData(process: Process, element: any): Promise<void> {
+        return new Promise<void>((resolve, reject) => {
+            let data = {};
+            let needed: boolean = true;
+            for (let key of Object.keys(element)) {
+                let found: any = _.find(process.neededData, function (item: any) {
+                    return Object.keys(item)[0] === key;
+                });
+                needed = Object.keys(found).length > 0;
+                if (needed) {
+                    let value = element[key];
+                    data[key] = value;
+                    _.remove(process.neededData, function (item: any) {
+                        return Object.keys(item)[0] === key;
+                    });
+                } else {
+                    Logger.log("error", "provided unnecessary data", "ParameterHelper");
                 }
             }
+            if (process.neededData.length > 0) {
+                Logger.log("error", "did not receive data for all data parameters", "ParameterHelper");
+            }
+            process.data = data;
+            resolve();
         });
-        let result = {
-            params: params,
-            outputParams: outputParams
-        };
-        cb(result);
+    }
+
+    static async matchOrder(process: Process): Promise<void> {
+        return new Promise<void>((resolve, reject) => {
+            for (let paramMatch of process.matchedParameters) {
+                //check if key is in global parameters
+                let searchKey = Object.keys(paramMatch)[0];
+                let globalParams = _.find(process.parameters.params, function (item: any) {
+                    return Object.keys(item)[0] === searchKey;
+                });
+                if (globalParams != undefined && Object.keys(globalParams).length > 0) {
+                                        let replaceObj = _.find(process.matchedParameters, function(item: any){
+                        return Object.keys(item)[0] === searchKey;
+                    });
+                    replaceObj[searchKey] = globalParams[searchKey];
+                }
+                //check if key is in data parameters
+                let dataParams = _.pickBy(process.data, function(value: any, key: string){
+                    return key === searchKey;
+                });
+
+                if (dataParams != undefined && Object.keys(dataParams).length > 0) {
+                    let replaceObj = _.find(process.matchedParameters, function(item: any){
+                        return Object.keys(item)[0] === searchKey;
+                    });
+                    replaceObj[searchKey] = dataParams[searchKey];
+                }
+                //if not found ==> throw error
+                
+            }
+            resolve();
+        })
+
+
     }
 
     /**
@@ -223,7 +245,7 @@ export class ParameterHelper {
             fs.statSync(methodPath).isFile();
             let content = IoHelper.openFile(methodPath);
             //only save the information if it is not already present
-            if (_.filter(content, {"parameters": data.parameters, "highlighters": data.highlighters}).length > 0) {
+            if (_.filter(content, { "parameters": data.parameters, "highlighters": data.highlighters }).length > 0) {
                 content.push(data);
                 IoHelper.saveFile(methodPath, content, "utf8", null);
             }
@@ -262,9 +284,9 @@ export class ParameterHelper {
             let content = IoHelper.openFile(paramPath);
             let info: any = {};
             if ((info = _.filter(content, {
-                    "hash": data.hash,
-                    "highlighters": data.highlighters
-                })).length > 0) {
+                "hash": data.hash,
+                "highlighters": data.highlighters
+            })).length > 0) {
                 //found some method information
                 if (proc.hasImages) {
                     if (proc.image != null) {
@@ -306,10 +328,10 @@ export class ParameterHelper {
             let content = IoHelper.openFile(paramPath);
             let info: any = {};
             if (_.filter(content, {
-                    "parameters": data.hash,
-                    "highlighters": data.highlighters
-                }).length > 0) {
-                _.remove(content, {"parameters": data.hash, "highlighters": data.highlighters});
+                "parameters": data.hash,
+                "highlighters": data.highlighters
+            }).length > 0) {
+                _.remove(content, { "parameters": data.hash, "highlighters": data.highlighters });
                 IoHelper.saveFile(paramPath, content, "utf8", null);
             }
         } catch (error) {

@@ -5,6 +5,17 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "type": "node2",
+            "request": "launch",
+            "name": "Launch Program",
+            "program": "${workspaceRoot}/bin/www",
+            "cwd": "${workspaceRoot}",
+            "env": {
+                "NODE_ENV":"dev"
+            },
+            "sourceMaps": true
+        },
+        {
             "name": "Attach to Process",
             "type": "node",
             "request": "attach",

@@ -25,6 +25,7 @@ import { ResultHelper } from "./resultHelper";
 import { ServicesInfoHelper } from "./servicesInfoHelper";
 import { Statistics } from "../statistics/statistics";
 import { ProcessingQueue } from "../processingQueue/processingQueue";
+import { RandomWordGenerator } from "../randomizer/randomWordGenerator";
 import IResultHandler = require("./resultHandlers/iResultHandler");
 
 
@@ -174,300 +175,73 @@ export class ExecutableHelper extends EventEmitter {
      * @param {Function} requestCallback The callback for the incoming request
      * @param {Function} queueCallback The callback for the processing queue
      */
-    public preprocess(req: any, processingQueue: ProcessingQueue, executionType: string, requestCallback: Function, queueCallback: Function): void {
+    public async preprocess(req: any, processingQueue: ProcessingQueue, executionType: string, requestCallback: Function, queueCallback: Function) {
         let serviceInfo = ServicesInfoHelper.getInfoByPath(req.originalUrl);
         let collection = new Collection();
         collection.method = serviceInfo.service;
-        let self = this;
-        async.waterfall([
-            function (callback: Function) {
-                //STEP 1
-                let outputFolder = "";
-                if (ServicesInfoHelper.methodRequireImages(serviceInfo)) {
-                    if (req.body.images != null && req.body.images[0].type === "collection") {
-                        //run it on the whole collection
-                        collection.name = req.body.images[0].value;
-                        outputFolder = IoHelper.getOutputFolderForImages(collection.name, serviceInfo, serviceInfo.uniqueOnCollection);
-                        collection.hasImages = true;
-                    } else if (req.body.images != null && req.body.images[0].type === "image") {
-                        //run it on a single image
-                        collection.name = ImageHelper.getImageInfo(req.body.images[0].value).collection;
-                        outputFolder = IoHelper.getOutputFolderForImages(collection.name, serviceInfo, serviceInfo.uniqueOnCollection);
-                        collection.hasImages = true;
-                    } else {
-                        let err = {
-                            statusCode: 500,
-                            statusText: "This input type is not supported. The only supported type is collection"
-                        };
-                        Logger.log("error", "Unsupported input type", "ExecutableHelper");
-                        callback(err, null);
-                    }
-                } else if (ServicesInfoHelper.methodRequireData(serviceInfo)) {
-                    if (req.body.data != null && req.body.data[0].type === "collection") {
-                        collection.name = req.body.data[0].value;
-                        outputFolder = IoHelper.getOutputFolderForData(collection.name, serviceInfo, serviceInfo.uniqueOnCollection);
-                        collection.hasFiles = true;
-                        collection.hasImages = false;
-                    } else {
-                        let err = {
-                            statusCode: 500,
-                            statusText: "This input type is not supported. The only supported type is collection"
-                        };
-                        Logger.log("error", "Unsupported input type", "ExecutableHelper");
-                    }
-                } else if (ServicesInfoHelper.methodRequireJson(serviceInfo)) {
-                    collection.hasFiles = true;
-                    collection.name = serviceInfo.service;
-                    IoHelper.createDataCollectionFolders(collection.name);
-                    outputFolder = IoHelper.getOutputFolderForData(collection.name, serviceInfo, serviceInfo.uniqueOnCollection);
-                } else {
-                    collection.name = serviceInfo.service;
-                    IoHelper.createDataCollectionFolders(collection.name);
-                    outputFolder = IoHelper.getOutputFolderForData(collection.name, serviceInfo, serviceInfo.uniqueOnCollection);
-                }
-                collection.outputFolder = outputFolder;
-                if (req.body.images[0].type === "collection" || req.body.data[0].type === "collection") {
-                    self.preprocessCollection(collection, null, req, executionType, callback);
-                } else if (req.body.images[0].type === "image") {
-                    let hashes: string[] = [req.body.images[0].value];
-                    self.preprocessCollection(collection, hashes, req, executionType, callback);
-                }
-            }, function (collection: Collection, callback: Function) {
-                //step 2
-                if (collection.result != null) {
-                    //preprocess the unprocessed images
-                    //TODO get max number
-                    let processNumber: number = collection.result.results.length;
-                    let md5ToRemove = [];
-                    for (let process of collection.processes) {
-                        let result = _.filter(collection.result.results, function (item: any) {
-                            return item.md5 === process.image.md5;
-                        });
-                        if (result.length === 0) {
-                            self.preprocessImage(process, collection, req, serviceInfo, processNumber);
-                            processNumber = processNumber + 1;
-                        } else {
-                            md5ToRemove.push(process.image.md5);
-                        }
-                    }
-                    _.remove(collection.processes, function (item: any) {
-                        return md5ToRemove.indexOf(item.image.md5) > -1;
-                    });
-                    callback(null, collection);
-                } else {
-                    let processNumber: number = 0;
-                    collection.resultFile = collection.outputFolder + path.sep + "result.json";
-                    for (let process of collection.processes) {
-                        self.preprocessImage(process, collection, req, serviceInfo, processNumber);
-                        processNumber = processNumber + 1;
-                    }
-                    callback(null, collection);
-                }
-            },
-            function (collection: Collection, callback: Function) {
-                //Step 3
-                if (collection.result == null) {
-                    for (let process of collection.processes) {
-                        if (!(process.result != null)) {
-                            ParameterHelper.saveParamInfo(process);
-                            IoHelper.saveFile(process.resultFile, { status: "planned" }, "utf8", null);
-                        }
-                    }
-                } else {
-                    //produce only the results for the unprocessed images
-                    for (let process of collection.processes) {
-                        ParameterHelper.saveParamInfo(process);
-                        IoHelper.saveFile(process.resultFile, { status: "planned" }, "utf8", null);
-                    }
-                }
-                callback(null, collection);
-            }
-        ], function (error: any, collection: Collection) {
-            //finish
-            if (error != null) {
-                requestCallback(error, null);
-            }
-            let results = [];
-            if (collection.result != null) {
-                //add the new processes to the result files
-                if (collection.processes.length > 0) {
-                    for (let process of collection.processes) {
-                        if (process.resultLink != null) {
-                            if (process.hasImages) {
-                                collection.result.results.push({
-                                    "md5": process.image.md5,
-                                    "resultLink": process.resultLink
-                                });
-                            } else if (process.hasFiles) {
-                                collection.result.results.push({
-                                    "md5": process.data.md5,
-                                    "resultLink": process.resultLink
-                                });
-                            }
-                        }
-                        if (process.result == null) {
-                            processingQueue.addElement(process);
-                            queueCallback();
-                        }
-                    }
-                    ResultHelper.saveResult(collection, null);
-                    requestCallback(null, collection.result);
-                } else {
-                    //now new stuff to add, just respond
-                    requestCallback(null, collection.result);
-                }
-            } else {
-                for (let process of collection.processes) {
-                    if (process.hasImages && process.resultLink != null) {
-                        results.push({ "md5": process.image.md5, "resultLink": process.resultLink });
-                    } else if (process.hasFiles && process.resultLink != null) {
-                        results.push({ "md5": process.data.md5, "resultLink": process.resultLink });
-                    }
-                    if (process.result == null) {
-                        processingQueue.addElement(process);
-                        queueCallback();
-                    }
-                    let message = {
-                        results: results,
-                        collection: collection.name,
-                        resultLink: collection.buildGetUrl(),
-                        status: "done"
-                    };
-                    collection.result = message;
-                    ResultHelper.saveResult(collection, null);
-                    requestCallback(null, collection.result);
-                }
-            }
-        });
-    }
+        //Start to rewrite input parameter processing
+        //new workflow in pseudocode
+        //extract parameters from req.parameters
+        //extract data from req.data
 
-    /**
-     * preprocess the required information from a single input image
-     * @param {Process} process The process to update the inforation with
-     * @param {Collection} collection The collection this process belongs to
-     * @param {express.Request} req The incoming request
-     * @param {any} serviceInfo an object containing information about the method
-     * @param {number} processNumber the running process number
-     */
-    private preprocessImage(process: Process, collection: Collection, req: express.Request, serviceInfo: any, processNumber: number): void {
-
-        process.number = processNumber;
-        process.algorithmIdentifier = serviceInfo.identifier;
-        process.executableType = serviceInfo.executableType;
-        process.outputFolder = collection.outputFolder;
-        IoHelper.createFolder(process.outputFolder);
-        process.inputParameters = _.clone(req.body.inputs);
-        process.inputHighlighters = _.clone(req.body.inputs.highlighter);
-        process.neededParameters = serviceInfo.parameters;
-        process.remotePaths = serviceInfo.remotePaths;
-        process.method = collection.method;
-        if (process.image != null) {
-            process.resultFile = IoHelper.buildResultfilePath(process.outputFolder, process.image.name);
-            process.tmpResultFile = IoHelper.buildTempResultfilePath(process.outputFolder, process.image.name);
-            process.inputImageUrl = process.image.getImageUrl(process.rootFolder);
-        } else if (process.data != null){
-            process.resultFile = IoHelper.buildResultfilePath(process.outputFolder, process.data.name);
-            process.tmpResultFile = IoHelper.buildTempResultfilePath(process.outputFolder, process.data.name);
-            process.inputDataUrl = process.data.getDataUrl(process.rootFolder);
-        } else {
-            process.resultFile = IoHelper.buildResultfilePath(process.outputFolder, process.methodFolder);
-            process.tmpResultFile = IoHelper.buildTempResultfilePath(process.outputFolder, process.methodFolder);
-        }
-        ParameterHelper.matchParams(process, req, function (parameters: any) {
-            process.parameters = parameters;
-            if (ResultHelper.checkProcessResultAvailable(process)) {
-                process.result = ResultHelper.loadResult(process);
-            } else {
-                process.methodFolder = path.basename(process.outputFolder);
-                process.programType = serviceInfo.programType;
-                process.executablePath = serviceInfo.executablePath;
-                process.resultType = serviceInfo.output;
-                process.resultLink = process.buildGetUrl();
-                let resultHandler = null;
-                switch (serviceInfo.output) {
-                    case "console":
-                        resultHandler = new ConsoleResultHandler(process.resultFile);
-                        break;
-                    case "file":
-                        process.parameters.params["resultFile"] = process.resultFile;
-                        resultHandler = new FileResultHandler(process.resultFile);
-                        break;
-                    case "none":
-                        resultHandler = new NoResultHandler(process.resultFile);
-                        break;
-                }
-                process.resultHandler = resultHandler;
+        collection.name = RandomWordGenerator.generateRandomWord();
+        collection.outputFolder = IoHelper.getOutputFolder(collection.name);
+        collection.inputParameters = _.clone(req.body.parameters);
+        collection.inputData = _.clone(req.body.data);
+        this.setCollectionHighlighter(collection, req);
+        collection.neededParameters = serviceInfo.parameters;
+        collection.neededData = serviceInfo.data;
+        //perform parameter matching on collection level
+        await ParameterHelper.matchCollectionParams(collection, req);
+        //create prorcesses
+        let index: number = 0;
+        for (let element of collection.inputData) {
+            let proc: Process = new Process();
+            proc.algorithmIdentifier = serviceInfo.identifier;
+            proc.executableType = serviceInfo.executableType;
+            //Todo fix that to create the deeper nesting
+            proc.outputFolder = collection.outputFolder + path.sep + "data_" + index + path.sep;
+            IoHelper.createFolder(proc.outputFolder);
+            proc.inputHighlighters = collection.inputHighlighters;
+            proc.neededData = collection.neededData;
+            proc.parameters = collection.parameters;
+            proc.remotePaths = serviceInfo.remotePaths;
+            proc.matchedParameters = serviceInfo.paramOrder;
+            proc.method = collection.method;
+            let resultHandler = null;
+            proc.methodFolder = path.basename(proc.outputFolder);
+            proc.programType = serviceInfo.programType;
+            proc.executablePath = serviceInfo.executablePath;
+            proc.resultType = serviceInfo.output;
+            //process.resultLink = process.buildGetUrl();
+            proc.resultFile = IoHelper.buildResultfilePath(proc.outputFolder, proc.methodFolder);
+            proc.tmpResultFile = IoHelper.buildTempResultfilePath(proc.outputFolder, proc.methodFolder);
+            switch (proc.resultType) {
+                case "console":
+                    resultHandler = new ConsoleResultHandler(proc.resultFile);
+                    break;
+                case "file":
+                    proc.parameters.params["resultFile"] = proc.resultFile;
+                    resultHandler = new FileResultHandler(proc.resultFile);
+                    break;
+                case "none":
+                    resultHandler = new NoResultHandler(proc.resultFile);
+                    break;
             }
-        });
-    }
-
-    /**
-     * preprocesses all the necessry information for a collection
-     * @param {Collection} collection the collection object to update
-     * @param {string[]} hashes the hashes of the images to use
-     * @param {express.Request} req The incoming request
-     * @param {string} executionType The execution type
-     * @param {Function} callback A callback containing the updated collection
-     */
-    private preprocessCollection(collection: Collection, hashes: string[], req: express.Request, executionType: string, callback: Function): void {
-        //handle collections with/without images differently
-        if (collection.hasImages) {
-            if (!(ImageHelper.checkCollectionAvailable(collection.name))) {
-                let err = {
-                    statusCode: 500,
-                    statusText: "The collection " + collection.name + " does not exist on the server",
-                    errorType: "CollectionNotAvailable"
-                };
-                callback(err, null);
-            } else {
-                collection.inputParameters = _.clone(req.body.inputs);
-                this.setCollectionHighlighter(collection, req);
-                let images = ImageHelper.loadCollection(collection.name, hashes);
-                for (let image of images) {
-                    let process = new Process();
-                    process.req = _.clone(req);
-                    process.rootFolder = collection.name;
-                    process.type = executionType;
-                    process.image = image;
-                    process.hasImages = true;
-                    collection.processes.push(process);
-                }
-                if (ResultHelper.checkCollectionResultsAvailable(collection)) {
-                    collection.result = ResultHelper.loadResult(collection);
-                    callback(null, collection);
-                } else {
-                    callback(null, collection);
-                }
-            }
-        } else {
-            collection.inputParameters = _.clone(req.body.inputs);
-            this.setCollectionHighlighter(collection, req);
-            let dataItems = DataHelper.loadCollection(collection.name, hashes);
-            if (ResultHelper.checkCollectionResultsAvailable(collection)) {
-                collection.result = ResultHelper.loadResult(collection);
-                callback(null, collection);
-            } else {
-                for (let dataItem of dataItems) {
-                    let process = new Process();
-                    if (collection.hasFiles) {
-                        process.hasFiles = true;
-                    }
-                    process.req = _.clone(req);
-                    process.data = dataItem;
-                    process.rootFolder = collection.name;
-                    process.type = executionType;
-                    collection.processes.push(process);
-                    callback(null, collection);
-                }
-            }
+            proc.resultHandler = resultHandler;
+            collection.processes.push(proc);
+            index++;
+            await ParameterHelper.matchProcessData(proc, element);
+            await ParameterHelper.matchOrder(proc);
         }
     }
 
+
     /**
-     * Get the execution type
-     * @param {string} programType the type of the program
-     * @returns {string} the executable code for this program type
-     */
+    * Get the execution type
+    * @param {string} programType the type of the program
+    * @returns {string} the executable code for this program type
+    */
     private getExecutionType(programType: string): string {
         switch (programType) {
             case "java":

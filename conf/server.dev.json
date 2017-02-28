@@ -48,6 +48,7 @@
   },
   "paths": {
     "imageRootPath": "/data/images",
+    "resultPath":"/data/results",
     "dataRootPath":"/data/data",
     "testPath":"/data/testData",
     "jsonPath":"/data/json",

@@ -315,68 +315,15 @@ export class IoHelper {
      * get the output folder for a data collection
      * 
      * @static
-     * @param {string} rootFolder the root folder of the collection
-     * @param {*} service the service information
-     * @param {boolean} unique indicating wheter or not there can be multiple computations
+     * @param {string} collectionName the name of the collection
      * @returns {string} the path of the folder
      * 
      * @memberOf IoHelper
      */
-    static getOutputFolderForData(rootFolder: string, service: any, unique: boolean): string {
-        let dataPath = nconf.get("paths:dataRootPath");
-        let rootPath = dataPath + path.sep + rootFolder;
-        return IoHelper.getOutputFolder(rootPath, service, unique);
-
-    }
-
-    /**
-     * get the output folder for an image collection
-     * 
-     * @static
-     * @param {string} rootFolder the root folder of the collection
-     * @param {*} service the service information
-     * @param {boolean} unique indicating wheter or not there can be multiple computations
-     * @returns {string} the path of the folder
-     * 
-     * @memberOf IoHelper
-     */
-    static getOutputFolderForImages(rootFolder: string, service: any, unique: boolean): string {
-        let imagePath = nconf.get("paths:imageRootPath");
-        let rootPath = imagePath + path.sep + rootFolder;
-        return IoHelper.getOutputFolder(rootPath, service, unique);
-    }
-
-    /**
-     * Compute the output folder for a computation
-     * 
-     * @private
-     * @static
-     * @param {string} rootPath the root folder of the collection
-     * @param {*} service the service information
-     * @param {boolean} unique indicating wheter or not there can be multiple computations
-     * @returns {string} the path of the folder
-     * 
-     * @memberOf IoHelper
-     */
-    private static getOutputFolder(rootPath: string, service: any, unique: boolean): string {
-        let folders = fs.readdirSync(rootPath).filter(function (file: any) {
-            return fs.statSync(path.join(rootPath, file)).isDirectory();
-        });
-        folders = _.filter(folders, function (folder: any) {
-            return _.includes(folder, service.service);
-        });
-
-        if (folders.length > 0 && !unique) {
-            let splitFolders = _.invokeMap(folders, String.prototype.split, "_");
-            let numbers: number[] = []
-            for (let splitFolder of splitFolders) {
-                numbers.push(parseInt(splitFolder[1]));
-            }
-            let maxNumber: number = _.max(numbers);
-            return rootPath + path.sep + service.service + "_" + (maxNumber + 1);
-        } else {
-            return rootPath + path.sep + service.service + "_0";
-        }
+    static getOutputFolder(collectionName: string): string {
+        let dataPath = nconf.get("paths:resultPath");
+        let rootPath = dataPath + path.sep + collectionName;
+        return rootPath;
     }
 
     /**

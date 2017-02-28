@@ -53,6 +53,13 @@ export class Collection implements IProcess {
     public inputParameters: any;
 
     /**
+     * all input data
+     * @type {*[]}
+     * @memberOf Collection
+     */
+    public inputData: any[];
+
+    /**
      * all input highlighter information
      * 
      * @type {*}
@@ -69,6 +76,14 @@ export class Collection implements IProcess {
     public neededParameters: any;
 
     /**
+     * the needed data for the method
+     * 
+     * @type {*}
+     * @memberOf Collection
+     */
+    public neededData: any;
+
+    /**
      * the matched parameters
      * 
      * @type {*}
@@ -77,12 +92,11 @@ export class Collection implements IProcess {
     public parameters: any;
 
     /**
-     * UNUSED
-     * 
-     * @type {DivaImage}
+     * the data to use
+     * @type {*[]}
      * @memberOf Collection
      */
-    public image: DivaImage;
+    public data: any[];
 
     /**
      * the processes created in this collection
@@ -116,38 +130,22 @@ export class Collection implements IProcess {
      */
     public rootFolder: string;
 
-    /**
-     * collection needs input files
-     * 
-     * @type {boolean}
-     * @memberOf Collection
-     */
-    public hasFiles: boolean;
-
-    /**
-     * collection needs input images
-     * 
-     * @type {boolean}
-     * @memberOf Collection
-     */
-    public hasImages: boolean;
-
     constructor() {
         this.method = "";
         this.name = "";
         this.outputFolder = "";
         this.outputLink = "";
         this.inputParameters = {};
+        this.inputData = [];
         this.inputHighlighters = [];
         this.neededParameters = {};
+        this.neededData = [];
         this.parameters = {};
-        this.image = new DivaImage();
+        this.data = [];
         this.processes = [];
         this.result = null;
         this.resultFile = "";
         this.rootFolder = "";
-        this.hasFiles = false;
-        this.hasImages = false;
     }
 
     /**

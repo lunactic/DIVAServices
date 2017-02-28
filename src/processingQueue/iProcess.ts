@@ -13,9 +13,6 @@ interface IProcess {
     result: any;
     resultFile: string;
     rootFolder: string;
-    hasFiles: boolean;
-    hasImages: boolean;
-    image: DivaImage;
 }
 
 export = IProcess;

@@ -82,11 +82,11 @@ router.post("/algorithms", function (req: express.Request, res: express.Response
                         //currently in error. Delete the current image and create a new one
                         AlgorithmManagement.generateFolders(route);
                         AlgorithmManagement.removeFromRootInfoFile("/" + route);
-                        AlgorithmManagement.removeFromServiceInfoFile("/" + route);
+                        AlgorithmManagement.removeFromServiceInfoFile("/" + baseroute);
                         DockerManagement.removeImage(status.image_name, function (error: any) {
                             if (error == null) {
                                 let identifier = AlgorithmManagement.createIdentifier();
-                                AlgorithmManagement.updateIdentifier("/" + route, identifier);
+                                //AlgorithmManagement.updateIdentifier("/" + route, identifier);
                                 AlgorithmManagement.createAlgorithm(req, res, route, identifier, imageName, version, baseroute, function (error: any, response: any) {
                                     if (error != null) {
                                         sendError(res, error);
