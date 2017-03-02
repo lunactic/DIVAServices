@@ -133,7 +133,8 @@ export class AlgorithmManagement {
                             inputs: inputs
                         }
                     };
-                    executableHelper.preprocess(testRequest, QueueHandler.dockerProcessingQueue, "test", function (error: any, response: any) {
+                    
+                    /*executableHelper.preprocess(testRequest, QueueHandler.dockerProcessingQueue, "test", function (error: any, response: any) {
                         if (error != null) {
                             Logger.log("error", error, "AlgorithmManagement");
                         }
@@ -149,7 +150,7 @@ export class AlgorithmManagement {
                                 Swagger.createEntry(info, route);
                             }
                         });
-                    });
+                    });*/
                 }
             });
         });

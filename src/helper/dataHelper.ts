@@ -31,7 +31,7 @@ export class DataHelper {
      * 
      * @memberOf DataHelper
      */
-    static dataInfo = JSON.parse(fs.readFileSync(nconf.get("paths:dataInfoFile"), "utf-8"));
+    static dataInfo = JSON.parse(fs.readFileSync(nconf.get("paths:imageInfoFile"), "utf-8"));
 
 
     /**
@@ -64,7 +64,7 @@ export class DataHelper {
             for (let item of filtered) {
                 let dataItem = new DivaData();
                 dataItem.folder = dataFolder;
-                dataItem.name = path.basename(item.file).split(".")[0];
+                dataItem.filename = path.basename(item.file).split(".")[0];
                 dataItem.extension = path.extname(item.file).replace(".", "");
                 dataItem.path = item.file;
                 dataItem.md5 = item.md5;
@@ -90,7 +90,7 @@ export class DataHelper {
      * @memberOf ImageHelper
      */
     static saveUrl(url: string, folder: string, fileExtension: string, counter: number, cb: Function) {
-        let dataPath = nconf.get("paths:dataRootPath");
+        let dataPath = nconf.get("paths:filesPath");
         let self = this;
         async.waterfall([
             function (imgExtension: string, callback: Function) {
@@ -100,7 +100,6 @@ export class DataHelper {
                     let md5String = md5(base64);
                     let dataFolder = dataPath + path.sep + folder + path.sep + "original" + path.sep;
                     let dataName = "input" + counter;
-                    data.rootFolder = path.join(path.dirname(dataFolder), "..");
                     data.folder = dataFolder;
                     data.extension = imgExtension;
                     data.path = dataFolder + dataName + "." + imgExtension;
@@ -138,7 +137,7 @@ export class DataHelper {
     * @memberOf ImageHelper
     */
     static saveBase64(data: any, folder: string, fileExtension: string, counter: number, callback: Function) {
-        let imagePath = nconf.get("paths:imageRootPath");
+        let imagePath = nconf.get("paths:filesPath");
         let base64Data = data;
         let md5String = md5(base64Data);
 
@@ -146,9 +145,8 @@ export class DataHelper {
         let imgFolder = imagePath + path.sep + folder + path.sep + "original" + path.sep;
         let imgName = "input" + counter;
         fs.stat(imgFolder + imgName, function (err: any, stat: fs.Stats) {
-            dataObject.rootFolder = path.join(path.dirname(imgFolder), "..");
             dataObject.folder = imgFolder;
-            dataObject.name = imgName;
+            dataObject.filename = imgName;
             dataObject.extension = fileExtension;
             dataObject.path = imgFolder + imgName + "." + fileExtension;
             dataObject.md5 = md5String;

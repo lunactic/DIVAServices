@@ -1,4 +1,5 @@
 "use strict";
+import * as async from 'async';
 
 /**
  * Created by lunactic on 07.11.16.
@@ -25,7 +26,8 @@ export class PostHandler {
      * 
      * @memberOf PostHandler
      */
-    static handleRequest(req: any, callback: Function): void {
+    static async handleRequest(req: any, callback){
+        return new Promise<void>(async (resolve, reject) =>{
         let serviceInfo = ServicesInfoHelper.getInfoByPath(req.originalUrl);
 
         if (serviceInfo == null) {
@@ -35,7 +37,7 @@ export class PostHandler {
                 statusText: "This method is not available",
                 errorType: "MethodNotAvailable"
             };
-            callback(error, null);
+            reject(error);
         } else if (serviceInfo.status.statusCode === 410) {
             //if method was removed, return a 410    
             let error = {
@@ -43,18 +45,22 @@ export class PostHandler {
                 statusText: "This algorithm is no longer available",
                 errorType: "MethodNoLongerAvailable"
             };
-            callback(error, null);
+            reject(error);
         } else {
             //method found, prepare and execute process
+            let response: any = null;
             switch (serviceInfo.execute) {
                 case "remote":
-                    QueueHandler.addRemoteRequest(req, callback);
+                    response = await QueueHandler.addRemoteRequest(req);
+                    resolve(response);
                     break;
                 case "local":
-                    QueueHandler.addLocalRequest(req, callback);
+                    response = await QueueHandler.addLocalRequest(req);
+                    resolve(response);
                     break;
                 case "docker":
-                    QueueHandler.addDockerRequest(req, callback);
+                    response = await QueueHandler.addDockerRequest(req);
+                    resolve(response);
                     break;
                 default:
                     Logger.log("error", "Error in definition for method " + req.originalUrl, "PostHandler");
@@ -62,10 +68,11 @@ export class PostHandler {
                         statusCode: 500,
                         statusText: "Error in method definition"
                     };
-                    callback(error, null);
+                    reject(error);
                     break;
             }
         }
+        });
     }
 
 }

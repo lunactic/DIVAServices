@@ -90,14 +90,14 @@ export class QueueHandler {
      * 
      * @static
      * @param {*} req the incoming POST request
-     * @param {Function} cb the callback function
      * 
      * @memberOf QueueHandler
      */
-    static addLocalRequest(req: any, cb: Function): void {
-        let self = this;
-        QueueHandler.executableHelper.preprocess(req, QueueHandler.localProcessingQueue, "regular", cb, function () {
-            self.executeLocalRequest();
+    static async addLocalRequest(req: any): Promise<any>  {
+        return new Promise<any>(async (resolve, reject) => {
+            let response = await QueueHandler.executableHelper.preprocess(req, QueueHandler.localProcessingQueue, 'regular');
+            this.executeLocalRequest();
+            resolve(response);
         });
     }
 
@@ -106,15 +106,16 @@ export class QueueHandler {
      * 
      * @static
      * @param {*} req the incoming POST request
-     * @param {Function} cb the callback function
      * 
      * @memberOf QueueHandler
      */
-    static addRemoteRequest(req: any, cb: Function): void {
-        let self = this;
-        QueueHandler.executableHelper.preprocess(req, QueueHandler.remoteProcessingQueue, "regular", cb, function () {
-            self.executeRemoteRequest();
+    static async addRemoteRequest(req: any) : Promise<any> {
+        return new Promise<any>(async(resolve, reject) =>{
+            let response = await QueueHandler.executableHelper.preprocess(req, QueueHandler.remoteProcessingQueue, 'regular');
+            this.executeRemoteRequest();
+            resolve(response);   
         });
+        
     }
 
     /**
@@ -126,10 +127,11 @@ export class QueueHandler {
      * 
      * @memberOf QueueHandler
      */
-    static addDockerRequest(req: any, cb: Function): void {
-        let self = this;
-        QueueHandler.executableHelper.preprocess(req, QueueHandler.dockerProcessingQueue, "regular", cb, function () {
-            self.executeDockerRequest();
+    static async addDockerRequest(req: any) {
+        return new Promise<any>(async(resolve, reject) =>{
+            let response = await QueueHandler.executableHelper.preprocess(req, QueueHandler.dockerProcessingQueue, "regular");
+            this.executeDockerRequest();
+            resolve(response);
         });
     }
 

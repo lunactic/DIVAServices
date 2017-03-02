@@ -1,3 +1,4 @@
+import { DivaData } from '../models/divaData';
 /**
  * Created by lunactic on 04.11.16.
  */
@@ -170,11 +171,9 @@ export class DockerManagement {
             let key = _.keys(algorithmInfos.input[index])[0];
             if (['json', 'file', 'inputFile'].indexOf(key) >= 0) {
                 //TODO fix this to use the correct input number of the input image
-                content += 'curl -o /data/' + input[key].name + '.' + input[key].options.fileType + ' $' + (inputCount + index) + os.EOL;
+                content += 'curl -o /data/' + input[key].name + '.' + mime.extension(input[key].options.mimeType) + ' $' + (inputCount + index) + os.EOL;
                 AlgorithmManagement.addRemotePath(identifier, input[key].name, "/data/" + input[key].name + "." + mime.extension(input[key].options.mimeType));
                 //AlgorithmManagement.addUrlParameter(identifier, input[key].name + "url");
-            } else if (key === 'inputImage') {
-                content += 'curl -o /data/inputImage.png $' + (inputCount + index) + os.EOL;
             }
         });
 
@@ -242,7 +241,7 @@ export class DockerManagement {
      * @param {Function} callback The callback called with an error if one occured
      */
     static runDockerImage(process: Process, imageName: string, callback: Function): void {
-        let params = process.parameters.params;
+        let params = process.matchedParameters;
         let neededParams = process.neededParameters;
         //The string passed to the executable containing all parameters
         let executableString = "";
@@ -254,31 +253,23 @@ export class DockerManagement {
         }
 
         //add the actual parameters
-        for (let key in params) {
-            if (params.hasOwnProperty(key)) {
-                let value = params[key];
-                if (key === "highlighter") {
-                    //handle highlighters
-                    executableString += _.map(params.highlighter.split(" "), function (item: any) {
-                        return item;
-                    }).join(" ");
-                } else if (_.find(neededParams, key) != null && ["url"].indexOf(_.find(neededParams, key)[key]) >= 0) {
-                    //handle url parameters
-                    let originalKey = key.replace("url", "");
-                    let originalValue = params[originalKey];
-                    let url = "";
-                    if (process.hasImages) {
-                        url = IoHelper.getStaticImageUrlFull(originalValue);
-                    } else {
-                        url = IoHelper.getStaticDataUrlFull(originalValue);
-                    }
-                    executableString += url + ' ';
-                } else {
-                    //handle regular parameters
-                    executableString += value + ' ';
-                }
+        for (let param of params) {
+            let key = _.keys(param)[0];
+            let value = param[key];
+            if (key === "highlighter") {
+                //handle highlighters
+                executableString += _.map(params.highlighter.split(" "), function (item: any) {
+                    return item;
+                }).join(" ");
+            } else if (value instanceof DivaData) {
+                //handle data parameters
+                executableString += (value as DivaData).url + ' ';
+            } else {
+                //handle regular parameters
+                executableString += value + ' ';
             }
         }
+
 
         //build the command
         let command = './script.sh ' + process.remoteResultUrl + ' ' + process.remoteErrorUrl + ' ' + executableString;

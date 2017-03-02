@@ -1,3 +1,4 @@
+import { DivaData } from '../models/divaData';
 /**
  * Created by lunactic on 03.11.16.
  */
@@ -99,15 +100,20 @@ export class ParameterHelper {
                 needed = Object.keys(found).length > 0;
                 if (needed) {
                     let value = element[key];
-                    data[key] = value;
+                    //perform lookup to get the correct file path, create the correct data item out of it
+                    let collection = value.split("/")[0];
+                    let filename = value.split("/")[1];
+                    data[key] = DivaData.CreateDataItem(collection, filename);
                     _.remove(process.neededData, function (item: any) {
                         return Object.keys(item)[0] === key;
                     });
                 } else {
+                    reject("provided unnecessary data");
                     Logger.log("error", "provided unnecessary data", "ParameterHelper");
                 }
             }
             if (process.neededData.length > 0) {
+                reject("did not receive data for all parameters");
                 Logger.log("error", "did not receive data for all data parameters", "ParameterHelper");
             }
             process.data = data;
@@ -134,14 +140,13 @@ export class ParameterHelper {
                     return key === searchKey;
                 });
 
-                if (dataParams != undefined && Object.keys(dataParams).length > 0) {
+                if (dataParams !== undefined && Object.keys(dataParams).length > 0) {
                     let replaceObj = _.find(process.matchedParameters, function(item: any){
                         return Object.keys(item)[0] === searchKey;
                     });
                     replaceObj[searchKey] = dataParams[searchKey];
                 }
                 //if not found ==> throw error
-                
             }
             resolve();
         })
@@ -207,11 +212,11 @@ export class ParameterHelper {
             return;
         }
         let methodPath = "";
-        if (process.hasImages) {
+        /*if (process.hasImages) {
             methodPath = nconf.get("paths:imageRootPath") + path.sep + process.rootFolder + path.sep + process.method + ".json";
         } else {
             methodPath = nconf.get("paths:dataRootPath") + path.sep + process.rootFolder + path.sep + process.method + ".json";
-        }
+        }*/
 
         let content = [];
         let data: any = {};
@@ -268,11 +273,11 @@ export class ParameterHelper {
      */
     static loadParamInfo(proc: IProcess): void {
         let paramPath = "";
-        if (proc.hasImages) {
+        /*if (proc.hasImages) {
             paramPath = nconf.get("paths:imageRootPath") + path.sep + proc.rootFolder + path.sep + proc.method + ".json";
         } else {
             paramPath = nconf.get("paths:dataRootPath") + path.sep + proc.rootFolder + path.sep + proc.method + ".json";
-        }
+        }*/
 
         let data = {
             parameters: _.clone(proc.inputParameters),
@@ -288,7 +293,7 @@ export class ParameterHelper {
                 "highlighters": data.highlighters
             })).length > 0) {
                 //found some method information
-                if (proc.hasImages) {
+                /*if (proc.hasImages) {
                     if (proc.image != null) {
                         proc.resultFile = IoHelper.buildResultfilePath(info[0].folder, proc.image.name);
                     } else {
@@ -296,7 +301,7 @@ export class ParameterHelper {
                     }
                 } else {
                     proc.resultFile = IoHelper.buildResultfilePath(info[0].folder, path.basename(info[0].folder));
-                }
+                }*/
                 proc.outputFolder = info[0].folder;
             } else {
                 //found no information about that method

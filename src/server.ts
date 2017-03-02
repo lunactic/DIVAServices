@@ -110,9 +110,8 @@ class Server {
 
     private routes() {
         //set up static file handlers!
-        this.app.use("/images", express.static(nconf.get("paths:imageRootPath")));
-        this.app.use("/data", express.static(nconf.get("paths:dataRootPath")));
-
+        this.app.use("/files", express.static(nconf.get("paths:filesPath")));
+        
         //use router middleware
         this.app.use(router);
         this.app.use(algorithmRouter);
@@ -120,7 +119,7 @@ class Server {
 }
 
 
-//shudown handler
+//shutdown handler
 process.on("SIGTERM", function () {
     Logger.log("info", "RECEIVED SIGTERM", "Server");
     ImageHelper.saveImageInfo();

@@ -101,37 +101,37 @@ export class FileResultHandler implements IResultHandler {
                             for (let file of files) {
                                 if (file.file["mime-type"].startsWith("image")) {
                                     ImageHelper.saveJson(file.file.content, process, file.file.name);
-                                    if (process.hasImages) {
+                                    /*if (process.hasImages) {
                                         file.file["url"] = IoHelper.getStaticImageUrl(process.rootFolder + path.sep + process.methodFolder, file.file.name);
                                     } else if (process.hasFiles) {
                                         file.file["url"] = IoHelper.getStaticDataUrl(process.rootFolder + path.sep + process.methodFolder, file.file.name);
-                                    }
+                                    }*/
 
-                                    if (file.file.options.visualization) {
+                                    /*if (file.file.options.visualization) {
                                         visualization = true;
                                         process.outputImageUrl = file.file.url;
-                                    }
+                                    }*/
                                     delete file.file.content;
                                 } else if (file.file["mime-type"] === "text/plain") {
                                     IoHelper.saveFile(process.outputFolder + path.sep + file.file.name, file.file.content, "utf8", null);
-                                    if (process.hasImages) {
+                                    /*if (process.hasImages) {
                                         file.file["url"] = IoHelper.getStaticImageUrl(process.rootFolder + path.sep + process.methodFolder, file.file.name);
                                     } else if (process.hasFiles) {
                                         file.file["url"] = IoHelper.getStaticDataUrl(process.rootFolder + path.sep + process.methodFolder, file.file.name);
-                                    }
+                                    }*/
                                     delete file.file.content;
                                 } else {
                                     IoHelper.saveFile(process.outputFolder + path.sep + file.file.name, file.file.content, "base64", null);
-                                    if (process.hasImages) {
+                                    /*if (process.hasImages) {
                                         file.file["url"] = IoHelper.getStaticImageUrl(process.rootFolder + path.sep + process.methodFolder, file.file.name);
                                     } else if (process.hasFiles) {
                                         file.file["url"] = IoHelper.getStaticDataUrl(process.rootFolder + path.sep + process.methodFolder, file.file.name);
-                                    }
+                                    }*/
                                     delete file.file.content;
                                 }
                             }
                             //check if a visualization is available
-                            if (!visualization && process.inputImageUrl != null) {
+                            /*if (!visualization && process.inputImageUrl != null) {
                                 let file = {
                                     file: {
                                         "mime-type": "png",
@@ -144,10 +144,10 @@ export class FileResultHandler implements IResultHandler {
                                     }
                                 };
                                 data.output.push(file);
-                            }
+                            }*/
                             //set final data fields
                             data["status"] = "done";
-                            data["inputImage"] = process.inputImageUrl;
+                            //data["inputImage"] = process.inputImageUrl;
                             data["resultLink"] = process.resultLink;
                             data["collectionName"] = process.rootFolder;
                             data["resultZipLink"] = "http://" + nconf.get("server:rootUrl") + "/collection/" + process.rootFolder + "/" + process.methodFolder;

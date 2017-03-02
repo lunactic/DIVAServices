@@ -156,10 +156,11 @@ export class Collection implements IProcess {
      * @memberOf Collection
      */
     buildGetUrl(): string {
-        if (this.hasImages) {
+        /*if (this.hasImages) {
             return IoHelper.getStaticImageUrlFull(this.resultFile);
         } else {
             return IoHelper.getStaticDataUrlFull(this.resultFile);
-        }
+        }*/
+        return "";
     }
 }

@@ -72,11 +72,11 @@ export class ConsoleResultHandler implements IResultHandler {
                                 data["status"] = "done";
                                 if (data["image"] != null) {
                                     ImageHelper.saveJson(data["image"], process, "");
-                                    process.outputImageUrl = process.image.getImageUrl(process.inputFolder);
-                                    data["outputImage"] = process.outputImageUrl;
+                                    //process.outputImageUrl = process.image.getImageUrl(process.inputFolder);
+                                    //data["outputImage"] = process.outputImageUrl;
                                     delete data["image"];
                                 }
-                                data["inputImage"] = process.inputImageUrl;
+                                //data["inputImage"] = process.inputImageUrl;
                                 data["resultLink"] = process.resultLink;
                                 data["collectionName"] = process.rootFolder;
                                 data["resultZipLink"] = "http://" + nconf.get("server:rootUrl") + "/collection/" + process.rootFolder + "/" + process.methodFolder;

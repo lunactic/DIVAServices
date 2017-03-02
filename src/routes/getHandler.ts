@@ -94,9 +94,9 @@ export class GetHandler {
                         let images = ImageHelper.loadImagesMd5(queryParams.md5);
                         for (let image of images) {
                             let process = new Process();
-                            process.image = image;
+                            //process.image = image;
                             GetHandler.prepareQueryParams(process, queryParams);
-                            ParameterHelper.matchParams(process, req, function (parameters) {
+                            /*ParameterHelper.matchParams(process, req, function (parameters) {
                                 process.parameters = parameters;
                                 process.method = serviceInfo.service;
                                 process.rootFolder = image.folder.split(path.sep)[image.folder.split(path.sep).length - 2];
@@ -108,7 +108,7 @@ export class GetHandler {
                                     }
                                     callback(null, process.result);
                                 }
-                            });
+                            });*/
                         }
                         callback(GetHandler.createError(404, "This result is not available"), null);
                     }
@@ -120,7 +120,7 @@ export class GetHandler {
             GetHandler.prepareQueryParams(process, queryParams);
             process.neededParameters = serviceInfo.parameters;
             GetHandler.prepareNeededParameters(process);
-            ParameterHelper.matchParams(process, req, function (parameters) {
+            /*ParameterHelper.matchParams(process, req, function (parameters) {
                 process.parameters = parameters;
                 process.method = serviceInfo.service;
                 process.rootFolder = queryParams["rootFolder"];
@@ -137,7 +137,7 @@ export class GetHandler {
                     let error = GetHandler.createError(400, "Malformed request");
                     callback(error, null);
                 }
-            });
+            });*/
         } else {
             let error = GetHandler.createError(500, "Could not parse this request");
             callback(error, null);

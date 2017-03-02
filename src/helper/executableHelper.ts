@@ -138,7 +138,7 @@ export class ExecutableHelper extends EventEmitter {
         let self = this;
         async.waterfall([
             function (callback: Function) {
-                self.remoteExecution.uploadFile(process.image.path, process.rootFolder, callback);
+                //self.remoteExecution.uploadFile(process.image.path, process.rootFolder, callback);
             },
             function (callback: Function) {
                 let command = self.buildCommand(process);
@@ -175,65 +175,68 @@ export class ExecutableHelper extends EventEmitter {
      * @param {Function} requestCallback The callback for the incoming request
      * @param {Function} queueCallback The callback for the processing queue
      */
-    public async preprocess(req: any, processingQueue: ProcessingQueue, executionType: string, requestCallback: Function, queueCallback: Function) {
-        let serviceInfo = ServicesInfoHelper.getInfoByPath(req.originalUrl);
-        let collection = new Collection();
-        collection.method = serviceInfo.service;
-        //Start to rewrite input parameter processing
-        //new workflow in pseudocode
-        //extract parameters from req.parameters
-        //extract data from req.data
-
-        collection.name = RandomWordGenerator.generateRandomWord();
-        collection.outputFolder = IoHelper.getOutputFolder(collection.name);
-        collection.inputParameters = _.clone(req.body.parameters);
-        collection.inputData = _.clone(req.body.data);
-        this.setCollectionHighlighter(collection, req);
-        collection.neededParameters = serviceInfo.parameters;
-        collection.neededData = serviceInfo.data;
-        //perform parameter matching on collection level
-        await ParameterHelper.matchCollectionParams(collection, req);
-        //create prorcesses
-        let index: number = 0;
-        for (let element of collection.inputData) {
-            let proc: Process = new Process();
-            proc.algorithmIdentifier = serviceInfo.identifier;
-            proc.executableType = serviceInfo.executableType;
-            //Todo fix that to create the deeper nesting
-            proc.outputFolder = collection.outputFolder + path.sep + "data_" + index + path.sep;
-            IoHelper.createFolder(proc.outputFolder);
-            proc.inputHighlighters = collection.inputHighlighters;
-            proc.neededData = collection.neededData;
-            proc.parameters = collection.parameters;
-            proc.remotePaths = serviceInfo.remotePaths;
-            proc.matchedParameters = serviceInfo.paramOrder;
-            proc.method = collection.method;
-            let resultHandler = null;
-            proc.methodFolder = path.basename(proc.outputFolder);
-            proc.programType = serviceInfo.programType;
-            proc.executablePath = serviceInfo.executablePath;
-            proc.resultType = serviceInfo.output;
-            //process.resultLink = process.buildGetUrl();
-            proc.resultFile = IoHelper.buildResultfilePath(proc.outputFolder, proc.methodFolder);
-            proc.tmpResultFile = IoHelper.buildTempResultfilePath(proc.outputFolder, proc.methodFolder);
-            switch (proc.resultType) {
-                case "console":
-                    resultHandler = new ConsoleResultHandler(proc.resultFile);
-                    break;
-                case "file":
-                    proc.parameters.params["resultFile"] = proc.resultFile;
-                    resultHandler = new FileResultHandler(proc.resultFile);
-                    break;
-                case "none":
-                    resultHandler = new NoResultHandler(proc.resultFile);
-                    break;
+    public async preprocess(req: any, processingQueue: ProcessingQueue, executionType: string): Promise<any> {
+        return new Promise<any>(async(resolve, reject) => {
+            let serviceInfo = ServicesInfoHelper.getInfoByPath(req.originalUrl);
+            let collection = new Collection();
+            collection.method = serviceInfo.service;
+            collection.name = RandomWordGenerator.generateRandomWord();
+            collection.outputFolder = IoHelper.getOutputFolder(collection.name);
+            collection.inputParameters = _.clone(req.body.parameters);
+            collection.inputData = _.clone(req.body.data);
+            this.setCollectionHighlighter(collection, req);
+            collection.neededParameters = serviceInfo.parameters;
+            collection.neededData = serviceInfo.data;
+            //perform parameter matching on collection level
+            await ParameterHelper.matchCollectionParams(collection, req);
+            //create prorcesses
+            let index: number = 0;
+            for (let element of collection.inputData) {
+                let proc: Process = new Process();
+                proc.req = _.clone(req);
+                proc.algorithmIdentifier = serviceInfo.identifier;
+                proc.executableType = serviceInfo.executableType;
+                //Todo fix that to create the deeper nesting
+                proc.outputFolder = collection.outputFolder + path.sep + "data_" + index + path.sep;
+                IoHelper.createFolder(proc.outputFolder);
+                proc.inputHighlighters = collection.inputHighlighters;
+                proc.neededParameters = collection.neededParameters;
+                proc.neededData = collection.neededData;
+                proc.parameters = collection.parameters;
+                proc.remotePaths = serviceInfo.remotePaths;
+                proc.matchedParameters = serviceInfo.paramOrder;
+                proc.method = collection.method;
+                let resultHandler = null;
+                proc.methodFolder = path.basename(proc.outputFolder);
+                proc.programType = serviceInfo.programType;
+                proc.executablePath = serviceInfo.executablePath;
+                proc.resultType = serviceInfo.output;
+                proc.resultFile = IoHelper.buildResultfilePath(proc.outputFolder, proc.methodFolder);
+                proc.tmpResultFile = IoHelper.buildTempResultfilePath(proc.outputFolder, proc.methodFolder);
+                proc.resultLink = proc.buildGetUrl();
+                switch (proc.resultType) {
+                    case "console":
+                        resultHandler = new ConsoleResultHandler(proc.resultFile);
+                        break;
+                    case "file":
+                        proc.parameters.params["resultFile"] = proc.resultFile;
+                        resultHandler = new FileResultHandler(proc.resultFile);
+                        break;
+                    case "none":
+                        resultHandler = new NoResultHandler(proc.resultFile);
+                        break;
+                }
+                proc.resultHandler = resultHandler;
+                collection.processes.push(proc);
+                index++;
+                await ParameterHelper.matchProcessData(proc, element);
+                await ParameterHelper.matchOrder(proc);
+                processingQueue.addElement(proc);
+                Logger.log("info", "finished preprocessing", "ExecutableHelper");
             }
-            proc.resultHandler = resultHandler;
-            collection.processes.push(proc);
-            index++;
-            await ParameterHelper.matchProcessData(proc, element);
-            await ParameterHelper.matchOrder(proc);
-        }
+            resolve(collection.result);
+        });
+
     }
 
 

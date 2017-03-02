@@ -18,14 +18,12 @@
     "port":"2375",
     "reportHost":"134.21.72.48:8080",
     "replacePaths":[
-      "inputImage",
       "inputFolder",
       "outputFolder",
       "resultFile",
       "outputImage"
     ],
     "paths":{
-      "inputImage":"/data/inputImage.png",
       "inputFolder":"/data",
       "outputFolder":"/data/output",
       "resultFile":"/data/result.json",
@@ -47,12 +45,11 @@
     "ip": "diuf-cluster"
   },
   "paths": {
-    "imageRootPath": "/data/images",
-    "resultPath":"/data/results",
-    "dataRootPath":"/data/data",
+    "filesPath": "/data/files",
+    "resultsPath":"/data/results",
     "testPath":"/data/testData",
     "jsonPath":"/data/json",
-    "imageInfoFile": "/data/images/imageInfo.json",
+    "imageInfoFile": "/data/files/filesInfo.json",
     "dataInfoFile":"/data/data/dataInfo.json",
     "rootInfoFile":"/data/json/info.json",
     "servicesInfoFile":"/data/json/services.json",
@@ -66,7 +63,7 @@
     "mcr2014b":"$LD_LIBRARY_PATH"
   },
   "reservedWords" :[
-    "inputImage",
+    "file",
     "inputFolder",
     "inputImageUrl",
     "outputImage",

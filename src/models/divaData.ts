@@ -1,3 +1,4 @@
+import * as url from 'url';
 /**
  * Created by lunactic on 03.11.16.
  */
@@ -14,13 +15,6 @@ import * as nconf from "nconf";
 export class DivaData {
 
     /**
-     * the root folder folder where the image is stored on the filesystem
-     * 
-     * @type {string}
-     * @memberOf DivaData
-     */
-    public rootFolder: string;
-    /**
      * the foldername of the image on the filesystem
      * 
      * @type {string}
@@ -28,21 +22,30 @@ export class DivaData {
      */
     public folder: string;
     /**
-     * the name of the image
+     * the name of the data item
      * 
      * @type {string}
      * @memberOf DivaData
      */
-    public name: string;
+    public filename: string;
+    
+
     /**
-     * the image extension
+     * the name of the collection
+     * @type {string}
+     * @memberOf DivaData
+     */
+    public collection: string;
+
+    /**
+     * the file extension
      * 
      * @type {string}
      * @memberOf DivaData
      */
     public extension: string;
     /**
-     * the full path to the image
+     * the full path to the data file
      * 
      * @type {string}
      * @memberOf DivaData
@@ -56,28 +59,28 @@ export class DivaData {
      */
     public md5: string;
 
+    /**
+     * the public url to retrieve this file
+     */
+    public url: string;
+
     constructor() {
-        this.rootFolder = "";
         this.folder = "";
-        this.name = "";
+        this.filename = "";
         this.extension = "";
         this.path = "";
         this.md5 = "";
     }
 
 
-    /**
-     * get the static url to access this data item
-     * 
-     * @param {string} folder the folder path to the data item
-     * @returns {string} the static url to access this data item
-     * 
-     * @memberOf DivaData
-     */
-    getDataUrl(folder: string): string {
-        //TODO: check if the folder parameter can be replace
-        let rootUrl = nconf.get("server:rootUrl");
-        return "http://" + rootUrl + "/data/" + folder + "/original/" + this.name + "." + this.extension;
+    static CreateDataItem(collection: string, filename: string): DivaData {
+        let item = new DivaData();
+        item.collection = collection;
+        item.filename = filename;
+        item.extension = filename.split(".").pop();
+        item.path = nconf.get("paths:filesPath") + path.sep + collection + path.sep + "original" + path.sep + filename;
+        item.url = "http://" + nconf.get("server:rootUrl") + "/files/" + collection + "/original/" + filename;
+        return item;
     }
 
 }

@@ -4,7 +4,7 @@
 
 "use strict";
 import { DivaImage } from "../models/divaImage";
-import {DivaData} from "../models/divaData";
+import { DivaData } from "../models/divaData";
 import { IoHelper } from "../helper/ioHelper";
 import IProcess = require("./iProcess");
 import IResultHandler = require("../helper/resultHandlers/iResultHandler");
@@ -196,12 +196,12 @@ export class Process implements IProcess {
      */
     public tmpResultFile: string;
 
-     /**
-     * the computed results
-     * 
-     * @type {*}
-     * @memberOf Process
-     */
+    /**
+    * the computed results
+    * 
+    * @type {*}
+    * @memberOf Process
+    */
     public result: any;
 
     /**
@@ -260,15 +260,6 @@ export class Process implements IProcess {
      */
     public stdin: any;
 
-  
-    /**
-     * Creates an instance of Process.
-     * 
-     * 
-     * @memberOf Process
-     */
-    constructor() {
-    }
 
     /**
      * build the static url to access the result file
@@ -278,6 +269,6 @@ export class Process implements IProcess {
      * @memberOf Process
      */
     buildGetUrl(): string {
-        return IoHelper.getStaticImageUrlFull(this.resultFile);
+        return IoHelper.getStaticResultUrlFull(this.resultFile);
     }
 }

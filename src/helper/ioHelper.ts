@@ -337,7 +337,7 @@ export class IoHelper {
      * @memberOf IoHelper
      */
     static buildResultfilePath(folder: string, fileName: string): string {
-        return folder + path.sep + fileName + ".json";
+        return folder + fileName + ".json";
     }
 
     /**
@@ -351,7 +351,7 @@ export class IoHelper {
      * @memberOf IoHelper
      */
     static buildTempResultfilePath(folder: string, fileName: string): string {
-        return folder + path.sep + fileName + "_temp.json";
+        return folder + fileName + "_temp.json";
     }
 
     /**
@@ -367,21 +367,6 @@ export class IoHelper {
     static getStaticImageUrl(folder: string, filename: string): string {
         let rootUrl = nconf.get("server:rootUrl");
         return "http://" + rootUrl + "/images/" + folder + "/" + filename;
-    }
-
-    /**
-     * get the static url for a data file
-     * 
-     * @static
-     * @param {string} folder the foldername
-     * @param {string} filename the filename
-     * @returns {string} the static url to access this data file
-     * 
-     * @memberOf IoHelper
-     */
-    static getStaticDataUrl(folder: string, filename: string): string {
-        let rootUrl = nconf.get("server:rootUrl");
-        return "http://" + rootUrl + "/data/" + folder + "/" + filename;
     }
 
     /**
@@ -401,26 +386,12 @@ export class IoHelper {
     }
 
     /**
-     * the the static url for a data file from a relative path
-     * 
-     * @static
-     * @param {string} relativeFilePath the relative path to the data file
-     * @returns {string} the static url to access this data file
-     * 
-     * @memberOf IoHelper
-     */
-    static getStaticDataUrlRelative(relativeFilePath: string): string {
-        let rootUrl = nconf.get("server:rootUrl");
-        return "http://" + rootUrl + "/data/" + relativeFilePath;
-    }
-
-    /**
      * get the static url to an image from a relative path
-     * 
+     *
      * @static
      * @param {string} relativeFilePath the relative path to the image
      * @returns {string} the static url to access this image
-     * 
+     *
      * @memberOf IoHelper
      */
     static getStaticImageUrlRelative(relativeFilePath: string): string {
@@ -429,17 +400,17 @@ export class IoHelper {
     }
 
     /**
-     * get the static url to a data file from its absolute path
-     * 
+     * get the static url to an image from a relative path
+     *
      * @static
-     * @param {string} fullFilePath the absolute file path
-     * @returns {string} the static url to access this data file
-     * 
+     * @param {string} relativeFilePath the relative path to the image
+     * @returns {string} the static url to access this image
+     *
      * @memberOf IoHelper
      */
-    static getStaticDataUrlFull(fullFilePath: string): string {
-        let relPath = fullFilePath.replace(nconf.get("paths:dataRootPath") + path.sep, "");
-        return this.getStaticDataUrlRelative(relPath);
+    static getStaticResultUrlRelative(relativeFilePath: string): string {
+        let rootUrl = nconf.get("server:rootUrl");
+        return "http://" + rootUrl + "/results/" + relativeFilePath;
     }
 
     /**
@@ -451,9 +422,9 @@ export class IoHelper {
      * 
      * @memberOf IoHelper
      */
-    static getStaticImageUrlFull(fullFilePath: string): string {
-        let relPath = fullFilePath.replace(nconf.get("paths:imageRootPath") + path.sep, "");
-        return this.getStaticImageUrlRelative(relPath);
+    static getStaticResultUrlFull(fullFilePath: string): string {
+        let relPath = fullFilePath.replace(nconf.get("paths:resultPath") + path.sep, "");
+        return this.getStaticResultUrlRelative(relPath);
     }
 
     /**
