@@ -84,8 +84,8 @@ export class ServicesInfoHelper {
      * 
      * @memberOf ServicesInfoHelper
      */
-    static update(newData: any): void {
-        IoHelper.saveFile(nconf.get("paths:servicesInfoFile"), newData, "utf8", null);
+    static async update(newData: any): Promise<void> {
+        await IoHelper.saveFile(nconf.get("paths:servicesInfoFile"), newData, "utf8");
     }
 
     /**

@@ -1,3 +1,4 @@
+import { resolve } from 'dns';
 /**
  * Created by lunactic on 02.11.16.
  */
@@ -80,18 +81,17 @@ export class IoHelper {
      * 
      * @memberOf IoHelper
      */
-    static saveFile(filePath: string, content: any, encoding: string, callback?: Function) {
-        try {
-            fs.writeFileSync(filePath, JSON.stringify(content, null, "\t"), encoding);
-            if (callback) {
-                callback(null);
+    static async saveFile(filePath: string, content: any, encoding: string): Promise<any> {
+        return new Promise<any>((resolve, reject) => {
+
+            try {
+                fs.writeFileSync(filePath, JSON.stringify(content, null, "\t"), encoding);
+                resolve();
+            } catch (error) {
+                Logger.log("error", "Could not write file due to error " + error, "IoHelper");
+                reject(error);
             }
-        } catch (error) {
-            Logger.log("error", "Could not write file due to error " + error, "IoHelper");
-            if (callback) {
-                callback(error);
-            }
-        }
+        });
     }
 
     /**
@@ -102,8 +102,15 @@ export class IoHelper {
      * 
      * @memberOf IoHelper
      */
-    static deleteFile(file: string): void {
-        fs.unlink(file);
+    static async deleteFile(file: string): Promise<any> {
+        return new Promise<any>((resolve, reject) => {
+            try{
+                fs.unlinkSync(file);
+                resolve();
+            }catch(error){
+                reject(error);
+            }
+        });
     }
 
     /**
@@ -269,19 +276,6 @@ export class IoHelper {
     }
 
     /**
-     * create the local folder for a data collection
-     * 
-     * @static
-     * @param {*} service the service information
-     * 
-     * @memberOf IoHelper
-     */
-    static createDataCollectionFolders(collection: string): void {
-        let rootFolder = nconf.get("paths:dataRootPath") + path.sep + collection + path.sep + "original";
-        fse.mkdirpSync(rootFolder);
-    }
-
-    /**
      * Create the local folder for an image collection
      * 
      * @static
@@ -289,8 +283,8 @@ export class IoHelper {
      * 
      * @memberOf IoHelper
      */
-    static createImageCollectionFolders(collection: string): void {
-        let rootFolder = nconf.get("paths:imageRootPath") + path.sep + collection + path.sep + "original";
+    static createFilesCollectionFolders(collection: string): void {
+        let rootFolder = nconf.get("paths:filesPath") + path.sep + collection + path.sep + "original";
         fse.mkdirpSync(rootFolder);
     }
 
@@ -321,7 +315,7 @@ export class IoHelper {
      * @memberOf IoHelper
      */
     static getOutputFolder(collectionName: string): string {
-        let dataPath = nconf.get("paths:resultPath");
+        let dataPath = nconf.get("paths:resultsPath");
         let rootPath = dataPath + path.sep + collectionName;
         return rootPath;
     }

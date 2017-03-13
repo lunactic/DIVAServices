@@ -6,8 +6,7 @@
 import * as async from "async";
 import { IiifManifestParser } from "../parsers/iiifManifestParser";
 import * as express from "express";
-import { ImageHelper } from "../helper/imageHelper";
-import { DataHelper } from "../helper/dataHelper";
+import { FileHelper } from "../helper/fileHelper";
 import { RandomWordGenerator } from "../randomizer/randomWordGenerator";
 import { IoHelper } from "../helper/ioHelper";
 import { Logger } from "../logging/logger";
@@ -18,18 +17,17 @@ import { ResultHelper } from "../helper/resultHelper";
 import { AlgorithmManagement } from "../management/algorithmManagement";
 import { SchemaValidator } from "../validator/schemaValidator";
 import md5 = require("md5");
-import { DivaImage } from "../models/divaImage";
-import { DivaData } from "../models/divaData";
+import { File } from "../models/file";
 import { PostHandler } from "./postHandler";
 import { GetHandler } from "./getHandler";
 
 let router = express.Router();
 
 //set up a special route for image uploading
-router.post("/upload", function (req: express.Request, res: express.Response) {
+router.post("/upload", async function (req: express.Request, res: express.Response) {
     let numOfImages: number = 0;
     let counter: number = 0;
-    async.each(req.body.images, function (image: any, callback: Function) {
+    async.each(req.body.files, function (image: any, callback: Function) {
         switch (image.type) {
             case "iiif":
                 let iiifManifestParser = new IiifManifestParser(image.value);
@@ -45,54 +43,69 @@ router.post("/upload", function (req: express.Request, res: express.Response) {
                 break;
         }
         counter++;
-    }, function (error: any) {
+    }, async function (error: any) {
         let imageExists: boolean = false;
-        if (numOfImages === 1 && req.body.images.type !== "iiif") {
+        if (numOfImages === 1 && req.body.files.type !== "iiif") {
             //check if image exists
-            ImageHelper.imageExists(md5(req.body.images[0].value), function (err: any, response: any) {
+            try {
+                var response = await FileHelper.fileExists(md5(req.body.files[0].value));
                 if (response.imageAvailable) {
                     send200(res, { collection: response.collection });
-                    imageExists = true;
                 }
-            });
+                Promise.resolve();
+            } catch (error) {
+                Promise.reject(error);
+            }
         }
         if (!imageExists) {
             //need to save the image
             let collectionName = RandomWordGenerator.generateRandomWord();
-            IoHelper.createImageCollectionFolders(collectionName);
-            ImageHelper.createCollectionInformation(collectionName, numOfImages);
+            IoHelper.createFilesCollectionFolders(collectionName);
+            FileHelper.createCollectionInformation(collectionName, numOfImages);
             send200(res, { collection: collectionName });
             let process = {
                 rootFolder: collectionName
             };
             let imageCounter: number = 0;
-            req.body.images.forEach((image: any, index: number) => {
-                switch (image.type) {
+            req.body.files.forEach(async (file: any, index: number) => {
+                switch (file.type) {
                     case "iiif":
-                        let iiifManifestParser = new IiifManifestParser(image.value);
+                        let iiifManifestParser = new IiifManifestParser(file.value);
                         iiifManifestParser.initialize().then(function () {
                             //TODO improve to save all images
                             let images = iiifManifestParser.getAllImages(0);
-                            images.forEach((inputImage: any, i: number) => {
-                                ImageHelper.saveUrl(inputImage, collectionName + path.sep, imageCounter, function (image: DivaImage) {
-                                    ImageHelper.addImageInfo(image.md5, image.path, collectionName);
-                                    ImageHelper.updateCollectionInformation(collectionName, numOfImages, imageCounter++);
-                                });
+                            images.forEach(async (inputImage: any, i: number) => {
+                                try {
+                                    var image = await FileHelper.saveUrl(inputImage, collectionName + path.sep, imageCounter);
+                                    FileHelper.addFileInfo(image.md5, image.path, collectionName);
+                                    FileHelper.updateCollectionInformation(collectionName, numOfImages, imageCounter++);
+                                    Promise.resolve();
+                                } catch (error) {
+                                    Promise.reject(error);
+                                }
                             });
                         });
                         break;
                     case "url":
-                        ImageHelper.saveUrl(image.value, collectionName, imageCounter, function (divaImage: DivaImage) {
-                            ImageHelper.addImageInfo(divaImage.md5, divaImage.path, collectionName);
-                            ImageHelper.updateCollectionInformation(collectionName, numOfImages, imageCounter);
-                        });
+                        try {
+                            var newFile: File = await FileHelper.saveUrl(file.value, collectionName, imageCounter, file.name);
+                            FileHelper.addFileInfo(newFile.md5, newFile.path, collectionName);
+                            FileHelper.updateCollectionInformation(collectionName, numOfImages, imageCounter);
+                            Promise.resolve();
+                        } catch (error) {
+                            Promise.reject(error);
+                        }
                         imageCounter = imageCounter + 1;
                         break;
                     default:
-                        ImageHelper.saveBase64(image, collectionName, imageCounter, function (divaImage: DivaImage) {
-                            ImageHelper.addImageInfo(divaImage.md5, divaImage.path, collectionName);
-                            ImageHelper.updateCollectionInformation(collectionName, numOfImages, imageCounter);
-                        });
+                        try {
+                            var newFile: File = await FileHelper.saveBase64(file, collectionName, imageCounter);
+                            FileHelper.addFileInfo(newFile.md5, newFile.path, collectionName);
+                            FileHelper.updateCollectionInformation(collectionName, numOfImages, imageCounter);
+                            Promise.resolve();
+                        } catch (error) {
+                            Promise.reject(error);
+                        }
                         imageCounter = imageCounter + 1;
                         break;
                 }
@@ -101,82 +114,33 @@ router.post("/upload", function (req: express.Request, res: express.Response) {
     });
 });
 
-router.post("/uploadData", function (req: express.Request, res: express.Response) {
-    let numOfDataItems: number = 0;
-    let counter: number = 0;
-    async.each(req.body.data, function (item: any, callback: Function) {
-        switch (item.type) {
-            case "base64":
-            case "url":
-                numOfDataItems++;
-                callback();
-                break;
-        }
-    }, function (error: any) {
-        let collectionName = RandomWordGenerator.generateRandomWord();
-        IoHelper.createDataCollectionFolders(collectionName);
-        DataHelper.createCollectionInformation(collectionName, numOfDataItems);
-        //Create a data helper
-        send200(res, { collection: collectionName });
-        let process = {
-            rootFolder: collectionName
-        };
-        let dataCounter: number = 0;
-        req.body.data.forEach((item: any, index: number) => {
-            switch (item.type) {
-                case "url":
-                    DataHelper.saveUrl(item.value, collectionName, item.extension, dataCounter, function (dataItem: DivaData) {
-                        //add to data info
-                        //update data collection information
-                        DataHelper.addDataInfo(dataItem.md5, dataItem.path, collectionName);
-                        DataHelper.updateCollectionInformation(collectionName, numOfDataItems, dataCounter);
-                    });
-                    dataCounter++;
-                    break;
-            }
-        });
-    });
-})
-
-router.post("/jobs/:jobId", function (req: express.Request, res: express.Response) {
+router.post("/jobs/:jobId", async function (req: express.Request, res: express.Response) {
     Logger.log("info", "jobs route called", "StandardRouter");
     let process = Statistics.getProcess(req.params.jobId);
     if (process != null) {
         //Statistics.endRecording(req.params.jobId, process.req.originalUrl);
-        async.waterfall([
-            function (callback: Function) {
-                process.result = req.body;
-                ResultHelper.saveResult(process, callback);
-            }, function (callback: Function) {
-                process.resultHandler.handleResult(null, null, null, process, function (error: any, data: any, processId: string) {
-                    if (error != null) {
-                        callback(error);
-                    } else {
-                        callback(null);
-                    }
-                });
-            }
-        ], function (error: any) {
-            if (error != null) {
-                AlgorithmManagement.updateStatus(null, "error", process.req.originalUrl, error.statusMessage);
-                sendError(res, error);
-            } else if (process.type === "test") {
-                SchemaValidator.validate(IoHelper.openFile(process.resultFile), "responseSchema", function (error: any) {
-                    if (error != null) {
-                        AlgorithmManagement.updateStatus(null, "error", process.req.originalUrl, error.statusText);
-                        ResultHelper.removeResult(process);
-                        sendError(res, error);
-                    } else {
-                        AlgorithmManagement.updateStatus(null, "ok", process.req.originalUrl, "");
-                        ResultHelper.removeResult(process);
-                        send200(res, { status: "valid" });
-                    }
-                });
+        process.result = req.body;
+        try {
+            await ResultHelper.saveResult(process);
+            await process.resultHandler.handleResult(null, null, null, process);
+            if (process.type === "test") {
+                try {
+                    await SchemaValidator.validate(await IoHelper.openFile(process.resultFile), "responseSchema");
+                    AlgorithmManagement.updateStatus(null, "ok", process.req.originalUrl, "");
+                    ResultHelper.removeResult(process);
+                    send200(res, { status: "valid" });
+                } catch (error) {
+                    AlgorithmManagement.updateStatus(null, "error", process.req.originalUrl, error.statusText);
+                    ResultHelper.removeResult(process);
+                    sendError(res, error);
+                }
             } else {
                 res.status(200);
                 res.send();
             }
-        });
+        } catch (error) {
+            sendError(res, error);
+        }
     } else {
         res.status(500);
         res.send();
@@ -217,7 +181,7 @@ router.post("*", function (req: express.Request, res: express.Response, next: ex
 });
 
 router.get("/collections/", function (req: express.Request, res: express.Response) {
-    let collections = ImageHelper.getAllCollections();
+    let collections = FileHelper.getAllCollections();
     let collectionInfo = [];
     for (let collection of collections) {
         if (collection != "test") {
@@ -237,19 +201,19 @@ router.get("/collections/", function (req: express.Request, res: express.Respons
 
 router.get("/collections/:collection", function (req: express.Request, res: express.Response) {
     let collection = req.params.collection;
-    if (ImageHelper.checkCollectionAvailable(collection)) {
-        let status = ImageHelper.getCollectionInformation(collection);
-        let images = ImageHelper.loadCollection(collection, null);
-        let imgs = [];
-        for (let image of images) {
-            imgs.push({
+    if (FileHelper.checkCollectionAvailable(collection)) {
+        let status = FileHelper.getCollectionInformation(collection);
+        let files = FileHelper.loadCollection(collection, null);
+        let response = [];
+        for (let file of files) {
+            response.push({
                 "image": {
-                    md5: image.md5,
-                    url: image.getImageUrl(collection + path.sep + "original" + path.sep)
+                    md5: file.md5,
+                    url: file.url
                 }
             });
         }
-        status['images'] = imgs;
+        status['images'] = response;
         send200(res, status);
     } else {
         let error = {
@@ -271,42 +235,43 @@ router.get("/collections/:collection/:execution", function (req: express.Request
 
 router.get("/images/:collection", function (req: express.Request, res: express.Response) {
     let collection = req.params.collection;
-    let images = ImageHelper.loadCollection(collection, null);
-    let imgs = [];
-    for (let image of images) {
-        imgs.push({
+    let files = FileHelper.loadCollection(collection, null);
+    let resp = [];
+    for (let file of files) {
+        resp.push({
             "image": {
-                md5: image.md5,
-                url: image.getImageUrl(collection + path.sep + "original")
+                md5: file.md5,
+                url: file.url
             }
         });
     }
     let response = {
         collection: collection,
-        images: imgs
+        images: resp
     };
     sendResponse(res, null, response);
 });
 
-router.get("/images/check/:md5", function (req: express.Request, res: express.Response) {
-    ImageHelper.imageExists(req.params.md5, function (error: any, response: any) {
-        sendResponse(res, error, response);
-    });
+router.get("/images/check/:md5", async function (req: express.Request, res: express.Response) {
+    try {
+        var response = await FileHelper.fileExists(req.params.md5);
+        sendResponse(res, null, response);
+    } catch (error) {
+        sendResponse(res, error, null);
+    }
 });
 
 router.get("/images/results/:md5", function (req: express.Request, res: express.Response) {
-    ImageHelper.imageExists(req.params.md5, function (error: any, response: any) {
-        let err = null;
-        if (response.imageAvailable) {
-            response = ResultHelper.loadResultsForMd5(req.params.md5);
-        } else {
-            err = {
-                statusCode: 404,
-                statusText: "This result is not available",
-                errorType: "ResultNotAvailable"
-            };
-        }
-        sendResponse(res, err, response);
+    FileHelper.fileExists(req.params.md5).then((response) => {
+        response = ResultHelper.loadResultsForMd5(req.params.md5);
+        sendResponse(res, null, response);
+    }).catch((error) => {
+        var err = {
+            statusCode: 404,
+            statusText: "This result is not available",
+            errorType: "ResultNotAvailable"
+        };
+        sendResponse(res, err, null);
     });
 });
 
@@ -348,24 +313,26 @@ router.get("/openapi", function (req: express.Request, res: express.Response) {
     sendResponse(res, null, swagger);
 });
 
-router.get("*", function (req: express.Request, res: express.Response, next: express.NextFunction) {
+router.get("*", async function (req: express.Request, res: express.Response, next: express.NextFunction) {
     if (unlike(req, "/algorithms")) {
-        GetHandler.handleRequest(req, function (error: any, response: any) {
-            sendResponse(res, error, response);
-        });
+        try {
+            var response = await GetHandler.handleRequest(req);
+            sendResponse(res, null, response);
+        } catch (error) {
+            sendResponse(res, error, null);
+        }
     } else {
         next();
     }
 });
 
-function validate(req: express.Request, res: express.Response, schema: string) {
-    SchemaValidator.validate(req.body, schema, function (error: any) {
-        if (error != null) {
-            sendError(res, error);
-        } else {
-            send200(res, { status: "valud" });
-        }
-    });
+async function validate(req: express.Request, res: express.Response, schema: string) {
+    try {
+        await SchemaValidator.validate(req.body, schema);
+        send200(res, { status: "valid" });
+    } catch (error) {
+        sendError(res, error);
+    }
 }
 
 function sendResponse(res: express.Response, error: any, response: any) {
@@ -399,7 +366,7 @@ function sendError(res: express.Response, error: any) {
     let err = {
         status: error.statusCode,
         type: error.errorType,
-        message: error.statusText
+        message: error.statusMessage
     };
     res.json(err);
 }

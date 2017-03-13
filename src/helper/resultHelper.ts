@@ -6,13 +6,13 @@
 
 import * as _ from "lodash";
 import * as path from "path";
-import {ImageHelper} from "./imageHelper";
+import {FileHelper} from "./fileHelper";
 import {IoHelper} from "./ioHelper";
 import {ParameterHelper} from "./parameterHelper";
 import {Collection} from "../processingQueue/collection";
 import {Process}  from "../processingQueue/process";
 import IProcess = require("../processingQueue/iProcess");
-import {DivaImage} from "../models/divaImage";
+import {File} from "../models/file";
 
 /**
  * Helper class for all result related things
@@ -78,8 +78,8 @@ export class ResultHelper {
      * 
      * @memberOf ResultHelper
      */
-    static saveResult(info: IProcess, callback?: Function): void {
-        IoHelper.saveFile(info.resultFile, info.result, "utf8", callback);
+    static async saveResult(info: IProcess): Promise<any> {
+        return await IoHelper.saveFile(info.resultFile, info.result, "utf8");
     }
 
     /**
@@ -96,16 +96,16 @@ export class ResultHelper {
     }
 
     /**
-     * load all available results computed on a specific image
+     * load all available results computed on a specific file
      * 
      * @static
      * @param {string} folder the folder to load results from
-     * @param {DivaImage} image the image to load results for
+     * @param {DivaImage} inputFile the file to load results for
      * @returns {*}
      * 
      * @memberOf ResultHelper
      */
-    static loadAvailableResults(folder: string, image: DivaImage): any {
+    static loadAvailableResults(folder: string, inputFile: File): any {
         let files: string[] = IoHelper.readFolder(folder);
         let results = [];
         if (files != null) {
@@ -117,7 +117,7 @@ export class ResultHelper {
         for (let file of files) {
             let methodResults = IoHelper.openFile(folder + path.sep + file);
             for (let methodResult of methodResults) {
-                let processResult = IoHelper.openFile(methodResult.folder + path.sep + image.name + "json");
+                let processResult = IoHelper.openFile(methodResult.folder + path.sep + inputFile.filename + "json");
                 processResult["method"] = file.split(".")[0];
                 processResult["parameters"] = methodResult.parameters;
                 results.push(processResult);
@@ -136,11 +136,11 @@ export class ResultHelper {
      * @memberOf ResultHelper
      */
     static loadResultsForMd5(md5: string): any {
-        let images: DivaImage[] = ImageHelper.loadImagesMd5(md5);
+        let files: File[] = FileHelper.loadFilesMd5(md5);
         let response = [];
 
-        for (let image of images) {
-            let availableResults = this.loadAvailableResults(image.rootFolder, image);
+        for (let file of files) {
+            let availableResults = this.loadAvailableResults(file.folder, file);
             for (let result of availableResults) {
                 let message = {
                     resultLink: result.resultLink,

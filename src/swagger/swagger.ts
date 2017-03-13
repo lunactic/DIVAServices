@@ -135,7 +135,7 @@ export class Swagger {
         };
         currentSwagger.paths["/" + route] = entry;
         currentSwagger.definitions[algorithmInfos.general.name.replace(/\s/g, "").toLowerCase()] = definitions;
-        IoHelper.saveFile(nconf.get("paths:swaggerFile"), currentSwagger, "utf8", null);
+        IoHelper.saveFile(nconf.get("paths:swaggerFile"), currentSwagger, "utf8");
     }
 
     //TODO: Some things missing

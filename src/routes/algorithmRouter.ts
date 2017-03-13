@@ -43,84 +43,82 @@ router.get("/algorithms/:identifier", function (req: express.Request, res: expre
     }
 });
 
-router.post("/algorithms", function (req: express.Request, res: express.Response) {
+router.post("/algorithms", async function (req: express.Request, res: express.Response) {
     //add a new algorithm
     //1) validate the incoming request
-    SchemaValidator.validate(req.body, "createSchema", function (error: any) {
-        if (error != null) {
-            sendError(res, error);
-        } else {
-            //2) generate route
-            let baseroute = AlgorithmManagement.generateBaseRoute(req.body);
-            let version = AlgorithmManagement.getVersionByBaseRoute("/" + baseroute);
-            let route = baseroute + "/" + version;
-            //check if we have this route already
-            let status = AlgorithmManagement.getStatusByRoute("/" + baseroute);
-            let imageName = AlgorithmManagement.generateImageName(req.body, version);
-            if (status != null) {
-                switch (status.status.statusCode) {
-                    case 200:
-                        let err = {
-                            statusCode: 500,
-                            statusText: "An algorithm with the same name / type combination already exists. Please change the name of the algorithm",
-                            errorType: "MethodDuplication"
-                        };
-                        sendError(res, err);
-                        break;
-                    case 410:
-                        //algorithm was deleted, create a new one
-                        let identifier = AlgorithmManagement.createIdentifier();
-                        AlgorithmManagement.createAlgorithm(req, res, route, identifier, imageName, version, baseroute, function (error: any, response: any) {
-                            if (error != null) {
-                                sendError(res, error);
-                            } else {
-                                sendWithStatus(res, response);
-                            }
-                        });
-                        break;
-                    case 500:
-                        //currently in error. Delete the current image and create a new one
-                        AlgorithmManagement.generateFolders(route);
-                        AlgorithmManagement.removeFromRootInfoFile("/" + route);
-                        AlgorithmManagement.removeFromServiceInfoFile("/" + baseroute);
-                        DockerManagement.removeImage(status.image_name, function (error: any) {
-                            if (error == null) {
-                                let identifier = AlgorithmManagement.createIdentifier();
-                                //AlgorithmManagement.updateIdentifier("/" + route, identifier);
-                                AlgorithmManagement.createAlgorithm(req, res, route, identifier, imageName, version, baseroute, function (error: any, response: any) {
-                                    if (error != null) {
-                                        sendError(res, error);
-                                    } else {
-                                        sendWithStatus(res, response);
-                                    }
-                                });
-                            }
-                        });
-                        break;
-                    default:
-                        let response = {
-                            statusCode: status.status.statusCode,
-                            identifier: status.identifier,
-                            statusMessage: status.statusMessage
-                        };
-                        sendResponse(res, null, response);
-                        break;
-                }
-            } else {
-                //create a new algorithm
-                let identifier = AlgorithmManagement.createIdentifier();
-                AlgorithmManagement.generateFolders(route);
-                AlgorithmManagement.createAlgorithm(req, res, route, identifier, imageName, version, baseroute, function (error: any, response: any) {
-                    if (error != null) {
-                        sendError(res, error);
-                    } else {
-                        sendWithStatus(res, response);
-                    }
-                });
+    try {
+        await SchemaValidator.validate(req.body, "createSchema");
+        let baseroute = AlgorithmManagement.generateBaseRoute(req.body);
+        let version = AlgorithmManagement.getVersionByBaseRoute("/" + baseroute);
+        let route = baseroute + "/" + version;
+        //check if we have this route already
+        let status = AlgorithmManagement.getStatusByRoute("/" + baseroute);
+        let imageName = AlgorithmManagement.generateImageName(req.body, version);
+        //2) generate route
+        if (status != null) {
+            switch (status.status.statusCode) {
+                case 200:
+                    let err = {
+                        statusCode: 500,
+                        statusText: "An algorithm with the same name / type combination already exists. Please change the name of the algorithm",
+                        errorType: "MethodDuplication"
+                    };
+                    sendError(res, err);
+                    break;
+                case 410:
+                    //algorithm was deleted, create a new one
+                    let identifier = AlgorithmManagement.createIdentifier();
+                    AlgorithmManagement.createAlgorithm(req, res, route, identifier, imageName, version, baseroute, function (error: any, response: any) {
+                        if (error != null) {
+                            sendError(res, error);
+                        } else {
+                            sendWithStatus(res, response);
+                        }
+                    });
+                    break;
+                case 500:
+                    //currently in error. Delete the current image and create a new one
+                    AlgorithmManagement.generateFolders(route);
+                    AlgorithmManagement.removeFromRootInfoFile("/" + route);
+                    AlgorithmManagement.removeFromServiceInfoFile("/" + baseroute);
+                    DockerManagement.removeImage(status.image_name, function (error: any) {
+                        if (error == null) {
+                            let identifier = AlgorithmManagement.createIdentifier();
+                            //AlgorithmManagement.updateIdentifier("/" + route, identifier);
+                            AlgorithmManagement.createAlgorithm(req, res, route, identifier, imageName, version, baseroute, function (error: any, response: any) {
+                                if (error != null) {
+                                    sendError(res, error);
+                                } else {
+                                    sendWithStatus(res, response);
+                                }
+                            });
+                        }
+                    });
+                    break;
+                default:
+                    let response = {
+                        statusCode: status.status.statusCode,
+                        identifier: status.identifier,
+                        statusMessage: status.statusMessage
+                    };
+                    sendResponse(res, null, response);
+                    break;
             }
+        } else {
+            //create a new algorithm
+            let identifier = AlgorithmManagement.createIdentifier();
+            AlgorithmManagement.generateFolders(route);
+            AlgorithmManagement.createAlgorithm(req, res, route, identifier, imageName, version, baseroute, function (error: any, response: any) {
+                if (error != null) {
+                    sendError(res, error);
+                } else {
+                    sendWithStatus(res, response);
+                }
+            });
         }
-    });
-
+    } catch (error) {
+        sendError(res, error);
+    }
 });
 
 router.put("/algorithms/:identifier", function (req: express.Request, res: express.Response) {
@@ -148,24 +146,22 @@ router.put("/algorithms/:identifier", function (req: express.Request, res: expre
                 AlgorithmManagement.removeFromRootInfoFile(serviceInfo.path);
                 break;
         }
-        DockerManagement.removeImage(serviceInfo.image_name, function (error: any) {
+        DockerManagement.removeImage(serviceInfo.image_name, async function (error: any) {
             if (error == null) {
-                SchemaValidator.validate(req.body, "createSchema", function (error: any) {
-                    if (error != null) {
-                        sendError(res, error);
-                    } else {
-                        let identifier = AlgorithmManagement.createIdentifier();
-                        let imageName = AlgorithmManagement.generateImageName(req.body, version);
-                        AlgorithmManagement.generateFolders(newRoute);
-                        AlgorithmManagement.createAlgorithm(req, res, newRoute, identifier, imageName, version, baseroute, function (error: any, response: any) {
-                            if (error != null) {
-                                sendError(res, error);
-                            } else {
-                                sendWithStatus(res, response);
-                            }
-                        });
-                    }
-                });
+                try {
+                    await SchemaValidator.validate(req.body, "createSchema");
+                    let identifier = AlgorithmManagement.createIdentifier();
+                    let imageName = AlgorithmManagement.generateImageName(req.body, version);
+                    AlgorithmManagement.createAlgorithm(req, res, newRoute, identifier, imageName, version, baseroute, function (error: any, response: any) {
+                        if (error != null) {
+                            sendError(res, error);
+                        } else {
+                            sendWithStatus(res, response);
+                        }
+                    });
+                } catch (error) {
+                    sendError(res, error);
+                }
             }
         });
     } else {

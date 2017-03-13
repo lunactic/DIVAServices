@@ -12,7 +12,7 @@ import * as fs from "fs";
 import * as morgan from "morgan";
 import {Logger} from "./logging/logger";
 import {Statistics} from "./statistics/statistics";
-import {ImageHelper} from "./helper/imageHelper";
+import {FileHelper} from "./helper/fileHelper";
 import {QueueHandler} from "./processingQueue/queueHandler";
 let router = require("./routes/standardRouter");
 let algorithmRouter = require("./routes/algorithmRouter");
@@ -122,8 +122,12 @@ class Server {
 //shutdown handler
 process.on("SIGTERM", function () {
     Logger.log("info", "RECEIVED SIGTERM", "Server");
-    ImageHelper.saveImageInfo();
+    FileHelper.saveFileInfo();
     process.exit(0);
 });
+
+/*process.on('unhandledRejection', (reason) => {
+    console.log(reason);
+});*/
 
 export = Server.bootstrap().app;

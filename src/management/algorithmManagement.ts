@@ -133,7 +133,7 @@ export class AlgorithmManagement {
                             inputs: inputs
                         }
                     };
-                    
+
                     /*executableHelper.preprocess(testRequest, QueueHandler.dockerProcessingQueue, "test", function (error: any, response: any) {
                         if (error != null) {
                             Logger.log("error", error, "AlgorithmManagement");
@@ -271,7 +271,7 @@ export class AlgorithmManagement {
      * 
      * @memberOf AlgorithmManagement
      */
-    static createInfoFile(algorithm: any, folder: string) {
+    static async createInfoFile(algorithm: any, folder: string) {
         let data = _.cloneDeep(algorithm);
         let reservedWords = _.clone(nconf.get("reservedWords"));
         _.remove(reservedWords, function (word: any) {
@@ -288,13 +288,12 @@ export class AlgorithmManagement {
             }
         });
 
-        IoHelper.saveFile(folder + path.sep + "info.json", data, "utf8", function (err: any) {
-            if (err != null) {
-                Logger.log("error", err, "AlgorithmManagement");
-            } else {
-                Logger.log("info", "saved file", "AlgorithmManagement");
-            }
-        });
+        try {
+            await IoHelper.saveFile(folder + path.sep + "info.json", data, "utf8");
+            Logger.log("info", "saved file", "AlgorithmManagement");
+        } catch (error) {
+            Logger.log("error", error, "AlgorithmManagement");
+        }
     }
 
     /**
@@ -318,7 +317,7 @@ export class AlgorithmManagement {
      * 
      * @memberOf AlgorithmManagement
      */
-    static updateRootInfoFile(algorithm: any, route: string): void {
+    static async updateRootInfoFile(algorithm: any, route: string) {
         let fileContent = IoHelper.openFile(nconf.get("paths:rootInfoFile"));
         let newEntry = {
             name: algorithm.general.name,
@@ -327,7 +326,8 @@ export class AlgorithmManagement {
             url: "http://$BASEURL$/" + route
         };
         fileContent.push(newEntry);
-        IoHelper.saveFile(nconf.get("paths:rootInfoFile"), fileContent, "utf8", null);
+        await IoHelper.saveFile(nconf.get("paths:rootInfoFile"), fileContent, "utf8");
+
     }
 
     /**
@@ -338,12 +338,12 @@ export class AlgorithmManagement {
      * 
      * @memberOf AlgorithmManagement
      */
-    static removeFromRootInfoFile(route: string): void {
+    static async removeFromRootInfoFile(route: string) {
         let fileContent = IoHelper.openFile(nconf.get("paths:rootInfoFile"));
         _.remove(fileContent, function (entry: any) {
             return entry.url === "http://$BASEURL$" + route;
         });
-        IoHelper.saveFile(nconf.get("paths:rootInfoFile"), fileContent, "utf8", null);
+        await IoHelper.saveFile(nconf.get("paths:rootInfoFile"), fileContent, "utf8");
     }
 
     /**
@@ -354,10 +354,10 @@ export class AlgorithmManagement {
      * 
      * @memberOf AlgorithmManagement
      */
-    static removeFromServiceInfoFile(route: string): void {
+    static async removeFromServiceInfoFile(route: string) {
         let fileContent = IoHelper.openFile(nconf.get("paths:servicesInfoFile"));
         _.remove(fileContent.services, { "baseRoute": route });
-        IoHelper.saveFile(nconf.get("paths:servicesInfoFile"), fileContent, "utf8", null);
+        await IoHelper.saveFile(nconf.get("paths:servicesInfoFile"), fileContent, "utf8");
         ServicesInfoHelper.reload();
     }
 
@@ -372,7 +372,7 @@ export class AlgorithmManagement {
      * 
      * @memberOf AlgorithmManagement
      */
-    static updateStatus(identifier: string, status: string, route: string, message: string): void {
+    static async updateStatus(identifier: string, status: string, route: string, message: string) {
         let content = IoHelper.openFile(nconf.get("paths:servicesInfoFile"));
         let currentInfo: any = {};
         if (identifier != null && _.find(content.services, { "identifier": identifier }) != null) {
@@ -403,7 +403,7 @@ export class AlgorithmManagement {
                 currentInfo.status.statusMessage = "This algorithm is no longer available";
                 break;
         }
-        IoHelper.saveFile(nconf.get("paths:servicesInfoFile"), content, "utf8", null);
+        await IoHelper.saveFile(nconf.get("paths:servicesInfoFile"), content, "utf8");
     }
 
     /**
@@ -415,12 +415,12 @@ export class AlgorithmManagement {
      * 
      * @memberOf AlgorithmManagement
      */
-    static updateRoute(identifier: string, route: string): void {
+    static async updateRoute(identifier: string, route: string) {
         let content = IoHelper.openFile(nconf.get("paths:servicesInfoFile"));
         if (identifier != null && _.find(content.services, { "identifier": identifier }) != null) {
             let currentInfo: any = _.find(content.services, { "identifier": identifier });
             currentInfo.path = route;
-            IoHelper.saveFile(nconf.get("paths:servicesInfoFile"), content, "utf8", null);
+            await IoHelper.saveFile(nconf.get("paths:servicesInfoFile"), content, "utf8");
         }
     }
 
@@ -435,7 +435,7 @@ export class AlgorithmManagement {
      * 
      * @memberOf AlgorithmManagement
      */
-    static addUrlParameter(identifier: string, parameterName: string): void {
+    static async addUrlParameter(identifier: string, parameterName: string) {
         let content = IoHelper.openFile(nconf.get("paths:servicesInfoFile"));
         if (identifier != null && _.find(content.services, { "identifier": identifier }) != null) {
             let currentInfo: any = _.find(content.services, { "identifier": identifier });
@@ -452,7 +452,7 @@ export class AlgorithmManagement {
                 info[parameterName] = "url";
                 currentInfo.parameters.unshift(info);
             }
-            IoHelper.saveFile(nconf.get("paths:servicesInfoFile"), content, "utf8", null);
+            await IoHelper.saveFile(nconf.get("paths:servicesInfoFile"), content, "utf8");
         }
     }
 
@@ -469,7 +469,7 @@ export class AlgorithmManagement {
      * 
      * @memberOf AlgorithmManagement
      */
-    static addRemotePath(identifier: string, parameterName: string, remotePath: string): void {
+    static async addRemotePath(identifier: string, parameterName: string, remotePath: string) {
         let content = IoHelper.openFile(nconf.get("paths:servicesInfoFile"));
         if (identifier != null && _.find(content.services, { "identifier": identifier }) != null) {
             let currentInfo: any = _.find(content.services, { "identifier": identifier });
@@ -485,7 +485,7 @@ export class AlgorithmManagement {
                 info[parameterName] = remotePath;
                 currentInfo.remotePaths.push(info);
             }
-            IoHelper.saveFile(nconf.get("paths:servicesInfoFile"), content, "utf8", null);
+            await IoHelper.saveFile(nconf.get("paths:servicesInfoFile"), content, "utf8");
         }
     }
 
@@ -522,7 +522,7 @@ export class AlgorithmManagement {
      * 
      * @memberOf AlgorithmManagement
      */
-    static recordException(identifier: string, exception: any): void {
+    static async recordException(identifier: string, exception: any) {
         let content = IoHelper.openFile(nconf.get("paths:servicesInfoFile"));
         if (identifier != null && _.find(content.services, { "identifier": identifier }) != null) {
             let currentInfo: any = _.find(content.services, { "identifier": identifier });
@@ -531,7 +531,7 @@ export class AlgorithmManagement {
                 errorMessage: exception
             };
             currentInfo.exceptions.push(message);
-            IoHelper.saveFile(nconf.get("paths:servicesInfoFile"), content, "utf8", null);
+            await IoHelper.saveFile(nconf.get("paths:servicesInfoFile"), content, "utf8");
         }
     }
 

@@ -129,7 +129,7 @@ export class ParameterHelper {
                 let globalParams = _.find(process.parameters.params, function (item: any) {
                     return Object.keys(item)[0] === searchKey;
                 });
-                if (globalParams != undefined && Object.keys(globalParams).length > 0) {
+                if (globalParams !== undefined && Object.keys(globalParams).length > 0) {
                                         let replaceObj = _.find(process.matchedParameters, function(item: any){
                         return Object.keys(item)[0] === searchKey;
                     });
@@ -149,7 +149,7 @@ export class ParameterHelper {
                 //if not found ==> throw error
             }
             resolve();
-        })
+        });
 
 
     }
@@ -207,7 +207,7 @@ export class ParameterHelper {
      * 
      * @memberOf ParameterHelper
      */
-    static saveParamInfo(process: Process): void {
+    static async saveParamInfo(process: Process): Promise<void> {
         if (process.result != null) {
             return;
         }
@@ -252,11 +252,11 @@ export class ParameterHelper {
             //only save the information if it is not already present
             if (_.filter(content, { "parameters": data.parameters, "highlighters": data.highlighters }).length > 0) {
                 content.push(data);
-                IoHelper.saveFile(methodPath, content, "utf8", null);
+                await IoHelper.saveFile(methodPath, content, "utf8");
             }
         } catch (error) {
             content.push(data);
-            IoHelper.saveFile(methodPath, content, "utf8", null);
+            await IoHelper.saveFile(methodPath, content, "utf8");
         }
     }
 
@@ -322,7 +322,7 @@ export class ParameterHelper {
      * 
      * @memberOf ParameterHelper
      */
-    static removeParamInfo(process: Process): void {
+    static async removeParamInfo(process: Process): Promise<void> {
         let paramPath = nconf.get("paths:imageRootPath") + path.sep + process.rootFolder + path.sep + process.method + ".json";
         let data = {
             highlighters: process.inputHighlighters,
@@ -337,7 +337,7 @@ export class ParameterHelper {
                 "highlighters": data.highlighters
             }).length > 0) {
                 _.remove(content, { "parameters": data.hash, "highlighters": data.highlighters });
-                IoHelper.saveFile(paramPath, content, "utf8", null);
+                await IoHelper.saveFile(paramPath, content, "utf8");
             }
         } catch (error) {
             return;

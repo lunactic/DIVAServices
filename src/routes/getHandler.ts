@@ -14,7 +14,7 @@ import { Statistics } from "../statistics/statistics";
 import { ParameterHelper } from "../helper/parameterHelper";
 import { Process } from "../processingQueue/process";
 import { ResultHelper } from "../helper/resultHelper";
-import { ImageHelper } from "../helper/imageHelper";
+import { FileHelper } from "../helper/fileHelper";
 import { ServicesInfoHelper } from "../helper/servicesInfoHelper";
 import { IoHelper } from "../helper/ioHelper";
 
@@ -35,35 +35,43 @@ export class GetHandler {
      * 
      * @memberOf GetHandler
      */
-    static handleRequest(req: express.Request, callback: Function): void {
-        if (Object.keys(req.query).length !== 0) {
-            GetHandler.getWithQuery(req, callback);
-        } else {
-            fs.readFile(nconf.get("paths:jsonPath") + req.originalUrl + "/info.json", "utf8", function (err: any, data: any) {
-                if (err != null) {
-                    let algo = AlgorithmManagement.getStatusByRoute(req.originalUrl);
-                    let error = null;
-                    if (algo != null) {
-                        error = GetHandler.createError(algo.status.statusCode, algo.status.statusMessage);
-                    } else {
-                        error = GetHandler.createError(404, "This algorithm is not available");
-                    }
-                    callback(error, null);
-                } else {
-                    data = data.replace(new RegExp("\\$BASEURL\\$", "g"), nconf.get("server:rootUrl"));
-                    data = JSON.parse(data);
-
-                    //add additional information if available
-                    if (data.general != null && data.general.expectedRuntime == null) {
-                        data.general.expectedRuntime = Statistics.getMeanExecutionTime(req.originalUrl);
-                    }
-                    if (data.general != null && data.general.executions == null) {
-                        data.general.executions = Statistics.getNumberOfExecutions(req.originalUrl);
-                    }
-                    callback(null, data);
+    static async handleRequest(req: express.Request) {
+        return new Promise<any>(async (resolve, reject) => {
+            if (Object.keys(req.query).length !== 0) {
+                try {
+                    let response = await GetHandler.getWithQuery(req);
+                    resolve(response);
+                } catch (error) {
+                    reject(error);
                 }
-            });
-        }
+            } else {
+                fs.readFile(nconf.get("paths:jsonPath") + req.originalUrl + "info.json", "utf8", function (err: any, data: any) {
+                    if (err != null) {
+                        let algo = AlgorithmManagement.getStatusByRoute(req.originalUrl);
+                        let error = null;
+                        if (algo != null) {
+                            error = GetHandler.createError(algo.status.statusCode, algo.status.statusMessage);
+                        } else {
+                            error = GetHandler.createError(404, "This algorithm is not available");
+                        }
+                        reject(error);
+                    } else {
+                        data = data.replace(new RegExp("\\$BASEURL\\$", "g"), nconf.get("server:rootUrl"));
+                        data = JSON.parse(data);
+
+                        //add additional information if available
+                        if (data.general != null && data.general.expectedRuntime == null) {
+                            data.general.expectedRuntime = Statistics.getMeanExecutionTime(req.originalUrl);
+                        }
+                        if (data.general != null && data.general.executions == null) {
+                            data.general.executions = Statistics.getNumberOfExecutions(req.originalUrl);
+                        }
+                        resolve(data);
+                    }
+                });
+            }
+        });
+
     }
 
     /**
@@ -76,7 +84,7 @@ export class GetHandler {
      * 
      * @memberOf GetHandler
      */
-    private static getWithQuery(req: any, callback: Function) {
+    private static async getWithQuery(req: any) {
         //TODO: this is outdated and could need some refactoring
 
         let serviceInfo = ServicesInfoHelper.getInfoByPath(req.originalUrl);
@@ -85,35 +93,34 @@ export class GetHandler {
 
         //check if there is an md5 hash referenced
         if (queryParams["md5"] != null) {
-            ImageHelper.imageExists(queryParams.md5, function (err: any, data: any) {
-                if (err != null) {
-                    let error = GetHandler.createError(404, "DivaImage not available");
-                    callback(error, null);
-                } else {
-                    if (data.imageAvailable) {
-                        let images = ImageHelper.loadImagesMd5(queryParams.md5);
-                        for (let image of images) {
-                            let process = new Process();
-                            //process.image = image;
-                            GetHandler.prepareQueryParams(process, queryParams);
-                            /*ParameterHelper.matchParams(process, req, function (parameters) {
-                                process.parameters = parameters;
-                                process.method = serviceInfo.service;
-                                process.rootFolder = image.folder.split(path.sep)[image.folder.split(path.sep).length - 2];
-                                //TODO is this needed in the futur, when everything is starting from the point of acollection?
-                                if (ResultHelper.checkProcessResultAvailable(process)) {
-                                    process.result = ResultHelper.loadResult(process);
-                                    if (!(process.result.hasOwnProperty("status"))) {
-                                        process.result["status"] = "done";
-                                    }
-                                    callback(null, process.result);
+            try {
+                var data = await FileHelper.fileExists(queryParams.md5);
+                if (data.imageAvailable) {
+                    let images = FileHelper.loadFilesMd5(queryParams.md5);
+                    for (let image of images) {
+                        let process = new Process();
+                        //process.image = image;
+                        GetHandler.prepareQueryParams(process, queryParams);
+                        /*ParameterHelper.matchParams(process, req, function (parameters) {
+                            process.parameters = parameters;
+                            process.method = serviceInfo.service;
+                            process.rootFolder = image.folder.split(path.sep)[image.folder.split(path.sep).length - 2];
+                            //TODO is this needed in the futur, when everything is starting from the point of acollection?
+                            if (ResultHelper.checkProcessResultAvailable(process)) {
+                                process.result = ResultHelper.loadResult(process);
+                                if (!(process.result.hasOwnProperty("status"))) {
+                                    process.result["status"] = "done";
                                 }
-                            });*/
-                        }
-                        callback(GetHandler.createError(404, "This result is not available"), null);
+                                callback(null, process.result);
+                            }
+                        });*/
                     }
+                    Promise.reject(GetHandler.createError(404, "This result is not available"));
                 }
-            });
+            } catch (error) {
+                let err = GetHandler.createError(404, "DivaImage not available");
+                Promise.reject(error);
+            }
             //check if a root folder is referenced
         } else if (queryParams["rootFolder"] != null) {
             let process = new Process();
@@ -140,7 +147,7 @@ export class GetHandler {
             });*/
         } else {
             let error = GetHandler.createError(500, "Could not parse this request");
-            callback(error, null);
+            Promise.reject(error);
         }
     }
 

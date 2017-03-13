@@ -13,8 +13,7 @@ import { Collection } from "../processingQueue/collection";
 import { ConsoleResultHandler } from "./resultHandlers/consoleResultHandler";
 import { DockerManagement } from "../docker/dockerManagement";
 import { FileResultHandler } from "./resultHandlers/fileResultHandler";
-import { ImageHelper } from "./imageHelper";
-import { DataHelper } from "./dataHelper";
+import { FileHelper } from "./fileHelper";
 import { IoHelper } from "./ioHelper";
 import { NoResultHandler } from "./resultHandlers/noResultHandler";
 import * as path from "path";
@@ -104,9 +103,9 @@ export class ExecutableHelper extends EventEmitter {
     private executeCommand(command: string, process: Process, callback: Function): void {
         let exec = childProcess.exec;
         Logger.log("info", "Execute command: " + command, "ExecutableHelper");
-        exec(command, { maxBuffer: 1024 * 48828 }, function (error: any, stdout: any, stderr: any) {
+        exec(command, { maxBuffer: 1024 * 48828 }, async function (error: any, stdout: any, stderr: any) {
             Statistics.endRecording(process.id, process.req.originalUrl);
-            process.resultHandler.handleResult(error, stdout, stderr, process, callback);
+            await process.resultHandler.handleResult(error, stdout, stderr, process);
         });
     }
 
