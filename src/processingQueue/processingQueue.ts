@@ -22,6 +22,10 @@ export class ProcessingQueue {
      */
     static queue: Process[] = [];
 
+    getQueue(): any{
+        return ProcessingQueue.queue;
+    }
+
     /**
      * Add a process to the processing queue
      * @param the process

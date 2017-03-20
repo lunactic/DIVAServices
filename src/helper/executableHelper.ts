@@ -72,7 +72,7 @@ export class ExecutableHelper extends EventEmitter {
      * @param {Process} process The process to execute
      */
     private buildRemoteCommand(process: Process): string {
-        let params = _.clone(process.parameters.params);
+        let params = _.cloneDeep(process.parameters.params);
         _.forIn(params, function (value: any, key: any) {
             switch (key) {
                 case "inputImage":
@@ -165,8 +165,8 @@ export class ExecutableHelper extends EventEmitter {
             process.remoteErrorUrl = "http://" + nconf.get("docker:reportHost") + "/algorithms/" + process.algorithmIdentifier + "/exceptions/" + process.id;
             let serviceInfo = ServicesInfoHelper.getInfoByPath(process.req.originalUrl);
             try {
-                await DockerManagement.runDockerImage(process, serviceInfo.image_name);
                 resolve();
+                await DockerManagement.runDockerImage(process, serviceInfo.image_name);
             } catch (error) {
                 reject(error);
             }
@@ -188,8 +188,8 @@ export class ExecutableHelper extends EventEmitter {
             collection.method = serviceInfo.service;
             collection.name = RandomWordGenerator.generateRandomWord();
             collection.outputFolder = IoHelper.getOutputFolder(collection.name);
-            collection.inputParameters = _.clone(req.body.parameters);
-            collection.inputData = _.clone(req.body.data);
+            collection.inputParameters = _.cloneDeep(req.body.parameters);
+            collection.inputData = _.cloneDeep(req.body.data);
             collection.resultFile = collection.outputFolder + path.sep + "info.json";
             this.setCollectionHighlighter(collection, req);
             collection.neededParameters = serviceInfo.parameters;
@@ -202,18 +202,18 @@ export class ExecutableHelper extends EventEmitter {
 
 
                 let proc: Process = new Process();
-                proc.req = _.clone(req);
+                proc.req = _.cloneDeep(req);
                 proc.type = executionType;
                 proc.algorithmIdentifier = serviceInfo.identifier;
                 proc.executableType = serviceInfo.executableType;
                 //Todo fix that to create the deeper nesting
                 proc.outputFolder = collection.outputFolder + path.sep + "data_" + index + path.sep;
-                proc.inputHighlighters = _.clone(collection.inputHighlighters);
-                proc.neededParameters = _.clone(collection.neededParameters);
-                proc.neededData = _.clone(collection.neededData);
-                proc.parameters = _.clone(collection.parameters);
-                proc.remotePaths = serviceInfo.remotePaths;
-                proc.matchedParameters = serviceInfo.paramOrder;
+                proc.inputHighlighters = _.cloneDeep(collection.inputHighlighters);
+                proc.neededParameters = _.cloneDeep(collection.neededParameters);
+                proc.neededData = _.cloneDeep(collection.neededData);
+                proc.parameters = _.cloneDeep(collection.parameters);
+                proc.remotePaths = _.cloneDeep(serviceInfo.remotePaths);
+                proc.matchedParameters = _.cloneDeep(serviceInfo.paramOrder);
                 proc.method = collection.method;
                 proc.rootFolder = collection.name;
                 let resultHandler = null;
@@ -299,7 +299,7 @@ export class ExecutableHelper extends EventEmitter {
      */
     private setCollectionHighlighter(collection: Collection, req: any): void {
         if (req.body.inputs != null && req.body.inputs.highlighter != null) {
-            collection.inputHighlighters = _.clone(req.body.inputs.highlighter);
+            collection.inputHighlighters = _.cloneDeep(req.body.inputs.highlighter);
         } else {
             collection.inputHighlighters = {};
         }

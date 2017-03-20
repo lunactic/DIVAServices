@@ -209,9 +209,6 @@ export class ParameterHelper {
      */
     static async saveParamInfo(process: Process): Promise<any> {
         return new Promise<any>(async (resolve, reject) => {
-            if (process.result != null) {
-                return;
-            }
             let methodPath = nconf.get("paths:resultsPath") + path.sep + process.method + ".json";
             let content = [];
             let data: any = {};
@@ -237,7 +234,7 @@ export class ParameterHelper {
                 fs.statSync(methodPath).isFile();
                 let content = IoHelper.openFile(methodPath);
                 //only save the information if it is not already present
-                if (_.filter(content, { "hash": data.hash, "highlighters": data.highlighters }).length > 0) {
+                if (_.filter(content, { "hash": data.hash, "highlighters": data.highlighters }).length === 0) {
                     content.push(data);
                     await IoHelper.saveFile(methodPath, content, "utf8");
                 }

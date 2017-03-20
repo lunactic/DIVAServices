@@ -240,7 +240,7 @@ export class QueueHandler {
      * @memberOf QueueHandler
      */
     private static async executeDockerRequest() {
-        if (this.dockerRequestAvailable()) {
+        while (this.dockerRequestAvailable()) {
             Logger.log("info", "execute docker request", "QueueHandler");
             let job = this.getNextDockerRequest();
             QueueHandler.runningDockerJobs.push(job);
