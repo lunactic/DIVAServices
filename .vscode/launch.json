@@ -17,7 +17,7 @@
         },
         {
             "name": "Attach to Process",
-            "type": "node",
+            "type": "node2",
             "request": "attach",
             "port": 9929,
             "address": "localhost",

@@ -6,13 +6,14 @@
 
 import * as _ from "lodash";
 import * as path from "path";
-import {FileHelper} from "./fileHelper";
-import {IoHelper} from "./ioHelper";
-import {ParameterHelper} from "./parameterHelper";
-import {Collection} from "../processingQueue/collection";
-import {Process}  from "../processingQueue/process";
+import { FileHelper } from "./fileHelper";
+import { IoHelper } from "./ioHelper";
+import { ParameterHelper } from "./parameterHelper";
+import { Collection } from "../processingQueue/collection";
+import { Process } from "../processingQueue/process";
 import IProcess = require("../processingQueue/iProcess");
-import {File} from "../models/file";
+import { File } from "../models/file";
+import {Logger} from "../logging/logger";
 
 /**
  * Helper class for all result related things
@@ -74,7 +75,6 @@ export class ResultHelper {
      * 
      * @static
      * @param {IProcess} info the process to save results for
-     * @param {Function} [callback] the callback function
      * 
      * @memberOf ResultHelper
      */
@@ -90,8 +90,12 @@ export class ResultHelper {
      * 
      * @memberOf ResultHelper
      */
-    static removeResult(process: Process): void {
-        ParameterHelper.removeParamInfo(process);
+    static async removeResult(process: Process) {
+        try {
+            await ParameterHelper.removeParamInfo(process);
+        }catch(error){
+            Logger.log("error", error, "ResultHelper");
+        }
         IoHelper.deleteFolder(process.outputFolder);
     }
 

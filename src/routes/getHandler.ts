@@ -31,11 +31,10 @@ export class GetHandler {
      * 
      * @static
      * @param {*} req the incoming GET request
-     * @param {Function} callback the callback function
      * 
      * @memberOf GetHandler
      */
-    static async handleRequest(req: express.Request) {
+    static async handleRequest(req: express.Request) : Promise<any> {
         return new Promise<any>(async (resolve, reject) => {
             if (Object.keys(req.query).length !== 0) {
                 try {
@@ -80,7 +79,6 @@ export class GetHandler {
      * @private
      * @static
      * @param {*} req the incoming GET request
-     * @param {Function} callback the callback function
      * 
      * @memberOf GetHandler
      */

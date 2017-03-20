@@ -18,7 +18,6 @@ interface IResultHandler {
      * @param {any} stdout The standard output
      * @param {any} stderr The standard error
      * @param {Process} process The executed process
-     * @param {Function} callback A callback
      */
     handleResult(error: any, stdout: any, stderr: any, process: Process) : Promise<any>;
 }

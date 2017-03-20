@@ -1,4 +1,3 @@
-import { DivaData } from '../models/divaData';
 /**
  * Created by lunactic on 03.11.16.
  */
@@ -15,6 +14,7 @@ import { Logger } from "../logging/logger";
 import { Process } from "../processingQueue/process";
 import { Collection } from "../processingQueue/collection";
 import IProcess = require("../processingQueue/iProcess");
+import { File } from "../models/file";
 
 /**
  * Helping class for everything related to help matching parameters to the executables
@@ -103,7 +103,7 @@ export class ParameterHelper {
                     //perform lookup to get the correct file path, create the correct data item out of it
                     let collection = value.split("/")[0];
                     let filename = value.split("/")[1];
-                    data[key] = DivaData.CreateDataItem(collection, filename);
+                    data[key] = File.CreateFile(collection, filename);
                     _.remove(process.neededData, function (item: any) {
                         return Object.keys(item)[0] === key;
                     });
@@ -130,18 +130,18 @@ export class ParameterHelper {
                     return Object.keys(item)[0] === searchKey;
                 });
                 if (globalParams !== undefined && Object.keys(globalParams).length > 0) {
-                                        let replaceObj = _.find(process.matchedParameters, function(item: any){
+                    let replaceObj = _.find(process.matchedParameters, function (item: any) {
                         return Object.keys(item)[0] === searchKey;
                     });
                     replaceObj[searchKey] = globalParams[searchKey];
                 }
                 //check if key is in data parameters
-                let dataParams = _.pickBy(process.data, function(value: any, key: string){
+                let dataParams = _.pickBy(process.data, function (value: any, key: string) {
                     return key === searchKey;
                 });
 
                 if (dataParams !== undefined && Object.keys(dataParams).length > 0) {
-                    let replaceObj = _.find(process.matchedParameters, function(item: any){
+                    let replaceObj = _.find(process.matchedParameters, function (item: any) {
                         return Object.keys(item)[0] === searchKey;
                     });
                     replaceObj[searchKey] = dataParams[searchKey];
@@ -207,57 +207,57 @@ export class ParameterHelper {
      * 
      * @memberOf ParameterHelper
      */
-    static async saveParamInfo(process: Process): Promise<void> {
-        if (process.result != null) {
-            return;
-        }
-        let methodPath = "";
-        /*if (process.hasImages) {
-            methodPath = nconf.get("paths:imageRootPath") + path.sep + process.rootFolder + path.sep + process.method + ".json";
-        } else {
-            methodPath = nconf.get("paths:dataRootPath") + path.sep + process.rootFolder + path.sep + process.method + ".json";
-        }*/
+    static async saveParamInfo(process: Process): Promise<any> {
+        return new Promise<any>(async (resolve, reject) => {
+            if (process.result != null) {
+                return;
+            }
+            let methodPath = nconf.get("paths:resultsPath") + path.sep + process.method + ".json";
+            let content = [];
+            let data: any = {};
+            if (process.inputHighlighters != null) {
+                //TODO: incorporate the highlighter into the hash and store one single value (or add the hash as additional info to enable better computation of statistics)
+                data = {
+                    highlighters: _.clone(process.inputHighlighters),
+                    parameters: _.clone(process.parameters),
+                    hash: hash(process.parameters),
+                    resultFile: process.resultFile,
+                    data: process.data
+                };
+            } else {
+                data = {
+                    highlighters: {},
+                    parameters: _.clone(process.parameters),
+                    hash: hash(process.parameters),
+                    resultFile: process.resultFile,
+                    data: process.data
+                };
+            }
 
-        let content = [];
-        let data: any = {};
-        if (process.inputHighlighters != null) {
-            //TODO: incorporate the highlighter into the hash and store one single value (or add the hash as additional info to enable better computation of statistics)
-            data = {
-                highlighters: _.clone(process.inputHighlighters),
-                parameters: _.clone(process.inputParameters),
-                hash: hash(process.inputParameters),
-                folder: process.outputFolder
-            };
-        } else {
-            data = {
-                highlighters: {},
-                parameters: _.clone(process.inputParameters),
-                hash: hash(process.inputParameters),
-                folder: process.outputFolder
-            };
-        }
+            //turn everything into strings
+            _.forIn(data.highlighters, function (value: string, key: string) {
+                data.highlighters[key] = String(value);
+            });
 
-        //turn everything into strings
-        _.forIn(data.highlighters, function (value: string, key: string) {
-            data.highlighters[key] = String(value);
-        });
+            Logger.log("info", "saveParamInfo", "ParameterHelper");
+            Logger.log("info", JSON.stringify(process.parameters), "ParameterHelper");
+            Logger.log("info", "hash: " + data.hash, "ParameterHelper");
 
-        Logger.log("info", "saveParamInfo", "ParameterHelper");
-        Logger.log("info", JSON.stringify(process.inputParameters), "ParameterHelper");
-        Logger.log("info", "hash: " + data.parameters, "ParameterHelper");
-
-        try {
-            fs.statSync(methodPath).isFile();
-            let content = IoHelper.openFile(methodPath);
-            //only save the information if it is not already present
-            if (_.filter(content, { "parameters": data.parameters, "highlighters": data.highlighters }).length > 0) {
+            try {
+                fs.statSync(methodPath).isFile();
+                let content = IoHelper.openFile(methodPath);
+                //only save the information if it is not already present
+                if (_.filter(content, { "hash": data.hash, "highlighters": data.highlighters }).length > 0) {
+                    content.push(data);
+                    await IoHelper.saveFile(methodPath, content, "utf8");
+                }
+                resolve();
+            } catch (error) {
                 content.push(data);
                 await IoHelper.saveFile(methodPath, content, "utf8");
+                resolve();
             }
-        } catch (error) {
-            content.push(data);
-            await IoHelper.saveFile(methodPath, content, "utf8");
-        }
+        });
     }
 
     /**
@@ -323,25 +323,28 @@ export class ParameterHelper {
      * @memberOf ParameterHelper
      */
     static async removeParamInfo(process: Process): Promise<void> {
-        let paramPath = nconf.get("paths:imageRootPath") + path.sep + process.rootFolder + path.sep + process.method + ".json";
-        let data = {
-            highlighters: process.inputHighlighters,
-            hash: hash(process.inputParameters)
-        };
-        try {
-            fs.statSync(paramPath).isFile();
-            let content = IoHelper.openFile(paramPath);
-            let info: any = {};
-            if (_.filter(content, {
-                "parameters": data.hash,
-                "highlighters": data.highlighters
-            }).length > 0) {
-                _.remove(content, { "parameters": data.hash, "highlighters": data.highlighters });
-                await IoHelper.saveFile(paramPath, content, "utf8");
+        return new Promise<void>(async (resolve, reject) => {
+            let paramPath = process.outputFolder + process.method + ".json";
+            let data = {
+                highlighters: process.inputHighlighters,
+                hash: hash(process.parameters)
+            };
+            try {
+                fs.statSync(paramPath).isFile();
+                let content = IoHelper.openFile(paramPath);
+                let info: any = {};
+                if (_.filter(content, {
+                    "parameters": data.hash,
+                    "highlighters": data.highlighters
+                }).length > 0) {
+                    _.remove(content, { "parameters": data.hash, "highlighters": data.highlighters });
+                    await IoHelper.saveFile(paramPath, content, "utf8");
+                    resolve();
+                }
+            } catch (error) {
+                reject(error);
             }
-        } catch (error) {
-            return;
-        }
+        });
     }
 
     /**
@@ -349,7 +352,7 @@ export class ParameterHelper {
      * 
      * @static
      * @param {string} parameter the name of the parameter
-     * @returns {boolean} indicating wheter the parameter is reserved or not
+     * @returns {boolean} indicating whether the parameter is reserved or not
      * 
      * @memberOf ParameterHelper
      */

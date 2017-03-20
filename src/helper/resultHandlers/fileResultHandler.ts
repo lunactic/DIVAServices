@@ -101,16 +101,7 @@ export class FileResultHandler implements IResultHandler {
                                 for (let file of files) {
                                     if (file.file["mime-type"].startsWith("image")) {
                                         FileHelper.saveJson(file.file.content, process, file.file.name);
-                                        /*if (process.hasImages) {
-                                            file.file["url"] = IoHelper.getStaticImageUrl(process.rootFolder + path.sep + process.methodFolder, file.file.name);
-                                        } else if (process.hasFiles) {
-                                            file.file["url"] = IoHelper.getStaticDataUrl(process.rootFolder + path.sep + process.methodFolder, file.file.name);
-                                        }*/
-
-                                        /*if (file.file.options.visualization) {
-                                            visualization = true;
-                                            process.outputImageUrl = file.file.url;
-                                        }*/
+                                        file.file["url"] = IoHelper.getStaticImageUrl(process.outputFolder, file.file.name);
                                         delete file.file.content;
                                     } else if (file.file["mime-type"] === "text/plain") {
                                         await IoHelper.saveFile(process.outputFolder + path.sep + file.file.name, file.file.content, "utf8");

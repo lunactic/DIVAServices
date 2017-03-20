@@ -10,10 +10,10 @@ import * as express from "express";
 import * as path from "path";
 import * as fs from "fs";
 import * as morgan from "morgan";
-import {Logger} from "./logging/logger";
-import {Statistics} from "./statistics/statistics";
-import {FileHelper} from "./helper/fileHelper";
-import {QueueHandler} from "./processingQueue/queueHandler";
+import { Logger } from "./logging/logger";
+import { Statistics } from "./statistics/statistics";
+import { FileHelper } from "./helper/fileHelper";
+import { QueueHandler } from "./processingQueue/queueHandler";
 let router = require("./routes/standardRouter");
 let algorithmRouter = require("./routes/algorithmRouter");
 /**
@@ -67,10 +67,10 @@ class Server {
         QueueHandler.initialize();
 
         //mount json form parser
-        this.app.use(bodyParser.json({limit: "2500mb"}));
+        this.app.use(bodyParser.json({ limit: "2500mb" }));
 
         //mount query string parser
-        this.app.use(bodyParser.urlencoded({extended: true, limit: "2500mb"}));
+        this.app.use(bodyParser.urlencoded({ extended: true, limit: "2500mb" }));
 
 
         // catch 404 and forward to error handler
@@ -90,8 +90,8 @@ class Server {
             }
         });
 
-        let accessLogStream = fs.createWriteStream(__dirname + path.sep + "../logs" + path.sep + "access.log", {flags: "a"});
-        this.app.use(morgan("combined", {stream: accessLogStream}));
+        let accessLogStream = fs.createWriteStream(__dirname + path.sep + "../logs" + path.sep + "access.log", { flags: "a" });
+        this.app.use(morgan("combined", { stream: accessLogStream }));
 
         //set up helper for text/plain
         this.app.use(function (req: express.Request, res: express.Response, next: express.NextFunction) {
@@ -111,7 +111,7 @@ class Server {
     private routes() {
         //set up static file handlers!
         this.app.use("/files", express.static(nconf.get("paths:filesPath")));
-        
+        this.app.use("/results", express.static(nconf.get("paths:resultsPath")));
         //use router middleware
         this.app.use(router);
         this.app.use(algorithmRouter);
@@ -126,8 +126,9 @@ process.on("SIGTERM", function () {
     process.exit(0);
 });
 
-/*process.on('unhandledRejection', (reason) => {
-    console.log(reason);
-});*/
+process.on('unhandledRejection', (reason, p) => {
+    console.log('Unhandled Rejection at: Promise', p, 'reason:', reason);
+    // application specific logging, throwing an error, or other logic here
+});
 
 export = Server.bootstrap().app;

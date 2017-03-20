@@ -1,4 +1,5 @@
 "use strict";
+import { isNullOrUndefined } from 'util';
 /**
  * Created by lunactic on 07.11.16.
  */
@@ -14,6 +15,7 @@ import { ConsoleResultHandler } from "./resultHandlers/consoleResultHandler";
 import { DockerManagement } from "../docker/dockerManagement";
 import { FileResultHandler } from "./resultHandlers/fileResultHandler";
 import { FileHelper } from "./fileHelper";
+import { File } from "../models/file";
 import { IoHelper } from "./ioHelper";
 import { NoResultHandler } from "./resultHandlers/noResultHandler";
 import * as path from "path";
@@ -98,14 +100,20 @@ export class ExecutableHelper extends EventEmitter {
      * executes a command using the [childProcess](https://nodejs.org/api/child_process.html) module
      * @param {string} command the command to execute
      * @param {Process} process the process
-     * @param {Function} callback the callback function
      */
-    private executeCommand(command: string, process: Process, callback: Function): void {
-        let exec = childProcess.exec;
-        Logger.log("info", "Execute command: " + command, "ExecutableHelper");
-        exec(command, { maxBuffer: 1024 * 48828 }, async function (error: any, stdout: any, stderr: any) {
-            Statistics.endRecording(process.id, process.req.originalUrl);
-            await process.resultHandler.handleResult(error, stdout, stderr, process);
+    private executeCommand(command: string, process: Process): Promise<void> {
+        return new Promise<void>((resolve, reject) => {
+            let exec = childProcess.exec;
+            Logger.log("info", "Execute command: " + command, "ExecutableHelper");
+            exec(command, { maxBuffer: 1024 * 48828 }, async function (error: any, stdout: any, stderr: any) {
+                Statistics.endRecording(process.id, process.req.originalUrl);
+                try {
+                    await process.resultHandler.handleResult(error, stdout, stderr, process);
+                    resolve();
+                } catch (error) {
+                    reject(error);
+                }
+            });
         });
     }
 
@@ -113,56 +121,57 @@ export class ExecutableHelper extends EventEmitter {
      * Executes a process on the same host as this DivaServices instance is running
      * @param {Process} process The process to execute
      */
-    public executeLocalRequest(process: Process): void {
+    public async executeLocalRequest(process: Process) {
         let self = this;
-        async.waterfall([
-            function (callback: Function) {
-                process.id = Statistics.startRecording(process);
-                let command = self.buildCommand(process);
-                if (process.resultType === "console") {
-                    command += " 1>" + process.tmpResultFile + ";mv " + process.tmpResultFile + " " + process.resultFile;
-                }
-                self.executeCommand(command, process, callback);
-            }
-        ], function (error: any, results: any) {
-            self.emit("processingFinished");
-        });
+        process.id = Statistics.startRecording(process);
+        let command = self.buildCommand(process);
+        if (process.resultType === "console") {
+            command += " 1>" + process.tmpResultFile + ";mv " + process.tmpResultFile + " " + process.resultFile;
+        }
+        await self.executeCommand(command, process);
+        self.emit("processingFinished");
+        Promise.resolve();
     }
 
     /**
      * Executes a request on the Sun Grid Engine
      * @param {Process} process The process to execute
      */
-    public executeRemoteRequest(process: Process): void {
+    public async executeRemoteRequest(process: Process) {
         let self = this;
-        async.waterfall([
-            function (callback: Function) {
-                //self.remoteExecution.uploadFile(process.image.path, process.rootFolder, callback);
-            },
-            function (callback: Function) {
-                let command = self.buildCommand(process);
-                process.id = Statistics.startRecording(process);
-                command += " " + process.id + " " + process.rootFolder + " > /dev/null";
-                self.remoteExecution.executeCommand(command, callback);
+        try {
+            for (let dataItem of process.data) {
+                await self.remoteExecution.uploadFile((dataItem as File).path, process.rootFolder);
             }
-        ], function (error: any) {
-            if (error != null) {
-                Logger.log("error", error, "ExecutableHelper");
-            }
-        });
+            let command = self.buildCommand(process);
+            process.id = Statistics.startRecording(process);
+            command += " " + process.id + " " + process.rootFolder + " > /dev/null";
+            self.remoteExecution.executeCommand(command);
+            Promise.resolve();
+        } catch (error) {
+            Logger.log("error", error, "ExecutableHelper");
+            Promise.reject(error);
+        }
     }
 
     /**
      * Executes a request on a docker instance
      * @param {Process} process The process to execute
-     * @param {Function} callback The callback
      */
-    public static executeDockerRequest(process: Process, callback: Function): void {
-        process.id = Statistics.startRecording(process);
-        process.remoteResultUrl = "http://" + nconf.get("docker:reportHost") + "/jobs/" + process.id;
-        process.remoteErrorUrl = "http://" + nconf.get("docker:reportHost") + "/algorithms/" + process.algorithmIdentifier + "/exceptions/" + process.id;
-        let serviceInfo = ServicesInfoHelper.getInfoByPath(process.req.originalUrl);
-        DockerManagement.runDockerImage(process, serviceInfo.image_name, callback);
+    public static executeDockerRequest(process: Process): Promise<void> {
+        return new Promise<void>(async (resolve, reject) => {
+            process.id = Statistics.startRecording(process);
+            process.remoteResultUrl = "http://" + nconf.get("docker:reportHost") + "/jobs/" + process.id;
+            process.remoteErrorUrl = "http://" + nconf.get("docker:reportHost") + "/algorithms/" + process.algorithmIdentifier + "/exceptions/" + process.id;
+            let serviceInfo = ServicesInfoHelper.getInfoByPath(process.req.originalUrl);
+            try {
+                await DockerManagement.runDockerImage(process, serviceInfo.image_name);
+                resolve();
+            } catch (error) {
+                reject(error);
+            }
+        });
+
     }
 
     /**
@@ -171,11 +180,9 @@ export class ExecutableHelper extends EventEmitter {
      * @param {any} req The incoming request
      * @param {ProcessingQueue} processingQueue The Processing Queue to use
      * @param {string} executionType The execution type (e.g. java)
-     * @param {Function} requestCallback The callback for the incoming request
-     * @param {Function} queueCallback The callback for the processing queue
      */
     public async preprocess(req: any, processingQueue: ProcessingQueue, executionType: string): Promise<any> {
-        return new Promise<any>(async(resolve, reject) => {
+        return new Promise<any>(async (resolve, reject) => {
             let serviceInfo = ServicesInfoHelper.getInfoByPath(req.originalUrl);
             let collection = new Collection();
             collection.method = serviceInfo.service;
@@ -183,6 +190,7 @@ export class ExecutableHelper extends EventEmitter {
             collection.outputFolder = IoHelper.getOutputFolder(collection.name);
             collection.inputParameters = _.clone(req.body.parameters);
             collection.inputData = _.clone(req.body.data);
+            collection.resultFile = collection.outputFolder + path.sep + "info.json";
             this.setCollectionHighlighter(collection, req);
             collection.neededParameters = serviceInfo.parameters;
             collection.neededData = serviceInfo.data;
@@ -193,6 +201,7 @@ export class ExecutableHelper extends EventEmitter {
             for (let element of collection.inputData) {
                 let proc: Process = new Process();
                 proc.req = _.clone(req);
+                proc.type = executionType;
                 proc.algorithmIdentifier = serviceInfo.identifier;
                 proc.executableType = serviceInfo.executableType;
                 //Todo fix that to create the deeper nesting
@@ -205,6 +214,7 @@ export class ExecutableHelper extends EventEmitter {
                 proc.remotePaths = serviceInfo.remotePaths;
                 proc.matchedParameters = serviceInfo.paramOrder;
                 proc.method = collection.method;
+                proc.rootFolder = collection.name;
                 let resultHandler = null;
                 proc.methodFolder = path.basename(proc.outputFolder);
                 proc.programType = serviceInfo.programType;
@@ -230,9 +240,23 @@ export class ExecutableHelper extends EventEmitter {
                 index++;
                 await ParameterHelper.matchProcessData(proc, element);
                 await ParameterHelper.matchOrder(proc);
+                await ParameterHelper.saveParamInfo(proc);
                 processingQueue.addElement(proc);
                 Logger.log("info", "finished preprocessing", "ExecutableHelper");
             }
+            let results = [];
+            for(let process of collection.processes){
+                results.push({"md5": process.data.md5, "resultLink": process.resultLink});
+            }
+            if(isNullOrUndefined(collection.result)){
+                collection.result = {
+                    results: results,
+                    collection: collection.name,
+                    resultLink: collection.buildGetUrl(),
+                    status: "done"
+                };
+            }
+            await ResultHelper.saveResult(collection);
             resolve(collection.result);
         });
 

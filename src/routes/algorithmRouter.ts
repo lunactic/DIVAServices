@@ -68,32 +68,29 @@ router.post("/algorithms", async function (req: express.Request, res: express.Re
                 case 410:
                     //algorithm was deleted, create a new one
                     let identifier = AlgorithmManagement.createIdentifier();
-                    AlgorithmManagement.createAlgorithm(req, res, route, identifier, imageName, version, baseroute, function (error: any, response: any) {
-                        if (error != null) {
-                            sendError(res, error);
-                        } else {
-                            sendWithStatus(res, response);
-                        }
-                    });
+                    try {
+                        let response = await AlgorithmManagement.createAlgorithm(req, res, route, identifier, imageName, version, baseroute);
+                        sendWithStatus(res, response);
+                    } catch (error) {
+                        sendError(res, error);
+                    }
                     break;
                 case 500:
                     //currently in error. Delete the current image and create a new one
                     AlgorithmManagement.generateFolders(route);
                     AlgorithmManagement.removeFromRootInfoFile("/" + route);
                     AlgorithmManagement.removeFromServiceInfoFile("/" + baseroute);
-                    DockerManagement.removeImage(status.image_name, function (error: any) {
-                        if (error == null) {
-                            let identifier = AlgorithmManagement.createIdentifier();
-                            //AlgorithmManagement.updateIdentifier("/" + route, identifier);
-                            AlgorithmManagement.createAlgorithm(req, res, route, identifier, imageName, version, baseroute, function (error: any, response: any) {
-                                if (error != null) {
-                                    sendError(res, error);
-                                } else {
-                                    sendWithStatus(res, response);
-                                }
-                            });
-                        }
-                    });
+                    try {
+                        await DockerManagement.removeImage(status.image_name);
+                        let identifier = AlgorithmManagement.createIdentifier();
+                        //AlgorithmManagement.updateIdentifier("/" + route, identifier);
+                        let response = await AlgorithmManagement.createAlgorithm(req, res, route, identifier, imageName, version, baseroute);
+                        sendWithStatus(res, response);
+
+                    } catch (error) {
+                        sendError(res, error);
+                    }
+
                     break;
                 default:
                     let response = {
@@ -108,20 +105,20 @@ router.post("/algorithms", async function (req: express.Request, res: express.Re
             //create a new algorithm
             let identifier = AlgorithmManagement.createIdentifier();
             AlgorithmManagement.generateFolders(route);
-            AlgorithmManagement.createAlgorithm(req, res, route, identifier, imageName, version, baseroute, function (error: any, response: any) {
-                if (error != null) {
-                    sendError(res, error);
-                } else {
-                    sendWithStatus(res, response);
-                }
-            });
+            try {
+                let response = await AlgorithmManagement.createAlgorithm(req, res, route, identifier, imageName, version, baseroute);
+                sendWithStatus(res, response);
+            } catch (error) {
+
+                sendError(res, error);
+            }
         }
     } catch (error) {
         sendError(res, error);
     }
 });
 
-router.put("/algorithms/:identifier", function (req: express.Request, res: express.Response) {
+router.put("/algorithms/:identifier", async function (req: express.Request, res: express.Response) {
     //perform a deleteion and an addition of the new algorithm
     let serviceInfo = ServicesInfoHelper.getInfoByIdentifier(req.params.identifier);
     if (serviceInfo != null) {
@@ -146,24 +143,18 @@ router.put("/algorithms/:identifier", function (req: express.Request, res: expre
                 AlgorithmManagement.removeFromRootInfoFile(serviceInfo.path);
                 break;
         }
-        DockerManagement.removeImage(serviceInfo.image_name, async function (error: any) {
-            if (error == null) {
-                try {
-                    await SchemaValidator.validate(req.body, "createSchema");
-                    let identifier = AlgorithmManagement.createIdentifier();
-                    let imageName = AlgorithmManagement.generateImageName(req.body, version);
-                    AlgorithmManagement.createAlgorithm(req, res, newRoute, identifier, imageName, version, baseroute, function (error: any, response: any) {
-                        if (error != null) {
-                            sendError(res, error);
-                        } else {
-                            sendWithStatus(res, response);
-                        }
-                    });
-                } catch (error) {
-                    sendError(res, error);
-                }
-            }
-        });
+        try {
+
+            await DockerManagement.removeImage(serviceInfo.image_name);
+            await SchemaValidator.validate(req.body, "createSchema");
+            let identifier = AlgorithmManagement.createIdentifier();
+            let imageName = AlgorithmManagement.generateImageName(req.body, version);
+            let response = await AlgorithmManagement.createAlgorithm(req, res, newRoute, identifier, imageName, version, baseroute)
+            sendWithStatus(res, response);
+        } catch (error) {
+            sendError(res, error);
+        }
+
     } else {
         let err = {
             statusCode: 404,
@@ -188,19 +179,19 @@ router.post("/algorithms/:identifier/exceptions/:jobId", function (req: express.
     send200(res, {});
 });
 
-router.delete("/algorithms/:identifier", function (req: express.Request, res: express.Response) {
+router.delete("/algorithms/:identifier", async function (req: express.Request, res: express.Response) {
     //set algorithm status to deleted
     let serviceInfo = ServicesInfoHelper.getInfoByIdentifier(req.params.identifier);
     AlgorithmManagement.updateStatus(req.params.identifier, "delete", null, null);
     //remove /route/info.json file
     AlgorithmManagement.deleteInfoFile(nconf.get("paths:jsonPath") + serviceInfo.path);
     AlgorithmManagement.removeFromRootInfoFile(serviceInfo.path);
-    DockerManagement.removeImage(serviceInfo.image_name, function (error: any) {
-        if (error != null) {
-            res.status(200).send();
-            Logger.log("info", "deleted algorithm " + req.params.identifier, "AlgorithmRouter");
-        }
-    });
+    try {
+        await DockerManagement.removeImage(serviceInfo.image_name);
+    } catch (error) {
+        res.status(200).send();
+        Logger.log("info", "deleted algorithm " + req.params.identifier, "AlgorithmRouter");
+    }
 });
 
 router.get("/algorithms/:identifier/exceptions", function (req: express.Request, res: express.Response) {

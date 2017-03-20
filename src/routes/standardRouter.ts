@@ -127,11 +127,11 @@ router.post("/jobs/:jobId", async function (req: express.Request, res: express.R
                 try {
                     await SchemaValidator.validate(await IoHelper.openFile(process.resultFile), "responseSchema");
                     AlgorithmManagement.updateStatus(null, "ok", process.req.originalUrl, "");
-                    ResultHelper.removeResult(process);
+                    await ResultHelper.removeResult(process);
                     send200(res, { status: "valid" });
                 } catch (error) {
                     AlgorithmManagement.updateStatus(null, "error", process.req.originalUrl, error.statusText);
-                    ResultHelper.removeResult(process);
+                    await ResultHelper.removeResult(process);
                     sendError(res, error);
                 }
             } else {
@@ -147,34 +147,42 @@ router.post("/jobs/:jobId", async function (req: express.Request, res: express.R
     }
 });
 
-router.post("/validate/:schema", function (req: express.Request, res: express.Response, next: express.NextFunction) {
-    switch (req.params.schema) {
-        case "host":
-            validate(req, res, "hostSchema");
-            break;
-        case "hostAlgorithm":
-            validate(req, res, "algorithmSchema");
-            break;
-        case "response":
-            validate(req, res, "responseSchema");
-            break;
-        case "detailsAlgorithm":
-            validate(req, res, "detailsAlgorithmSchema");
-            break;
-        case "create":
-            validate(req, res, "createSchema");
-            break;
+router.post("/validate/:schema", async function (req: express.Request, res: express.Response, next: express.NextFunction) {
+    try {
+        let response;
+        switch (req.params.schema) {
+            case "host":
+                response = await validate(req, "hostSchema");
+                break;
+            case "hostAlgorithm":
+                response = await validate(req, "algorithmSchema");
+                break;
+            case "response":
+                response = await validate(req, "responseSchema");
+                break;
+            case "detailsAlgorithm":
+                response = await validate(req, "detailsAlgorithmSchema");
+                break;
+            case "create":
+                response = await validate(req, "createSchema");
+                break;
+        }
+        send200(res, response);
+    } catch (error) {
+        sendError(res, error);
     }
+
 });
 
-router.post("*", function (req: express.Request, res: express.Response, next: express.NextFunction) {
+router.post("*", async function (req: express.Request, res: express.Response, next: express.NextFunction) {
     if (unlike(req, "/algorithm")) {
-        PostHandler.handleRequest(req, function (error: any, response: any) {
-            if (error == null) {
-                response["statusCode"] = 202;
-            }
-            sendResponse(res, error, response);
-        });
+        try {
+            let response = await PostHandler.handleRequest(req);
+            response["statusCode"] = 202;
+            send200(res, response);
+        } catch (error) {
+            sendError(res, error);
+        }
     } else {
         next();
     }
@@ -184,7 +192,7 @@ router.get("/collections/", function (req: express.Request, res: express.Respons
     let collections = FileHelper.getAllCollections();
     let collectionInfo = [];
     for (let collection of collections) {
-        if (collection != "test") {
+        if (collection !== "test") {
             collectionInfo.push({
                 "collection": {
                     name: collection,
@@ -326,12 +334,12 @@ router.get("*", async function (req: express.Request, res: express.Response, nex
     }
 });
 
-async function validate(req: express.Request, res: express.Response, schema: string) {
+async function validate(req: express.Request, schema: string) {
     try {
         await SchemaValidator.validate(req.body, schema);
-        send200(res, { status: "valid" });
+        Promise.resolve({ status: "valid" });
     } catch (error) {
-        sendError(res, error);
+        Promise.reject(error);
     }
 }
 

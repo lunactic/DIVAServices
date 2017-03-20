@@ -1,4 +1,3 @@
-import { DivaData } from '../models/divaData';
 /**
  * Created by lunactic on 04.11.16.
  */
@@ -9,10 +8,11 @@ import * as archiver from "archiver";
 import * as fs from "fs";
 import * as nconf from "nconf";
 import * as path from "path";
+import * as DOCKER from "dockerode";
 import { IoHelper } from "../helper/ioHelper";
 import { ResultHelper } from "../helper/resultHelper";
 import { Logger } from "../logging/logger";
-let DOCKER = require("dockerode");
+import { File } from '../models/file';
 let sequest = require("sequest");
 let mime = require("mime-types");
 import * as os from "os";
@@ -32,83 +32,88 @@ export class DockerManagement {
      * 
      * @param {string} inputFolder The folder where the container contents are stored
      * @param {string} imageName The name of the image to create
-     * @param {Function} callback A callback containing either the error message or the id of the created image
      */
-    static buildImage(inputFolder: string, imageName: string, callback: Function): void {
-        //create tar file
-        let output = fs.createWriteStream(inputFolder + path.sep + "archive.tar");
-        let archive = archiver("tar");
-        let self = this;
+    static buildImage(inputFolder: string, imageName: string): Promise<number> {
+        return new Promise<number>((resolve, reject) => {
+            //create tar file
+            let output = fs.createWriteStream(inputFolder + path.sep + "archive.tar");
+            let archive = archiver("tar");
+            let self = this;
 
-        //close handler for the archive
-        output.on("close", function () {
-            //create the docker image using the built archive file
-            self.docker.buildImage(inputFolder + path.sep + "archive.tar", {
-                t: imageName,
-                q: true
-            }, function (error: any, response: any) {
-                //callback handler
-                let id = -1;
-                let hasError: boolean = false;
-                let errorMessage: string = "";
-                if (error != null) {
-                    Logger.log("error", error, "DockerManagement");
-                    errorMessage = error;
-                    hasError = true;
-                } else {
-                    response.on("data", function (data: any) {
-                        if (hasError) {
-                            let err = {
-                                statusCode: 500,
-                                statusMessage: errorMessage
-                            };
-                            callback(err, null);
-                        }
-                        try {
-                            let json = JSON.parse(data.toString());
-                            let id = json.stream.split(":")[1].replace(os.EOL, "");
-                        } catch (error) {
-                            hasError = true;
-                            let err = {
-                                statusCode: 500,
-                                statusMessage: data.toString()
-                            };
-                            callback(err, null);
-                        }
-                    });
-                    response.on("end", function () {
-                        if (!hasError) {
-                            Logger.log("info", "successfully build the image", "DockerManagement");
-                            callback(null, id);
-                        }
-                    });
-                }
+            //close handler for the archive
+            output.on("close", function () {
+                //create the docker image using the built archive file
+                self.docker.buildImage(inputFolder + path.sep + "archive.tar", {
+                    t: imageName,
+                    q: true
+                }, function (error: any, response: any) {
+                    //callback handler
+                    let id = -1;
+                    let hasError: boolean = false;
+                    let errorMessage: string = "";
+                    if (error != null) {
+                        Logger.log("error", error, "DockerManagement");
+                        errorMessage = error;
+                        hasError = true;
+                    } else {
+                        response.on("data", function (data: any) {
+                            if (hasError) {
+                                let err = {
+                                    statusCode: 500,
+                                    statusMessage: errorMessage
+                                };
+                                reject(err);
+                            }
+                            try {
+                                let json = JSON.parse(data.toString());
+                                let id = json.stream.split(":")[1].replace(os.EOL, "");
+                            } catch (error) {
+                                hasError = true;
+                                let err = {
+                                    statusCode: 500,
+                                    statusMessage: data.toString()
+                                };
+                                reject(err);
+                            }
+                        });
+                        response.on("end", function () {
+                            if (!hasError) {
+                                Logger.log("info", "successfully build the image", "DockerManagement");
+                                resolve(id);
+                            }
+                        });
+                    }
+                });
             });
+            //build an archive of the current contents of the inputFolder
+            archive.pipe(output);
+            archive.bulk([{
+                expand: true,
+                cwd: inputFolder + path.sep,
+                src: ["*", "**/*"]
+            }
+            ]);
+            //build the archive --> this will trigger the "close" handler
+            archive.finalize();
         });
-        //build an archive of the current contents of the inputFolder
-        archive.pipe(output);
-        archive.bulk([{
-            expand: true,
-            cwd: inputFolder + path.sep,
-            src: ["*", "**/*"]
-        }
-        ]);
-        //build the archive --> this will trigger the "close" handler
-        archive.finalize();
+
+
     }
 
 
     /**
      * Remove an image from the docker server
      * @param {String} imageName the name of the image to remove
-     * @param {Function} callback - callback for handling returns
      */
-    static removeImage(imageName: string, callback: Function): void {
-        this.docker.getImage(imageName).remove(function (err: any, data: any) {
-            if (err != null) {
-                Logger.log("error", err, "DockerManagement");
-            }
-            callback(null);
+    static removeImage(imageName: string): Promise<void> {
+        return new Promise<void>((resolve, reject) => {
+            this.docker.getImage(imageName).remove(function (err: any, data: any) {
+                if (err != null) {
+                    Logger.log("error", err, "DockerManagement");
+                    reject(err);
+                }
+                resolve();
+            });
         });
     }
 
@@ -238,74 +243,59 @@ export class DockerManagement {
      *
      * @param {Process} process The process to run
      * @param {string} imageName The name of the image to use
-     * @param {Function} callback The callback called with an error if one occured
      */
-    static runDockerImage(process: Process, imageName: string, callback: Function): void {
-        let params = process.matchedParameters;
-        let neededParams = process.neededParameters;
-        //The string passed to the executable containing all parameters
-        let executableString = "";
+    static runDockerImage(process: Process, imageName: string): Promise<void> {
+        return new Promise<void>(async (resolve, reject) => {
+            let params = process.matchedParameters;
+            let neededParams = process.neededParameters;
+            //The string passed to the executable containing all parameters
+            let executableString = "";
 
-        //get remote path keys
-        let remoteKeys = [];
-        for (let remote of process.remotePaths) {
-            remoteKeys.push(_.keys(remote)[0]);
-        }
-
-        //add the actual parameters
-        for (let param of params) {
-            let key = _.keys(param)[0];
-            let value = param[key];
-            if (key === "highlighter") {
-                //handle highlighters
-                executableString += _.map(params.highlighter.split(" "), function (item: any) {
-                    return item;
-                }).join(" ");
-            } else if (value instanceof DivaData) {
-                //handle data parameters
-                executableString += (value as DivaData).url + ' ';
-            } else {
-                //handle regular parameters
-                executableString += value + ' ';
+            //get remote path keys
+            let remoteKeys = [];
+            for (let remote of process.remotePaths) {
+                remoteKeys.push(_.keys(remote)[0]);
             }
-        }
 
-
-        //build the command
-        let command = './script.sh ' + process.remoteResultUrl + ' ' + process.remoteErrorUrl + ' ' + executableString;
-        Logger.log("info", command, "DockerManagement");
-        //run the docker image (see: https://docs.docker.com/engine/reference/run/)
-        this.docker.run(imageName, ['-c', command], process.stdout, { entrypoint: '/bin/sh' }, function (error: any, data: any, container: any) {
-            if (data != null) {
-                let err = {
-                    statusMessage: "Execution did not finish properly! status code is: " + data.statusCode
-                };
-            }
-            if (error != null) {
-                Logger.log("error", error, "DockerManagement");
-                if (callback != null) {
-                    callback(error);
+            //add the actual parameters
+            for (let param of params) {
+                let key = _.keys(param)[0];
+                let value = param[key];
+                if (key === "highlighter") {
+                    //handle highlighters
+                    executableString += _.map(params.highlighter.split(" "), function (item: any) {
+                        return item;
+                    }).join(" ");
+                } else if (value instanceof File) {
+                    //handle data parameters
+                    executableString += (value as File).url + ' ';
+                } else {
+                    //handle regular parameters
+                    executableString += value + ' ';
                 }
             }
-            if (data != null && data.StatusCode === 0) {
-                container.remove(function (error: any, data: any) {
-                    if (callback != null) {
-                        callback(null);
-                    }
-                });
-            } else if (data != null && data.StatusCode !== 0) {
-                Logger.log("error", "Execution did not finish properly! status code is: " + data.statusCode, "DockerManagement");
+
+
+            //build the command
+            let command = './script.sh ' + process.remoteResultUrl + ' ' + process.remoteErrorUrl + ' ' + executableString;
+            Logger.log("info", command, "DockerManagement");
+            //run the docker image (see: https://docs.docker.com/engine/reference/run/)
+            try {
+                let container: DOCKER.Container = await this.docker.run(imageName, ['-c', command], process.stdout, { entrypoint: '/bin/sh' });
+                if (container.output.StatusCode !== 0) {
+                    throw new Error("error processing the request");
+                }
+                if (process.type === "test" && container.output.StatusCode !== 0) {
+                    AlgorithmManagement.updateStatus(null, "error", process.req.originalUrl, "Algorithm image did not execute properly");
+                    //ResultHelper.removeResult(process);
+                }
+                let data: any = await container.remove();
+                resolve();
+            } catch (error) {
+                Logger.log("error", error, "DockerManagement");
+                reject(error);
             }
 
-            if (process.type === "test" && data.StatusCode !== 0) {
-                AlgorithmManagement.updateStatus(null, "error", process.req.originalUrl, "Algorithm image did not execute properly");
-                //ResultHelper.removeResult(process);
-                container.remove(function (error: any, data: any) {
-                    if (callback != null) {
-                        callback(error);
-                    }
-                });
-            }
         });
     }
 

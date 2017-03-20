@@ -147,8 +147,7 @@ export class FileHelper {
      */
     static saveJson(file: any, process: Process, filename: string) {
         let base64Data = file.replace(/^data:image\/png;base64,/, "");
-        let extension = this.getImageExtensionBase64(base64Data);
-        fs.writeFileSync(process.outputFolder + path.sep + filename + "." + extension, base64Data, "base64");
+        fs.writeFileSync(process.outputFolder + path.sep + filename, base64Data, "base64");
     }
 
     /**

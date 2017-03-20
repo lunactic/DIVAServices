@@ -3,8 +3,6 @@
  */
 
 "use strict";
-import { DivaImage } from "../models/divaImage";
-import { DivaData } from "../models/divaData";
 import { IoHelper } from "../helper/ioHelper";
 import IProcess = require("./iProcess");
 import IResultHandler = require("../helper/resultHandlers/iResultHandler");

@@ -40,23 +40,14 @@ export class AlgorithmManagement {
      * @param {string} imageName the name of the image
      * @param {number} version the version number
      * @param {string} baseroute the base route information
-     * @param {Function} callback the callback function
      * 
      * @memberOf AlgorithmManagement
      */
-    static createAlgorithm(req: express.Request, res: express.Response, route: string, identifier: string, imageName: string, version: number, baseroute: string, callback: Function): void {
-        AlgorithmManagement.updateServicesFile(req.body, identifier, route, imageName, version, baseroute);
-        IoHelper.downloadFileWithTypecheck(req.body.method.file, nconf.get("paths:executablePath") + path.sep + route, "application/zip", function (err: any, filename: string) {
-            if (err != null) {
-                AlgorithmManagement.updateStatus(identifier, "error", null, "algorithm file has the wrong format");
-                let error = {
-                    statusCode: 500,
-                    identifier: identifier,
-                    statusText: "fileUrl does not point to a correct zip file",
-                    errorType: "WrongFileFormat"
-                };
-                callback(error, null);
-            } else {
+    static async createAlgorithm(req: express.Request, res: express.Response, route: string, identifier: string, imageName: string, version: number, baseroute: string): Promise<any> {
+        return new Promise<any>(async (resolve, reject) => {
+            try {
+                AlgorithmManagement.updateServicesFile(req.body, identifier, route, imageName, version, baseroute);
+                let filename = await IoHelper.downloadFileWithTypecheck(req.body.method.file, nconf.get("paths:executablePath") + path.sep + route, "application/zip");
                 //create docker file
                 DockerManagement.createDockerFile(req.body, nconf.get("paths:executablePath") + path.sep + route);
                 //create bash script
@@ -68,12 +59,9 @@ export class AlgorithmManagement {
                     identifier: identifier,
                     statusText: "Started Algorithm Creation"
                 };
-                callback(null, response);
-            }
-            DockerManagement.buildImage(nconf.get("paths:executablePath") + path.sep + route, imageName, function (error: any, response: any) {
-                if (error != null) {
-                    AlgorithmManagement.updateStatus(identifier, "error", null, error.statusMessage);
-                } else {
+                resolve(response);
+                try {
+                    let imageId = await DockerManagement.buildImage(nconf.get("paths:executablePath") + path.sep + route, imageName)
                     AlgorithmManagement.updateStatus(identifier, "testing", null, null);
                     let executableHelper = new ExecutableHelper();
                     let inputs = {};
@@ -122,37 +110,34 @@ export class AlgorithmManagement {
                     let testRequest = {
                         originalUrl: "/" + route,
                         body: {
-                            images: [{
-                                type: "collection",
-                                value: "test"
-                            }],
                             data: [{
-                                type: "collection",
-                                value: "test"
+                                "inputImage": "test/input0.jpg",
                             }],
-                            inputs: inputs
+                            parameters: inputs
                         }
                     };
+                    let result = await executableHelper.preprocess(testRequest, QueueHandler.dockerProcessingQueue, "test");
+                    let job = QueueHandler.dockerProcessingQueue.getNext();
+                    QueueHandler.runningDockerJobs.push(job);
+                    await ExecutableHelper.executeDockerRequest(job);
+                    await AlgorithmManagement.updateRootInfoFile(req.body, route);
+                    await AlgorithmManagement.createInfoFile(req.body, nconf.get("paths:jsonPath") + path.sep + route);
+                    let info = IoHelper.openFile(nconf.get("paths:jsonPath") + path.sep + route + path.sep + "info.json");
+                    Swagger.createEntry(info, route);
 
-                    /*executableHelper.preprocess(testRequest, QueueHandler.dockerProcessingQueue, "test", function (error: any, response: any) {
-                        if (error != null) {
-                            Logger.log("error", error, "AlgorithmManagement");
-                        }
-                    }, function () {
-                        let job = QueueHandler.dockerProcessingQueue.getNext();
-                        QueueHandler.runningDockerJobs.push(job);
-                        ExecutableHelper.executeDockerRequest(job, function (error: any, data: any) {
-                            if (error == null) {
-                                AlgorithmManagement.updateRootInfoFile(req.body, route);
-                                AlgorithmManagement.createInfoFile(req.body, nconf.get("paths:jsonPath") + path.sep + route);
-                                //Add to swagger
-                                let info = IoHelper.openFile(nconf.get("paths:jsonPath") + path.sep + route + path.sep + "info.json");
-                                Swagger.createEntry(info, route);
-                            }
-                        });
-                    });*/
+                } catch (error) {
+                    AlgorithmManagement.updateStatus(identifier, "error", null, error.statusMessage);
                 }
-            });
+            } catch (error) {
+                AlgorithmManagement.updateStatus(identifier, "error", null, "algorithm file has the wrong format");
+                let err = {
+                    statusCode: 500,
+                    identifier: identifier,
+                    statusText: "fileUrl does not point to a correct zip file",
+                    errorType: "WrongFileFormat"
+                };
+                reject(err);
+            }
         });
     }
 

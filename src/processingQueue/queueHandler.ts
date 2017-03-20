@@ -4,11 +4,11 @@
 "use strict";
 
 import * as _ from "lodash";
-import {Logger}  from "../logging/logger";
-import {Statistics} from "../statistics/statistics";
-import {ProcessingQueue} from "./processingQueue";
-import {Process} from "./process";
-import {ExecutableHelper} from "../helper/executableHelper";
+import { Logger } from "../logging/logger";
+import { Statistics } from "../statistics/statistics";
+import { ProcessingQueue } from "./processingQueue";
+import { Process } from "./process";
+import { ExecutableHelper } from "../helper/executableHelper";
 
 /**
  * class for handling the different processing queues
@@ -26,7 +26,7 @@ export class QueueHandler {
      * @memberOf QueueHandler
      */
     static localProcessingQueue: ProcessingQueue = null;
-    
+
     /**
      * queue for remote processes 
      * 
@@ -35,7 +35,7 @@ export class QueueHandler {
      * @memberOf QueueHandler
      */
     static remoteProcessingQueue: ProcessingQueue = null;
-    
+
     /**
      * queue for docker requests
      * 
@@ -93,7 +93,7 @@ export class QueueHandler {
      * 
      * @memberOf QueueHandler
      */
-    static async addLocalRequest(req: any): Promise<any>  {
+    static async addLocalRequest(req: any): Promise<any> {
         return new Promise<any>(async (resolve, reject) => {
             let response = await QueueHandler.executableHelper.preprocess(req, QueueHandler.localProcessingQueue, 'regular');
             this.executeLocalRequest();
@@ -109,13 +109,13 @@ export class QueueHandler {
      * 
      * @memberOf QueueHandler
      */
-    static async addRemoteRequest(req: any) : Promise<any> {
-        return new Promise<any>(async(resolve, reject) =>{
+    static async addRemoteRequest(req: any): Promise<any> {
+        return new Promise<any>(async (resolve, reject) => {
             let response = await QueueHandler.executableHelper.preprocess(req, QueueHandler.remoteProcessingQueue, 'regular');
             this.executeRemoteRequest();
-            resolve(response);   
+            resolve(response);
         });
-        
+
     }
 
     /**
@@ -123,15 +123,18 @@ export class QueueHandler {
      * 
      * @static
      * @param {*} req the incoming POST request
-     * @param {Function} cb the callback function
      * 
      * @memberOf QueueHandler
      */
     static async addDockerRequest(req: any) {
-        return new Promise<any>(async(resolve, reject) =>{
-            let response = await QueueHandler.executableHelper.preprocess(req, QueueHandler.dockerProcessingQueue, "regular");
-            this.executeDockerRequest();
-            resolve(response);
+        return new Promise<any>(async (resolve, reject) => {
+            try {
+                let response = await QueueHandler.executableHelper.preprocess(req, QueueHandler.dockerProcessingQueue, "regular");
+                this.executeDockerRequest();
+                resolve(response);
+            }catch(error){
+                reject(error);
+            }
         });
     }
 
@@ -145,8 +148,8 @@ export class QueueHandler {
      * @memberOf QueueHandler
      */
     static getDockerJob(jobId: string): Process {
-        let job = _.find(QueueHandler.runningDockerJobs, {"id": jobId});
-        _.remove(QueueHandler.runningDockerJobs, {"id": jobId});
+        let job = _.find(QueueHandler.runningDockerJobs, { "id": jobId });
+        _.remove(QueueHandler.runningDockerJobs, { "id": jobId });
         return job;
     }
 
@@ -236,16 +239,16 @@ export class QueueHandler {
      * 
      * @memberOf QueueHandler
      */
-    private static executeDockerRequest(): void {
+    private static async executeDockerRequest() {
         Logger.log("info", "execute docker request", "QueueHandler");
         if (this.dockerRequestAvailable()) {
             let job = this.getNextDockerRequest();
             QueueHandler.runningDockerJobs.push(job);
-            ExecutableHelper.executeDockerRequest(job, function (error: any, data: any) {
-                if (error != null) {
-                    Logger.log("error", error, "QueueHandler");
-                }
-            });
+            try {
+                await ExecutableHelper.executeDockerRequest(job);
+            } catch (error) {
+                Logger.log("error", error, "QueueHandler");
+            }
         }
     }
 

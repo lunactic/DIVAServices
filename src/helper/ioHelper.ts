@@ -8,13 +8,12 @@ import { resolve } from 'dns';
 
 import * as _ from "lodash";
 import * as archiver from "archiver";
-import * as fs from "fs";
+import * as fs from "fs-promise";
 import * as http from "http";
 import * as https from "https";
-import * as fse from "fs-extra";
 import * as nconf from "nconf";
 import * as path from "path";
-;
+import * as request from "request-promise";
 let rmdir = require("rmdir");
 let unzip = require("unzip");
 import * as url from "url";
@@ -77,13 +76,11 @@ export class IoHelper {
      * @param {string} filePath the file path
      * @param {*} content the content as JSON object
      * @param {string} encoding the encoding to use
-     * @param {Function} [callback] the callback function
      * 
      * @memberOf IoHelper
      */
     static async saveFile(filePath: string, content: any, encoding: string): Promise<any> {
         return new Promise<any>((resolve, reject) => {
-
             try {
                 fs.writeFileSync(filePath, JSON.stringify(content, null, "\t"), encoding);
                 resolve();
@@ -104,10 +101,10 @@ export class IoHelper {
      */
     static async deleteFile(file: string): Promise<any> {
         return new Promise<any>((resolve, reject) => {
-            try{
+            try {
                 fs.unlinkSync(file);
                 resolve();
-            }catch(error){
+            } catch (error) {
                 reject(error);
             }
         });
@@ -122,7 +119,7 @@ export class IoHelper {
      * @memberOf IoHelper
      */
     static createFolder(folder: string): void {
-        fse.mkdirsSync(folder);
+        fs.mkdirsSync(folder);
     }
 
     /**
@@ -165,15 +162,13 @@ export class IoHelper {
      * @param {string} fileUrl the remote url to download
      * @param {string} localFolder the local folder to save the file into
      * @param {string} fileType the expected file type
-     * @param {Function} callback the callback function
      * 
      * @memberOf IoHelper
      */
-    static downloadFileWithTypecheck(fileUrl: string, localFolder: string, fileType: string, callback: Function): void {
-        this.checkFileType(fileType, fileUrl, function (error: any) {
-            if (error != null) {
-                callback(error);
-            } else {
+    static downloadFileWithTypecheck(fileUrl: string, localFolder: string, fileType: string): Promise<string> {
+        return new Promise<string>(async (resolve, reject) => {
+            try {
+                await this.checkFileType(fileType, fileUrl);
                 let filename = path.basename(url.parse(fileUrl).pathname);
                 let file = fs.createWriteStream(localFolder + path.sep + filename);
                 switch (url.parse(fileUrl).protocol) {
@@ -181,7 +176,7 @@ export class IoHelper {
                         http.get(fileUrl, function (response: http.IncomingMessage) {
                             response.pipe(file);
                             response.on("end", function () {
-                                callback(null, localFolder + path.sep + filename);
+                                resolve(localFolder + path.sep + filename);
                             });
                         });
                         break;
@@ -189,11 +184,13 @@ export class IoHelper {
                         https.get(fileUrl, function (response: http.IncomingMessage) {
                             response.pipe(file);
                             response.on("end", function () {
-                                callback(null, localFolder + path.sep + filename);
+                                resolve(localFolder + path.sep + filename);
                             });
                         });
                         break;
                 }
+            } catch (error) {
+                reject(error);
             }
         });
     }
@@ -238,23 +235,20 @@ export class IoHelper {
      * @static
      * @param {string} zipFile the path to the compressed file
      * @param {string} folder the folder to uncompress the files into
-     * @param {Function} callback the callback function
      * 
      * @memberOf IoHelper
      */
-    static unzipFile(zipFile: string, folder: string, callback: Function): void {
-
-        fse.mkdirs(folder, function (error: Error) {
-            if (error) {
-                Logger.log("error", JSON.stringify(error), "IoHelper");
-                callback(error);
-            } else {
-                let reader = fs.createReadStream(zipFile);
-                reader.pipe(unzip.Extract({ path: folder })).on("close", function () {
-                    callback(null);
-                });
-            }
-        });
+    static async unzipFile(zipFile: string, folder: string): Promise<any> {
+        try {
+            await fs.mkdirs(folder);
+            let reader = await fs.createReadStream(zipFile);
+            reader.pipe(unzip.Extract({ path: folder })).on("close", function () {
+                Promise.resolve();
+            });
+        } catch (error) {
+            Logger.log("error", JSON.stringify(error), "IoHelper");
+            Promise.reject(error);
+        }
     }
 
     /**
@@ -285,7 +279,7 @@ export class IoHelper {
      */
     static createFilesCollectionFolders(collection: string): void {
         let rootFolder = nconf.get("paths:filesPath") + path.sep + collection + path.sep + "original";
-        fse.mkdirpSync(rootFolder);
+        fs.mkdirpSync(rootFolder);
     }
 
     /**
@@ -360,7 +354,9 @@ export class IoHelper {
      */
     static getStaticImageUrl(folder: string, filename: string): string {
         let rootUrl = nconf.get("server:rootUrl");
-        return "http://" + rootUrl + "/images/" + folder + "/" + filename;
+        let relPath = folder.replace(nconf.get("paths:resultsPath") + path.sep, "");
+
+        return "http://" + rootUrl + "/results/" + relPath + filename;
     }
 
     /**
@@ -417,7 +413,7 @@ export class IoHelper {
      * @memberOf IoHelper
      */
     static getStaticResultUrlFull(fullFilePath: string): string {
-        let relPath = fullFilePath.replace(nconf.get("paths:resultPath") + path.sep, "");
+        let relPath = fullFilePath.replace(nconf.get("paths:resultsPath") + path.sep, "");
         return this.getStaticResultUrlRelative(relPath);
     }
 
@@ -427,35 +423,33 @@ export class IoHelper {
      * @static
      * @param {string} fileType the expected file type
      * @param {string} fileUrl the remote url 
-     * @param {Function} callback the callback function
      * 
      * @memberOf IoHelper
      */
-    static checkFileType(fileType: string, fileUrl: string, callback: Function): void {
-        if (fileType != null && fileType.length > 0) {
-            let urlInfo = url.parse(fileUrl);
-            let options = {
-                method: "HEAD",
-                hostname: urlInfo.hostname,
-                path: urlInfo.path,
-                port: parseInt(urlInfo.port)
-            };
+    static checkFileType(fileType: string, fileUrl: string): Promise<any> {
+        return new Promise<any>(async (resolve, reject) => {
+            if (fileType != null && fileType.length > 0) {
+                let urlInfo = url.parse(fileUrl);
+                let options = {
+                    method: "HEAD",
+                    hostname: urlInfo.hostname,
+                    path: urlInfo.path,
+                    port: parseInt(urlInfo.port)
+                };
 
-            let req = http.request(options, function (response: http.IncomingMessage) {
-                if (response.headers["content-type"] !== fileType) {
+                let response = await request.head(fileUrl);
+                if (response["content-type"] !== fileType) {
                     Logger.log("error", "non matching file type", "IoHelper");
-                    callback({ error: "non matching file type" });
+                    reject({ error: "non matching file type" });
                 } else {
                     Logger.log("info", "downloaded file: " + fileUrl, "IoHelper");
-                    callback(null);
+                    resolve();
                 }
-            });
-            req.end();
-        } else {
-            Logger.log("error", "no filetype provided", "IoHelper");
-            callback(null);
-        }
-
+            } else {
+                Logger.log("error", "no filetype provided", "IoHelper");
+                reject({ error: "no filetype provided" });
+            }
+        });
     }
 
 }
