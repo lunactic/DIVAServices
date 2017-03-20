@@ -5,7 +5,7 @@
 
 import * as async from "async";
 import * as _ from "lodash";
-import * as fs from "fs";
+import * as fs from "fs-promise";
 import * as nconf from "nconf";
 import * as path from "path";
 import * as hash from "object-hash";
@@ -215,24 +215,14 @@ export class ParameterHelper {
             let methodPath = nconf.get("paths:resultsPath") + path.sep + process.method + ".json";
             let content = [];
             let data: any = {};
-            if (process.inputHighlighters != null) {
-                //TODO: incorporate the highlighter into the hash and store one single value (or add the hash as additional info to enable better computation of statistics)
-                data = {
-                    highlighters: _.clone(process.inputHighlighters),
-                    parameters: _.clone(process.parameters),
-                    hash: hash(process.parameters),
-                    resultFile: process.resultFile,
-                    data: process.data
-                };
-            } else {
-                data = {
-                    highlighters: {},
-                    parameters: _.clone(process.parameters),
-                    hash: hash(process.parameters),
-                    resultFile: process.resultFile,
-                    data: process.data
-                };
-            }
+            //TODO: incorporate the highlighter into the hash and store one single value (or add the hash as additional info to enable better computation of statistics)
+            data = {
+                highlighters: _.clone(process.inputHighlighters),
+                parameters: _.clone(process.parameters),
+                hash: hash(process.parameters),
+                resultFile: process.resultFile,
+                data: hash(process.data)
+            };
 
             //turn everything into strings
             _.forIn(data.highlighters, function (value: string, key: string) {
@@ -271,45 +261,43 @@ export class ParameterHelper {
      * 
      * @memberOf ParameterHelper
      */
-    static loadParamInfo(proc: IProcess): void {
-        let paramPath = "";
-        /*if (proc.hasImages) {
-            paramPath = nconf.get("paths:imageRootPath") + path.sep + proc.rootFolder + path.sep + proc.method + ".json";
-        } else {
-            paramPath = nconf.get("paths:dataRootPath") + path.sep + proc.rootFolder + path.sep + proc.method + ".json";
-        }*/
-
-        let data = {
-            parameters: _.clone(proc.inputParameters),
-            highlighters: proc.inputHighlighters,
-            hash: hash(proc.inputParameters)
-        };
-        try {
-            fs.statSync(paramPath).isFile();
-            let content = IoHelper.openFile(paramPath);
-            let info: any = {};
-            if ((info = _.filter(content, {
-                "hash": data.hash,
-                "highlighters": data.highlighters
-            })).length > 0) {
-                //found some method information
-                /*if (proc.hasImages) {
-                    if (proc.image != null) {
-                        proc.resultFile = IoHelper.buildResultfilePath(info[0].folder, proc.image.name);
-                    } else {
-                        proc.resultFile = IoHelper.buildResultfilePath(info[0].folder, path.basename(info[0].folder));
-                    }
+    static loadParamInfo(proc: Process): Promise<void> {
+        return new Promise<void>(async (resolve, reject) => {
+            let paramPath = nconf.get("paths:resultsPath") + path.sep + proc.method + ".json";
+            let data = {
+                highlighters: _.clone(proc.inputHighlighters),
+                parameters: _.clone(proc.parameters),
+                hash: hash(proc.parameters),
+                resultFile: proc.resultFile,
+                data: hash(proc.data)
+            };
+            try {
+                await fs.statSync(paramPath).isFile();
+                let content = IoHelper.openFile(paramPath);
+                let info: any = {};
+                if ((info = _.filter(content, {
+                    "highlighters": data.highlighters,
+                    "data": data.data
+                })).length > 0) {
+                    //found some method information
+                    proc.resultFile = info[0].resultFile;
+                    proc.outputFolder = info[0].folder;
+                    proc.resultLink = proc.buildGetUrl();
+                    resolve();
                 } else {
-                    proc.resultFile = IoHelper.buildResultfilePath(info[0].folder, path.basename(info[0].folder));
-                }*/
-                proc.outputFolder = info[0].folder;
-            } else {
-                //found no information about that method
-                return;
+                    proc.resultFile = null;
+                    resolve();
+                }
+            } catch (error) {
+                //resolve for file not found, reject for all other errors
+                if (error.code === "ENOENT") {
+                    proc.resultFile = null;
+                    resolve();
+                } else {
+                    reject(error);
+                }
             }
-        } catch (error) {
-            return;
-        }
+        });
     }
 
     /**
@@ -330,7 +318,7 @@ export class ParameterHelper {
                 hash: hash(process.parameters)
             };
             try {
-                fs.statSync(paramPath).isFile();
+                await fs.statSync(paramPath).isFile();
                 let content = IoHelper.openFile(paramPath);
                 let info: any = {};
                 if (_.filter(content, {

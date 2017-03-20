@@ -199,6 +199,8 @@ export class ExecutableHelper extends EventEmitter {
             //create prorcesses
             let index: number = 0;
             for (let element of collection.inputData) {
+
+
                 let proc: Process = new Process();
                 proc.req = _.clone(req);
                 proc.type = executionType;
@@ -206,11 +208,10 @@ export class ExecutableHelper extends EventEmitter {
                 proc.executableType = serviceInfo.executableType;
                 //Todo fix that to create the deeper nesting
                 proc.outputFolder = collection.outputFolder + path.sep + "data_" + index + path.sep;
-                IoHelper.createFolder(proc.outputFolder);
-                proc.inputHighlighters = collection.inputHighlighters;
-                proc.neededParameters = collection.neededParameters;
-                proc.neededData = collection.neededData;
-                proc.parameters = collection.parameters;
+                proc.inputHighlighters = _.clone(collection.inputHighlighters);
+                proc.neededParameters = _.clone(collection.neededParameters);
+                proc.neededData = _.clone(collection.neededData);
+                proc.parameters = _.clone(collection.parameters);
                 proc.remotePaths = serviceInfo.remotePaths;
                 proc.matchedParameters = serviceInfo.paramOrder;
                 proc.method = collection.method;
@@ -220,9 +221,13 @@ export class ExecutableHelper extends EventEmitter {
                 proc.programType = serviceInfo.programType;
                 proc.executablePath = serviceInfo.executablePath;
                 proc.resultType = serviceInfo.output;
+
+                //assign temporary file paths, these might change if existing results are found
                 proc.resultFile = IoHelper.buildResultfilePath(proc.outputFolder, proc.methodFolder);
                 proc.tmpResultFile = IoHelper.buildTempResultfilePath(proc.outputFolder, proc.methodFolder);
                 proc.resultLink = proc.buildGetUrl();
+
+
                 switch (proc.resultType) {
                     case "console":
                         resultHandler = new ConsoleResultHandler(proc.resultFile);
@@ -240,15 +245,23 @@ export class ExecutableHelper extends EventEmitter {
                 index++;
                 await ParameterHelper.matchProcessData(proc, element);
                 await ParameterHelper.matchOrder(proc);
-                await ParameterHelper.saveParamInfo(proc);
-                processingQueue.addElement(proc);
+                //try to find existing results
+                await ParameterHelper.loadParamInfo(proc);
+                if (isNullOrUndefined(proc.resultFile)) {
+                    IoHelper.createFolder(proc.outputFolder);
+                    proc.resultFile = IoHelper.buildResultfilePath(proc.outputFolder, proc.methodFolder);
+                    proc.tmpResultFile = IoHelper.buildTempResultfilePath(proc.outputFolder, proc.methodFolder);
+                    proc.resultLink = proc.buildGetUrl();
+                    await ParameterHelper.saveParamInfo(proc);
+                    processingQueue.addElement(proc);
+                }
                 Logger.log("info", "finished preprocessing", "ExecutableHelper");
             }
             let results = [];
-            for(let process of collection.processes){
-                results.push({"md5": process.data.md5, "resultLink": process.resultLink});
+            for (let process of collection.processes) {
+                results.push({ "md5": process.data.md5, "resultLink": process.resultLink });
             }
-            if(isNullOrUndefined(collection.result)){
+            if (isNullOrUndefined(collection.result)) {
                 collection.result = {
                     results: results,
                     collection: collection.name,
@@ -256,7 +269,7 @@ export class ExecutableHelper extends EventEmitter {
                     status: "done"
                 };
             }
-            await ResultHelper.saveResult(collection);
+            //await ResultHelper.saveResult(collection);
             resolve(collection.result);
         });
 

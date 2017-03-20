@@ -132,7 +132,7 @@ export class QueueHandler {
                 let response = await QueueHandler.executableHelper.preprocess(req, QueueHandler.dockerProcessingQueue, "regular");
                 this.executeDockerRequest();
                 resolve(response);
-            }catch(error){
+            } catch (error) {
                 reject(error);
             }
         });
@@ -240,8 +240,8 @@ export class QueueHandler {
      * @memberOf QueueHandler
      */
     private static async executeDockerRequest() {
-        Logger.log("info", "execute docker request", "QueueHandler");
         if (this.dockerRequestAvailable()) {
+            Logger.log("info", "execute docker request", "QueueHandler");
             let job = this.getNextDockerRequest();
             QueueHandler.runningDockerJobs.push(job);
             try {
