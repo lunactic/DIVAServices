@@ -5,7 +5,6 @@
 import { Process } from "./process";
 import { IoHelper } from "../helper/ioHelper";
 import IProcess = require("./iProcess");
-import { DivaImage } from "../models/divaImage";
 
 /**
  * Class representing a collection
@@ -156,11 +155,6 @@ export class Collection implements IProcess {
      * @memberOf Collection
      */
     buildGetUrl(): string {
-        /*if (this.hasImages) {
-            return IoHelper.getStaticImageUrlFull(this.resultFile);
-        } else {
-            return IoHelper.getStaticDataUrlFull(this.resultFile);
-        }*/
-        return "";
+        return IoHelper.getStaticResultUrlFull(this.resultFile);
     }
 }

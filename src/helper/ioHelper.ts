@@ -1,4 +1,3 @@
-import { resolve } from 'dns';
 /**
  * Created by lunactic on 02.11.16.
  */
@@ -6,7 +5,6 @@ import { resolve } from 'dns';
 
 "use strict";
 
-import * as _ from "lodash";
 import * as archiver from "archiver";
 import * as fs from "fs-promise";
 import * as http from "http";
@@ -142,12 +140,12 @@ export class IoHelper {
      * @static
      * @param {string} fileUrl the file to download
      * @param {string} localFolder the local folder to save the file into
-     * @param {any} localFilename the filename to assign the downloaded image
+     * @param {string} localFilename the filename to assign the downloaded image
      * @returns {string} the full path to the file
      * 
      * @memberOf IoHelper
      */
-    static downloadFileSync(fileUrl: string, localFolder: string, localFilename): string {
+    static downloadFileSync(fileUrl: string, localFolder: string, localFilename: string): string {
         http.get(fileUrl, function (response: http.IncomingMessage) {
             response.pipe(fs.createWriteStream(localFolder + path.sep + localFilename));
         });
@@ -360,6 +358,23 @@ export class IoHelper {
     }
 
     /**
+     * get the static url for an image
+     * 
+     * @static
+     * @param {string} folder the folder of the image
+     * @param {string} filename the filename of the image
+     * @returns {string} the static url to access this image
+     * 
+     * @memberOf IoHelper
+     */
+    static getStaticResultFileUrl(folder: string, filename: string): string {
+        let rootUrl = nconf.get("server:rootUrl");
+        let relPath = folder.replace(nconf.get("paths:resultsPath") + path.sep, "");
+
+        return "http://" + rootUrl + "/results/" + relPath + filename;
+    }
+
+    /**
      * get the static image url with a specific extension
      * 
      * @static
@@ -429,14 +444,6 @@ export class IoHelper {
     static checkFileType(fileType: string, fileUrl: string): Promise<any> {
         return new Promise<any>(async (resolve, reject) => {
             if (fileType != null && fileType.length > 0) {
-                let urlInfo = url.parse(fileUrl);
-                let options = {
-                    method: "HEAD",
-                    hostname: urlInfo.hostname,
-                    path: urlInfo.path,
-                    port: parseInt(urlInfo.port)
-                };
-
                 let response = await request.head(fileUrl);
                 if (response["content-type"] !== fileType) {
                     Logger.log("error", "non matching file type", "IoHelper");

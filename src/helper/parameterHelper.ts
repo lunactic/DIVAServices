@@ -3,7 +3,6 @@
  */
 "use strict";
 
-import * as async from "async";
 import * as _ from "lodash";
 import * as fs from "fs-promise";
 import * as nconf from "nconf";
@@ -317,7 +316,6 @@ export class ParameterHelper {
             try {
                 await fs.statSync(paramPath).isFile();
                 let content = IoHelper.openFile(paramPath);
-                let info: any = {};
                 if (_.filter(content, {
                     "parameters": data.hash,
                     "highlighters": data.highlighters

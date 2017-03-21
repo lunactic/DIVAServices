@@ -45,7 +45,7 @@ class Server {
      * @constructor
      */
     constructor() {
-        //create expressjs application
+        //create express js application
         this.app = express();
 
         //configure application
@@ -84,7 +84,6 @@ class Server {
                 res.status(error.status);
                 res.json(error);
             } else {
-                var error = new Error("Not Found");
                 err.status = 404;
                 next(err);
             }

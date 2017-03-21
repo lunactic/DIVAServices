@@ -31,8 +31,8 @@ export class ConsoleResultHandler implements IResultHandler {
      * 
      * handles possible errors
      * 
-     * @param {*} error the error that occured
-     * @param {Process} process the process the error occured in
+     * @param {*} error the error that occurred
+     * @param {Process} process the process the error occurred in
      * 
      * @memberOf ConsoleResultHandler
      */
@@ -84,7 +84,7 @@ export class ConsoleResultHandler implements IResultHandler {
                                 } catch (error) {
                                     Logger.log("error", error, "ConsoleResultHandler");
                                 }
-                                resolve({data : data, procId: process.id});
+                                resolve({ data: data, procId: process.id });
                             }
                         });
                     } else {

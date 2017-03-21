@@ -2,7 +2,6 @@
  * Created by lunactic on 04.11.16.
  */
 
-import * as fs from "fs";
 import { Logger } from "../../logging/logger";
 import IResultHandler = require("./iResultHandler");
 import { Process } from "../../processingQueue/process";
@@ -33,7 +32,7 @@ export class NoResultHandler implements IResultHandler {
      * Error handling Function
      * 
      * @param {*} error the error object
-     * @param {Process} process the process the error occured in
+     * @param {Process} process the process the error occurred in
      * 
      * @memberOf NoResultHandler
      */

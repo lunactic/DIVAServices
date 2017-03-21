@@ -3,7 +3,6 @@
  * Created by lunactic on 07.11.16.
  */
 
-import { Logger } from "../logging/logger";
 import * as fs from "fs";
 import * as path from "path";
 import { Process } from "../processingQueue/process";

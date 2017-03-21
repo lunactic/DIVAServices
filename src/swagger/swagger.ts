@@ -4,11 +4,8 @@
  */
 
 import * as _ from "lodash";
-import * as fs from "fs";
-import {IoHelper} from "../helper/ioHelper";
+import { IoHelper } from "../helper/ioHelper";
 import * as nconf from "nconf";
-import * as request from "request";
-import * as util from "util";
 
 /**
  * class for handling swagger/openAPI things

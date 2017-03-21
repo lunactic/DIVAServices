@@ -3,7 +3,7 @@
  */
 
 "use strict";
-import {Process}  from "./process";
+import { Process } from "./process";
 
 /**
  * class representing a processing queue
@@ -22,7 +22,7 @@ export class ProcessingQueue {
      */
     static queue: Process[] = [];
 
-    getQueue(): any{
+    getQueue(): any {
         return ProcessingQueue.queue;
     }
 

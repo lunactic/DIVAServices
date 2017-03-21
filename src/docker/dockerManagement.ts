@@ -9,11 +9,8 @@ import * as fs from "fs";
 import * as nconf from "nconf";
 import * as path from "path";
 import * as DOCKER from "dockerode";
-import { IoHelper } from "../helper/ioHelper";
-import { ResultHelper } from "../helper/resultHelper";
 import { Logger } from "../logging/logger";
 import { File } from '../models/file';
-let sequest = require("sequest");
 let mime = require("mime-types");
 import * as os from "os";
 import { Process } from "../processingQueue/process";
@@ -67,6 +64,7 @@ export class DockerManagement {
                             try {
                                 let json = JSON.parse(data.toString());
                                 let id = json.stream.split(":")[1].replace(os.EOL, "");
+                                Logger.log("trace", "built new image with id: " + id, "DockerManagement");
                             } catch (error) {
                                 hasError = true;
                                 let err = {
@@ -247,7 +245,6 @@ export class DockerManagement {
     static runDockerImage(process: Process, imageName: string): Promise<void> {
         return new Promise<void>(async (resolve, reject) => {
             let params = process.matchedParameters;
-            let neededParams = process.neededParameters;
             //The string passed to the executable containing all parameters
             let executableString = "";
 
@@ -289,7 +286,7 @@ export class DockerManagement {
                     AlgorithmManagement.updateStatus(null, "error", process.req.originalUrl, "Algorithm image did not execute properly");
                     //ResultHelper.removeResult(process);
                 }
-                let data: any = await container.remove();
+                await container.remove();
                 resolve();
             } catch (error) {
                 Logger.log("error", error, "DockerManagement");

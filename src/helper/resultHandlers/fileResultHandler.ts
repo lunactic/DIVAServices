@@ -6,12 +6,12 @@ import * as _ from "lodash";
 import * as fs from "fs";
 import * as path from "path";
 import * as nconf from "nconf";
-import {Logger} from "../../logging/logger";
-import {FileHelper} from "../fileHelper";
-import {IoHelper} from "../ioHelper";
+import { Logger } from "../../logging/logger";
+import { FileHelper } from "../fileHelper";
+import { IoHelper } from "../ioHelper";
 
 import IResultHandler = require("./iResultHandler");
-import {Process} from "../../processingQueue/process";
+import { Process } from "../../processingQueue/process";
 
 /**
  * A Result Handler that reads the results from a file
@@ -59,10 +59,10 @@ export class FileResultHandler implements IResultHandler {
      * 
      * @memberOf FileResultHandler
      */
-    async handleResult(error: any, stdout: any, stderr: any, process: Process) : Promise<any> {
+    async handleResult(error: any, stdout: any, stderr: any, process: Process): Promise<any> {
         let self = this;
         return new Promise<any>(async (resolve, reject) => {
-           fs.stat(this.filename, function (error: any, stat: fs.Stats) {
+            fs.stat(this.filename, function (error: any, stat: fs.Stats) {
                 if (error == null) {
                     fs.readFile(self.filename, "utf8", async function (err: any, data: any) {
                         if (err != null) {
@@ -97,45 +97,22 @@ export class FileResultHandler implements IResultHandler {
                                 let files = _.filter(data.output, function (entry: any) {
                                     return _.has(entry, "file");
                                 });
-                                let visualization: boolean = false;
                                 for (let file of files) {
                                     if (file.file["mime-type"].startsWith("image")) {
                                         FileHelper.saveJson(file.file.content, process, file.file.name);
-                                        file.file["url"] = IoHelper.getStaticImageUrl(process.outputFolder, file.file.name);
+                                        file.file["url"] = IoHelper.getStaticResultFileUrl(process.outputFolder, file.file.name);
                                         delete file.file.content;
                                     } else if (file.file["mime-type"] === "text/plain") {
                                         await IoHelper.saveFile(process.outputFolder + path.sep + file.file.name, file.file.content, "utf8");
-                                        /*if (process.hasImages) {
-                                            file.file["url"] = IoHelper.getStaticImageUrl(process.rootFolder + path.sep + process.methodFolder, file.file.name);
-                                        } else if (process.hasFiles) {
-                                            file.file["url"] = IoHelper.getStaticDataUrl(process.rootFolder + path.sep + process.methodFolder, file.file.name);
-                                        }*/
+                                        file.file["url"] = IoHelper.getStaticResultFileUrl(process.outputFolder, file.file.name);
                                         delete file.file.content;
                                     } else {
                                         await IoHelper.saveFile(process.outputFolder + path.sep + file.file.name, file.file.content, "base64");
-                                        /*if (process.hasImages) {
-                                            file.file["url"] = IoHelper.getStaticImageUrl(process.rootFolder + path.sep + process.methodFolder, file.file.name);
-                                        } else if (process.hasFiles) {
-                                            file.file["url"] = IoHelper.getStaticDataUrl(process.rootFolder + path.sep + process.methodFolder, file.file.name);
-                                        }*/
+                                        file.file["url"] = IoHelper.getStaticResultFileUrl(process.outputFolder, file.file.name);
                                         delete file.file.content;
                                     }
                                 }
                                 //check if a visualization is available
-                                /*if (!visualization && process.inputImageUrl != null) {
-                                    let file = {
-                                        file: {
-                                            "mime-type": "png",
-                                            url: process.inputImageUrl,
-                                            name: "visualization",
-                                            options: {
-                                                visualization: true,
-                                                type: "outputVisualization"
-                                            }
-                                        }
-                                    };
-                                    data.output.push(file);
-                                }*/
                                 //set final data fields
                                 data["status"] = "done";
                                 //data["inputImage"] = process.inputImageUrl;
@@ -143,7 +120,7 @@ export class FileResultHandler implements IResultHandler {
                                 data["collectionName"] = process.rootFolder;
                                 data["resultZipLink"] = "http://" + nconf.get("server:rootUrl") + "/collection/" + process.rootFolder + "/" + process.methodFolder;
                                 await IoHelper.saveFile(self.filename, data, "utf8");
-                                resolve({data: data, procId: process.id});
+                                resolve({ data: data, procId: process.id });
                             } catch (error) {
                                 Logger.log("error", error, "FileResultHandler");
                                 let err = {

@@ -47,7 +47,7 @@ export class AlgorithmManagement {
         return new Promise<any>(async (resolve, reject) => {
             try {
                 AlgorithmManagement.updateServicesFile(req.body, identifier, route, imageName, version, baseroute);
-                let filename = await IoHelper.downloadFileWithTypecheck(req.body.method.file, nconf.get("paths:executablePath") + path.sep + route, "application/zip");
+                await IoHelper.downloadFileWithTypecheck(req.body.method.file, nconf.get("paths:executablePath") + path.sep + route, "application/zip");
                 //create docker file
                 DockerManagement.createDockerFile(req.body, nconf.get("paths:executablePath") + path.sep + route);
                 //create bash script
@@ -61,7 +61,7 @@ export class AlgorithmManagement {
                 };
                 resolve(response);
                 try {
-                    let imageId = await DockerManagement.buildImage(nconf.get("paths:executablePath") + path.sep + route, imageName)
+                    await DockerManagement.buildImage(nconf.get("paths:executablePath") + path.sep + route, imageName);
                     AlgorithmManagement.updateStatus(identifier, "testing", null, null);
                     let executableHelper = new ExecutableHelper();
                     let inputs = {};
@@ -116,7 +116,7 @@ export class AlgorithmManagement {
                             parameters: inputs
                         }
                     };
-                    let result = await executableHelper.preprocess(testRequest, QueueHandler.dockerProcessingQueue, "test");
+                    await executableHelper.preprocess(testRequest, QueueHandler.dockerProcessingQueue, "test");
                     let job = QueueHandler.dockerProcessingQueue.getNext();
                     QueueHandler.runningDockerJobs.push(job);
                     await ExecutableHelper.executeDockerRequest(job);
@@ -478,7 +478,7 @@ export class AlgorithmManagement {
         let content = IoHelper.openFile(nconf.get("paths:servicesInfoFile"));
         if (identifier != null && _.find(content.services, { "identifier": identifier }) != null) {
             let currentInfo: any = _.find(content.services, { "identifier": identifier });
-            let remotePath = _.find(currentInfo.remotePaths, function (path) {
+            let remotePath = _.find(currentInfo.remotePaths, function (path: any) {
                 return _.keys(path)[0] === parameterName;
             });
             return remotePath != null;
@@ -490,7 +490,7 @@ export class AlgorithmManagement {
         let content = IoHelper.openFile(nconf.get("paths:servicesInfoFile"));
         if (identifier != null && _.find(content.services, { "identifier": identifier }) != null) {
             let currentInfo: any = _.find(content.services, { "identifier": identifier });
-            let remotePath = _.find(currentInfo.remotePaths, function (path) {
+            let remotePath = _.find(currentInfo.remotePaths, function (path: any) {
                 return _.keys(path)[0] === parameterName;
             });
             return String(_.values(remotePath)[0]);

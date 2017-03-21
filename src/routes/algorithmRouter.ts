@@ -4,22 +4,15 @@
  */
 
 
-import * as _ from "lodash";
 import { AlgorithmManagement } from "../management/algorithmManagement";
-import * as async from "async";
 import { DockerManagement } from "../docker/dockerManagement";
-import { ExecutableHelper } from "../helper/executableHelper";
-import * as fs from "fs";
-import { IoHelper } from "../helper/ioHelper";
 import { Logger } from "../logging/logger";
 import * as nconf from "nconf";
-import * as path from "path";
 import { ResultHelper } from "../helper/resultHelper";
 import * as express from "express";
 import { SchemaValidator } from "../validator/schemaValidator";
 import { ServicesInfoHelper } from "../helper/servicesInfoHelper";
 import { Statistics } from "../statistics/statistics";
-import { Swagger } from "../swagger/swagger";
 import { QueueHandler } from "../processingQueue/queueHandler";
 
 let router = express.Router();
@@ -119,7 +112,7 @@ router.post("/algorithms", async function (req: express.Request, res: express.Re
 });
 
 router.put("/algorithms/:identifier", async function (req: express.Request, res: express.Response) {
-    //perform a deleteion and an addition of the new algorithm
+    //perform a deletion and an addition of the new algorithm
     let serviceInfo = ServicesInfoHelper.getInfoByIdentifier(req.params.identifier);
     if (serviceInfo != null) {
         let currentRoute = serviceInfo.path;
@@ -149,7 +142,7 @@ router.put("/algorithms/:identifier", async function (req: express.Request, res:
             await SchemaValidator.validate(req.body, "createSchema");
             let identifier = AlgorithmManagement.createIdentifier();
             let imageName = AlgorithmManagement.generateImageName(req.body, version);
-            let response = await AlgorithmManagement.createAlgorithm(req, res, newRoute, identifier, imageName, version, baseroute)
+            let response = await AlgorithmManagement.createAlgorithm(req, res, newRoute, identifier, imageName, version, baseroute);
             sendWithStatus(res, response);
         } catch (error) {
             sendError(res, error);

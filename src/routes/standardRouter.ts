@@ -63,9 +63,6 @@ router.post("/upload", async function (req: express.Request, res: express.Respon
             IoHelper.createFilesCollectionFolders(collectionName);
             FileHelper.createCollectionInformation(collectionName, numOfImages);
             send200(res, { collection: collectionName });
-            let process = {
-                rootFolder: collectionName
-            };
             let imageCounter: number = 0;
             req.body.files.forEach(async (file: any, index: number) => {
                 switch (file.type) {
@@ -118,7 +115,7 @@ router.post("/jobs/:jobId", async function (req: express.Request, res: express.R
     Logger.log("info", "jobs route called", "StandardRouter");
     let process = Statistics.getProcess(req.params.jobId);
     if (process != null) {
-        //Statistics.endRecording(req.params.jobId, process.req.originalUrl);
+        Statistics.endRecording(req.params.jobId, process.req.originalUrl);
         process.result = req.body;
         try {
             await ResultHelper.saveResult(process);

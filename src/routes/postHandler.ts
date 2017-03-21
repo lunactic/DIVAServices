@@ -1,5 +1,4 @@
 "use strict";
-import * as async from 'async';
 
 /**
  * Created by lunactic on 07.11.16.

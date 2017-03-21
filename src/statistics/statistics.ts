@@ -114,7 +114,8 @@ export class Statistics {
                 stats.executions = 1;
                 stats.runtime = endTime[0];
             } else {
-                stats.runtime = (stats.runtime + endTime[0]) / 2;
+                //compute the new cumulative moving average
+                stats.runtime = (endTime[0] + (stats.executions * stats.runtime) / (stats.executions + 1));
                 stats.executions = stats.executions + 1;
             }
         }

@@ -22,6 +22,7 @@
     "no-trailing-whitespace": false,
     "no-use-before-declare": true,
     "no-var-requires": false,
+    "no-unused-variable": true,
     "one-line": [
       true,
       "check-open-brace",

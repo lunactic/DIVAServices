@@ -1,11 +1,9 @@
-import { resolve } from 'dns';
 /**
  * Created by lunactic on 03.11.16.
  */
 "use strict";
 
 import * as _ from "lodash";
-import * as async from "async";
 import * as fs from "fs";
 import { IoHelper } from "./ioHelper";
 import md5 = require("md5");
@@ -178,7 +176,7 @@ export class FileHelper {
                 fileName = "input" + counter;
             }
 
-            var response = await request(url).pipe(fs.createWriteStream(tmpFilePath));
+            await request(url).pipe(fs.createWriteStream(tmpFilePath));
             let base64 = fs.readFileSync(tmpFilePath, "base64");
 
             let md5String = md5(base64);
@@ -264,8 +262,6 @@ export class FileHelper {
      * @memberOf FileHelper
      */
     static loadCollection(collectionName: string, hashes: string[]): File[] {
-        let filePath = nconf.get("paths:filesPath");
-        let fileFolder = filePath + path.sep + collectionName + path.sep;
         let files: File[] = [];
 
         let filtered = null;
@@ -362,7 +358,7 @@ export class FileHelper {
      */
     static checkCollectionAvailable(collection: string): boolean {
         try {
-            let stats = fs.statSync(nconf.get("paths:filesPath") + path.sep + collection);
+            fs.statSync(nconf.get("paths:filesPath") + path.sep + collection);
             return true;
         } catch (error) {
             return false;

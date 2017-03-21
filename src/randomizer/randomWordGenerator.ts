@@ -19,7 +19,7 @@ export class RandomWordGenerator {
      * @memberOf RandomWordGenerator
      */
     static adjectives = fs.readFileSync(RandomWordGenerator.rootDir + "/adjectives", "utf8").toString().split("\n");
-    
+
     /**
      * a list of animal names
      * 

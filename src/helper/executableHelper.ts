@@ -4,17 +4,14 @@ import { isNullOrUndefined } from 'util';
  * Created by lunactic on 07.11.16.
  */
 import * as _ from "lodash";
-import * as async from "async";
 import * as childProcess from "child_process";
 import { EventEmitter } from "events";
-import * as express from "express";
 import * as nconf from "nconf";
 import { Logger } from "../logging/logger";
 import { Collection } from "../processingQueue/collection";
 import { ConsoleResultHandler } from "./resultHandlers/consoleResultHandler";
 import { DockerManagement } from "../docker/dockerManagement";
 import { FileResultHandler } from "./resultHandlers/fileResultHandler";
-import { FileHelper } from "./fileHelper";
 import { File } from "../models/file";
 import { IoHelper } from "./ioHelper";
 import { NoResultHandler } from "./resultHandlers/noResultHandler";
@@ -27,7 +24,6 @@ import { ServicesInfoHelper } from "./servicesInfoHelper";
 import { Statistics } from "../statistics/statistics";
 import { ProcessingQueue } from "../processingQueue/processingQueue";
 import { RandomWordGenerator } from "../randomizer/randomWordGenerator";
-import IResultHandler = require("./resultHandlers/iResultHandler");
 
 
 /**
@@ -143,7 +139,7 @@ export class ExecutableHelper extends EventEmitter {
             for (let dataItem of process.data) {
                 await self.remoteExecution.uploadFile((dataItem as File).path, process.rootFolder);
             }
-            let command = self.buildCommand(process);
+            let command = self.buildRemoteCommand(process);
             process.id = Statistics.startRecording(process);
             command += " " + process.id + " " + process.rootFolder + " > /dev/null";
             self.remoteExecution.executeCommand(command);
@@ -190,17 +186,15 @@ export class ExecutableHelper extends EventEmitter {
             collection.outputFolder = IoHelper.getOutputFolder(collection.name);
             collection.inputParameters = _.cloneDeep(req.body.parameters);
             collection.inputData = _.cloneDeep(req.body.data);
-            collection.resultFile = collection.outputFolder + path.sep + "info.json";
+            collection.resultFile = nconf.get("paths:resultsPath") + path.sep + collection.name + ".json";
             this.setCollectionHighlighter(collection, req);
             collection.neededParameters = serviceInfo.parameters;
             collection.neededData = serviceInfo.data;
             //perform parameter matching on collection level
             await ParameterHelper.matchCollectionParams(collection, req);
-            //create prorcesses
+            //create processes
             let index: number = 0;
             for (let element of collection.inputData) {
-
-
                 let proc: Process = new Process();
                 proc.req = _.cloneDeep(req);
                 proc.type = executionType;
@@ -216,7 +210,6 @@ export class ExecutableHelper extends EventEmitter {
                 proc.matchedParameters = _.cloneDeep(serviceInfo.paramOrder);
                 proc.method = collection.method;
                 proc.rootFolder = collection.name;
-                let resultHandler = null;
                 proc.methodFolder = path.basename(proc.outputFolder);
                 proc.programType = serviceInfo.programType;
                 proc.executablePath = serviceInfo.executablePath;
@@ -227,20 +220,18 @@ export class ExecutableHelper extends EventEmitter {
                 proc.tmpResultFile = IoHelper.buildTempResultfilePath(proc.outputFolder, proc.methodFolder);
                 proc.resultLink = proc.buildGetUrl();
 
-
                 switch (proc.resultType) {
                     case "console":
-                        resultHandler = new ConsoleResultHandler(proc.resultFile);
+                        proc.resultHandler = new ConsoleResultHandler(proc.resultFile);
                         break;
                     case "file":
                         proc.parameters.params["resultFile"] = proc.resultFile;
-                        resultHandler = new FileResultHandler(proc.resultFile);
+                        proc.resultHandler = new FileResultHandler(proc.resultFile);
                         break;
                     case "none":
-                        resultHandler = new NoResultHandler(proc.resultFile);
+                        proc.resultHandler = new NoResultHandler(proc.resultFile);
                         break;
                 }
-                proc.resultHandler = resultHandler;
                 collection.processes.push(proc);
                 index++;
                 await ParameterHelper.matchProcessData(proc, element);
@@ -253,23 +244,25 @@ export class ExecutableHelper extends EventEmitter {
                     proc.tmpResultFile = IoHelper.buildTempResultfilePath(proc.outputFolder, proc.methodFolder);
                     proc.resultLink = proc.buildGetUrl();
                     await ParameterHelper.saveParamInfo(proc);
+                    await IoHelper.saveFile(proc.resultFile, { status: "planned" }, "utf8");
                     processingQueue.addElement(proc);
                 }
                 Logger.log("info", "finished preprocessing", "ExecutableHelper");
             }
             let results = [];
             for (let process of collection.processes) {
-                results.push({ "md5": process.data.md5, "resultLink": process.resultLink });
+                results.push({ "resultLink": process.resultLink });
             }
             if (isNullOrUndefined(collection.result)) {
                 collection.result = {
                     results: results,
                     collection: collection.name,
                     resultLink: collection.buildGetUrl(),
+                    message: "This url is available for 24 hours",
                     status: "done"
                 };
             }
-            //await ResultHelper.saveResult(collection);
+            await ResultHelper.saveResult(collection);
             resolve(collection.result);
         });
 

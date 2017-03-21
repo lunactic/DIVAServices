@@ -140,7 +140,7 @@ export class Process implements IProcess {
     public data: any;
 
     /**
-     * All paramater values in the correct order
+     * All parameter values in the correct order
      * @type {*}
      * @memberOf Process
      */

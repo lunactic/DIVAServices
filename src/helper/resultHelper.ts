@@ -9,11 +9,10 @@ import * as path from "path";
 import { FileHelper } from "./fileHelper";
 import { IoHelper } from "./ioHelper";
 import { ParameterHelper } from "./parameterHelper";
-import { Collection } from "../processingQueue/collection";
 import { Process } from "../processingQueue/process";
 import IProcess = require("../processingQueue/iProcess");
 import { File } from "../models/file";
-import {Logger} from "../logging/logger";
+import { Logger } from "../logging/logger";
 
 /**
  * Helper class for all result related things
@@ -24,31 +23,11 @@ import {Logger} from "../logging/logger";
 export class ResultHelper {
 
     /**
-     * check if results for a specific collection are available
-     * 
-     * @static
-     * @param {Collection} collection the collection to check
-     * @returns {boolean} indication wheter results are available or not
-     * 
-     * @memberOf ResultHelper
-     */
-    static checkCollectionResultsAvailable(collection: Collection): boolean {
-        collection.rootFolder = collection.name;
-        _.forIn(collection.inputHighlighters, function (value: any, key: string) {
-            collection.inputHighlighters[key] = String(value);
-        });
-
-        ParameterHelper.loadParamInfo(collection);
-        collection.resultFile = collection.outputFolder + path.sep + "result.json";
-        return IoHelper.fileExists(collection.resultFile);
-    }
-
-    /**
      * check if results for a process are available
      * 
      * @static
      * @param {Process} process the process to check
-     * @returns {boolean} indication wheter results are available or not
+     * @returns {boolean} indication whether results are available or not
      * 
      * @memberOf ResultHelper
      */
@@ -93,7 +72,7 @@ export class ResultHelper {
     static async removeResult(process: Process) {
         try {
             await ParameterHelper.removeParamInfo(process);
-        }catch(error){
+        } catch (error) {
             Logger.log("error", error, "ResultHelper");
         }
         IoHelper.deleteFolder(process.outputFolder);
