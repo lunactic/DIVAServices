@@ -3,7 +3,6 @@
  */
 "use strict";
 
-import * as async from "async";
 import { IiifManifestParser } from "../parsers/iiifManifestParser";
 import * as express from "express";
 import { FileHelper } from "../helper/fileHelper";
@@ -16,7 +15,6 @@ import { Statistics } from "../statistics/statistics";
 import { ResultHelper } from "../helper/resultHelper";
 import { AlgorithmManagement } from "../management/algorithmManagement";
 import { SchemaValidator } from "../validator/schemaValidator";
-import md5 = require("md5");
 import { File } from "../models/file";
 import { PostHandler } from "./postHandler";
 import { GetHandler } from "./getHandler";
