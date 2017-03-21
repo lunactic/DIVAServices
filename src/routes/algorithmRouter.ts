@@ -21,6 +21,9 @@ let router = express.Router();
  * routes are not documented, check the swagger.json file
  */
 
+/**
+ * Get the status of an existing parameter
+ */
 router.get("/algorithms/:identifier", function (req: express.Request, res: express.Response) {
     let identifier = req.params.identifier;
     let status = AlgorithmManagement.getStatusByIdentifier(identifier);
@@ -36,6 +39,9 @@ router.get("/algorithms/:identifier", function (req: express.Request, res: expre
     }
 });
 
+/**
+ * Create a new algorithm
+ */
 router.post("/algorithms", async function (req: express.Request, res: express.Response) {
     //add a new algorithm
     //1) validate the incoming request
@@ -111,6 +117,9 @@ router.post("/algorithms", async function (req: express.Request, res: express.Re
     }
 });
 
+/**
+ * update an existing algorithm
+ */
 router.put("/algorithms/:identifier", async function (req: express.Request, res: express.Response) {
     //perform a deletion and an addition of the new algorithm
     let serviceInfo = ServicesInfoHelper.getInfoByIdentifier(req.params.identifier);
@@ -137,7 +146,6 @@ router.put("/algorithms/:identifier", async function (req: express.Request, res:
                 break;
         }
         try {
-
             await DockerManagement.removeImage(serviceInfo.image_name);
             await SchemaValidator.validate(req.body, "createSchema");
             let identifier = AlgorithmManagement.createIdentifier();
@@ -158,6 +166,9 @@ router.put("/algorithms/:identifier", async function (req: express.Request, res:
     }
 });
 
+/**
+ * Record an exception for an existing algorithm
+ */
 router.post("/algorithms/:identifier/exceptions/:jobId", function (req: express.Request, res: express.Response) {
     AlgorithmManagement.recordException(req.params.identifier, req["text"]);
     //TODO rethink this process
@@ -172,6 +183,9 @@ router.post("/algorithms/:identifier/exceptions/:jobId", function (req: express.
     send200(res, {});
 });
 
+/**
+ * delete an existing algorithm
+ */
 router.delete("/algorithms/:identifier", async function (req: express.Request, res: express.Response) {
     //set algorithm status to deleted
     let serviceInfo = ServicesInfoHelper.getInfoByIdentifier(req.params.identifier);
@@ -187,6 +201,9 @@ router.delete("/algorithms/:identifier", async function (req: express.Request, r
     }
 });
 
+/**
+ * get all recorded exceptions of an algorithm
+ */
 router.get("/algorithms/:identifier/exceptions", function (req: express.Request, res: express.Response) {
     let exceptions = AlgorithmManagement.getExceptions(req.params.identifier);
     send200(res, exceptions);

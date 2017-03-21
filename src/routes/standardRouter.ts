@@ -24,93 +24,81 @@ import { GetHandler } from "./getHandler";
 let router = express.Router();
 
 //set up a special route for image uploading
+
+/**
+ * upload data to the server
+ */
 router.post("/upload", async function (req: express.Request, res: express.Response) {
     let numOfImages: number = 0;
     let counter: number = 0;
-    async.each(req.body.files, function (image: any, callback: Function) {
-        switch (image.type) {
+
+    let collectionName = RandomWordGenerator.generateRandomWord();
+    send200(res, { collection: collectionName });
+
+    //count the total number of images
+    for (let file of req.body.files) {
+        switch (file.type) {
             case "iiif":
-                let iiifManifestParser = new IiifManifestParser(image.value);
-                iiifManifestParser.initialize().then(function () {
-                    //TODO: expand this to all ranges
-                    numOfImages += iiifManifestParser.getAllImages(0).length;
-                    callback();
-                });
+                let iiifManifestParser = new IiifManifestParser(file.value);
+                await iiifManifestParser.initialize();
+                numOfImages += iiifManifestParser.getAllImages(0).length;
+                break;
+            case "url":
+                numOfImages++;
                 break;
             default:
                 numOfImages++;
-                callback();
                 break;
         }
         counter++;
-    }, async function (error: any) {
-        let imageExists: boolean = false;
-        if (numOfImages === 1 && req.body.files.type !== "iiif") {
-            //check if image exists
-            try {
-                var response = await FileHelper.fileExists(md5(req.body.files[0].value));
-                if (response.imageAvailable) {
-                    send200(res, { collection: response.collection });
+    }
+    //create folders and info file
+    IoHelper.createFilesCollectionFolders(collectionName);
+    FileHelper.createCollectionInformation(collectionName, numOfImages);
+
+    let imageCounter: number = 0;
+    //download the files
+    for (let file of req.body.files) {
+        switch (file.type) {
+            case "iiif":
+                let iiifManifestParser = new IiifManifestParser(file.value);
+                await iiifManifestParser.initialize();
+                let images = iiifManifestParser.getAllImages(0);
+                for (let inputImage of images) {
+                    try {
+                        var image = await FileHelper.saveUrl(inputImage, collectionName + path.sep, imageCounter);
+                        FileHelper.addFileInfo(image.md5, image.path, collectionName);
+                        FileHelper.updateCollectionInformation(collectionName, numOfImages, ++imageCounter);
+                    } catch (error) {
+                        Logger.log("error", "error downloading image with message: " + error, "StandardRouter");
+                    }
                 }
-                Promise.resolve();
-            } catch (error) {
-                Promise.reject(error);
-            }
-        }
-        if (!imageExists) {
-            //need to save the image
-            let collectionName = RandomWordGenerator.generateRandomWord();
-            IoHelper.createFilesCollectionFolders(collectionName);
-            FileHelper.createCollectionInformation(collectionName, numOfImages);
-            send200(res, { collection: collectionName });
-            let imageCounter: number = 0;
-            req.body.files.forEach(async (file: any, index: number) => {
-                switch (file.type) {
-                    case "iiif":
-                        let iiifManifestParser = new IiifManifestParser(file.value);
-                        iiifManifestParser.initialize().then(function () {
-                            //TODO improve to save all images
-                            let images = iiifManifestParser.getAllImages(0);
-                            images.forEach(async (inputImage: any, i: number) => {
-                                try {
-                                    var image = await FileHelper.saveUrl(inputImage, collectionName + path.sep, imageCounter);
-                                    FileHelper.addFileInfo(image.md5, image.path, collectionName);
-                                    FileHelper.updateCollectionInformation(collectionName, numOfImages, imageCounter++);
-                                    Promise.resolve();
-                                } catch (error) {
-                                    Promise.reject(error);
-                                }
-                            });
-                        });
-                        break;
-                    case "url":
-                        try {
-                            var newFile: File = await FileHelper.saveUrl(file.value, collectionName, imageCounter, file.name);
-                            FileHelper.addFileInfo(newFile.md5, newFile.path, collectionName);
-                            FileHelper.updateCollectionInformation(collectionName, numOfImages, imageCounter);
-                            Promise.resolve();
-                        } catch (error) {
-                            Promise.reject(error);
-                        }
-                        imageCounter = imageCounter + 1;
-                        break;
-                    default:
-                        try {
-                            var newFile: File = await FileHelper.saveBase64(file, collectionName, imageCounter);
-                            FileHelper.addFileInfo(newFile.md5, newFile.path, collectionName);
-                            FileHelper.updateCollectionInformation(collectionName, numOfImages, imageCounter);
-                            Promise.resolve();
-                        } catch (error) {
-                            Promise.reject(error);
-                        }
-                        imageCounter = imageCounter + 1;
-                        break;
+                break;
+            case "url":
+                try {
+                    var newFile: File = await FileHelper.saveUrl(file.value, collectionName, imageCounter, file.name);
+                    FileHelper.addFileInfo(newFile.md5, newFile.path, collectionName);
+                    FileHelper.updateCollectionInformation(collectionName, numOfImages, ++imageCounter);
+                } catch (error) {
+                    Logger.log("error", "error downloading image from url: " + file.value + " with message: " + error, "StandardRouter");
                 }
-            });
+                break;
+            default:
+                try {
+                    var newFile: File = await FileHelper.saveBase64(file, collectionName, imageCounter);
+                    FileHelper.addFileInfo(newFile.md5, newFile.path, collectionName);
+                    FileHelper.updateCollectionInformation(collectionName, numOfImages, ++imageCounter);
+                    break;
+                } catch (error) {
+                    Logger.log("error", "error saving image from base64", "StandardRouter");
+                }
         }
-    });
+    }
 });
 
+/**
+ * method reports a result
+ */
 router.post("/jobs/:jobId", async function (req: express.Request, res: express.Response) {
     Logger.log("info", "jobs route called", "StandardRouter");
     let process = Statistics.getProcess(req.params.jobId);
@@ -144,6 +132,9 @@ router.post("/jobs/:jobId", async function (req: express.Request, res: express.R
     }
 });
 
+/**
+ * schema validation
+ */
 router.post("/validate/:schema", async function (req: express.Request, res: express.Response, next: express.NextFunction) {
     try {
         let response;
@@ -171,6 +162,9 @@ router.post("/validate/:schema", async function (req: express.Request, res: expr
 
 });
 
+/**
+ * method handler
+ */
 router.post("*", async function (req: express.Request, res: express.Response, next: express.NextFunction) {
     if (unlike(req, "/algorithm")) {
         try {
@@ -185,6 +179,9 @@ router.post("*", async function (req: express.Request, res: express.Response, ne
     }
 });
 
+/** 
+ * get all existing collection
+ */
 router.get("/collections/", function (req: express.Request, res: express.Response) {
     let collections = FileHelper.getAllCollections();
     let collectionInfo = [];
@@ -204,6 +201,9 @@ router.get("/collections/", function (req: express.Request, res: express.Respons
     send200(res, response);
 });
 
+/** 
+ * get images from a collection
+ */
 router.get("/collections/:collection", function (req: express.Request, res: express.Response) {
     let collection = req.params.collection;
     if (FileHelper.checkCollectionAvailable(collection)) {
@@ -230,34 +230,7 @@ router.get("/collections/:collection", function (req: express.Request, res: expr
     }
 });
 
-router.get("/collections/:collection/:execution", function (req: express.Request, res: express.Response) {
-    //zip folder
-    //TODO Fix here to distinguish between collection.hasFiles and collection.hasImages
-    let filename = IoHelper.zipFolder(nconf.get("paths:imageRootPath") + path.sep + req.params.collection + path.sep + req.params.execution);
-    res.status(200);
-    res.json({ zipLink: "http://" + nconf.get("server:rootUrl") + "/static/" + filename });
-});
-
-router.get("/images/:collection", function (req: express.Request, res: express.Response) {
-    let collection = req.params.collection;
-    let files = FileHelper.loadCollection(collection, null);
-    let resp = [];
-    for (let file of files) {
-        resp.push({
-            "image": {
-                md5: file.md5,
-                url: file.url
-            }
-        });
-    }
-    let response = {
-        collection: collection,
-        images: resp
-    };
-    sendResponse(res, null, response);
-});
-
-router.get("/images/check/:md5", async function (req: express.Request, res: express.Response) {
+router.get("/images/:md5/check", async function (req: express.Request, res: express.Response) {
     try {
         var response = await FileHelper.fileExists(req.params.md5);
         sendResponse(res, null, response);
@@ -266,7 +239,7 @@ router.get("/images/check/:md5", async function (req: express.Request, res: expr
     }
 });
 
-router.get("/images/results/:md5", function (req: express.Request, res: express.Response) {
+router.get("/images/:md5/results", function (req: express.Request, res: express.Response) {
     FileHelper.fileExists(req.params.md5).then((response) => {
         response = ResultHelper.loadResultsForMd5(req.params.md5);
         sendResponse(res, null, response);
