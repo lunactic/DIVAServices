@@ -21,8 +21,6 @@ import { GetHandler } from "./getHandler";
 
 let router = express.Router();
 
-//set up a special route for image uploading
-
 /**
  * upload data to the server
  */

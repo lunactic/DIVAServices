@@ -1,4 +1,3 @@
-import * as url from 'url';
 /**
  * Created by lunactic on 03.11.16.
  */
@@ -28,7 +27,7 @@ export class File {
      * @memberOf File
      */
     public filename: string;
-    
+
 
     /**
      * the name of the collection
@@ -81,6 +80,16 @@ export class File {
         item.path = nconf.get("paths:filesPath") + path.sep + collection + path.sep + "original" + path.sep + filename;
         item.url = "http://" + nconf.get("server:rootUrl") + "/files/" + collection + "/original/" + filename;
         item.md5 = md5;
+        return item;
+    }
+
+    static CreateFileFull(filePath: string): File {
+        let relativePath = filePath.replace(nconf.get("paths:executablePath") + path.sep, "");
+        let item = new File();
+        item.path = filePath;
+        item.url = "http://" + nconf.get("server:rootUrl") + "/test/" + relativePath;
+        item.filename = path.parse(filePath).base;
+        item.extension = path.parse(filePath).ext;
         return item;
     }
 

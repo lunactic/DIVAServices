@@ -236,17 +236,20 @@ export class IoHelper {
      * 
      * @memberOf IoHelper
      */
-    static async unzipFile(zipFile: string, folder: string): Promise<any> {
-        try {
-            await fs.mkdirs(folder);
-            let reader = await fs.createReadStream(zipFile);
-            reader.pipe(unzip.Extract({ path: folder })).on("close", function () {
-                Promise.resolve();
-            });
-        } catch (error) {
-            Logger.log("error", JSON.stringify(error), "IoHelper");
-            Promise.reject(error);
-        }
+    static async unzipFile(zipFile: string, folder: string): Promise<void> {
+        return new Promise<void>(async (resolve, reject) => {
+            try {
+                await fs.mkdirs(folder);
+                let reader = await fs.createReadStream(zipFile);
+                reader.pipe(unzip.Extract({ path: folder })).on("close", function () {
+                    resolve();
+                });
+            } catch (error) {
+                Logger.log("error", JSON.stringify(error), "IoHelper");
+                reject(error);
+            }
+        });
+
     }
 
     /**

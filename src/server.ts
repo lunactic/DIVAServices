@@ -111,6 +111,7 @@ class Server {
         //set up static file handlers!
         this.app.use("/files", express.static(nconf.get("paths:filesPath")));
         this.app.use("/results", express.static(nconf.get("paths:resultsPath")));
+        this.app.use("/test", express.static(nconf.get("paths:executablePath")));
         //use router middleware
         this.app.use(router);
         this.app.use(algorithmRouter);

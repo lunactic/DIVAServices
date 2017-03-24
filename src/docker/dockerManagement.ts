@@ -9,9 +9,9 @@ import * as fs from "fs";
 import * as nconf from "nconf";
 import * as path from "path";
 import * as DOCKER from "dockerode";
+import * as mime from "mime";
 import { Logger } from "../logging/logger";
 import { File } from '../models/file';
-let mime = require("mime-types");
 import * as os from "os";
 import { Process } from "../processingQueue/process";
 
@@ -137,20 +137,16 @@ export class DockerManagement {
         }
 
         content += 'RUN mkdir -p /data/output' + os.EOL +
-            'WORKDIR /data' + os.EOL +
-            'COPY . .' + os.EOL +
-            'RUN ["chmod", "+x", "./script.sh"]' + os.EOL +
-            'RUN unzip algorithm.zip' + os.EOL;
+            'COPY . /data' + os.EOL +
+            'RUN unzip /data/algorithm.zip -d /data' + os.EOL;
 
-        if (algorithmInfos.method.executableType === "bash") {
-            content += 'RUN ["chmod", "+x", "./' + algorithmInfos.method.executable_path + '"]' + os.EOL;
-        }
         switch (nconf.get("baseImages:" + algorithmInfos.method.environment)) {
             case "apt":
                 content += 'RUN apt-get clean && rm -rf /tmp/* /var/lib/apt/lists/* /var/tmp/* .git' + os.EOL;
                 break;
         }
-
+        content += 'WORKDIR /data' + os.EOL;
+        content += 'RUN chmod +x *' + os.EOL;
         fs.writeFileSync(outputFolder + path.sep + "Dockerfile", content);
     }
 
@@ -170,15 +166,17 @@ export class DockerManagement {
         let inputCount: number = 3;
 
         //check if additional files need to be downloaded
-        algorithmInfos.input.forEach((input: any, index: any) => {
+        let index = 0;
+        for (let input of algorithmInfos.input) {
             let key = _.keys(algorithmInfos.input[index])[0];
             if (['json', 'file', 'inputFile'].indexOf(key) >= 0) {
                 //TODO fix this to use the correct input number of the input image
                 content += 'curl -o /data/' + input[key].name + '.' + mime.extension(input[key].options.mimeType) + ' $' + (inputCount + index) + os.EOL;
                 AlgorithmManagement.addRemotePath(identifier, input[key].name, "/data/" + input[key].name + "." + mime.extension(input[key].options.mimeType));
-                //AlgorithmManagement.addUrlParameter(identifier, input[key].name + "url");
             }
-        });
+            index++;
+        }
+
 
         //add the correct execution string
         switch (algorithmInfos.method.executableType) {
@@ -195,7 +193,8 @@ export class DockerManagement {
         }
 
         //add all parameters
-        algorithmInfos.input.forEach((input: any, index: number) => {
+        index = 0;
+        for (let input of algorithmInfos.input) {
             let key = _.keys(algorithmInfos.input[index])[0];
             let value = ((_.values(algorithmInfos.input[index])[0]) as any).name;
             if (nconf.get("reservedWords").indexOf(key) >= 0 && nconf.get("docker:replacePaths").indexOf(key) >= 0) {
@@ -204,17 +203,22 @@ export class DockerManagement {
             } else if (nconf.get("reservedWords").indexOf(key) >= 0 && !(nconf.get("docker:replacePaths").indexOf(key) >= 0)) {
                 if (AlgorithmManagement.hasRemotePath(identifier, value)) {
                     content += AlgorithmManagement.getRemotePath(identifier, value) + " ";
+                } else if (key === "highlighter") {
+                    content += "${" + inputCount++ + "} " + "${" + inputCount++ + "} " + "${" + inputCount++ + "} " + "${" + inputCount++ + "} " + "${" + inputCount++ + "} " + "${" + inputCount++ + "} " + "${" + inputCount++ + "} " + "${" + inputCount++ + "} ";
+                } else {
+                    content += "${" + inputCount + "} ";
                 }
                 inputCount++;
             } else {
                 if (key === "highlighter") {
-                    content += "$" + inputCount++ + " " + "$" + inputCount++ + " " + "$" + inputCount++ + " " + "$" + inputCount++ + " " + "$" + inputCount++ + " " + "$" + inputCount++ + " " + "$" + inputCount++ + " " + "$" + inputCount++ + " ";
+                    content += "${" + inputCount++ + "} " + "${" + inputCount++ + "} " + "${" + inputCount++ + "} " + "${" + inputCount++ + "} " + "${" + inputCount++ + "} " + "${" + inputCount++ + "} " + "${" + inputCount++ + "} " + "${" + inputCount++ + "} ";
                 } else {
-                    content += "$" + inputCount + " ";
+                    content += "${" + inputCount + "} ";
                     inputCount++;
                 }
             }
-        });
+            index++;
+        }
 
         //omit the error output stream for matlab, because it behaves weird
         if (algorithmInfos.method.executableType === "matlab") {
@@ -260,7 +264,7 @@ export class DockerManagement {
                 let value = param[key];
                 if (key === "highlighter") {
                     //handle highlighters
-                    executableString += _.map(params.highlighter.split(" "), function (item: any) {
+                    executableString += _.map(value.split(" "), function (item: any) {
                         return item;
                     }).join(" ");
                 } else if (value instanceof File) {

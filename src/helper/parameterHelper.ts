@@ -1,3 +1,4 @@
+import { isNullOrUndefined } from 'util';
 /**
  * Created by lunactic on 03.11.16.
  */
@@ -56,12 +57,17 @@ export class ParameterHelper {
     }
 
 
+    /**
+     * 
+     * @param collection the collection to match parameters for
+     * @param req the incoming request 
+     */
     static async matchCollectionParams(collection: Collection, req: any): Promise<void> {
         let self = this;
         return new Promise<void>((resolve, reject) => {
             let params = {};
             let outputParams = {};
-            collection.neededParameters.forEach(function (neededParameter: any, key: any) {
+            for (let neededParameter of collection.neededParameters) {
                 let paramKey = _.keys(neededParameter)[0];
                 let paramValue = neededParameter[paramKey];
                 if (self.checkReservedParameters(paramKey) || self.checkReservedParameters(paramValue)) {
@@ -77,7 +83,7 @@ export class ParameterHelper {
                     params[paramKey] = value;
                     outputParams[paramKey] = value;
                 }
-            });
+            }
             let result = {
                 params: params,
                 outputParams: outputParams
@@ -99,10 +105,16 @@ export class ParameterHelper {
                 needed = Object.keys(found).length > 0;
                 if (needed) {
                     let value = element[key];
+                    if (!this.isPathAbsolute(value)) {
+                        //use relative file path to look up with collection / filename
+                        let collection = value.split("/")[0];
+                        let filename = value.split("/")[1];
+                        data[key] = File.CreateFile(collection, filename);
+                    } else {
+                        //use absolute path (used only when testing a method)
+                        data[key] = File.CreateFileFull(value);
+                    }
                     //perform lookup to get the correct file path, create the correct data item out of it
-                    let collection = value.split("/")[0];
-                    let filename = value.split("/")[1];
-                    data[key] = File.CreateFile(collection, filename);
                     _.remove(process.neededData, function (item: any) {
                         return Object.keys(item)[0] === key;
                     });
@@ -125,14 +137,12 @@ export class ParameterHelper {
             for (let paramMatch of process.matchedParameters) {
                 //check if key is in global parameters
                 let searchKey = Object.keys(paramMatch)[0];
-                let globalParams = _.find(process.parameters.params, function (item: any) {
-                    return Object.keys(item)[0] === searchKey;
-                });
-                if (globalParams !== undefined && Object.keys(globalParams).length > 0) {
+                let globalParams = process.parameters.params[searchKey];
+                if (!isNullOrUndefined(globalParams)) {
                     let replaceObj = _.find(process.matchedParameters, function (item: any) {
                         return Object.keys(item)[0] === searchKey;
                     });
-                    replaceObj[searchKey] = globalParams[searchKey];
+                    replaceObj[searchKey] = globalParams;
                 }
                 //check if key is in data parameters
                 let dataParams = _.pickBy(process.data, function (value: any, key: string) {
@@ -308,7 +318,7 @@ export class ParameterHelper {
      */
     static async removeParamInfo(process: Process): Promise<void> {
         return new Promise<void>(async (resolve, reject) => {
-            let paramPath = process.outputFolder + process.method + ".json";
+            let paramPath = nconf.get("paths:resultsPath") + path.sep + process.method + ".json";
             let data = {
                 highlighters: process.inputHighlighters,
                 hash: hash(process.parameters)
@@ -342,5 +352,9 @@ export class ParameterHelper {
     static checkReservedParameters(parameter: string): boolean {
         let reservedParameters = nconf.get("reservedWords");
         return reservedParameters.indexOf(parameter) >= 0;
+    }
+
+    static isPathAbsolute(path: string): boolean {
+        return /^(?:\/|[a-z]+:\/\/)/.test(path);
     }
 }

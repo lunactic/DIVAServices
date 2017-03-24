@@ -214,7 +214,7 @@ export class ExecutableHelper extends EventEmitter {
                 proc.programType = serviceInfo.programType;
                 proc.executablePath = serviceInfo.executablePath;
                 proc.resultType = serviceInfo.output;
-
+                proc.type = executionType;
                 //assign temporary file paths, these might change if existing results are found
                 proc.resultFile = IoHelper.buildResultfilePath(proc.outputFolder, proc.methodFolder);
                 proc.tmpResultFile = IoHelper.buildTempResultfilePath(proc.outputFolder, proc.methodFolder);
@@ -291,8 +291,8 @@ export class ExecutableHelper extends EventEmitter {
      * @param {*} req the incoming POST request
      */
     private setCollectionHighlighter(collection: Collection, req: any): void {
-        if (req.body.inputs != null && req.body.inputs.highlighter != null) {
-            collection.inputHighlighters = _.cloneDeep(req.body.inputs.highlighter);
+        if (req.body.parameters != null && req.body.parameters.highlighter != null) {
+            collection.inputHighlighters = _.cloneDeep(req.body.parameters.highlighter);
         } else {
             collection.inputHighlighters = {};
         }

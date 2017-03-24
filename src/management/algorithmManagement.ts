@@ -7,6 +7,7 @@ import { IoHelper } from "../helper/ioHelper";
 import { Logger } from "../logging/logger";
 import * as nconf from "nconf";
 import * as path from "path";
+import * as mime from "mime";
 import { ServicesInfoHelper } from "../helper/servicesInfoHelper";
 import { DockerManagement } from "../docker/dockerManagement";
 import { ExecutableHelper } from "../helper/executableHelper";
@@ -63,11 +64,14 @@ export class AlgorithmManagement {
                 try {
                     await DockerManagement.buildImage(nconf.get("paths:executablePath") + path.sep + route, imageName);
                     AlgorithmManagement.updateStatus(identifier, "testing", null, null);
+                    //unzip the file
+                    await IoHelper.unzipFile(nconf.get("paths:executablePath") + path.sep + route + path.sep + "algorithm.zip", nconf.get("paths:executablePath") + path.sep + route);
                     let executableHelper = new ExecutableHelper();
                     let inputs = {};
                     let highlighter = {};
+                    let data = {};
                     for (let input of req.body.input) {
-                        if (!(nconf.get("reservedWords").indexOf(_.keys(input)[0]) >= 0) || _.keys(input)[0] === "highlighter" || _.keys(input)[0] === 'inputFile') {
+                        if (!(nconf.get("reservedWords").indexOf(_.keys(input)[0]) >= 0) || _.keys(input)[0] === "highlighter" || _.keys(input)[0] === 'file') {
                             switch (_.keys(input)[0]) {
                                 case "select":
                                     inputs[input.select.name] = input.select.options.values[input.select.options.default];
@@ -81,8 +85,8 @@ export class AlgorithmManagement {
                                 case "json":
                                     inputs[input.json.name] = IoHelper.openFile(nconf.get("paths:testPath") + path.sep + "json" + path.sep + "array.json");
                                     break;
-                                case "inputFile":
-                                    inputs[input.inputFile.name] = input.inputFile.options.default;
+                                case "file":
+                                    data[input.file.name] = nconf.get("paths:executablePath") + path.sep + route + path.sep + input.file.name + "." + mime.extension(input.file.options.mimeType);
                                     break;
                                 case "highlighter":
                                     switch (input.highlighter.type) {
@@ -110,9 +114,7 @@ export class AlgorithmManagement {
                     let testRequest = {
                         originalUrl: "/" + route,
                         body: {
-                            data: [{
-                                "inputImage": "test/input0.jpg",
-                            }],
+                            data: [data],
                             parameters: inputs
                         }
                     };

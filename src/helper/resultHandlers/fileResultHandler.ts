@@ -1,3 +1,4 @@
+import { isNullOrUndefined } from 'util';
 /**
  * Created by lunactic on 04.11.16.
  */
@@ -74,7 +75,7 @@ export class FileResultHandler implements IResultHandler {
                         } else {
                             try {
                                 data = JSON.parse(data);
-                                if (process.executableType === "matlab") {
+                                /*if (process.executableType === "matlab") {
                                     //get the current outputContent
                                     let tmpOutput = data.output;
                                     //push all objects into the output array
@@ -93,6 +94,9 @@ export class FileResultHandler implements IResultHandler {
                                         newObject[newKey] = value;
                                         data.output.push(newObject);
                                     });
+                                }*/
+                                if(isNullOrUndefined(data.output)){
+                                    data.output = [];
                                 }
                                 let files = _.filter(data.output, function (entry: any) {
                                     return _.has(entry, "file");
