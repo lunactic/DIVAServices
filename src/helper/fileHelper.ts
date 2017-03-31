@@ -10,6 +10,7 @@ import md5 = require("md5");
 import * as nconf from "nconf";
 import * as path from "path";
 import * as request from "request-promise";
+import * as mime from "mime";
 import { Logger } from "../logging/logger";
 import { Process } from "../processingQueue/process";
 import { File } from "../models/file";
@@ -166,8 +167,8 @@ export class FileHelper {
             let fileName: string = "";
 
             var headerResponse = await request.head(url);
-            let fileExtension = this.getFileExtension(headerResponse["content-type"]);
-
+            let fileExtension = mime.extension(headerResponse["content-type"]);
+            
             if (filename != null) {
                 tmpFilePath = filePath + path.sep + "temp_" + filename + "." + fileExtension;
                 fileName = filename;
@@ -408,27 +409,7 @@ export class FileHelper {
         return IoHelper.openFile(statusFile);
     }
 
-    /**
-     * 
-     * 
-     * @static
-     * @param {string} contentType the content type of the image
-     * @returns {string} the file ending to use for this image type
-     * 
-     * @memberOf ImageHelper
-     */
-    static getFileExtension(contentType: string): string {
-        switch (contentType) {
-            case "image/jpeg":
-                return "jpg";
-            case "image/tiff":
-                return "tiff";
-            case "image/png":
-                return "png";
-        }
-    }
-
-    /**
+     /**
      * Get the image extension from a base64 string
      * 
      * @static

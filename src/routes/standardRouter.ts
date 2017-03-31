@@ -109,22 +109,20 @@ router.post("/jobs/:jobId", async function (req: express.Request, res: express.R
                     await SchemaValidator.validate(await IoHelper.openFile(process.resultFile), "responseSchema");
                     AlgorithmManagement.updateStatus(null, "ok", process.req.originalUrl, "");
                     await ResultHelper.removeResult(process);
-                    send200(res, { status: "valid" });
+                    res.status(200).end();
                 } catch (error) {
                     AlgorithmManagement.updateStatus(null, "error", process.req.originalUrl, error.statusText);
                     await ResultHelper.removeResult(process);
                     sendError(res, error);
                 }
             } else {
-                res.status(200);
-                res.send();
+                res.status(200).end();
             }
         } catch (error) {
             sendError(res, error);
         }
     } else {
-        res.status(500);
-        res.send();
+        res.status(500).end();
     }
 });
 

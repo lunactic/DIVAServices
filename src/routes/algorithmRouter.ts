@@ -80,7 +80,7 @@ router.post("/algorithms", async function (req: express.Request, res: express.Re
                     AlgorithmManagement.removeFromRootInfoFile("/" + route);
                     AlgorithmManagement.removeFromServiceInfoFile("/" + baseroute);
                     try {
-                        await DockerManagement.removeImage(status.image_name);
+                        //await DockerManagement.removeImage(status.image_name);
                         let identifier = AlgorithmManagement.createIdentifier();
                         //AlgorithmManagement.updateIdentifier("/" + route, identifier);
                         let response = await AlgorithmManagement.createAlgorithm(req, res, route, identifier, imageName, version, baseroute);

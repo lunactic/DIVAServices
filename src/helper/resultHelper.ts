@@ -69,13 +69,17 @@ export class ResultHelper {
      * 
      * @memberOf ResultHelper
      */
-    static async removeResult(process: Process) {
-        try {
-            await ParameterHelper.removeParamInfo(process);
-        } catch (error) {
-            Logger.log("error", error, "ResultHelper");
-        }
-        IoHelper.deleteFolder(process.outputFolder);
+    static async removeResult(process: Process): Promise<void> {
+        return new Promise<void>(async (resolve, reject) => {
+            try {
+                await ParameterHelper.removeParamInfo(process);
+                IoHelper.deleteFolder(process.outputFolder);
+                resolve();
+            } catch (error) {
+                Logger.log("error", error, "ResultHelper");
+                reject(error);
+            }
+        });
     }
 
     /**

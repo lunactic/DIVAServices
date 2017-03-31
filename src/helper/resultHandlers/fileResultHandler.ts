@@ -75,33 +75,19 @@ export class FileResultHandler implements IResultHandler {
                         } else {
                             try {
                                 data = JSON.parse(data);
-                                /*if (process.executableType === "matlab") {
-                                    //get the current outputContent
-                                    let tmpOutput = data.output;
-                                    //push all objects into the output array
-                                    data.output = [];
-                                    _.forIn(tmpOutput, function (value: any, key: string) {
-                                        let newKey = key.replace(/\d/g, "");
-                                        let newObject = {};
-                                        if (value.hasOwnProperty("mimetype")) {
-                                            value["mime-type"] = value.mimetype;
-                                            delete value.mimetype;
-                                        }
-                                        if (value.hasOwnProperty("options") && value.options.hasOwnProperty("visualization")) {
-                                            delete value.options.visualization;
-                                            value.options["visualization"] = true;
-                                        }
-                                        newObject[newKey] = value;
-                                        data.output.push(newObject);
-                                    });
-                                }*/
-                                if(isNullOrUndefined(data.output)){
+                                if (isNullOrUndefined(data.output)) {
                                     data.output = [];
                                 }
                                 let files = _.filter(data.output, function (entry: any) {
                                     return _.has(entry, "file");
                                 });
                                 for (let file of files) {
+                                    if(process.executableType === "matlab"){
+                                        //TODO rename mimetype --> mime-type
+                                        file.file['mime-type'] = file.file['mimetype'];
+                                        file.file.options.visualization = Boolean(file.file.options.visualization);
+                                        delete file.file['mimetype'];
+                                    }
                                     if (file.file["mime-type"].startsWith("image")) {
                                         FileHelper.saveJson(file.file.content, process, file.file.name);
                                         file.file["url"] = IoHelper.getStaticResultFileUrl(process.outputFolder, file.file.name);

@@ -327,10 +327,10 @@ export class ParameterHelper {
                 await fs.statSync(paramPath).isFile();
                 let content = IoHelper.openFile(paramPath);
                 if (_.filter(content, {
-                    "parameters": data.hash,
+                    "hash": data.hash,
                     "highlighters": data.highlighters
                 }).length > 0) {
-                    _.remove(content, { "parameters": data.hash, "highlighters": data.highlighters });
+                    _.remove(content, { "hash": data.hash, "highlighters": data.highlighters });
                     await IoHelper.saveFile(paramPath, content, "utf8");
                     resolve();
                 }
