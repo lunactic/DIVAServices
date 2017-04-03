@@ -14,6 +14,7 @@ import { Logger } from "../logging/logger";
 import { File } from '../models/file';
 import * as os from "os";
 import { Process } from "../processingQueue/process";
+import { DivaError } from "../models/divaError";
 
 /**
  * A class for managing, and running docker images
@@ -55,11 +56,7 @@ export class DockerManagement {
                     } else {
                         response.on("data", function (data: any) {
                             if (hasError) {
-                                let err = {
-                                    statusCode: 500,
-                                    statusMessage: errorMessage
-                                };
-                                reject(err);
+                                return reject(new DivaError(errorMessage, 500, "DockerError"));
                             }
                             try {
                                 let json = JSON.parse(data.toString());
@@ -67,11 +64,7 @@ export class DockerManagement {
                                 Logger.log("trace", "built new image with id: " + id, "DockerManagement");
                             } catch (error) {
                                 hasError = true;
-                                let err = {
-                                    statusCode: 500,
-                                    statusMessage: data.toString()
-                                };
-                                reject(err);
+                                return reject(new DivaError(data.toString(), 500, "DockerError"));
                             }
                         });
                         response.on("end", function () {
@@ -108,7 +101,7 @@ export class DockerManagement {
             this.docker.getImage(imageName).remove(function (err: any, data: any) {
                 if (err != null) {
                     Logger.log("error", err, "DockerManagement");
-                    reject(err);
+                    return reject(new DivaError(err.message, 500, "DockerError"));
                 }
                 resolve();
             });
@@ -294,7 +287,7 @@ export class DockerManagement {
                 resolve();
             } catch (error) {
                 Logger.log("error", error, "DockerManagement");
-                reject(error);
+                return reject(new DivaError(error.message, 500, "DockerError"));
             }
 
         });

@@ -1,4 +1,5 @@
 "use strict";
+import { DivaError } from '../models/divaError';
 /**
  * Created by lunactic on 07.11.16.
  */
@@ -47,7 +48,7 @@ export class GetHandler {
                 } else {
                     error = GetHandler.createError(404, "This algorithm is not available");
                 }
-                reject(error);
+                return reject(error);
             }
         });
 
@@ -65,10 +66,6 @@ export class GetHandler {
      * @memberOf GetHandler
      */
     private static createError(status: number, message: string): any {
-        let error = {
-            statusCode: status,
-            statusMessage: message
-        };
-        return error;
+        return new DivaError(message, status, "RequestError");
     }
 }

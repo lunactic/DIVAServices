@@ -9,7 +9,7 @@ import { FileHelper } from "../fileHelper";
 import IResultHandler = require("./iResultHandler");
 import { Process } from "../../processingQueue/process";
 import { IoHelper } from "../ioHelper";
-
+import { DivaError } from '../../models/divaError';
 /**
  * A Result Handler implementation for results coming from the console
  */
@@ -54,18 +54,14 @@ export class ConsoleResultHandler implements IResultHandler {
         let self = this;
         return new Promise<any>(async (resolve, reject) => {
             if (stderr.length > 0) {
-                let err = {
-                    statusCode: 500,
-                    statusMessage: stderr
-                };
-                reject(err);
+                return reject(new DivaError(stderr, 500, "ResultError"));
             } else {
                 fs.stat(self.filename, function (err: any, stat: fs.Stats) {
                     if (err == null) {
                         fs.readFile(self.filename, "utf8", async function (err: any, data: any) {
                             if (err != null) {
                                 Logger.log("error", err, "ConsoleResultHandler");
-                                reject(err);
+                                return reject(new DivaError(err.message, 500, "ResultError"));
                             } else {
                                 try {
                                     data = JSON.parse(data);
@@ -89,7 +85,7 @@ export class ConsoleResultHandler implements IResultHandler {
                         });
                     } else {
                         Logger.log("error", err, "ConsoleResultHandler");
-                        reject(err);
+                        return reject(new DivaError(err.message, 500, "ResultError"));
                     }
                 });
             }

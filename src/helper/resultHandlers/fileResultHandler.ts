@@ -1,4 +1,3 @@
-import { isNullOrUndefined } from 'util';
 /**
  * Created by lunactic on 04.11.16.
  */
@@ -7,10 +6,11 @@ import * as _ from "lodash";
 import * as fs from "fs";
 import * as path from "path";
 import * as nconf from "nconf";
+import { isNullOrUndefined } from 'util';
 import { Logger } from "../../logging/logger";
 import { FileHelper } from "../fileHelper";
 import { IoHelper } from "../ioHelper";
-
+import { DivaError } from "../../models/divaError";
 import IResultHandler = require("./iResultHandler");
 import { Process } from "../../processingQueue/process";
 
@@ -67,11 +67,7 @@ export class FileResultHandler implements IResultHandler {
                 if (error == null) {
                     fs.readFile(self.filename, "utf8", async function (err: any, data: any) {
                         if (err != null) {
-                            let error = {
-                                statusCode: 500,
-                                statusMessage: "Could not read result file"
-                            };
-                            reject(error);
+                            return reject(new DivaError("Error processing the result", 500, "ResultError"));
                         } else {
                             try {
                                 data = JSON.parse(data);
@@ -82,8 +78,7 @@ export class FileResultHandler implements IResultHandler {
                                     return _.has(entry, "file");
                                 });
                                 for (let file of files) {
-                                    if(process.executableType === "matlab"){
-                                        //TODO rename mimetype --> mime-type
+                                    if (process.executableType === "matlab") {
                                         file.file['mime-type'] = file.file['mimetype'];
                                         file.file.options.visualization = Boolean(file.file.options.visualization);
                                         delete file.file['mimetype'];
@@ -113,17 +108,13 @@ export class FileResultHandler implements IResultHandler {
                                 resolve({ data: data, procId: process.id });
                             } catch (error) {
                                 Logger.log("error", error, "FileResultHandler");
-                                let err = {
-                                    statusCode: 500,
-                                    statusMessage: "Could not parse result"
-                                };
-                                reject(err);
+                                return reject(new DivaError("Error parsing the result", 500, "ResultError"));
                             }
                         }
                     });
                 } else {
                     Logger.log("error", error, "FileResultHandler");
-                    reject(error);
+                    return reject(new DivaError("Error processing the result", 500, "ResultError"));
                 }
             });
         });

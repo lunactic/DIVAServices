@@ -1,4 +1,5 @@
 "use strict";
+import { DivaError } from '../models/divaError';
 /**
  * Created by lunactic on 08.11.16.
  */
@@ -28,12 +29,7 @@ router.get("/algorithms/:identifier", function (req: express.Request, res: expre
     let identifier = req.params.identifier;
     let status = AlgorithmManagement.getStatusByIdentifier(identifier);
     if (status == null) {
-        let error = {
-            statusCode: 404,
-            statusMessage: "Algorithm with identifier " + identifier + " not available",
-            errorType: "MethodNotAvailable"
-        };
-        sendError(res, error);
+        sendError(res, new DivaError("Algorithm with identifier " + identifier + " not available", 404, "MethodNotAvailable"));
     } else {
         send200(res, status);
     }
@@ -57,12 +53,7 @@ router.post("/algorithms", async function (req: express.Request, res: express.Re
         if (status != null) {
             switch (status.status.statusCode) {
                 case 200:
-                    let err = {
-                        statusCode: 500,
-                        statusText: "An algorithm with the same name / type combination already exists. Please change the name of the algorithm",
-                        errorType: "MethodDuplication"
-                    };
-                    sendError(res, err);
+                    sendError(res, new DivaError("An algorithm with the same name / type combination already exists. Please change the name of the algorithm", 500, "MethodDuplication"));
                     break;
                 case 410:
                     //algorithm was deleted, create a new one
@@ -157,12 +148,7 @@ router.put("/algorithms/:identifier", async function (req: express.Request, res:
         }
 
     } else {
-        let err = {
-            statusCode: 404,
-            statusText: "No algorithm with identifier " + req.params.identifier + " found",
-            errorType: "AlgorithmNotFound"
-        };
-        sendError(res, err);
+        sendError(res, new DivaError("No algorithm with identifier " + req.params.identifier + " found", 404, "AlgorithmNotFound"));
     }
 });
 
@@ -235,14 +221,9 @@ function sendWithStatus(res: express.Response, response: any) {
     }
 }
 
-function sendError(res: express.Response, error: any) {
+function sendError(res: express.Response, error: DivaError) {
     res.status(error.statusCode || 500);
-    let err = {
-        status: error.statusCode,
-        type: error.errorType,
-        message: error.statusText
-    };
-    res.json(err);
+    res.json(error);
 }
 
 export = router;

@@ -16,6 +16,7 @@ let rmdir = require("rmdir");
 let unzip = require("unzip");
 import * as url from "url";
 import { Logger } from "../logging/logger";
+import { DivaError } from "../models/divaError";
 
 /**
  * Class handling all input/output
@@ -84,7 +85,7 @@ export class IoHelper {
                 resolve();
             } catch (error) {
                 Logger.log("error", "Could not write file due to error " + error, "IoHelper");
-                reject(error);
+                return reject(new DivaError("Error saving file", 500, "IoError"));
             }
         });
     }
@@ -103,7 +104,7 @@ export class IoHelper {
                 fs.unlinkSync(file);
                 resolve();
             } catch (error) {
-                reject(error);
+                return reject(new DivaError("Error deleting a file", 500, "IoError"));
             }
         });
     }
@@ -188,7 +189,7 @@ export class IoHelper {
                         break;
                 }
             } catch (error) {
-                reject(error);
+                return reject(new DivaError("Error downloading file from: " + fileUrl, 500, "IoError"));
             }
         });
     }
@@ -246,7 +247,7 @@ export class IoHelper {
                 });
             } catch (error) {
                 Logger.log("error", JSON.stringify(error), "IoHelper");
-                reject(error);
+                return reject(new DivaError("Error unzipping file", 500, "IoError"));
             }
         });
 
@@ -450,14 +451,14 @@ export class IoHelper {
                 let response = await request.head(fileUrl);
                 if (response["content-type"] !== fileType) {
                     Logger.log("error", "non matching file type", "IoHelper");
-                    reject({ error: "non matching file type" });
+                    return reject(new DivaError("non matching file type", 500, "IoError"));
                 } else {
                     Logger.log("info", "downloaded file: " + fileUrl, "IoHelper");
                     resolve();
                 }
             } else {
                 Logger.log("error", "no filetype provided", "IoHelper");
-                reject({ error: "no filetype provided" });
+                return reject(new DivaError("no filetype provided", 500, "IoError"));
             }
         });
     }

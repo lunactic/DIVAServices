@@ -24,7 +24,7 @@ import { ServicesInfoHelper } from "./servicesInfoHelper";
 import { Statistics } from "../statistics/statistics";
 import { ProcessingQueue } from "../processingQueue/processingQueue";
 import { RandomWordGenerator } from "../randomizer/randomWordGenerator";
-
+import { DivaError } from "../models/divaError";
 
 /**
  * A class the provides all functionality needed before a process can be executed
@@ -107,7 +107,7 @@ export class ExecutableHelper extends EventEmitter {
                     await process.resultHandler.handleResult(error, stdout, stderr, process);
                     resolve();
                 } catch (error) {
-                    reject(error);
+                    return reject(error);
                 }
             });
         });
@@ -179,91 +179,95 @@ export class ExecutableHelper extends EventEmitter {
      */
     public async preprocess(req: any, processingQueue: ProcessingQueue, executionType: string): Promise<any> {
         return new Promise<any>(async (resolve, reject) => {
-            let serviceInfo = ServicesInfoHelper.getInfoByPath(req.originalUrl);
-            let collection = new Collection();
-            collection.method = serviceInfo.service;
-            collection.name = RandomWordGenerator.generateRandomWord();
-            collection.outputFolder = IoHelper.getOutputFolder(collection.name);
-            collection.inputParameters = _.cloneDeep(req.body.parameters);
-            collection.inputData = _.cloneDeep(req.body.data);
-            collection.resultFile = nconf.get("paths:resultsPath") + path.sep + collection.name + ".json";
-            this.setCollectionHighlighter(collection, req);
-            collection.neededParameters = serviceInfo.parameters;
-            collection.neededData = serviceInfo.data;
-            //perform parameter matching on collection level
-            await ParameterHelper.matchCollectionParams(collection, req);
-            //create processes
-            let index: number = 0;
-            for (let element of collection.inputData) {
-                let proc: Process = new Process();
-                proc.req = _.cloneDeep(req);
-                proc.type = executionType;
-                proc.algorithmIdentifier = serviceInfo.identifier;
-                proc.executableType = serviceInfo.executableType;
-                //Todo fix that to create the deeper nesting
-                proc.outputFolder = collection.outputFolder + path.sep + "data_" + index + path.sep;
-                proc.inputHighlighters = _.cloneDeep(collection.inputHighlighters);
-                proc.neededParameters = _.cloneDeep(collection.neededParameters);
-                proc.neededData = _.cloneDeep(collection.neededData);
-                proc.parameters = _.cloneDeep(collection.parameters);
-                proc.remotePaths = _.cloneDeep(serviceInfo.remotePaths);
-                proc.matchedParameters = _.cloneDeep(serviceInfo.paramOrder);
-                proc.method = collection.method;
-                proc.rootFolder = collection.name;
-                proc.methodFolder = path.basename(proc.outputFolder);
-                proc.programType = serviceInfo.programType;
-                proc.executablePath = serviceInfo.executablePath;
-                proc.resultType = serviceInfo.output;
-                proc.type = executionType;
-                //assign temporary file paths, these might change if existing results are found
-                proc.resultFile = IoHelper.buildResultfilePath(proc.outputFolder, proc.methodFolder);
-                proc.tmpResultFile = IoHelper.buildTempResultfilePath(proc.outputFolder, proc.methodFolder);
-                proc.resultLink = proc.buildGetUrl();
-
-                switch (proc.resultType) {
-                    case "console":
-                        proc.resultHandler = new ConsoleResultHandler(proc.resultFile);
-                        break;
-                    case "file":
-                        proc.parameters.params["resultFile"] = proc.resultFile;
-                        proc.resultHandler = new FileResultHandler(proc.resultFile);
-                        break;
-                    case "none":
-                        proc.resultHandler = new NoResultHandler(proc.resultFile);
-                        break;
-                }
-                collection.processes.push(proc);
-                index++;
-                await ParameterHelper.matchProcessData(proc, element);
-                await ParameterHelper.matchOrder(proc);
-                //try to find existing results
-                await ParameterHelper.loadParamInfo(proc);
-                if (isNullOrUndefined(proc.resultFile)) {
-                    IoHelper.createFolder(proc.outputFolder);
+            try {
+                let serviceInfo = ServicesInfoHelper.getInfoByPath(req.originalUrl);
+                let collection = new Collection();
+                collection.method = serviceInfo.service;
+                collection.name = RandomWordGenerator.generateRandomWord();
+                collection.outputFolder = IoHelper.getOutputFolder(collection.name);
+                collection.inputParameters = _.cloneDeep(req.body.parameters);
+                collection.inputData = _.cloneDeep(req.body.data);
+                collection.resultFile = nconf.get("paths:resultsPath") + path.sep + collection.name + ".json";
+                this.setCollectionHighlighter(collection, req);
+                collection.neededParameters = serviceInfo.parameters;
+                collection.neededData = serviceInfo.data;
+                //perform parameter matching on collection level
+                await ParameterHelper.matchCollectionParams(collection, req);
+                //create processes
+                let index: number = 0;
+                for (let element of collection.inputData) {
+                    let proc: Process = new Process();
+                    proc.req = _.cloneDeep(req);
+                    proc.type = executionType;
+                    proc.algorithmIdentifier = serviceInfo.identifier;
+                    proc.executableType = serviceInfo.executableType;
+                    //Todo fix that to create the deeper nesting
+                    proc.outputFolder = collection.outputFolder + path.sep + "data_" + index + path.sep;
+                    proc.inputHighlighters = _.cloneDeep(collection.inputHighlighters);
+                    proc.neededParameters = _.cloneDeep(collection.neededParameters);
+                    proc.neededData = _.cloneDeep(collection.neededData);
+                    proc.parameters = _.cloneDeep(collection.parameters);
+                    proc.remotePaths = _.cloneDeep(serviceInfo.remotePaths);
+                    proc.matchedParameters = _.cloneDeep(serviceInfo.paramOrder);
+                    proc.method = collection.method;
+                    proc.rootFolder = collection.name;
+                    proc.methodFolder = path.basename(proc.outputFolder);
+                    proc.programType = serviceInfo.programType;
+                    proc.executablePath = serviceInfo.executablePath;
+                    proc.resultType = serviceInfo.output;
+                    proc.type = executionType;
+                    //assign temporary file paths, these might change if existing results are found
                     proc.resultFile = IoHelper.buildResultfilePath(proc.outputFolder, proc.methodFolder);
                     proc.tmpResultFile = IoHelper.buildTempResultfilePath(proc.outputFolder, proc.methodFolder);
                     proc.resultLink = proc.buildGetUrl();
-                    await ParameterHelper.saveParamInfo(proc);
-                    await IoHelper.saveFile(proc.resultFile, { status: "planned" }, "utf8");
-                    processingQueue.addElement(proc);
+
+                    switch (proc.resultType) {
+                        case "console":
+                            proc.resultHandler = new ConsoleResultHandler(proc.resultFile);
+                            break;
+                        case "file":
+                            proc.parameters.params["resultFile"] = proc.resultFile;
+                            proc.resultHandler = new FileResultHandler(proc.resultFile);
+                            break;
+                        case "none":
+                            proc.resultHandler = new NoResultHandler(proc.resultFile);
+                            break;
+                    }
+                    collection.processes.push(proc);
+                    index++;
+                    await ParameterHelper.matchProcessData(proc, element);
+                    await ParameterHelper.matchOrder(proc);
+                    //try to find existing results
+                    await ParameterHelper.loadParamInfo(proc);
+                    if (isNullOrUndefined(proc.resultFile)) {
+                        IoHelper.createFolder(proc.outputFolder);
+                        proc.resultFile = IoHelper.buildResultfilePath(proc.outputFolder, proc.methodFolder);
+                        proc.tmpResultFile = IoHelper.buildTempResultfilePath(proc.outputFolder, proc.methodFolder);
+                        proc.resultLink = proc.buildGetUrl();
+                        await ParameterHelper.saveParamInfo(proc);
+                        await IoHelper.saveFile(proc.resultFile, { status: "planned" }, "utf8");
+                        processingQueue.addElement(proc);
+                    }
+                    Logger.log("info", "finished preprocessing", "ExecutableHelper");
                 }
-                Logger.log("info", "finished preprocessing", "ExecutableHelper");
+                let results = [];
+                for (let process of collection.processes) {
+                    results.push({ "resultLink": process.resultLink });
+                }
+                if (isNullOrUndefined(collection.result)) {
+                    collection.result = {
+                        results: results,
+                        collection: collection.name,
+                        resultLink: collection.buildGetUrl(),
+                        message: "This url is available for 24 hours",
+                        status: "done"
+                    };
+                }
+                await ResultHelper.saveResult(collection);
+                resolve(collection.result);
+            } catch (error) {
+                reject(error);
             }
-            let results = [];
-            for (let process of collection.processes) {
-                results.push({ "resultLink": process.resultLink });
-            }
-            if (isNullOrUndefined(collection.result)) {
-                collection.result = {
-                    results: results,
-                    collection: collection.name,
-                    resultLink: collection.buildGetUrl(),
-                    message: "This url is available for 24 hours",
-                    status: "done"
-                };
-            }
-            await ResultHelper.saveResult(collection);
-            resolve(collection.result);
         });
 
     }

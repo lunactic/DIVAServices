@@ -1,3 +1,4 @@
+import { DivaError } from '../models/divaError';
 /**
  * Created by lunactic on 03.11.16.
  */
@@ -43,34 +44,36 @@ export class FileHelper {
      * 
      * @memberOf FileHelper
      */
-    static async saveFile(input: any, process: Process, numberOfImages: number, counter: number) {
+    static saveFile(input: any, process: Process, numberOfImages: number, counter: number) : Promise<void> {
         let self = this;
-        let file = null;
-        switch (input.type) {
-            case "base64":
-                try {
-                    file = await self.saveBase64(input.value, process.rootFolder, counter);
-                    self.addFileInfo(file.md5, file.path, process.rootFolder);
-                    self.updateCollectionInformation(process.rootFolder, numberOfImages, counter);
-                    Logger.log("trace", "saved file", "FileHelper");
-                    Promise.resolve();
-                } catch (error) {
-                    Logger.log("error", "error saving file", "FileHelper");
-                    Promise.reject(error);
-                }
-                break;
-            case "url":
-                try {
-                    file = await self.saveUrl(input.value, process.rootFolder, counter);
-                    self.addFileInfo(file.md5, file.path, process.rootFolder);
-                    self.updateCollectionInformation(process.rootFolder, numberOfImages, counter);
-                    Promise.resolve();
-                } catch (error) {
-                    Logger.log("error", "error saving file", "FileHelper");
-                    Promise.reject(error);
-                }
-                break;
-        }
+        return new Promise<void>(async (resolve, reject) => {
+            let file = null;
+            switch (input.type) {
+                case "base64":
+                    try {
+                        file = await self.saveBase64(input.value, process.rootFolder, counter);
+                        self.addFileInfo(file.md5, file.path, process.rootFolder);
+                        self.updateCollectionInformation(process.rootFolder, numberOfImages, counter);
+                        Logger.log("trace", "saved file", "FileHelper");
+                        resolve();
+                    } catch (error) {
+                        Logger.log("error", "error saving file", "FileHelper");
+                        return reject(error);
+                    }
+                    break;
+                case "url":
+                    try {
+                        file = await self.saveUrl(input.value, process.rootFolder, counter);
+                        self.addFileInfo(file.md5, file.path, process.rootFolder);
+                        self.updateCollectionInformation(process.rootFolder, numberOfImages, counter);
+                        resolve();
+                    } catch (error) {
+                        Logger.log("error", "error saving file", "FileHelper");
+                        return reject(error);
+                    }
+                    break;
+            }
+        });
     }
 
     /**
@@ -127,8 +130,8 @@ export class FileHelper {
                         resolve(fileObject);
                     });
                 } else {
-                    reject(err);
                     Logger.log("error", "error saving the image", "ImageHelper");
+                    return reject(new DivaError("Error while saving the image", 500, "FileError"));
                 }
             });
         });
@@ -168,7 +171,7 @@ export class FileHelper {
 
             var headerResponse = await request.head(url);
             let fileExtension = mime.extension(headerResponse["content-type"]);
-            
+
             if (filename != null) {
                 tmpFilePath = filePath + path.sep + "temp_" + filename + "." + fileExtension;
                 fileName = filename;
@@ -197,37 +200,6 @@ export class FileHelper {
                 resolve(file);
             });
         });
-
-    }
-
-    /**
-     * load all files with the same md5 hash
-     * 
-     * @static
-     * @param {string} md5 the md5 hash of the image
-     * @returns {DivaImage[]} An array of images
-     * 
-     * @memberOf ImageHelper
-     */
-    static loadFilesMd5(md5: string): File[] {
-        let filtered = this.filesInfo.filter(function (item: File) {
-            return item.md5 === md5;
-        });
-        let files: File[] = [];
-
-        for (var item of filtered) {
-            let filePath = item.path;
-            let file: File = new File();
-            file.folder = path.dirname(filePath);
-            file.extension = path.extname(filePath).substring(1);
-            file.filename = path.basename(filePath, file.extension);
-            file.path = filePath;
-            file.md5 = md5;
-            files.push(file);
-        }
-
-        return files;
-
 
     }
 
@@ -409,15 +381,15 @@ export class FileHelper {
         return IoHelper.openFile(statusFile);
     }
 
-     /**
-     * Get the image extension from a base64 string
-     * 
-     * @static
-     * @param {string} base64 the base64 string
-     * @returns {string} the file ending to use for the image type
-     * 
-     * @memberOf ImageHelper
-     */
+    /**
+    * Get the image extension from a base64 string
+    * 
+    * @static
+    * @param {string} base64 the base64 string
+    * @returns {string} the file ending to use for the image type
+    * 
+    * @memberOf ImageHelper
+    */
     static getImageExtensionBase64(base64: string): string {
         if (base64.indexOf("/9j/4AAQ") !== -1 || base64.indexOf("_9j_4AA") !== -1) {
             return "jpg";

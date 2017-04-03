@@ -1,3 +1,4 @@
+import { DivaError } from '../models/divaError';
 /**
  * Created by lunactic on 02.11.16.
  */
@@ -15,12 +16,7 @@ export class SchemaValidator {
             try {
                 let errors = SchemaValidator.validator.validate(input, nconf.get(schema)).errors;
                 if (errors.length > 0) {
-                    let error = {
-                        statusCode: 500,
-                        errorType: "validation error",
-                        statusText: errors[0].message
-                    };
-                    reject(error);
+                    return reject(new DivaError(errors[0].instance + ":" + errors[0].message, 500, "ValidationError"));
                 } else {
                     resolve();
                 }

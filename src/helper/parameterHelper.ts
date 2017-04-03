@@ -9,6 +9,7 @@ import * as fs from "fs-promise";
 import * as nconf from "nconf";
 import * as path from "path";
 import * as hash from "object-hash";
+import { DivaError } from "../models/divaError";
 import { IoHelper } from "./ioHelper";
 import { Logger } from "../logging/logger";
 import { Process } from "../processingQueue/process";
@@ -102,30 +103,32 @@ export class ParameterHelper {
                 let found: any = _.find(process.neededData, function (item: any) {
                     return Object.keys(item)[0] === key;
                 });
-                needed = Object.keys(found).length > 0;
-                if (needed) {
-                    let value = element[key];
-                    if (!this.isPathAbsolute(value)) {
-                        //use relative file path to look up with collection / filename
-                        let collection = value.split("/")[0];
-                        let filename = value.split("/")[1];
-                        data[key] = File.CreateFile(collection, filename);
-                    } else {
-                        //use absolute path (used only when testing a method)
-                        data[key] = File.CreateFileFull(value);
+                if (!isNullOrUndefined(found)) {
+                    needed = Object.keys(found).length > 0;
+                    if (needed) {
+                        let value = element[key];
+                        if (!this.isPathAbsolute(value)) {
+                            //use relative file path to look up with collection / filename
+                            let collection = value.split("/")[0];
+                            let filename = value.split("/")[1];
+                            data[key] = File.CreateFile(collection, filename);
+                        } else {
+                            //use absolute path (used only when testing a method)
+                            data[key] = File.CreateFileFull(value);
+                        }
+                        //perform lookup to get the correct file path, create the correct data item out of it
+                        _.remove(process.neededData, function (item: any) {
+                            return Object.keys(item)[0] === key;
+                        });
                     }
-                    //perform lookup to get the correct file path, create the correct data item out of it
-                    _.remove(process.neededData, function (item: any) {
-                        return Object.keys(item)[0] === key;
-                    });
                 } else {
-                    reject("provided unnecessary data");
                     Logger.log("error", "provided unnecessary data", "ParameterHelper");
+                    return reject(new DivaError("provided unnecessary data with parameter: " + key, 500, "ParameterError"));
                 }
             }
             if (process.neededData.length > 0) {
-                reject("did not receive data for all parameters");
                 Logger.log("error", "did not receive data for all data parameters", "ParameterHelper");
+                return reject(new DivaError("did not receive data for all parameters", 500, "ParameterError"));
             }
             process.data = data;
             resolve();
@@ -135,6 +138,7 @@ export class ParameterHelper {
     static async matchOrder(process: Process): Promise<void> {
         return new Promise<void>((resolve, reject) => {
             for (let paramMatch of process.matchedParameters) {
+                let found: boolean = false;
                 //check if key is in global parameters
                 let searchKey = Object.keys(paramMatch)[0];
                 let globalParams = process.parameters.params[searchKey];
@@ -143,6 +147,7 @@ export class ParameterHelper {
                         return Object.keys(item)[0] === searchKey;
                     });
                     replaceObj[searchKey] = globalParams;
+                    found = true;
                 }
                 //check if key is in data parameters
                 let dataParams = _.pickBy(process.data, function (value: any, key: string) {
@@ -150,12 +155,19 @@ export class ParameterHelper {
                 });
 
                 if (dataParams !== undefined && Object.keys(dataParams).length > 0) {
+
                     let replaceObj = _.find(process.matchedParameters, function (item: any) {
                         return Object.keys(item)[0] === searchKey;
                     });
+                    found = true;
                     replaceObj[searchKey] = dataParams[searchKey];
+                    if (!(IoHelper.fileExists((replaceObj[searchKey] as File).path))) {
+                        return reject(new DivaError("non existing file for data parameter: " + searchKey, 500, "ParameterError"));
+                    }
                 }
-                //if not found ==> throw error
+                if (!found) {
+                    return reject(new DivaError("Provided parameter: " + searchKey + " that ist not needed by the method", 500, "ParameterError"));
+                }//if not found ==> throw error
             }
             resolve();
         });
@@ -300,7 +312,7 @@ export class ParameterHelper {
                     proc.resultFile = null;
                     resolve();
                 } else {
-                    reject(error);
+                    return reject(new DivaError(error.message, 500, "ParameterHelper"));
                 }
             }
         });
@@ -335,7 +347,7 @@ export class ParameterHelper {
                     resolve();
                 }
             } catch (error) {
-                reject(error);
+                return reject(new DivaError(error.message, 500, "ParameterHelper"));
             }
         });
     }

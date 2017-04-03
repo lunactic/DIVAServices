@@ -1,3 +1,4 @@
+import { DivaError } from '../models/divaError';
 /**
  * Created by lunactic on 02.11.16.
  */
@@ -66,6 +67,7 @@ router.post("/upload", async function (req: express.Request, res: express.Respon
                         FileHelper.addFileInfo(image.md5, image.path, collectionName);
                         FileHelper.updateCollectionInformation(collectionName, numOfImages, ++imageCounter);
                     } catch (error) {
+                        //TODO add error info into the collection information
                         Logger.log("error", "error downloading image with message: " + error, "StandardRouter");
                     }
                 }
@@ -76,6 +78,7 @@ router.post("/upload", async function (req: express.Request, res: express.Respon
                     FileHelper.addFileInfo(newFile.md5, newFile.path, collectionName);
                     FileHelper.updateCollectionInformation(collectionName, numOfImages, ++imageCounter);
                 } catch (error) {
+                    //TODO add error info into the collection information
                     Logger.log("error", "error downloading image from url: " + file.value + " with message: " + error, "StandardRouter");
                 }
                 break;
@@ -86,6 +89,7 @@ router.post("/upload", async function (req: express.Request, res: express.Respon
                     FileHelper.updateCollectionInformation(collectionName, numOfImages, ++imageCounter);
                     break;
                 } catch (error) {
+                    //TODO add error info into the collection information
                     Logger.log("error", "error saving image from base64", "StandardRouter");
                 }
         }
@@ -233,20 +237,6 @@ router.get("/images/:md5/check", async function (req: express.Request, res: expr
     }
 });
 
-router.get("/images/:md5/results", function (req: express.Request, res: express.Response) {
-    FileHelper.fileExists(req.params.md5).then((response) => {
-        response = ResultHelper.loadResultsForMd5(req.params.md5);
-        sendResponse(res, null, response);
-    }).catch((error) => {
-        var err = {
-            statusCode: 404,
-            statusText: "This result is not available",
-            errorType: "ResultNotAvailable"
-        };
-        sendResponse(res, err, null);
-    });
-});
-
 //info routes
 router.get("/information/general", function (req: express.Request, res: express.Response) {
     let general = IoHelper.openFile("conf/algorithmGeneral.json");
@@ -333,14 +323,9 @@ function sendWithStatus(res: express.Response, response: any) {
     }
 }
 
-function sendError(res: express.Response, error: any) {
+function sendError(res: express.Response, error: DivaError) {
     res.status(error.statusCode || 500);
-    let err = {
-        status: error.statusCode,
-        type: error.errorType,
-        message: error.statusMessage
-    };
-    res.json(err);
+    res.json({ message: error.message, errorType: error.errorType });
 }
 
 function unlike(req: express.Request, path: string) {

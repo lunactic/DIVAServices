@@ -133,7 +133,7 @@ export class QueueHandler {
                 this.executeDockerRequest();
                 resolve(response);
             } catch (error) {
-                reject(error);
+                return reject(error);
             }
         });
     }

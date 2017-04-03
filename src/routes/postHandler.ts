@@ -7,7 +7,7 @@
 import { QueueHandler } from "../processingQueue/queueHandler";
 import { ServicesInfoHelper } from "../helper/servicesInfoHelper";
 import { Logger } from "../logging/logger";
-
+import {DivaError} from "../models/divaError";
 /**
  * class for handling POST requests that don't have a specific route (e.g. all methods)
  * 
@@ -30,20 +30,10 @@ export class PostHandler {
 
             if (serviceInfo == null) {
                 //if no matching method for the route, return a 404
-                let error = {
-                    statusCode: 404,
-                    statusText: "This method is not available",
-                    errorType: "MethodNotAvailable"
-                };
-                reject(error);
+                return reject(new DivaError("This method is not available", 404, "MethodNotAvailable"));
             } else if (serviceInfo.status.statusCode === 410) {
                 //if method was removed, return a 410    
-                let error = {
-                    statusCode: 410,
-                    statusText: "This algorithm is no longer available",
-                    errorType: "MethodNoLongerAvailable"
-                };
-                reject(error);
+                return reject(new DivaError("This algorithm is no longer available", 410, "MethodNoLongerAvailable"));
             } else {
                 //method found, prepare and execute process
                 let response: any = null;
@@ -63,15 +53,10 @@ export class PostHandler {
                             break;
                         default:
                             Logger.log("error", "Error in definition for method " + req.originalUrl, "PostHandler");
-                            let error = {
-                                statusCode: 500,
-                                statusText: "Error in method definition"
-                            };
-                            reject(error);
-                            break;
+                            return reject(new DivaError("Error in method definition", 500, "MethodError"));
                     }
                 } catch (error) {
-                    reject(error);
+                    return reject(error);
                 }
             }
         });

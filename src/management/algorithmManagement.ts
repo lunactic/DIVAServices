@@ -13,6 +13,8 @@ import { DockerManagement } from "../docker/dockerManagement";
 import { ExecutableHelper } from "../helper/executableHelper";
 import { QueueHandler } from "../processingQueue/queueHandler";
 import { Swagger } from "../swagger/swagger";
+import {DivaError} from "../models/divaError";
+
 let crypto = require("crypto");
 
 /**
@@ -132,13 +134,7 @@ export class AlgorithmManagement {
                 }
             } catch (error) {
                 AlgorithmManagement.updateStatus(identifier, "error", null, "algorithm file has the wrong format");
-                let err = {
-                    statusCode: 500,
-                    identifier: identifier,
-                    statusText: "fileUrl does not point to a correct zip file",
-                    errorType: "WrongFileFormat"
-                };
-                reject(err);
+                return reject(new DivaError("fileUrl does not point to a correct zip file", 500, "FileFormatError"));
             }
         });
     }
