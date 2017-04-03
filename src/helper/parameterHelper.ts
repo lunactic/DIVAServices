@@ -162,7 +162,7 @@ export class ParameterHelper {
                     found = true;
                     replaceObj[searchKey] = dataParams[searchKey];
                     if (!(IoHelper.fileExists((replaceObj[searchKey] as File).path))) {
-                        return reject(new DivaError("non existing file for data parameter: " + searchKey, 500, "ParameterError"));
+                        return reject(new DivaError("non existing file: " + ((replaceObj[searchKey] as File).collection) + "/" + ((replaceObj[searchKey] as File).filename) + " for data parameter: " + searchKey, 500, "ParameterError"));
                     }
                 }
                 if (!found) {
