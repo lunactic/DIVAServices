@@ -16,6 +16,7 @@ import { Process } from "../processingQueue/process";
 import { Collection } from "../processingQueue/collection";
 import IProcess = require("../processingQueue/iProcess");
 import { File } from "../models/file";
+require("natural-compare-lite");
 
 /**
  * Helping class for everything related to help matching parameters to the executables
@@ -58,6 +59,70 @@ export class ParameterHelper {
     }
 
 
+    
+    /**
+     * Expands possible existing wildcards in data parameters
+     * (e.g. COLLECTIONNAME/*) 
+     * @static
+     * @param {any[]} inputData the data parameters that were provided 
+     * @returns {Promise<any[]>} the data parameters expanded to single files
+     * 
+     * @memberOf ParameterHelper
+     */
+    static async expandDataWildcards(inputData: any[]): Promise<any[]> {
+        return new Promise<any[]>(async (resolve, reject) => {
+            let expandedInputData: any[] = [];
+            for (let element of inputData) {
+                let newMap: Map<string, any[]> = new Map();
+                let allExpanded: boolean = true;
+                for (let key in element) {
+                    if (element.hasOwnProperty(key)) {
+                        let value = element[key];
+                        if (value.contains("*")) {
+                            let collection = value.split("/")[0];
+                            let images = IoHelper.readFolder(nconf.get("paths:filesPath") + path.sep + collection + path.sep + "original");
+                            images.forEach((value, index, array) => {
+                                array[index] = collection + "/" + value;
+                            });
+                            images.sort(String.naturalCompare);
+                            newMap.set(key, images);
+                        } else {
+                            newMap[key] = value;
+                            allExpanded = false;
+                        }
+                    }
+                }
+                if (allExpanded) {
+                    try {
+                        let size = await this.checkArrayLengths(newMap);
+                        for (var index = 0; index < size; index++) {
+                            let newRequest = {};
+                            for (let [key, value] of newMap) {
+                                newRequest[key] = value[index];
+                            }
+                            expandedInputData.push(newRequest);
+                        }
+                    } catch (error) {
+                        reject(error);
+                    }
+                } else {
+                    let maxSize = await this.getMaxArrayLength(newMap);
+                    for (var index = 0; index < maxSize; index++) {
+                        let newRequest = {};
+                        for (let [key, value] of newMap) {
+                            if (value.length > 1) {
+                                newRequest[key] = value[index];
+                            } else {
+                                newRequest[key] = value[0];
+                            }
+                        }
+                    }
+                }
+            }
+            resolve(expandedInputData);
+        });
+    }
+
     /**
      * 
      * @param collection the collection to match parameters for
@@ -81,8 +146,12 @@ export class ParameterHelper {
                     }
                 } else {
                     let value = self.getParamValue(paramKey, collection.inputParameters);
-                    params[paramKey] = value;
-                    outputParams[paramKey] = value;
+                    if (!isNullOrUndefined(value)) {
+                        params[paramKey] = value;
+                        outputParams[paramKey] = value;
+                    } else {
+                        reject(new DivaError("Did not receive a parameter value for: " + paramKey + " that is required by the method", 500, "MissingParameter"));
+                    }
                 }
             }
             let result = {
@@ -166,7 +235,7 @@ export class ParameterHelper {
                     }
                 }
                 if (!found) {
-                    return reject(new DivaError("Provided parameter: " + searchKey + " that ist not needed by the method", 500, "ParameterError"));
+                    return reject(new DivaError("Provided parameter: " + searchKey + " that is not needed by the method", 500, "ParameterError"));
                 }//if not found ==> throw error
             }
             resolve();
@@ -368,5 +437,33 @@ export class ParameterHelper {
 
     static isPathAbsolute(path: string): boolean {
         return /^(?:\/|[a-z]+:\/\/)/.test(path);
+    }
+
+    private static checkArrayLengths(map: Map<string, string[]>): Promise<Number> {
+        return new Promise<Number>((resolve, reject) => {
+            const [first] = map;
+            let size: number = first.length;
+            for (let arr of map) {
+                if (arr.length !== size) {
+                    reject(new DivaError("Not all data parameters contain the same amount of files", 500, "ParameterError"));
+                }
+            }
+            resolve(size);
+        });
+    }
+
+    private static getMaxArrayLength(map: Map<string, string[]>): Promise<Number> {
+        return new Promise<Number>((resolve, reject) => {
+            let maxSize = 0;
+            for (let arr of map) {
+                if (arr.length > 1 && arr.length !== maxSize) {
+                    reject(new DivaError("Invalid combination of parameter sizes", 500, "ParameterError"));
+                }
+                if (arr.length > maxSize) {
+                    maxSize = arr.length;
+                }
+            }
+            resolve(maxSize);
+        });
     }
 }

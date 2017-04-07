@@ -24,7 +24,6 @@ import { ServicesInfoHelper } from "./servicesInfoHelper";
 import { Statistics } from "../statistics/statistics";
 import { ProcessingQueue } from "../processingQueue/processingQueue";
 import { RandomWordGenerator } from "../randomizer/randomWordGenerator";
-import { DivaError } from "../models/divaError";
 
 /**
  * A class the provides all functionality needed before a process can be executed
@@ -195,6 +194,10 @@ export class ExecutableHelper extends EventEmitter {
                 await ParameterHelper.matchCollectionParams(collection, req);
                 //create processes
                 let index: number = 0;
+                //check if some parameter expanding is needed
+                
+                collection.inputData = await ParameterHelper.expandDataWildcards(collection.inputData);
+
                 for (let element of collection.inputData) {
                     let proc: Process = new Process();
                     proc.req = _.cloneDeep(req);
