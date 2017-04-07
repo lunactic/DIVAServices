@@ -103,7 +103,7 @@ export class FileResultHandler implements IResultHandler {
                                 //data["inputImage"] = process.inputImageUrl;
                                 data["resultLink"] = process.resultLink;
                                 data["collectionName"] = process.rootFolder;
-                                data["resultZipLink"] = "http://" + nconf.get("server:rootUrl") + "/collection/" + process.rootFolder + "/" + process.methodFolder;
+                                //data["resultZipLink"] = "http://" + nconf.get("server:rootUrl") + "/collection/" + process.rootFolder + "/" + process.methodFolder;
                                 await IoHelper.saveFile(self.filename, data, "utf8");
                                 resolve({ data: data, procId: process.id });
                             } catch (error) {
