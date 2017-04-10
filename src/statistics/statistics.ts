@@ -99,36 +99,41 @@ export class Statistics {
      * 
      * @memberOf Statistics
      */
-    static endRecording(rand: string, reqPath: string): number {
-        Statistics.currentStatistics = JSON.parse(fs.readFileSync(nconf.get("paths:servicesInfoFile"), "utf-8"));
-        let executionInfo = Statistics.currentExecutions.filter(function (x: any) {
-            return x.rand === rand;
-        });
-        let endTime = process.hrtime(executionInfo[0].startTime);
-        delete Statistics.currentExecutions[rand];
+    static endRecording(rand: string, reqPath: string, startTime: [number, number]): Promise<number> {
+        return new Promise<number>((resolve, reject) => {
+            Statistics.currentStatistics = JSON.parse(fs.readFileSync(nconf.get("paths:servicesInfoFile"), "utf-8"));
+            let endTime = process.hrtime(startTime);
+            delete Statistics.currentExecutions[rand];
 
-        if (_.find(Statistics.currentStatistics.services, { "path": reqPath }) != null) {
-            let stats: any = _.find(Statistics.currentStatistics.services, { "path": reqPath });
-            stats = stats.statistics;
-            if (stats.executions === 0) {
-                stats.executions = 1;
-                stats.runtime = endTime[0];
-            } else {
-                //compute the new cumulative moving average
-                stats.runtime = (endTime[0] + (stats.executions * stats.runtime) / (stats.executions + 1));
-                stats.executions = stats.executions + 1;
+            if (_.find(Statistics.currentStatistics.services, { "path": reqPath }) != null) {
+                let stats: any = _.find(Statistics.currentStatistics.services, { "path": reqPath });
+                stats = stats.statistics;
+                if (stats.executions === 0) {
+                    stats.executions = 1;
+                    stats.runtime = endTime[0];
+                } else {
+                    //compute the new cumulative moving average
+                    stats.runtime = (endTime[0] + (stats.executions * stats.runtime) / (stats.executions + 1));
+                    stats.executions = stats.executions + 1;
+                }
             }
-        }
+            fs.writeFileSync(nconf.get("paths:servicesInfoFile"), JSON.stringify(Statistics.currentStatistics, null, "\t"));
+            resolve(endTime[0]);
+        });
 
+    }
+
+
+    static removeActiveExecution(rand: string) : [number, number] {
         //remove the call from current executions
+        let executionInfo = Statistics.currentExecutions.filter(function (x: any) {
+                return x.rand === rand;
+        });
         Statistics.currentExecutions = Statistics.currentExecutions.filter(function (x: any) {
             return x.rand !== rand;
         });
-
-        fs.writeFileSync(nconf.get("paths:servicesInfoFile"), JSON.stringify(Statistics.currentStatistics, null, "\t"));
-        return endTime[0];
+        return executionInfo[0].startTime;
     }
-
     /**
      * get the mean execution time for a method
      * 

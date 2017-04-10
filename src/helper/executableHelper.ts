@@ -161,7 +161,7 @@ export class ExecutableHelper extends EventEmitter {
             let serviceInfo = ServicesInfoHelper.getInfoByPath(process.req.originalUrl);
             try {
                 resolve();
-                await DockerManagement.runDockerImage(process, serviceInfo.image_name);
+                DockerManagement.runDockerImage(process, serviceInfo.image_name);
             } catch (error) {
                 reject(error);
             }

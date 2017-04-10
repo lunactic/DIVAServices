@@ -1,3 +1,4 @@
+import { QueueHandler } from '../processingQueue/queueHandler';
 import { DivaError } from '../models/divaError';
 /**
  * Created by lunactic on 02.11.16.
@@ -103,7 +104,8 @@ router.post("/jobs/:jobId", async function (req: express.Request, res: express.R
     Logger.log("info", "jobs route called", "StandardRouter");
     let process = Statistics.getProcess(req.params.jobId);
     if (process != null) {
-        Statistics.endRecording(req.params.jobId, process.req.originalUrl);
+        let startTime = Statistics.removeActiveExecution(req.params.jobId);
+        await Statistics.endRecording(req.params.jobId, process.req.originalUrl, startTime);
         process.result = req.body;
         try {
             await ResultHelper.saveResult(process);
@@ -120,6 +122,7 @@ router.post("/jobs/:jobId", async function (req: express.Request, res: express.R
                     sendError(res, error);
                 }
             } else {
+                QueueHandler.executeDockerRequest();
                 res.status(200).end();
             }
         } catch (error) {
@@ -169,6 +172,7 @@ router.post("*", async function (req: express.Request, res: express.Response, ne
             let response = await PostHandler.handleRequest(req);
             response["statusCode"] = 202;
             send200(res, response);
+            QueueHandler.executeDockerRequest();
         } catch (error) {
             sendError(res, error);
         }

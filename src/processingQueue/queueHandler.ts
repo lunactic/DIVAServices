@@ -126,11 +126,10 @@ export class QueueHandler {
      * 
      * @memberOf QueueHandler
      */
-    static async addDockerRequest(req: any) {
+    static addDockerRequest(req: any): Promise<any> {
         return new Promise<any>(async (resolve, reject) => {
             try {
                 let response = await QueueHandler.executableHelper.preprocess(req, QueueHandler.dockerProcessingQueue, "regular");
-                this.executeDockerRequest();
                 resolve(response);
             } catch (error) {
                 return reject(error);
@@ -239,8 +238,8 @@ export class QueueHandler {
      * 
      * @memberOf QueueHandler
      */
-    private static async executeDockerRequest() {
-        while (this.dockerRequestAvailable()) {
+    static async executeDockerRequest() {
+        if (Statistics.getNumberOfCurrentExecutions() < 3 && this.dockerRequestAvailable()) {
             Logger.log("info", "execute docker request", "QueueHandler");
             let job = this.getNextDockerRequest();
             QueueHandler.runningDockerJobs.push(job);
@@ -249,6 +248,7 @@ export class QueueHandler {
             } catch (error) {
                 Logger.log("error", error, "QueueHandler");
             }
+            this.executeDockerRequest();
         }
     }
 

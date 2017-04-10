@@ -59,7 +59,7 @@ export class ParameterHelper {
     }
 
 
-    
+
     /**
      * Expands possible existing wildcards in data parameters
      * (e.g. COLLECTIONNAME/*) 
@@ -87,7 +87,8 @@ export class ParameterHelper {
                             images.sort(String.naturalCompare);
                             newMap.set(key, images);
                         } else {
-                            newMap[key] = value;
+                            let values = [value];
+                            newMap.set(key, values);
                             allExpanded = false;
                         }
                     }
@@ -116,6 +117,7 @@ export class ParameterHelper {
                                 newRequest[key] = value[0];
                             }
                         }
+                        expandedInputData.push(newRequest);
                     }
                 }
             }
@@ -439,12 +441,24 @@ export class ParameterHelper {
         return /^(?:\/|[a-z]+:\/\/)/.test(path);
     }
 
+    /**
+     * Assert that all arrays in a Map have the same size
+     * 
+     * @private
+     * @static
+     * @param {Map<string, string[]>} map the Map object to analyze
+     * @returns {Promise<Number>} the size of the array
+     * 
+     * @memberOf ParameterHelper
+     */
     private static checkArrayLengths(map: Map<string, string[]>): Promise<Number> {
         return new Promise<Number>((resolve, reject) => {
-            const [first] = map;
-            let size: number = first.length;
-            for (let arr of map) {
-                if (arr.length !== size) {
+            let size: number = -1;
+            for (let [key, value] of map) {
+                if (size === -1) {
+                    size = value.length;
+                }
+                if (value.length !== size) {
                     reject(new DivaError("Not all data parameters contain the same amount of files", 500, "ParameterError"));
                 }
             }
@@ -452,15 +466,25 @@ export class ParameterHelper {
         });
     }
 
+    /**
+     * Compute the size of the largest array in a Map
+     * 
+     * @private
+     * @static
+     * @param {Map<string, string[]>} map the map object to analyze
+     * @returns {Promise<Number>} the size of the largest array
+     * 
+     * @memberOf ParameterHelper
+     */
     private static getMaxArrayLength(map: Map<string, string[]>): Promise<Number> {
         return new Promise<Number>((resolve, reject) => {
             let maxSize = 0;
-            for (let arr of map) {
-                if (arr.length > 1 && arr.length !== maxSize) {
+            for (let [key, value] of map) {
+                if (value.length > 1 && value.length !== maxSize) {
                     reject(new DivaError("Invalid combination of parameter sizes", 500, "ParameterError"));
                 }
-                if (arr.length > maxSize) {
-                    maxSize = arr.length;
+                if (value.length > maxSize) {
+                    maxSize = value.length;
                 }
             }
             resolve(maxSize);
