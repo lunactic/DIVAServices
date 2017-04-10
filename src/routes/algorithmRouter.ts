@@ -59,6 +59,9 @@ router.post("/algorithms", async function (req: express.Request, res: express.Re
                     //algorithm was deleted, create a new one
                     let identifier = AlgorithmManagement.createIdentifier();
                     try {
+                        AlgorithmManagement.generateFolders(route);
+                        AlgorithmManagement.removeFromRootInfoFile("/" + route);
+                        AlgorithmManagement.removeFromServiceInfoFile("/" + baseroute);
                         let response = await AlgorithmManagement.createAlgorithm(req, res, route, identifier, imageName, version, baseroute);
                         sendWithStatus(res, response);
                     } catch (error) {
@@ -163,7 +166,7 @@ router.post("/algorithms/:identifier/exceptions/:jobId", function (req: express.
         AlgorithmManagement.updateStatus(process.algorithmIdentifier, "error", process.req.originalUrl, req["text"]);
         ResultHelper.removeResult(process);
     } else {
-        Statistics.endRecording(req.params.jobId, process.req.originalUrl);
+        Statistics.endRecording(req.params.jobId, process.req.originalUrl, [0, 0]);
         process.resultHandler.handleError("error running the algorithm", process);
     }
     send200(res, {});
