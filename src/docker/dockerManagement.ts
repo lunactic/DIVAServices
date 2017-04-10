@@ -275,7 +275,7 @@ export class DockerManagement {
             Logger.log("info", command, "DockerManagement");
             //run the docker image (see: https://docs.docker.com/engine/reference/run/)
             try {
-                let container: DOCKER.Container = await this.docker.run(imageName, ['-c', command], process.stdout, { entrypoint: '/bin/sh' });
+                let container: DOCKER.Container = await this.docker.run(imageName, ['-c', command], process.stdout, { entrypoint: '/bin/sh', Memory: (4096 * 1024 * 1024) }, null);
                 if (container.output.StatusCode !== 0) {
                     throw new Error("error processing the request");
                 }
@@ -283,7 +283,7 @@ export class DockerManagement {
                     AlgorithmManagement.updateStatus(null, "error", process.req.originalUrl, "Algorithm image did not execute properly");
                     //ResultHelper.removeResult(process);
                 }
-                await container.remove();
+                await container.remove({ "volumes": true });
                 resolve();
             } catch (error) {
                 Logger.log("error", error, "DockerManagement");
