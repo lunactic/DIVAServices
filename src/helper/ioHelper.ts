@@ -101,7 +101,9 @@ export class IoHelper {
     static async deleteFile(file: string): Promise<any> {
         return new Promise<any>((resolve, reject) => {
             try {
-                fs.unlinkSync(file);
+                if (fs.existsSync(file)) {
+                    fs.unlinkSync(file);
+                }
                 resolve();
             } catch (error) {
                 return reject(new DivaError("Error deleting a file", 500, "IoError"));
