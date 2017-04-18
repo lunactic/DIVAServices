@@ -1,7 +1,7 @@
 "use strict";
 
 /**
- * Created by lunactic on 07.11.16.
+ * Created by Marcel Würsch on 07.11.16.
  */
 
 import { QueueHandler } from "../processingQueue/queueHandler";

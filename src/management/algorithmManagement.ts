@@ -1,5 +1,5 @@
 /**
- * Created by lunactic on 04.11.16.
+ * Created by Marcel Würsch on 04.11.16.
  */
 import * as _ from "lodash";
 import * as express from "express";
@@ -550,7 +550,6 @@ export class AlgorithmManagement {
      * @memberOf AlgorithmManagement
      */
     static updateServicesFile(algorithm: any, identifier: string, route: string, imageName: string, version: number, baseRoute: string): void {
-        //TODO make changes for docker or create a separate method
         ServicesInfoHelper.reload();
         if (this.getStatusByIdentifier(identifier) != null || this.getStatusByRoute(baseRoute) != null) {
             this.removeFromServiceInfoFile(baseRoute);

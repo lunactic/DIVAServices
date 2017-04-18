@@ -1,7 +1,6 @@
-import { QueueHandler } from '../processingQueue/queueHandler';
-import { DivaError } from '../models/divaError';
+
 /**
- * Created by lunactic on 02.11.16.
+ * Created by Marcel Würsch on 02.11.16.
  */
 "use strict";
 
@@ -20,7 +19,8 @@ import { SchemaValidator } from "../validator/schemaValidator";
 import { File } from "../models/file";
 import { PostHandler } from "./postHandler";
 import { GetHandler } from "./getHandler";
-
+import { QueueHandler } from '../processingQueue/queueHandler';
+import { DivaError } from '../models/divaError';
 let router = express.Router();
 
 /**

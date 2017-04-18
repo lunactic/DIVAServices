@@ -1,5 +1,5 @@
 /**
- * Created by lunactic on 04.11.16.
+ * Created by Marcel Würsch on 04.11.16.
  */
 
 import * as _ from "lodash";
@@ -163,7 +163,6 @@ export class DockerManagement {
         for (let input of algorithmInfos.input) {
             let key = _.keys(algorithmInfos.input[index])[0];
             if (['json', 'file', 'inputFile'].indexOf(key) >= 0) {
-                //TODO fix this to use the correct input number of the input image
                 content += 'curl -o /data/' + input[key].name + '.' + mime.extension(input[key].options.mimeType) + ' $' + (inputCount + index) + os.EOL;
                 AlgorithmManagement.addRemotePath(identifier, input[key].name, "/data/" + input[key].name + "." + mime.extension(input[key].options.mimeType));
             }

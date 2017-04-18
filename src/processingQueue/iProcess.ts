@@ -1,5 +1,5 @@
 /**
- * Created by lunactic on 04.11.16.
+ * Created by Marcel Würsch on 04.11.16.
  */
 
 interface IProcess {

@@ -1,10 +1,7 @@
 "use strict";
-import { DivaError } from '../models/divaError';
 /**
- * Created by lunactic on 08.11.16.
+ * Created by Marcel Würsch on 08.11.16.
  */
-
-
 import { AlgorithmManagement } from "../management/algorithmManagement";
 import { DockerManagement } from "../docker/dockerManagement";
 import { Logger } from "../logging/logger";
@@ -15,6 +12,7 @@ import { SchemaValidator } from "../validator/schemaValidator";
 import { ServicesInfoHelper } from "../helper/servicesInfoHelper";
 import { Statistics } from "../statistics/statistics";
 import { QueueHandler } from "../processingQueue/queueHandler";
+import { DivaError } from '../models/divaError';
 
 let router = express.Router();
 

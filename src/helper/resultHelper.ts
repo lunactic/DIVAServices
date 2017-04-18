@@ -1,17 +1,13 @@
 /**
- * Created by lunactic on 04.11.16.
+ * Created by Marcel Würsch on 04.11.16.
  */
 
 "use strict";
 
-import * as _ from "lodash";
-import * as path from "path";
-import { FileHelper } from "./fileHelper";
 import { IoHelper } from "./ioHelper";
 import { ParameterHelper } from "./parameterHelper";
 import { Process } from "../processingQueue/process";
 import IProcess = require("../processingQueue/iProcess");
-import { File } from "../models/file";
 import { Logger } from "../logging/logger";
 
 /**

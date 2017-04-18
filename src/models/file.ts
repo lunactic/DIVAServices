@@ -1,5 +1,5 @@
 /**
- * Created by lunactic on 03.11.16.
+ * Created by Marcel Würsch on 03.11.16.
  */
 
 import * as path from "path";

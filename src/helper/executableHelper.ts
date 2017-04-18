@@ -1,8 +1,8 @@
 "use strict";
-import { isNullOrUndefined } from 'util';
 /**
- * Created by lunactic on 07.11.16.
+ * Created by Marcel Würsch on 07.11.16.
  */
+import { isNullOrUndefined } from 'util';
 import * as _ from "lodash";
 import * as childProcess from "child_process";
 import { EventEmitter } from "events";
@@ -204,7 +204,6 @@ export class ExecutableHelper extends EventEmitter {
                     proc.type = executionType;
                     proc.algorithmIdentifier = serviceInfo.identifier;
                     proc.executableType = serviceInfo.executableType;
-                    //Todo fix that to create the deeper nesting
                     proc.outputFolder = collection.outputFolder + path.sep + "data_" + index + path.sep;
                     proc.inputHighlighters = _.cloneDeep(collection.inputHighlighters);
                     proc.neededParameters = _.cloneDeep(collection.neededParameters);

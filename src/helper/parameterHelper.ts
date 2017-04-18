@@ -1,6 +1,5 @@
-import { isNullOrUndefined } from 'util';
 /**
- * Created by lunactic on 03.11.16.
+ * Created by Marcel Würsch on 03.11.16.
  */
 "use strict";
 
@@ -16,6 +15,7 @@ import { Process } from "../processingQueue/process";
 import { Collection } from "../processingQueue/collection";
 import IProcess = require("../processingQueue/iProcess");
 import { File } from "../models/file";
+import { isNullOrUndefined } from 'util';
 require("natural-compare-lite");
 
 /**

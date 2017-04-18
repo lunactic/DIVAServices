@@ -1,6 +1,5 @@
-import { DivaError } from '../models/divaError';
 /**
- * Created by lunactic on 03.11.16.
+ * Created by Marcel Würsch on 03.11.16.
  */
 "use strict";
 
@@ -15,6 +14,7 @@ import * as mime from "mime";
 import { Logger } from "../logging/logger";
 import { Process } from "../processingQueue/process";
 import { File } from "../models/file";
+import { DivaError } from '../models/divaError';
 
 /**
  * A class for all file handling 

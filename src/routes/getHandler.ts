@@ -1,7 +1,6 @@
 "use strict";
-import { DivaError } from '../models/divaError';
 /**
- * Created by lunactic on 07.11.16.
+ * Created by Marcel Würsch on 07.11.16.
  */
 
 import { AlgorithmManagement } from "../management/algorithmManagement";
@@ -10,6 +9,7 @@ import * as nconf from "nconf";
 import * as express from "express";
 import * as path from "path";
 import { Statistics } from "../statistics/statistics";
+import { DivaError } from '../models/divaError';
 
 /**
  * handler for all get requests that are not handled by a specific route

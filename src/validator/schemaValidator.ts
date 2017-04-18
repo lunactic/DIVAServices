@@ -1,12 +1,12 @@
-import { DivaError } from '../models/divaError';
 /**
- * Created by lunactic on 02.11.16.
+ * Created by Marcel Würsch on 02.11.16.
  */
 "use strict";
 
 import * as nconf from "nconf";
 import * as jsonschema from "jsonschema";
 import { Logger } from "../logging/logger";
+import { DivaError } from '../models/divaError';
 
 export class SchemaValidator {
     static validator = new jsonschema.Validator();
