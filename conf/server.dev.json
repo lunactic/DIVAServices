@@ -17,6 +17,7 @@
     "host":"134.21.72.48",
     "port":"2375",
     "reportHost":"134.21.72.48:8080",
+    "maxContainers": 10,
     "replacePaths":[
       "inputFolder",
       "outputFolder",

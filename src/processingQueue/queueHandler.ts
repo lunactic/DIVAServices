@@ -4,6 +4,7 @@
 "use strict";
 
 import * as _ from "lodash";
+import * as nconf from "nconf";
 import { Logger } from "../logging/logger";
 import { Statistics } from "../statistics/statistics";
 import { ProcessingQueue } from "./processingQueue";
@@ -261,7 +262,7 @@ export class QueueHandler {
      * @memberOf QueueHandler
      */
     private static executeLocalRequest(): void {
-        if (Statistics.getNumberOfCurrentExecutions() < 2 && this.localRequestAvailable()) {
+        if (Statistics.getNumberOfCurrentExecutions() < nconf.get("docker:maxContainers")  && this.localRequestAvailable()) {
             QueueHandler.executableHelper.executeLocalRequest(this.getNextLocalRequest());
         }
     }
