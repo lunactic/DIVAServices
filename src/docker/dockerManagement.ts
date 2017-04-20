@@ -286,6 +286,7 @@ export class DockerManagement {
                 resolve();
             } catch (error) {
                 Logger.log("error", error, "DockerManagement");
+                container.remove({ "volumes": true });
                 return reject(new DivaError(error.message, 500, "DockerError"));
             }
 

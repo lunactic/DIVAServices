@@ -13,6 +13,8 @@ import { ServicesInfoHelper } from "../helper/servicesInfoHelper";
 import { Statistics } from "../statistics/statistics";
 import { QueueHandler } from "../processingQueue/queueHandler";
 import { DivaError } from '../models/divaError';
+import { IoHelper } from '../helper/ioHelper';
+import * as path from "path";
 
 let router = express.Router();
 
@@ -55,6 +57,7 @@ router.post("/algorithms", async function (req: express.Request, res: express.Re
                     break;
                 case 410:
                     //algorithm was deleted, create a new one
+                    IoHelper.deleteFolder(nconf.get("paths:executablePath") + path.sep + route);
                     let identifier = AlgorithmManagement.createIdentifier();
                     try {
                         AlgorithmManagement.generateFolders(route);
@@ -68,6 +71,7 @@ router.post("/algorithms", async function (req: express.Request, res: express.Re
                     break;
                 case 500:
                     //currently in error. Delete the current image and create a new one
+                    IoHelper.deleteFolder(nconf.get("paths:executablePath") + path.sep + route);
                     AlgorithmManagement.generateFolders(route);
                     AlgorithmManagement.removeFromRootInfoFile("/" + route);
                     AlgorithmManagement.removeFromServiceInfoFile("/" + baseroute);
@@ -100,11 +104,12 @@ router.post("/algorithms", async function (req: express.Request, res: express.Re
                 let response = await AlgorithmManagement.createAlgorithm(req, res, route, identifier, imageName, version, baseroute);
                 sendWithStatus(res, response);
             } catch (error) {
-
+                Logger.log("error", error.message, "AlgorithmRouter");
                 sendError(res, error);
             }
         }
     } catch (error) {
+        Logger.log("error", error.message, "AlgorithmRouter");
         sendError(res, error);
     }
 });

@@ -312,7 +312,8 @@ function sendResponse(res: express.Response, error: any, response: any) {
 function send200(res: express.Response, response: any) {
     res.status(200);
     try {
-        res.json(JSON.parse(response));
+        let resp = JSON.parse(response); 
+        res.json(resp);
     } catch (error) {
         res.json(response);
     }
@@ -321,7 +322,8 @@ function send200(res: express.Response, response: any) {
 function sendWithStatus(res: express.Response, response: any) {
     res.status(res.statusCode || 200);
     try {
-        res.json(JSON.parse(response));
+        let resp = JSON.parse(response); 
+        res.json(resp);
     } catch (error) {
         res.json(response);
     }
