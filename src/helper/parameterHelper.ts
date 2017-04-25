@@ -305,12 +305,14 @@ export class ParameterHelper {
             let content = [];
             let data: any = {};
             //TODO: incorporate the highlighter into the hash and store one single value (or add the hash as additional info to enable better computation of statistics)
+            let parameters = _.clone(process.parameters.outputParams);
             data = {
                 highlighters: _.clone(process.inputHighlighters),
-                parameters: _.clone(process.parameters),
-                hash: hash(process.parameters),
+                highlighterHash: hash(process.inputHighlighters),
+                parameters: _.clone(parameters),
+                paramHash: hash(process.parameters),
                 resultFile: process.resultFile,
-                data: hash(process.data)
+                dataHash: hash(process.data)
             };
 
             //turn everything into strings
@@ -353,20 +355,22 @@ export class ParameterHelper {
     static loadParamInfo(proc: Process): Promise<void> {
         return new Promise<void>(async (resolve, reject) => {
             let paramPath = nconf.get("paths:resultsPath") + path.sep + proc.method + ".json";
+            let parameters = _.clone(proc.parameters.outputParams);
             let data = {
                 highlighters: _.clone(proc.inputHighlighters),
-                parameters: _.clone(proc.parameters),
-                hash: hash(proc.parameters),
+                highlighterHash: hash(proc.inputHighlighters),
+                parameters: _.clone(parameters),
+                paramHash: hash(proc.parameters),
                 resultFile: proc.resultFile,
-                data: hash(proc.data)
+                dataHash: hash(proc.data)
             };
             try {
                 await fs.statSync(paramPath).isFile();
                 let content = IoHelper.openFile(paramPath);
                 let info: any = {};
                 if ((info = _.filter(content, {
-                    "highlighters": data.highlighters,
-                    "data": data.data
+                    "highlighterHash": data.highlighterHash,
+                    "dataHash": data.dataHash
                 })).length > 0) {
                     //found some method information
                     proc.resultFile = info[0].resultFile;
