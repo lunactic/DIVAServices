@@ -265,7 +265,7 @@ export class AlgorithmManagement {
         _.unset(data, "method");
 
         _.forEach(data.input, function (input: any) {
-            if (_.includes(reservedWords, _.keys(input)[0]) && _.keys(input)[0] !== 'inputFile') {
+            if (_.includes(reservedWords, _.keys(input)[0]) && _.keys(input)[0] !== 'file') {
                 input[_.keys(input)[0]]["userdefined"] = false;
             } else {
                 input[_.keys(input)[0]]["userdefined"] = true;
