@@ -216,7 +216,8 @@ router.get("/collections/:collection", function (req: express.Request, res: expr
             response.push({
                 "image": {
                     md5: file.md5,
-                    url: file.url
+                    url: file.url,
+                    identifier: collection + '/' + file.filename
                 }
             });
         }
