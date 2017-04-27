@@ -7,4 +7,9 @@ unset JAVA_HOME
 export NODE_ENV=dev
 export PYTHONIOENCODING=UTF-8
 
-forever -m 5 --minUptime 1000 --killSignal=SIGTERM --spinSleepTime 5000 --watch -c coffee server.coffee
+./scripts/setup.sh
+./scripts/cleanUp.sh
+
+#this can be used once we're stable
+#forever -m 5 --minUptime 1000 --spinSleepTime 5000 --watch -c
+node bin/www

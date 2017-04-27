@@ -1,0 +1,33 @@
+{
+  "id": "#algorithmSchema",
+  "$schema": "http://json-schema.org/schema#",
+  "description": "schema for an algorithm overview entry",
+  "type": "object",
+  "required": [
+    "name",
+    "description",
+    "url"
+  ],
+  "properties": {
+    "name": {
+      "type": "string",
+      "minLength": 2,
+      "maxLength": 50
+    },
+    "description": {
+      "type": "string",
+      "minLength": 5,
+      "maxLength": 255
+    },
+    "type": {
+      "type": "string",
+      "minLength": 2,
+      "maxLength": 50
+    },
+    "url": {
+      "type":"string",
+      "format": "uri"
+    }
+  },
+  "additionalProperties": false
+}
