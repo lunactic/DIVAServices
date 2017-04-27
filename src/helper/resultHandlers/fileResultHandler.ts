@@ -1,3 +1,4 @@
+import { DivaFile } from '../../models/file';
 /**
  * Created by Marcel Würsch on 04.11.16.
  */
@@ -77,6 +78,7 @@ export class FileResultHandler implements IResultHandler {
                                 let files = _.filter(data.output, function (entry: any) {
                                     return _.has(entry, "file");
                                 });
+                                let visualization: boolean = false;
                                 for (let file of files) {
                                     if (process.executableType === "matlab") {
                                         file.file['mime-type'] = file.file['mimetype'];
@@ -96,8 +98,25 @@ export class FileResultHandler implements IResultHandler {
                                         file.file["url"] = IoHelper.getStaticResultFileUrl(process.outputFolder, file.file.name);
                                         delete file.file.content;
                                     }
+                                    if (file.file.options.visualization) {
+                                        visualization = true;
+                                    }
                                 }
                                 //check if a visualization is available
+                                if (!visualization) {
+                                    let file = {
+                                        file: {
+                                            "mime-type": "image/png",
+                                            url: (process.data[Object.keys(process.data)[0]] as DivaFile).url,
+                                            name: "visualization",
+                                            options: {
+                                                visualization: true,
+                                                type: "outputVisualization"
+                                            }
+                                        }
+                                    };
+                                    data.output.push(file);
+                                }
                                 //set final data fields
                                 data["status"] = "done";
                                 //data["inputImage"] = process.inputImageUrl;

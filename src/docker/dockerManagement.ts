@@ -11,7 +11,7 @@ import * as path from "path";
 import * as DOCKER from "dockerode";
 import * as mime from "mime";
 import { Logger } from "../logging/logger";
-import { File } from '../models/file';
+import { DivaFile } from '../models/file';
 import * as os from "os";
 import { Process } from "../processingQueue/process";
 import { DivaError } from "../models/divaError";
@@ -259,9 +259,9 @@ export class DockerManagement {
                     executableString += _.map(value.split(" "), function (item: any) {
                         return item;
                     }).join(" ");
-                } else if (value instanceof File) {
+                } else if (value instanceof DivaFile) {
                     //handle data parameters
-                    executableString += (value as File).url + ' ';
+                    executableString += (value as DivaFile).url + ' ';
                 } else {
                     //handle regular parameters
                     executableString += value + ' ';

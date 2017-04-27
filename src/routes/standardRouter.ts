@@ -16,7 +16,7 @@ import { Statistics } from "../statistics/statistics";
 import { ResultHelper } from "../helper/resultHelper";
 import { AlgorithmManagement } from "../management/algorithmManagement";
 import { SchemaValidator } from "../validator/schemaValidator";
-import { File } from "../models/file";
+import { DivaFile } from "../models/file";
 import { PostHandler } from "./postHandler";
 import { GetHandler } from "./getHandler";
 import { QueueHandler } from '../processingQueue/queueHandler';
@@ -75,7 +75,7 @@ router.post("/upload", async function (req: express.Request, res: express.Respon
                 break;
             case "url":
                 try {
-                    var newFile: File = await FileHelper.saveUrl(file.value, collectionName, imageCounter, file.name);
+                    var newFile: DivaFile = await FileHelper.saveUrl(file.value, collectionName, imageCounter, file.name);
                     FileHelper.addFileInfo(newFile.md5, newFile.path, collectionName);
                     FileHelper.updateCollectionInformation(collectionName, numOfImages, ++imageCounter);
                 } catch (error) {
@@ -85,7 +85,7 @@ router.post("/upload", async function (req: express.Request, res: express.Respon
                 break;
             default:
                 try {
-                    var newFile: File = await FileHelper.saveBase64(file, collectionName, imageCounter);
+                    var newFile: DivaFile = await FileHelper.saveBase64(file, collectionName, imageCounter);
                     FileHelper.addFileInfo(newFile.md5, newFile.path, collectionName);
                     FileHelper.updateCollectionInformation(collectionName, numOfImages, ++imageCounter);
                     break;

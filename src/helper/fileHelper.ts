@@ -13,7 +13,7 @@ import * as request from "request-promise";
 import * as mime from "mime";
 import { Logger } from "../logging/logger";
 import { Process } from "../processingQueue/process";
-import { File } from "../models/file";
+import { DivaFile } from "../models/file";
 import { DivaError } from '../models/divaError';
 
 /**
@@ -113,7 +113,7 @@ export class FileHelper {
             let base64Data = file.value.replace(/^data:image\/png;base64,/, "");
             let md5String = md5(base64Data);
 
-            let fileObject = new File();
+            let fileObject = new DivaFile();
             let fileFolder = imagePath + path.sep + folder + path.sep + "original" + path.sep;
             let fileName = file.name;
             let fileExtension = this.getImageExtensionBase64(base64Data);
@@ -162,10 +162,10 @@ export class FileHelper {
      * 
      * @memberOf FileHelper
      */
-    static async saveUrl(url: string, folder: string, counter?: number, filename?: string): Promise<File> {
-        return new Promise<File>(async (resolve, reject) => {
+    static async saveUrl(url: string, folder: string, counter?: number, filename?: string): Promise<DivaFile> {
+        return new Promise<DivaFile>(async (resolve, reject) => {
             let filePath = nconf.get("paths:filesPath");
-            let file = new File();
+            let file = new DivaFile();
             let tmpFilePath: string = "";
             let fileName: string = "";
 
@@ -234,8 +234,8 @@ export class FileHelper {
      * 
      * @memberOf FileHelper
      */
-    static loadCollection(collectionName: string, hashes: string[]): File[] {
-        let files: File[] = [];
+    static loadCollection(collectionName: string, hashes: string[]): DivaFile[] {
+        let files: DivaFile[] = [];
 
         let filtered = null;
 
@@ -250,7 +250,7 @@ export class FileHelper {
         }
         if (filtered.length > 0) {
             for (let item of filtered) {
-                let file = File.CreateFile(collectionName, path.basename(item.file), item.md5);
+                let file = DivaFile.CreateFile(collectionName, path.basename(item.file), item.md5);
                 files.push(file);
             }
             return files;

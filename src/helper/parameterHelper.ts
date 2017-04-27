@@ -14,7 +14,7 @@ import { Logger } from "../logging/logger";
 import { Process } from "../processingQueue/process";
 import { Collection } from "../processingQueue/collection";
 import IProcess = require("../processingQueue/iProcess");
-import { File } from "../models/file";
+import { DivaFile } from "../models/file";
 import { isNullOrUndefined } from 'util';
 require("natural-compare-lite");
 
@@ -182,10 +182,10 @@ export class ParameterHelper {
                             //use relative file path to look up with collection / filename
                             let collection = value.split("/")[0];
                             let filename = value.split("/")[1];
-                            data[key] = File.CreateFile(collection, filename);
+                            data[key] = DivaFile.CreateFile(collection, filename);
                         } else {
                             //use absolute path (used only when testing a method)
-                            data[key] = File.CreateFileFull(value);
+                            data[key] = DivaFile.CreateFileFull(value);
                         }
                         //perform lookup to get the correct file path, create the correct data item out of it
                         _.remove(process.neededData, function (item: any) {
@@ -232,8 +232,8 @@ export class ParameterHelper {
                     });
                     found = true;
                     replaceObj[searchKey] = dataParams[searchKey];
-                    if (!(IoHelper.fileExists((replaceObj[searchKey] as File).path))) {
-                        return reject(new DivaError("non existing file: " + ((replaceObj[searchKey] as File).collection) + "/" + ((replaceObj[searchKey] as File).filename) + " for data parameter: " + searchKey, 500, "ParameterError"));
+                    if (!(IoHelper.fileExists((replaceObj[searchKey] as DivaFile).path))) {
+                        return reject(new DivaError("non existing file: " + ((replaceObj[searchKey] as DivaFile).collection) + "/" + ((replaceObj[searchKey] as DivaFile).filename) + " for data parameter: " + searchKey, 500, "ParameterError"));
                     }
                 }
                 if (!found) {

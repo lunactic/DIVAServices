@@ -11,7 +11,7 @@ import * as nconf from "nconf";
  * @export
  * @class DivaData
  */
-export class File {
+export class DivaFile {
 
     /**
      * the folder name of the file on the filesystem
@@ -72,8 +72,8 @@ export class File {
     }
 
 
-    static CreateFile(collection: string, filename: string, md5?: string): File {
-        let item = new File();
+    static CreateFile(collection: string, filename: string, md5?: string): DivaFile {
+        let item = new DivaFile();
         item.collection = collection;
         item.filename = filename;
         item.extension = filename.split(".").pop();
@@ -83,9 +83,9 @@ export class File {
         return item;
     }
 
-    static CreateFileFull(filePath: string): File {
+    static CreateFileFull(filePath: string): DivaFile {
         let relativePath = filePath.replace(nconf.get("paths:executablePath") + path.sep, "");
-        let item = new File();
+        let item = new DivaFile();
         item.path = filePath;
         item.url = "http://" + nconf.get("server:rootUrl") + "/test/" + relativePath;
         item.filename = path.parse(filePath).base;

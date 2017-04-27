@@ -12,7 +12,7 @@ import { Collection } from "../processingQueue/collection";
 import { ConsoleResultHandler } from "./resultHandlers/consoleResultHandler";
 import { DockerManagement } from "../docker/dockerManagement";
 import { FileResultHandler } from "./resultHandlers/fileResultHandler";
-import { File } from "../models/file";
+import { DivaFile } from "../models/file";
 import { IoHelper } from "./ioHelper";
 import { NoResultHandler } from "./resultHandlers/noResultHandler";
 import * as path from "path";
@@ -136,7 +136,7 @@ export class ExecutableHelper extends EventEmitter {
         let self = this;
         try {
             for (let dataItem of process.data) {
-                await self.remoteExecution.uploadFile((dataItem as File).path, process.rootFolder);
+                await self.remoteExecution.uploadFile((dataItem as DivaFile).path, process.rootFolder);
             }
             let command = self.buildRemoteCommand(process);
             process.id = Statistics.startRecording(process);
