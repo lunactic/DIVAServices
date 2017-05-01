@@ -274,7 +274,7 @@ export class DockerManagement {
             Logger.log("info", command, "DockerManagement");
             //run the docker image (see: https://docs.docker.com/engine/reference/run/)
             try {
-                let container: DOCKER.Container = await this.docker.run(imageName, ['-c', command], process.stdout, { entrypoint: '/bin/sh', Memory: (4096 * 1024 * 1024) }, null);
+                let container: DOCKER.Container = await this.docker.run(imageName, ['-c', command], process.stdout, { entrypoint: '/bin/sh', Memory: (nconf.get("docker:maxMemory") * 1024 * 1024) }, null);
                 if (container.output.StatusCode !== 0) {
                     throw new Error("error processing the request");
                 }
@@ -289,7 +289,6 @@ export class DockerManagement {
                 container.remove({ "volumes": true });
                 return reject(new DivaError(error.message, 500, "DockerError"));
             }
-
         });
     }
 

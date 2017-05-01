@@ -52,11 +52,12 @@ class Server {
         //create express js application
         this.app = express();
 
+        //configure application
+        this.config();
+
         //configure routes
         this.routes();
 
-        //configure application
-        this.config();
 
     }
 
@@ -71,11 +72,11 @@ class Server {
         Statistics.loadStatistics();
         QueueHandler.initialize();
 
+        //mount query string parser
+        this.app.use(bodyParser.urlencoded({ extended: true, limit: "2500mb" }));
         //mount json form parser
         this.app.use(bodyParser.json({ limit: "2500mb" }));
 
-        //mount query string parser
-        this.app.use(bodyParser.urlencoded({ extended: true, limit: "2500mb" }));
 
         let accessLogStream = fs.createWriteStream(__dirname + path.sep + "../logs" + path.sep + "access.log", { flags: "a" });
         this.app.use(morgan("combined", { stream: accessLogStream }));

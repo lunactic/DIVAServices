@@ -85,7 +85,6 @@ router.post("/algorithms", async function (req: express.Request, res: express.Re
                     } catch (error) {
                         sendError(res, error);
                     }
-
                     break;
                 default:
                     let response = {
