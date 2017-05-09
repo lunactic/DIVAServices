@@ -131,7 +131,7 @@ class Server {
         this.app.use(router);
         // Set up the white listed ips for the Algorithm Router
         let whiteIps = nconf.get("server:managementWhitelistIp");
-        this.app.use(ipFilter(whiteIps, { mode: 'allow' , logLevel: 'deny'}));
+        this.app.use(ipFilter(whiteIps, { mode: 'allow', logLevel: 'deny' }));
         this.app.use(algorithmRouter);
 
     }

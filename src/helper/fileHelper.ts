@@ -44,7 +44,7 @@ export class FileHelper {
      * 
      * @memberOf FileHelper
      */
-    static saveFile(input: any, process: Process, numberOfImages: number, counter: number) : Promise<void> {
+    static saveFile(input: any, process: Process, numberOfImages: number, counter: number): Promise<void> {
         let self = this;
         return new Promise<void>(async (resolve, reject) => {
             let file = null;
@@ -320,6 +320,9 @@ export class FileHelper {
         await IoHelper.saveFile(nconf.get("paths:filesPath") + path.sep + collectionName + path.sep + "status.json", status, "utf-8");
     }
 
+    static deleteCollection(collection: string) {
+        IoHelper.deleteFolder(nconf.get("paths:filesPath") + path.sep + collection);
+    }
     /**
      * Check if a collection exists
      * 

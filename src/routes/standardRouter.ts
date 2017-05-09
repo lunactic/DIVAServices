@@ -233,6 +233,16 @@ router.get("/collections/:collection", function (req: express.Request, res: expr
     }
 });
 
+router.delete("/collection/:collection", function (req: express.Request, res: express.Response) {
+    let collection = req.params.collection;
+    try {
+        FileHelper.deleteCollection(collection);
+        res.status(200).send();
+    } catch (error) {
+        sendResponse(res, error, null);
+    }
+});
+
 router.get("/images/:md5/check", async function (req: express.Request, res: express.Response) {
     try {
         var response = await FileHelper.fileExists(req.params.md5);
