@@ -5,8 +5,10 @@
 
 "use strict";
 
+import { isNullOrUndefined } from 'util';
 import * as archiver from "archiver";
-import * as fs from "fs-promise";
+import * as fsp from "fs-extra";
+import * as fs from "fs";
 import * as http from "http";
 import * as https from "https";
 import * as nconf from "nconf";
@@ -35,13 +37,15 @@ export class IoHelper {
      * 
      * @memberOf IoHelper
      */
-    static fileExists(filePath: string): boolean {
-        try {
-            let stats = fs.statSync(filePath);
-            return stats.isFile();
-        } catch (error) {
-            return false;
-        }
+    static async fileExists(filePath: string): Promise<boolean> {
+        return new Promise<boolean>(async (resolve, reject) => {
+            try {
+                let stats = await fsp.stat(filePath);
+                resolve(stats.isFile());
+            } catch (error) {
+                resolve(false);
+            }
+        });
     }
 
     /**
@@ -55,9 +59,9 @@ export class IoHelper {
      */
     static openFile(filePath: string): any {
         try {
-            let stats = fs.statSync(filePath);
+            let stats = fsp.statSync(filePath);
             if (stats.isFile()) {
-                let content = JSON.parse(fs.readFileSync(filePath, "utf-8"));
+                let content = JSON.parse(fsp.readFileSync(filePath, "utf-8"));
                 return content;
             } else {
                 return null;
@@ -81,7 +85,7 @@ export class IoHelper {
     static async saveFile(filePath: string, content: any, encoding: string): Promise<any> {
         return new Promise<any>((resolve, reject) => {
             try {
-                fs.writeFileSync(filePath, JSON.stringify(content, null, "\t"), encoding);
+                fsp.writeFileSync(filePath, JSON.stringify(content, null, "\t"), encoding);
                 resolve();
             } catch (error) {
                 Logger.log("error", "Could not write file due to error " + error, "IoHelper");
@@ -101,8 +105,8 @@ export class IoHelper {
     static async deleteFile(file: string): Promise<any> {
         return new Promise<any>((resolve, reject) => {
             try {
-                if (fs.existsSync(file)) {
-                    fs.unlinkSync(file);
+                if (fsp.existsSync(file)) {
+                    fsp.unlinkSync(file);
                 }
                 resolve();
             } catch (error) {
@@ -120,7 +124,9 @@ export class IoHelper {
      * @memberOf IoHelper
      */
     static createFolder(folder: string): void {
-        fs.mkdirsSync(folder);
+        async () => {
+            await fsp.mkdirs(folder);
+        };
     }
 
     /**
@@ -150,7 +156,7 @@ export class IoHelper {
      */
     static downloadFileSync(fileUrl: string, localFolder: string, localFilename: string): string {
         http.get(fileUrl, function (response: http.IncomingMessage) {
-            response.pipe(fs.createWriteStream(localFolder + path.sep + localFilename));
+            response.pipe(fsp.createWriteStream(localFolder + path.sep + localFilename));
         });
         return localFolder + path.sep + localFilename;
     }
@@ -171,7 +177,7 @@ export class IoHelper {
             try {
                 await this.checkFileType(fileType, fileUrl);
                 let filename = path.basename(url.parse(fileUrl).pathname);
-                let file = fs.createWriteStream(localFolder + path.sep + filename);
+                let file = fsp.createWriteStream(localFolder + path.sep + filename);
                 switch (url.parse(fileUrl).protocol) {
                     case "http:":
                         http.get(fileUrl, function (response: http.IncomingMessage) {
@@ -212,7 +218,7 @@ export class IoHelper {
         let fullFileName = nconf.get("paths:imageRootPath") + path.sep + folders[folders.length - 2] + "_" + folders[folders.length - 1] + ".zip";
         let fileName = folders[folders.length - 2] + "_" + folders[folders.length - 1] + ".zip";
 
-        let output = fs.createWriteStream(fullFileName);
+        let output = fsp.createWriteStream(fullFileName);
         output.on("close", function () {
             return;
         });
@@ -242,15 +248,17 @@ export class IoHelper {
     static async unzipFile(zipFile: string, folder: string): Promise<void> {
         return new Promise<void>(async (resolve, reject) => {
             try {
-                await fs.mkdirs(folder);
-                let reader = await fs.createReadStream(zipFile);
-                reader.pipe(unzip.Extract({ path: folder })).on("close", function () {
+                //await fsp.mkdirs(folder);
+                fs.createReadStream(zipFile).pipe(unzip.Extract({ path: folder })).on("finish", function () {
                     resolve();
+                }).on("error", function (error: any) {
+                    Logger.log("error", JSON.stringify(error), "IoHelper");
                 });
             } catch (error) {
                 Logger.log("error", JSON.stringify(error), "IoHelper");
                 return reject(new DivaError("Error unzipping file", 500, "IoError"));
             }
+
         });
 
     }
@@ -266,7 +274,7 @@ export class IoHelper {
      */
     static readFolder(path: string): string[] {
         try {
-            let files = fs.readdirSync(path);
+            let files = fsp.readdirSync(path);
             return files;
         } catch (error) {
             return null;
@@ -281,9 +289,15 @@ export class IoHelper {
      * 
      * @memberOf IoHelper
      */
-    static createFilesCollectionFolders(collection: string): void {
-        let rootFolder = nconf.get("paths:filesPath") + path.sep + collection + path.sep + "original";
-        fs.mkdirpSync(rootFolder);
+    static async createFilesCollectionFolders(collection: string): Promise<void> {
+        return new Promise<void>(async (resolve, reject) => {
+            let rootFolder = nconf.get("paths:filesPath") + path.sep + collection + path.sep + "original";
+            await fsp.mkdirp(rootFolder);
+            resolve();
+        });
+
+
+
     }
 
     /**

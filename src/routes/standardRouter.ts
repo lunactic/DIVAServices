@@ -10,6 +10,7 @@ import { FileHelper } from "../helper/fileHelper";
 import { RandomWordGenerator } from "../randomizer/randomWordGenerator";
 import { IoHelper } from "../helper/ioHelper";
 import { Logger } from "../logging/logger";
+import * as mime from "mime";
 import * as nconf from "nconf";
 import * as path from "path";
 import { Statistics } from "../statistics/statistics";
@@ -51,7 +52,7 @@ router.post("/upload", async function (req: express.Request, res: express.Respon
         counter++;
     }
     //create folders and info file
-    IoHelper.createFilesCollectionFolders(collectionName);
+    await IoHelper.createFilesCollectionFolders(collectionName);
     FileHelper.createCollectionInformation(collectionName, numOfImages);
 
     let imageCounter: number = 0;
@@ -64,7 +65,7 @@ router.post("/upload", async function (req: express.Request, res: express.Respon
                 let images = iiifManifestParser.getAllImages(0);
                 for (let inputImage of images) {
                     try {
-                        var image = await FileHelper.saveUrl(inputImage, collectionName + path.sep, imageCounter);
+                        var image = await FileHelper.saveFileUrl(inputImage, collectionName + path.sep, imageCounter);
                         FileHelper.addFileInfo(image.md5, image.path, collectionName);
                         FileHelper.updateCollectionInformation(collectionName, numOfImages, ++imageCounter);
                     } catch (error) {
@@ -75,9 +76,14 @@ router.post("/upload", async function (req: express.Request, res: express.Respon
                 break;
             case "url":
                 try {
-                    var newFile: DivaFile = await FileHelper.saveUrl(file.value, collectionName, imageCounter, file.name);
-                    FileHelper.addFileInfo(newFile.md5, newFile.path, collectionName);
-                    FileHelper.updateCollectionInformation(collectionName, numOfImages, ++imageCounter);
+                    let url: string = file.value;
+                    if (mime.lookup(url) === "application/zip") {
+                        FileHelper.saveZipUrl(file.value, collectionName);
+                    } else {
+                        var newFile: DivaFile = await FileHelper.saveFileUrl(file.value, collectionName, imageCounter, file.name);
+                        FileHelper.addFileInfo(newFile.md5, newFile.path, collectionName);
+                        FileHelper.updateCollectionInformation(collectionName, numOfImages, ++imageCounter);
+                    }
                 } catch (error) {
                     //TODO add error info into the collection information
                     Logger.log("error", "error downloading image from url: " + file.value + " with message: " + error, "StandardRouter");

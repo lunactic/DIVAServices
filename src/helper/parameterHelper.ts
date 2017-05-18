@@ -4,7 +4,7 @@
 "use strict";
 
 import * as _ from "lodash";
-import * as fs from "fs-promise";
+import * as fs from "fs-extra";
 import * as nconf from "nconf";
 import * as path from "path";
 import * as hash from "object-hash";

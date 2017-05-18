@@ -101,7 +101,7 @@ export class ExecutableHelper extends EventEmitter {
             let exec = childProcess.exec;
             Logger.log("info", "Execute command: " + command, "ExecutableHelper");
             exec(command, { maxBuffer: 1024 * 48828 }, async function (error: any, stdout: any, stderr: any) {
-                Statistics.endRecording(process.id, process.req.originalUrl);
+                Statistics.endRecording(process.id, process.req.originalUrl, [0, 0]);
                 try {
                     await process.resultHandler.handleResult(error, stdout, stderr, process);
                     resolve();
@@ -195,7 +195,7 @@ export class ExecutableHelper extends EventEmitter {
                 //create processes
                 let index: number = 0;
                 //check if some parameter expanding is needed
-                
+
                 collection.inputData = await ParameterHelper.expandDataWildcards(collection.inputData);
 
                 for (let element of collection.inputData) {

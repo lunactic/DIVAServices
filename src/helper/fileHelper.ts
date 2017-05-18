@@ -63,7 +63,7 @@ export class FileHelper {
                     break;
                 case "url":
                     try {
-                        file = await self.saveUrl(input.value, process.rootFolder, counter);
+                        file = await self.saveFileUrl(input.value, process.rootFolder, counter);
                         self.addFileInfo(file.md5, file.path, process.rootFolder);
                         self.updateCollectionInformation(process.rootFolder, numberOfImages, counter);
                         resolve();
@@ -152,6 +152,43 @@ export class FileHelper {
         fs.writeFileSync(process.outputFolder + path.sep + filename, base64Data, "base64");
     }
 
+
+    static async downloadFile(url: string, filepath: string): Promise<void> {
+        return new Promise<void>(async (resolve, reject) => {
+            request.get(url).pipe(fs.createWriteStream(filepath)).on("finish", function () {
+                resolve();
+            });
+        });
+    }
+
+    static async saveZipUrl(url: string, folder: string): Promise<DivaFile[]> {
+        return new Promise<DivaFile[]>(async (resolve, reject) => {
+            let divaFiles: DivaFile[] = [];
+            let filePath = nconf.get("paths:filesPath");
+            let tmpFilePath: string = filePath + path.sep + folder + path.sep + "tempZip.zip";
+            await this.downloadFile(url, tmpFilePath);
+            await IoHelper.unzipFile(tmpFilePath, filePath + path.sep + folder + path.sep + "original");
+            let files: string[] = IoHelper.readFolder(filePath + path.sep + folder + path.sep + "original");
+            let imageCounter: number = 0;
+            for (var file of files) {
+                let divaFile = new DivaFile();
+                let filename = file.split(".").shift();
+                let base64 = fs.readFileSync(filePath + path.sep + folder + path.sep + "original" + path.sep + file, "base64");
+                let md5String = md5(base64);
+                divaFile.filename = filename;
+                divaFile.folder = filePath + path.sep + folder + path.sep + "original" + path.sep;
+                divaFile.extension = mime.extension(mime.lookup(file));
+                divaFile.path = divaFile.folder + file;
+                divaFile.md5 = md5String;
+
+                FileHelper.addFileInfo(divaFile.md5, divaFile.path, folder);
+                FileHelper.updateCollectionInformation(folder, files.length, ++imageCounter);
+
+                divaFiles.push(divaFile);
+            }
+        });
+    }
+
     /**
      * Download a file from a URL and save it on the filesystem
      * 
@@ -162,7 +199,7 @@ export class FileHelper {
      * 
      * @memberOf FileHelper
      */
-    static async saveUrl(url: string, folder: string, counter?: number, filename?: string): Promise<DivaFile> {
+    static async saveFileUrl(url: string, folder: string, counter?: number, filename?: string): Promise<DivaFile> {
         return new Promise<DivaFile>(async (resolve, reject) => {
             let filePath = nconf.get("paths:filesPath");
             let file = new DivaFile();

@@ -4,7 +4,7 @@
  */
 
 import { AlgorithmManagement } from "../management/algorithmManagement";
-import * as fs from "fs-promise";
+import * as fs from "fs-extra";
 import * as nconf from "nconf";
 import * as express from "express";
 import * as path from "path";

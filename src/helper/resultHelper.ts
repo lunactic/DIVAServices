@@ -27,9 +27,11 @@ export class ResultHelper {
      * 
      * @memberOf ResultHelper
      */
-    static checkProcessResultAvailable(process: Process): boolean {
-        ParameterHelper.loadParamInfo(process);
-        return process.resultFile != null && IoHelper.fileExists(process.resultFile);
+    static async checkProcessResultAvailable(process: Process): Promise<boolean> {
+        return new Promise<boolean>(async (resolve, reject) => {
+            ParameterHelper.loadParamInfo(process);
+            resolve(process.resultFile != null && await IoHelper.fileExists(process.resultFile));
+        });
     }
 
     /**
