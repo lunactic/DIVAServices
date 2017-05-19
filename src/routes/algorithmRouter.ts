@@ -98,7 +98,7 @@ router.post("/algorithms", async function (req: express.Request, res: express.Re
         } else {
             //create a new algorithm
             let identifier = AlgorithmManagement.createIdentifier();
-            AlgorithmManagement.generateFolders(route);
+            await AlgorithmManagement.generateFolders(route);
             try {
                 let response = await AlgorithmManagement.createAlgorithm(req, res, route, identifier, imageName, version, baseroute);
                 sendWithStatus(res, response);

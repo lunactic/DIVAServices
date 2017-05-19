@@ -207,6 +207,37 @@
         }
       }
     }
+  },"folder": {
+    "displayText": "Input Folder",
+    "infoText": "Path to an input Folder. The method will be provided with a local directory/",
+    "type": "object",
+    "userdefined": true,
+    "properties": {
+      "name": {
+        "type": "string",
+        "infoText": "Name of the parameter",
+        "minLength": 3,
+        "maxLength": 25,
+        "required": true
+      },
+      "description": {
+        "type": "string",
+        "infoText": "Description of the parameter",
+        "minLength": 3,
+        "maxLength": 255,
+        "required": true
+      },
+      "options": {
+        "type": "object",
+        "properties": {
+          "required": {
+            "infoText": "Boolean defining whether or not this parameter needs to be set",
+            "type": "boolean",
+            "required": true
+          }
+        }
+      }
+    }
   },
   "mcr2014b": {
     "displayText": "MCR2014b Path",

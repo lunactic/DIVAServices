@@ -73,7 +73,7 @@ export class AlgorithmManagement {
                     let highlighter = {};
                     let data = {};
                     for (let input of req.body.input) {
-                        if (!(nconf.get("reservedWords").indexOf(_.keys(input)[0]) >= 0) || _.keys(input)[0] === "highlighter" || _.keys(input)[0] === 'file') {
+                        if (!(nconf.get("reservedWords").indexOf(_.keys(input)[0]) >= 0) || _.keys(input)[0] === "highlighter" || _.keys(input)[0] === 'file' || _.keys(input)[0] === 'folder') {
                             switch (_.keys(input)[0]) {
                                 case "select":
                                     inputs[input.select.name] = input.select.options.values[input.select.options.default];
@@ -89,6 +89,9 @@ export class AlgorithmManagement {
                                     break;
                                 case "file":
                                     data[input.file.name] = nconf.get("paths:executablePath") + path.sep + route + path.sep + input.file.name + "." + mime.extension(input.file.options.mimeType);
+                                    break;
+                                case "folder":
+                                    data[input.folder.name] = nconf.get("paths:executablePath") + path.sep + route + path.sep + input.folder.name + ".zip";
                                     break;
                                 case "highlighter":
                                     switch (input.highlighter.type) {
@@ -227,9 +230,12 @@ export class AlgorithmManagement {
      * 
      * @memberOf AlgorithmManagement
      */
-    static generateFolders(route: string): void {
-        IoHelper.createFolder(nconf.get("paths:executablePath") + path.sep + route);
-        IoHelper.createFolder(nconf.get("paths:jsonPath") + path.sep + route);
+    static async generateFolders(route: string): Promise<void> {
+        return new Promise<void>(async (resolve, reject) => {
+            await IoHelper.createFolder(nconf.get("paths:executablePath") + path.sep + route);
+            await IoHelper.createFolder(nconf.get("paths:jsonPath") + path.sep + route);
+            resolve();
+        });
     }
 
     /**
@@ -565,7 +571,7 @@ export class AlgorithmManagement {
                 let inputType = _.keys(input)[0];
                 key = _.get(algorithm, "input[" + key + "]." + inputType + ".name", inputType);
                 let info: any = {};
-                if (inputType === 'file') {
+                if (inputType === 'file' || inputType === 'folder') {
                     fileCount++;
                     info[key] = inputType;
                     data.push(info);

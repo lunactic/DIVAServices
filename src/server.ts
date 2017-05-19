@@ -12,6 +12,7 @@ import * as express from "express";
 import * as path from "path";
 import * as fs from "fs";
 import * as morgan from "morgan";
+import * as mime from "mime";
 import { Logger } from "./logging/logger";
 import { Statistics } from "./statistics/statistics";
 import { FileHelper } from "./helper/fileHelper";
@@ -69,6 +70,7 @@ class Server {
      * @return void
      */
     private config() {
+        mime.load(__dirname + path.sep + "../conf/divaservices.types");
         Statistics.loadStatistics();
         QueueHandler.initialize();
 

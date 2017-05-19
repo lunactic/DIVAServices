@@ -12,7 +12,7 @@ import { Collection } from "../processingQueue/collection";
 import { ConsoleResultHandler } from "./resultHandlers/consoleResultHandler";
 import { DockerManagement } from "../docker/dockerManagement";
 import { FileResultHandler } from "./resultHandlers/fileResultHandler";
-import { DivaFile } from "../models/file";
+import { DivaFile } from "../models/divaFile";
 import { IoHelper } from "./ioHelper";
 import { NoResultHandler } from "./resultHandlers/noResultHandler";
 import * as path from "path";
@@ -242,7 +242,7 @@ export class ExecutableHelper extends EventEmitter {
                     //try to find existing results
                     await ParameterHelper.loadParamInfo(proc);
                     if (isNullOrUndefined(proc.resultFile)) {
-                        IoHelper.createFolder(proc.outputFolder);
+                        await IoHelper.createFolder(proc.outputFolder);
                         proc.resultFile = IoHelper.buildResultfilePath(proc.outputFolder, proc.methodFolder);
                         proc.tmpResultFile = IoHelper.buildTempResultfilePath(proc.outputFolder, proc.methodFolder);
                         proc.resultLink = proc.buildGetUrl();

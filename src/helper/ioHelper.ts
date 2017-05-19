@@ -83,13 +83,13 @@ export class IoHelper {
      * @memberOf IoHelper
      */
     static async saveFile(filePath: string, content: any, encoding: string): Promise<any> {
-        return new Promise<any>((resolve, reject) => {
+        return new Promise<any>(async (resolve, reject) => {
             try {
                 fsp.writeFileSync(filePath, JSON.stringify(content, null, "\t"), encoding);
                 resolve();
             } catch (error) {
                 Logger.log("error", "Could not write file due to error " + error, "IoHelper");
-                return reject(new DivaError("Error saving file", 500, "IoError"));
+                reject(new DivaError("Error saving file", 500, "IoError"));
             }
         });
     }
@@ -123,10 +123,11 @@ export class IoHelper {
      * 
      * @memberOf IoHelper
      */
-    static createFolder(folder: string): void {
-        async () => {
+    static async createFolder(folder: string): Promise<void> {
+        return new Promise<void>(async (resolve, reject) => {
             await fsp.mkdirs(folder);
-        };
+            resolve();
+        });
     }
 
     /**

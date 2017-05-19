@@ -13,7 +13,7 @@ import * as request from "request-promise";
 import * as mime from "mime";
 import { Logger } from "../logging/logger";
 import { Process } from "../processingQueue/process";
-import { DivaFile } from "../models/file";
+import { DivaFile } from "../models/divaFile";
 import { DivaError } from '../models/divaError';
 
 /**

@@ -9,7 +9,7 @@ import * as nconf from "nconf";
  * class representing an internal data item
  * 
  * @export
- * @class DivaData
+ * @class DivaFile
  */
 export class DivaFile {
 

@@ -61,6 +61,33 @@
           }
         }
       },
+      "folder": {
+        "type": "object",
+        "required": [
+          "name",
+          "description",
+          "options"
+        ],
+        "properties": {
+          "name": {
+            "$ref": "#/definitions/name"
+          },
+          "description": {
+            "$ref": "#/definitions/description"
+          },
+          "options": {
+            "type": "object",
+            "required": [
+              "required"
+            ],
+            "properties": {
+              "required": {
+                "type": "boolean"
+              }
+            }
+          }
+        }
+      },
       "number": {
         "type": "object",
         "required": [
@@ -301,6 +328,9 @@
             },
             "file": {
               "$ref": "#/definitions/file"
+            },
+            "folder": {
+              "$ref": "#/definitions/folder"
             },
             "outputImage": {
               "type": "object"

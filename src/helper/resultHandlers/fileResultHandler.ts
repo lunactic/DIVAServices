@@ -1,4 +1,3 @@
-import { DivaFile } from '../../models/file';
 /**
  * Created by Marcel Würsch on 04.11.16.
  */
@@ -12,6 +11,7 @@ import { Logger } from "../../logging/logger";
 import { FileHelper } from "../fileHelper";
 import { IoHelper } from "../ioHelper";
 import { DivaError } from "../../models/divaError";
+import { DivaFile } from '../../models/divaFile';
 import IResultHandler = require("./iResultHandler");
 import { Process } from "../../processingQueue/process";
 

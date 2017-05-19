@@ -1,3 +1,4 @@
+import { DivaCollection } from '../models/divaCollection';
 /**
  * Created by Marcel Würsch on 04.11.16.
  */
@@ -11,7 +12,7 @@ import * as path from "path";
 import * as DOCKER from "dockerode";
 import * as mime from "mime";
 import { Logger } from "../logging/logger";
-import { DivaFile } from '../models/file';
+import { DivaFile } from '../models/divaFile';
 import * as os from "os";
 import { Process } from "../processingQueue/process";
 import { DivaError } from "../models/divaError";
@@ -39,7 +40,7 @@ export class DockerManagement {
             let self = this;
 
             //close handler for the archive
-            output.on("close", function () {
+            output.on("close", function () { 
                 //create the docker image using the built archive file
                 self.docker.buildImage(inputFolder + path.sep + "archive.tar", {
                     t: imageName,
@@ -165,10 +166,21 @@ export class DockerManagement {
             if (['json', 'file', 'inputFile'].indexOf(key) >= 0) {
                 content += 'curl -o /data/' + input[key].name + '.' + mime.extension(input[key].options.mimeType) + ' $' + (inputCount + index) + os.EOL;
                 AlgorithmManagement.addRemotePath(identifier, input[key].name, "/data/" + input[key].name + "." + mime.extension(input[key].options.mimeType));
+            } else if (['folder'].indexOf(key) >= 0) {
+                content += 'curl -o /data/' + input[key].name + '.zip' + ' $' + (inputCount + index) + os.EOL;
+                AlgorithmManagement.addRemotePath(identifier, input[key].name, "/data/" + input[key].name + "/");
             }
             index++;
         }
-
+        index = 0;
+        //check for unzipping
+        for (let input of algorithmInfos.input) {
+            let key = _.keys(algorithmInfos.input[index])[0];
+            if (['folder'].indexOf(key) >= 0) {
+                content += 'unzip /data/' + input[key].name + '.zip' + ' -d /data/' + input[key].name + os.EOL;
+            }
+            index++;
+        }
 
         //add the correct execution string
         switch (algorithmInfos.method.executableType) {
@@ -262,6 +274,8 @@ export class DockerManagement {
                 } else if (value instanceof DivaFile) {
                     //handle data parameters
                     executableString += (value as DivaFile).url + ' ';
+                } else if (value instanceof DivaCollection) {
+                    executableString += (value as DivaCollection).zipUrl + ' ';
                 } else {
                     //handle regular parameters
                     executableString += value + ' ';

@@ -1,3 +1,4 @@
+import { DivaCollection } from '../models/divaCollection';
 /**
  * Created by Marcel Würsch on 03.11.16.
  */
@@ -14,7 +15,7 @@ import { Logger } from "../logging/logger";
 import { Process } from "../processingQueue/process";
 import { Collection } from "../processingQueue/collection";
 import IProcess = require("../processingQueue/iProcess");
-import { DivaFile } from "../models/file";
+import { DivaFile } from "../models/divaFile";
 import { isNullOrUndefined } from 'util';
 require("natural-compare-lite");
 
@@ -145,6 +146,7 @@ export class ParameterHelper {
                             break;
                         default:
                             params[paramKey] = self.getReservedParamValue(paramKey, collection, req);
+                            break;
                     }
                 } else {
                     let value = self.getParamValue(paramKey, collection.inputParameters);
@@ -178,16 +180,29 @@ export class ParameterHelper {
                     needed = Object.keys(found).length > 0;
                     if (needed) {
                         let value = element[key];
-                        if (!this.isPathAbsolute(value)) {
-                            //use relative file path to look up with collection / filename
-                            let collection = value.split("/")[0];
-                            let filename = value.split("/")[1];
-                            data[key] = DivaFile.CreateFile(collection, filename);
-                        } else {
-                            //use absolute path (used only when testing a method)
-                            data[key] = DivaFile.CreateFileFull(value);
+                        switch (found[key]) {
+                            case "file":
+                                //perform lookup to get the correct file path, create the correct data item out of it
+                                if (!this.isPathAbsolute(value)) {
+                                    //use relative file path to look up with collection / filename
+                                    let collection = value.split("/")[0];
+                                    let filename = value.split("/")[1];
+                                    data[key] = DivaFile.CreateFile(collection, filename);
+                                } else {
+                                    //use absolute path (used only when testing a method)
+                                    data[key] = DivaFile.CreateFileFull(value);
+                                }
+                                break;
+                            case "folder":
+                                if (!this.isPathAbsolute(value)) {
+                                    let collection = value;
+                                    data[key] = DivaCollection.CreateCollection(collection);
+                                } else {
+                                    data[key] = DivaCollection.CreateCollectionFull(value);
+                                }
+                                break;
                         }
-                        //perform lookup to get the correct file path, create the correct data item out of it
+
                         _.remove(process.neededData, function (item: any) {
                             return Object.keys(item)[0] === key;
                         });
@@ -407,17 +422,17 @@ export class ParameterHelper {
         return new Promise<void>(async (resolve, reject) => {
             let paramPath = nconf.get("paths:resultsPath") + path.sep + process.method + ".json";
             let data = {
-                highlighters: process.inputHighlighters,
-                hash: hash(process.parameters)
+                highlighterHash: hash(process.inputHighlighters),
+                dataHash: hash(process.data)
             };
             try {
                 await fs.statSync(paramPath).isFile();
                 let content = IoHelper.openFile(paramPath);
                 if (_.filter(content, {
-                    "hash": data.hash,
-                    "highlighters": data.highlighters
+                    "dataHash": data.dataHash,
+                    "highlighterHash": data.highlighterHash
                 }).length > 0) {
-                    _.remove(content, { "hash": data.hash, "highlighters": data.highlighters });
+                    _.remove(content, { "dataHash": data.dataHash, "highlighterHash": data.highlighterHash });
                     await IoHelper.saveFile(paramPath, content, "utf8");
                     resolve();
                 }

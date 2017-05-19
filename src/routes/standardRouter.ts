@@ -17,7 +17,7 @@ import { Statistics } from "../statistics/statistics";
 import { ResultHelper } from "../helper/resultHelper";
 import { AlgorithmManagement } from "../management/algorithmManagement";
 import { SchemaValidator } from "../validator/schemaValidator";
-import { DivaFile } from "../models/file";
+import { DivaFile } from "../models/divaFile";
 import { PostHandler } from "./postHandler";
 import { GetHandler } from "./getHandler";
 import { QueueHandler } from '../processingQueue/queueHandler';
