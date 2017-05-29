@@ -239,7 +239,13 @@ router.get("/collections/:collection", function (req: express.Request, res: expr
     }
 });
 
-router.delete("/collection/:collection", function (req: express.Request, res: express.Response) {
+router.get("/collections/:collection/zip", async function (req: express.Request, res: express.Response) {
+    let collection = req.params.collection;
+    let filename = await IoHelper.zipFolder(nconf.get("paths:filesPath") + path.sep + collection + path.sep + "original", collection + ".zip");
+    res.download(filename);
+});
+
+router.delete("/collections/:collection", function (req: express.Request, res: express.Response) {
     let collection = req.params.collection;
     try {
         FileHelper.deleteCollection(collection);

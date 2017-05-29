@@ -47,8 +47,8 @@ export class DivaCollection {
         let item = new DivaCollection();
         item.collection = collection;
         item.folder = nconf.get("paths:filesPath") + path.sep + collection + path.sep;
-        item.url = "http://" + nconf.get("server:rootUrl") + "/files/" + collection;
-        item.zipUrl = "http://" + nconf.get("server:rootUrl") + "/files/" + collection + "/zip";
+        item.url = "http://" + nconf.get("server:rootUrl") + "/collections/" + collection;
+        item.zipUrl = "http://" + nconf.get("server:rootUrl") + "/collections/" + collection + "/zip";
         return item;
     }
 

@@ -208,33 +208,34 @@ export class IoHelper {
      * 
      * @static
      * @param {string} folder the folder to compress
+     * @param {string} filename the name of the zip file to generate
      * @returns {string} the filename of the compressed zip file
      * 
      * @memberOf IoHelper
      */
-    static zipFolder(folder: string): string {
-        let archive = archiver("zip", {});
-        let folders = folder.split(path.sep);
+    static async zipFolder(folder: string, filename : string): Promise<string> {
+        return new Promise<string>((resolve, reject) => {
+            let archive = archiver("zip", {});
+            let folders = folder.split(path.sep);
 
-        let fullFileName = nconf.get("paths:imageRootPath") + path.sep + folders[folders.length - 2] + "_" + folders[folders.length - 1] + ".zip";
-        let fileName = folders[folders.length - 2] + "_" + folders[folders.length - 1] + ".zip";
+            let fileName = folder + path.sep + filename;
 
-        let output = fsp.createWriteStream(fullFileName);
-        output.on("close", function () {
-            return;
+            let output = fsp.createWriteStream(fileName);
+            output.on("close", function () {
+                resolve(fileName);
+            });
+            archive.on("error", function (error: Object) {
+                Logger.log("error", JSON.stringify(error), "IoHelper");
+            });
+
+            archive.pipe(output);
+            archive.bulk([{
+                expand: true,
+                cwd: folder + path.sep,
+                src: ["*.*", "**/*.*"]
+            }]);
+            archive.finalize();
         });
-        archive.on("error", function (error: Object) {
-            Logger.log("error", JSON.stringify(error), "IoHelper");
-        });
-
-        archive.pipe(output);
-        archive.bulk([{
-            expand: true,
-            cwd: folder + path.sep,
-            src: ["*.png", "**/*.png"]
-        }]);
-        archive.finalize();
-        return fileName;
     }
 
     /**
