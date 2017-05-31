@@ -279,12 +279,12 @@
           "author": {
             "type": "string",
             "minLenght": 5,
-            "maxLength": 50
+            "maxLength": 250
           },
           "type": {
             "type": "string",
             "minLength": 3,
-            "maxLength": 50
+            "maxLength": 250
           },
           "email": {
             "type": "string",
