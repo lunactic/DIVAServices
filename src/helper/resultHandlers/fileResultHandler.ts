@@ -6,6 +6,7 @@ import * as _ from "lodash";
 import * as fs from "fs";
 import * as path from "path";
 import * as nconf from "nconf";
+import * as os from "os";
 import { isNullOrUndefined } from 'util';
 import { Logger } from "../../logging/logger";
 import { FileHelper } from "../fileHelper";
@@ -90,7 +91,9 @@ export class FileResultHandler implements IResultHandler {
                                         file.file["url"] = IoHelper.getStaticResultFileUrl(process.outputFolder, file.file.name);
                                         delete file.file.content;
                                     } else if (file.file["mime-type"] === "text/plain") {
-                                        await IoHelper.saveFile(process.outputFolder + path.sep + file.file.name, file.file.content, "utf8");
+                                        file.file.content = file.file.content.replace(/(['"])/g, "");
+                                        file.file.content = file.file.content.replace(/\n/g, os.EOL);
+                                        await IoHelper.saveFile(process.outputFolder + file.file.name, file.file.content, "utf8");
                                         file.file["url"] = IoHelper.getStaticResultFileUrl(process.outputFolder, file.file.name);
                                         delete file.file.content;
                                     } else {
@@ -103,7 +106,7 @@ export class FileResultHandler implements IResultHandler {
                                     }
                                 }
                                 //check if a visualization is available
-                                if (!visualization) {
+                                /*if (!visualization) {
                                     let file = {
                                         file: {
                                             "mime-type": "image/png",
@@ -116,7 +119,7 @@ export class FileResultHandler implements IResultHandler {
                                         }
                                     };
                                     data.output.push(file);
-                                }
+                                }*/
                                 //set final data fields
                                 data["status"] = "done";
                                 //data["inputImage"] = process.inputImageUrl;

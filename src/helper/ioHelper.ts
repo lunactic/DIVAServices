@@ -85,7 +85,11 @@ export class IoHelper {
     static async saveFile(filePath: string, content: any, encoding: string): Promise<any> {
         return new Promise<any>(async (resolve, reject) => {
             try {
-                fsp.writeFileSync(filePath, JSON.stringify(content, null, "\t"), encoding);
+                if (typeof (content) === "string") {
+                    fsp.writeFileSync(filePath, content, encoding);
+                } else {
+                    fsp.writeFileSync(filePath, JSON.stringify(content, null, "\t"), encoding);
+                }
                 resolve();
             } catch (error) {
                 Logger.log("error", "Could not write file due to error " + error, "IoHelper");
@@ -213,7 +217,7 @@ export class IoHelper {
      * 
      * @memberOf IoHelper
      */
-    static async zipFolder(folder: string, filename : string): Promise<string> {
+    static async zipFolder(folder: string, filename: string): Promise<string> {
         return new Promise<string>((resolve, reject) => {
             let archive = archiver("zip", {});
             let folders = folder.split(path.sep);
