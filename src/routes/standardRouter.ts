@@ -5,6 +5,7 @@
 "use strict";
 
 import { IiifManifestParser } from "../parsers/iiifManifestParser";
+import * as _ from "lodash";
 import * as express from "express";
 import { FileHelper } from "../helper/fileHelper";
 import { RandomWordGenerator } from "../randomizer/randomWordGenerator";
@@ -30,8 +31,21 @@ let router = express.Router();
 router.post("/upload", async function (req: express.Request, res: express.Response) {
     let numOfImages: number = 0;
     let counter: number = 0;
+    let collectionName = "";
+    if (_.has(req.body, "name")) {
+        if (req.body.name.length === 0) {
+            sendError(res, new DivaError("Empty collection name provided!", 500, "Empty collection name"));
+            return;
+        } else if (FileHelper.checkCollectionAvailable(req.body.name)) {
+            sendError(res, new DivaError("A collection with the name: " + req.body.name + " already exists.", 500, "DuplicateCollectionError"));
+            return;
+        } else {
+            collectionName = req.body.name;
+        }
+    } else {
+        collectionName = RandomWordGenerator.generateRandomWord();
 
-    let collectionName = RandomWordGenerator.generateRandomWord();
+    }
     send200(res, { collection: collectionName });
 
     //count the total number of images
