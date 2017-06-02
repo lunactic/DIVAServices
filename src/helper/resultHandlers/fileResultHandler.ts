@@ -90,7 +90,7 @@ export class FileResultHandler implements IResultHandler {
                                         FileHelper.saveJson(file.file.content, process, file.file.name);
                                         file.file["url"] = IoHelper.getStaticResultFileUrl(process.outputFolder, file.file.name);
                                         delete file.file.content;
-                                    } else if (file.file["mime-type"] === "text/plain") {
+                                    } else if (file.file["mime-type"].startsWith("text")) {
                                         file.file.content = file.file.content.replace(/(['"])/g, "");
                                         file.file.content = file.file.content.replace(/\n/g, os.EOL);
                                         await IoHelper.saveFile(process.outputFolder + file.file.name, file.file.content, "utf8");
