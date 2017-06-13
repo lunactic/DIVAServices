@@ -95,19 +95,24 @@ router.post("/upload", async function (req: express.Request, res: express.Respon
                         FileHelper.saveZipUrl(file.value, collectionName);
                     } else {
                         var newFile: DivaFile = await FileHelper.saveFileUrl(file.value, collectionName, imageCounter, file.name);
-                        FileHelper.addFileInfo(newFile.md5, newFile.path, collectionName);
-                        FileHelper.updateCollectionInformation(collectionName, numOfImages, ++imageCounter);
+                        await FileHelper.addFileInfo(newFile.md5, newFile.path, collectionName);
+                        await FileHelper.updateCollectionInformation(collectionName, numOfImages, ++imageCounter);
                     }
                 } catch (error) {
                     //TODO add error info into the collection information
                     Logger.log("error", "error downloading image from url: " + file.value + " with message: " + error, "StandardRouter");
                 }
                 break;
+            case "text":
+                var newFile: DivaFile = await FileHelper.saveFileText(file.value, collectionName, file.extension, imageCounter, file.name);
+                await FileHelper.addFileInfo(newFile.md5, newFile.path, collectionName);
+                await FileHelper.updateCollectionInformation(collectionName, numOfImages, ++imageCounter);
+                break;
             default:
                 try {
                     var newFile: DivaFile = await FileHelper.saveBase64(file, collectionName, imageCounter);
-                    FileHelper.addFileInfo(newFile.md5, newFile.path, collectionName);
-                    FileHelper.updateCollectionInformation(collectionName, numOfImages, ++imageCounter);
+                    await FileHelper.addFileInfo(newFile.md5, newFile.path, collectionName);
+                    await FileHelper.updateCollectionInformation(collectionName, numOfImages, ++imageCounter);
                     break;
                 } catch (error) {
                     //TODO add error info into the collection information
@@ -208,14 +213,12 @@ router.get("/collections/", function (req: express.Request, res: express.Respons
     let collections = FileHelper.getAllCollections();
     let collectionInfo = [];
     for (let collection of collections) {
-        if (collection !== "test") {
-            collectionInfo.push({
-                "collection": {
-                    name: collection,
-                    url: 'http://' + nconf.get("server:rootUrl") + "/collections" + "/" + collection
-                }
-            });
-        }
+        collectionInfo.push({
+            "collection": {
+                name: collection,
+                url: 'http://' + nconf.get("server:rootUrl") + "/collections" + "/" + collection
+            }
+        });
     }
     let response = {
         collections: collectionInfo

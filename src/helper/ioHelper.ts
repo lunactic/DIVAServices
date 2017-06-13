@@ -15,7 +15,7 @@ import * as nconf from "nconf";
 import * as path from "path";
 import * as request from "request-promise";
 let rmdir = require("rmdir");
-let unzip = require("unzip");
+let unzip = require("unzipper");
 import * as url from "url";
 import { Logger } from "../logging/logger";
 import { DivaError } from "../models/divaError";
@@ -82,8 +82,8 @@ export class IoHelper {
      * 
      * @memberOf IoHelper
      */
-    static async saveFile(filePath: string, content: any, encoding: string): Promise<any> {
-        return new Promise<any>(async (resolve, reject) => {
+    static async saveFile(filePath: string, content: any, encoding: string): Promise<void> {
+        return new Promise<void>(async (resolve, reject) => {
             try {
                 if (typeof (content) === "string") {
                     fsp.writeFileSync(filePath, content, encoding);
@@ -255,7 +255,7 @@ export class IoHelper {
         return new Promise<void>(async (resolve, reject) => {
             try {
                 //await fsp.mkdirs(folder);
-                fs.createReadStream(zipFile).pipe(unzip.Extract({ path: folder })).on("finish", function () {
+                fsp.createReadStream(zipFile).pipe(unzip.Extract({ path: folder })).on("finish", function () {
                     resolve();
                 }).on("error", function (error: any) {
                     Logger.log("error", JSON.stringify(error), "IoHelper");

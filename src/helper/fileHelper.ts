@@ -34,49 +34,6 @@ export class FileHelper {
     static filesInfo = JSON.parse(fs.readFileSync(nconf.get("paths:imageInfoFile"), "utf-8"));
 
     /**
-     * saves a file on the filesystem
-     * 
-     * @static
-     * @param {*} input the input object
-     * @param {Process} process the process of this image
-     * @param {number} numberOfImages the total number of images to save
-     * @param {number} counter the running counter this image is assigned to
-     * 
-     * @memberOf FileHelper
-     */
-    static saveFile(input: any, process: Process, numberOfImages: number, counter: number): Promise<void> {
-        let self = this;
-        return new Promise<void>(async (resolve, reject) => {
-            let file = null;
-            switch (input.type) {
-                case "base64":
-                    try {
-                        file = await self.saveBase64(input.value, process.rootFolder, counter);
-                        self.addFileInfo(file.md5, file.path, process.rootFolder);
-                        self.updateCollectionInformation(process.rootFolder, numberOfImages, counter);
-                        Logger.log("trace", "saved file", "FileHelper");
-                        resolve();
-                    } catch (error) {
-                        Logger.log("error", "error saving file", "FileHelper");
-                        return reject(error);
-                    }
-                    break;
-                case "url":
-                    try {
-                        file = await self.saveFileUrl(input.value, process.rootFolder, counter);
-                        self.addFileInfo(file.md5, file.path, process.rootFolder);
-                        self.updateCollectionInformation(process.rootFolder, numberOfImages, counter);
-                        resolve();
-                    } catch (error) {
-                        Logger.log("error", "error saving file", "FileHelper");
-                        return reject(error);
-                    }
-                    break;
-            }
-        });
-    }
-
-    /**
      * Checks if an image exists on the file system
      * 
      * @static
@@ -181,8 +138,8 @@ export class FileHelper {
                 divaFile.path = divaFile.folder + file;
                 divaFile.md5 = md5String;
 
-                FileHelper.addFileInfo(divaFile.md5, divaFile.path, folder);
-                FileHelper.updateCollectionInformation(folder, files.length, ++imageCounter);
+                await FileHelper.addFileInfo(divaFile.md5, divaFile.path, folder);
+                await FileHelper.updateCollectionInformation(folder, files.length, ++imageCounter);
 
                 divaFiles.push(divaFile);
             }
@@ -239,6 +196,48 @@ export class FileHelper {
         });
 
     }
+
+    /**
+     * Saves a text file onto the file system
+     * @param data the textual data to save
+     * @param folder the folder to save the file in
+     * @param extension the file extension
+     * @param counter the data element counter
+     * @param filename the filename
+     */
+    static saveFileText(data: string, folder: string, extension: string, counter?: number, filename?: string): Promise<DivaFile> {
+        let self = this;
+        return new Promise<DivaFile>(async (resolve, reject) => {
+            let filesPath = nconf.get("paths:filesPath");
+            let filePath: string;
+            let file = new DivaFile();
+            let fileName: string = "";
+
+            if (filename != null) {
+                filePath = filesPath + path.sep + folder + path.sep + "original" + path.sep + filename + "." + extension;
+                fileName = filename;
+            } else if (counter != null) {
+                filePath = filesPath + path.sep + folder + path.sep + "original" + path.sep + counter + "." + extension;
+                fileName = String(counter);
+            }
+
+            await IoHelper.saveFile(filePath, data, "utf-8");
+
+            let base64 = fs.readFileSync(filePath, "base64");
+
+            let md5String = md5(base64);
+            let imgFolder = filePath + path.sep + folder + path.sep + "original" + path.sep;
+            file.filename = fileName;
+            file.folder = imgFolder;
+            file.extension = extension;
+            file.path = imgFolder + fileName + "." + extension;
+            file.md5 = md5String;
+
+            Logger.log("trace", "saved file", "FileHelper");
+            resolve(file);
+        });
+    }
+
 
     /**
      * 
@@ -307,9 +306,12 @@ export class FileHelper {
      * 
      * @memberOf FileHelper
      */
-    static addFileInfo(md5: string, file: string, collection: string): void {
-        this.filesInfo.push({ md5: md5, file: file, collection: collection });
-        this.saveFileInfo();
+    static async addFileInfo(md5: string, file: string, collection: string): Promise<void> {
+        return new Promise<void>(async (resolve, reject) => {
+            this.filesInfo.push({ md5: md5, file: file, collection: collection });
+            await this.saveFileInfo();
+            resolve();
+        });
     }
 
     /**
@@ -388,23 +390,26 @@ export class FileHelper {
      * 
      * @memberOf ImageHelper
      */
-    static async updateCollectionInformation(collection: string, files: number, downloaded: number) {
-        let status = {};
-        if (downloaded !== files) {
-            status = {
-                statusCode: 110,
-                statusMessage: "Downloaded " + downloaded + " of " + files + " images",
-                percentage: (downloaded / files) * 100
-            };
-        } else {
-            status = {
-                statusCode: 200,
-                statusMessage: "Collection is available",
-                percentage: 100
-            };
-        }
-        let statusFile = nconf.get("paths:filesPath") + path.sep + collection + path.sep + "status.json";
-        await IoHelper.saveFile(statusFile, status, "utf-8");
+    static async updateCollectionInformation(collection: string, files: number, downloaded: number): Promise<void> {
+        return new Promise<void>(async (resolve, reject) => {
+            let status = {};
+            if (downloaded !== files) {
+                status = {
+                    statusCode: 110,
+                    statusMessage: "Downloaded " + downloaded + " of " + files + " images",
+                    percentage: (downloaded / files) * 100
+                };
+            } else {
+                status = {
+                    statusCode: 200,
+                    statusMessage: "Collection is available",
+                    percentage: 100
+                };
+            }
+            let statusFile = nconf.get("paths:filesPath") + path.sep + collection + path.sep + "status.json";
+            await IoHelper.saveFile(statusFile, status, "utf-8");
+            resolve();
+        });
     }
 
     /**
