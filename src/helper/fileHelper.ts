@@ -353,10 +353,32 @@ export class FileHelper {
     static async createCollectionInformation(collectionName: string, files: number) {
         let status = {
             statusCode: 110,
-            statusMessage: "Downloaded 0 of " + files + " images",
-            percentage: 0
+            statusMessage: "Downloaded 0 of " + files + " files",
+            percentage: 0,
+            totalFiles: files
         };
         await IoHelper.saveFile(nconf.get("paths:filesPath") + path.sep + collectionName + path.sep + "status.json", status, "utf-8");
+    }
+
+
+    /**
+     * Add more files to a collection
+     * 
+     * @static
+     * @param {string} collectionName the name of the collection
+     * @param {number} newFiles the number of new files
+     * @memberof FileHelper
+     */
+    static async addFilesCollectionInformation(collectionName: string, newFiles: number) {
+        let statusFile = nconf.get("paths:filesPath") + path.sep + collectionName + path.sep + "status.json";
+        let currentStatus = await IoHelper.openFile(statusFile);
+
+        currentStatus.statusCode = 110;
+        currentStatus.statusMessage = "Downloaded " + currentStatus.totalFiles + " of " + (currentStatus.totalFiles + newFiles) + " files";
+        currentStatus.percentage = (currentStatus.totalFiles) / (currentStatus.totalFiles + newFiles);
+        currentStatus.totalFiles = (currentStatus.totalFiles + newFiles);
+
+        await IoHelper.saveFile(nconf.get("paths:filesPath") + path.sep + collectionName + path.sep + "status.json", currentStatus, "utf-8");
     }
 
     static deleteCollection(collection: string) {
@@ -396,7 +418,7 @@ export class FileHelper {
             if (downloaded !== files) {
                 status = {
                     statusCode: 110,
-                    statusMessage: "Downloaded " + downloaded + " of " + files + " images",
+                    statusMessage: "Downloaded " + downloaded + " of " + files + " files",
                     percentage: (downloaded / files) * 100
                 };
             } else {
