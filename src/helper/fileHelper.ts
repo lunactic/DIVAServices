@@ -41,7 +41,7 @@ export class FileHelper {
      * 
      * @memberOf FileHelper
      */
-    static fileExists(md5: string): Promise<any> {
+    static fileExistsMd5(md5: string): Promise<any> {
         return new Promise<any>((resolve, reject) => {
             let filtered = this.filesInfo.filter(function (item: any) {
                 return item.md5 === md5;
@@ -52,6 +52,14 @@ export class FileHelper {
                 resolve({ imageAvailable: false });
             }
         });
+    }
+
+    /**
+     * 
+     * @param path 
+     */
+    static fileExists(path: string): boolean {
+        return fs.existsSync(path);
     }
 
     /**
@@ -122,7 +130,7 @@ export class FileHelper {
         return new Promise<DivaFile[]>(async (resolve, reject) => {
             let divaFiles: DivaFile[] = [];
             let filePath = nconf.get("paths:filesPath");
-            let tmpFilePath: string = filePath + path.sep + folder + path.sep + "tempZip.zip";
+            let tmpFilePath: string = filePath + path.sep + folder + path.sep + "data.zip";
             await this.downloadFile(url, tmpFilePath);
             await IoHelper.unzipFile(tmpFilePath, filePath + path.sep + folder + path.sep + "original");
             let files: string[] = IoHelper.readFolder(filePath + path.sep + folder + path.sep + "original");

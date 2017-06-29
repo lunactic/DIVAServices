@@ -128,7 +128,7 @@ router.put("/collections/:collectionName", async function (req: express.Request,
     let collectionName = req.params["collectionName"];
     let numOfFiles: number = 0;
     let counter: number = 0;
-    
+
     if (FileHelper.checkCollectionAvailable(collectionName)) {
         //count the total number of images
         for (let file of req.body.files) {
@@ -344,8 +344,13 @@ router.get("/collections/:collection", function (req: express.Request, res: expr
 
 router.get("/collections/:collection/zip", async function (req: express.Request, res: express.Response) {
     let collection = req.params.collection;
-    let filename = await IoHelper.zipFolder(nconf.get("paths:filesPath") + path.sep + collection + path.sep + "original", collection + ".zip");
-    res.download(filename);
+    let filename = nconf.get("paths:filesPath") + path.sep + collection + path.sep + "data.zip";
+    if (FileHelper.fileExists(filename)) {
+        res.download(filename);
+    } else {
+        await IoHelper.zipFolder(nconf.get("paths:filesPath") + path.sep + collection, "data.zip");
+        res.download(filename);
+    }
 });
 
 router.delete("/collections/:collection", function (req: express.Request, res: express.Response) {
@@ -360,7 +365,7 @@ router.delete("/collections/:collection", function (req: express.Request, res: e
 
 router.get("/files/:md5/check", async function (req: express.Request, res: express.Response) {
     try {
-        var response = await FileHelper.fileExists(req.params.md5);
+        var response = await FileHelper.fileExistsMd5(req.params.md5);
         sendResponse(res, null, response);
     } catch (error) {
         sendResponse(res, error, null);

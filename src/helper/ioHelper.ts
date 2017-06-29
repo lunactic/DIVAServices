@@ -217,8 +217,8 @@ export class IoHelper {
      * 
      * @memberOf IoHelper
      */
-    static async zipFolder(folder: string, filename: string): Promise<string> {
-        return new Promise<string>((resolve, reject) => {
+    static async zipFolder(folder: string, filename: string): Promise<void> {
+        return new Promise<void>((resolve, reject) => {
             let archive = archiver("zip", {});
             let folders = folder.split(path.sep);
 
@@ -226,18 +226,17 @@ export class IoHelper {
 
             let output = fsp.createWriteStream(fileName);
             output.on("close", function () {
-                resolve(fileName);
+                resolve();
             });
             archive.on("error", function (error: Object) {
                 Logger.log("error", JSON.stringify(error), "IoHelper");
+                reject(error);
             });
-
             archive.pipe(output);
-            archive.bulk([{
-                expand: true,
-                cwd: folder + path.sep,
-                src: ["*.*", "**/*.*"]
-            }]);
+
+            for (var file of IoHelper.readFolder(folder + path.sep + "original")) {
+                archive.append(fs.createReadStream(folder + path.sep + "original" + path.sep + file), { name: file});
+            }
             archive.finalize();
         });
     }
