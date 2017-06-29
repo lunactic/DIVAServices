@@ -385,7 +385,8 @@ export class ParameterHelper {
                 let info: any = {};
                 if ((info = _.filter(content, {
                     "highlighterHash": data.highlighterHash,
-                    "dataHash": data.dataHash
+                    "dataHash": data.dataHash,
+                    "paramHash": data.paramHash
                 })).length > 0) {
                     //found some method information
                     proc.resultFile = info[0].resultFile;
@@ -423,14 +424,16 @@ export class ParameterHelper {
             let paramPath = nconf.get("paths:resultsPath") + path.sep + process.method + ".json";
             let data = {
                 highlighterHash: hash(process.inputHighlighters),
-                dataHash: hash(process.data)
+                dataHash: hash(process.data),
+                paramHash: hash(process.parameters)
             };
             try {
                 await fs.statSync(paramPath).isFile();
                 let content = IoHelper.openFile(paramPath);
                 if (_.filter(content, {
                     "dataHash": data.dataHash,
-                    "highlighterHash": data.highlighterHash
+                    "highlighterHash": data.highlighterHash,
+                    "paramHash": data.paramHash
                 }).length > 0) {
                     _.remove(content, { "dataHash": data.dataHash, "highlighterHash": data.highlighterHash });
                     await IoHelper.saveFile(paramPath, content, "utf8");
