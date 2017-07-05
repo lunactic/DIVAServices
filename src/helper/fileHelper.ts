@@ -172,7 +172,15 @@ export class FileHelper {
             let fileName: string = "";
 
             var headerResponse = await request.head(url);
-            let fileExtension = mime.extension(headerResponse["content-type"]);
+            let fileExtension = "";
+            //TODO: FIX PROBLEM HERE IF content-type == "application/octet-stream"
+            if (headerResponse["content-type"] === "application/octet-stream") {
+                //if conte-typpe === 'application/content-stream' we can not make use of it per RFC 2616 7.2.1
+                // If the media type remains unknown, the recipient SHOULD treat it as type "application/octet-stream".
+                fileExtension = url.split(".").pop();
+            } else {
+                fileExtension = mime.extension(headerResponse["content-type"]);
+            }
 
             if (filename != null) {
                 tmpFilePath = filePath + path.sep + "temp_" + filename + "." + fileExtension;
