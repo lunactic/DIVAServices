@@ -336,14 +336,18 @@ export class ParameterHelper {
             });
 
             Logger.log("info", "saveParamInfo", "ParameterHelper");
-            Logger.log("info", JSON.stringify(process.parameters), "ParameterHelper");
-            Logger.log("info", "hash: " + data.hash, "ParameterHelper");
+            //Logger.log("info", JSON.stringify(process.parameters), "ParameterHelper");
+            //Logger.log("info", "hash: " + data.hash, "ParameterHelper");
 
             try {
                 fs.statSync(methodPath).isFile();
                 let content = IoHelper.openFile(methodPath);
                 //only save the information if it is not already present
-                if (_.filter(content, { "hash": data.hash, "highlighters": data.highlighters }).length === 0) {
+                if (_.filter(content, _.filter(content, {
+                    "highlighterHash": data.highlighterHash,
+                    "dataHash": data.dataHash,
+                    "paramHash": data.paramHash
+                })).length === 0) {
                     content.push(data);
                     await IoHelper.saveFile(methodPath, content, "utf8");
                 }
