@@ -40,7 +40,7 @@ export class DockerManagement {
             let self = this;
 
             //close handler for the archive
-            output.on("close", function () { 
+            output.on("close", function () {
                 //create the docker image using the built archive file
                 self.docker.buildImage(inputFolder + path.sep + "archive.tar", {
                     t: imageName,
@@ -164,8 +164,11 @@ export class DockerManagement {
         for (let input of algorithmInfos.input) {
             let key = _.keys(algorithmInfos.input[index])[0];
             if (['json', 'file', 'inputFile'].indexOf(key) >= 0) {
+                content += String((inputCount + index)) + '=$' + (inputCount + index) + os.EOL;  
                 content += 'curl -o /data/' + input[key].name + '.' + mime.extension(input[key].options.mimeType) + ' $' + (inputCount + index) + os.EOL;
-                AlgorithmManagement.addRemotePath(identifier, input[key].name, "/data/" + input[key].name + "." + mime.extension(input[key].options.mimeType));
+                content += input[key].name + '="${' + (inputCount + index) + '##*/}"' + os.EOL;
+                content += 'mv /data/' + input[key].name + '.' + mime.extension(input[key].options.mimeType) + ' /data/$' + input[key].name + os.EOL;
+                AlgorithmManagement.addRemotePath(identifier, input[key].name, "/data/$" + input[key].name);
             } else if (['folder'].indexOf(key) >= 0) {
                 content += 'curl -o /data/' + input[key].name + '.zip' + ' $' + (inputCount + index) + os.EOL;
                 AlgorithmManagement.addRemotePath(identifier, input[key].name, "/data/" + input[key].name + "/");
