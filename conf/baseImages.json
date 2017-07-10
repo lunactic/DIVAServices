@@ -10,6 +10,8 @@
     "divaservices/noise": "apk",
     "kbai/kraken": "apk",
     "divaservices/tesseract": "apt",
-    "divaservices/opencv32": "apt"
+    "divaservices/opencv32":{
+      "1":"apt"
+    } 
   }
 }

@@ -11,7 +11,7 @@
       "kbai/kraken",
       "divaservices/tesseract",
       "divaservices/noise",
-      "divaservices/opencv32"
+      "divaservices/opencv32:1"
     ],
     "keys": [
       "Java 7",
