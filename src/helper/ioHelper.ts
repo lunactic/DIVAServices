@@ -100,7 +100,7 @@ export class IoHelper {
 
     static async moveFile(oldPath: string, newPath: string): Promise<void> {
         return new Promise<void>(async (resolve, reject) => {
-            await fsp.move(oldPath, newPath);
+            await fsp.move(oldPath, newPath, {overwrite: true});
             resolve();
         });
     }
