@@ -6,8 +6,12 @@
 
 import { IoHelper } from "./ioHelper";
 import { ParameterHelper } from "./parameterHelper";
-import { Process } from "../processingQueue/process";
-import IProcess = require("../processingQueue/iProcess");
+import { Logger } from '../logging/logger';
+import { Collection } from '../processingQueue/collection';
+import IProcess = require('../processingQueue/iProcess');
+import { Process } from '../processingQueue/process';
+import { IoHelper } from './ioHelper';
+import { ParameterHelper } from './parameterHelper';
 import { Logger } from "../logging/logger";
 
 /**
@@ -56,7 +60,11 @@ export class ResultHelper {
      * @memberOf ResultHelper
      */
     static async saveResult(info: IProcess): Promise<any> {
-        return await IoHelper.saveFile(info.resultFile, info.result, "utf8");
+        if (info instanceof Collection) {
+            return await IoHelper.saveFile(info.resultFile, info.result, "utf8");
+        }else {
+            return await IoHelper.saveFile(info.tmpResultFile, info.result, "utf8");
+        }
     }
 
     /**

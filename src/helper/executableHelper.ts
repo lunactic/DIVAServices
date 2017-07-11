@@ -229,7 +229,7 @@ export class ExecutableHelper extends EventEmitter {
                             break;
                         case "file":
                             proc.parameters.params["resultFile"] = proc.resultFile;
-                            proc.resultHandler = new FileResultHandler(proc.resultFile);
+                            proc.resultHandler = new FileResultHandler(proc.resultFile, proc.tmpResultFile);
                             break;
                         case "none":
                             proc.resultHandler = new NoResultHandler(proc.resultFile);

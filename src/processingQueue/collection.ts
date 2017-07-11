@@ -122,6 +122,13 @@ export class Collection implements IProcess {
     public resultFile: string;
 
     /**
+     * temporary collection result file
+     * @type {string}
+     * @memberOf Collection
+     */
+    public tmpResultFile: string;
+
+    /**
      * the root folder of the collection
      * 
      * @type {string}

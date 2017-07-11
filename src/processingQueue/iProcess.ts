@@ -11,6 +11,7 @@ interface IProcess {
     parameters: any;
     result: any;
     resultFile: string;
+    tmpResultFile: string;
     rootFolder: string;
 }
 
