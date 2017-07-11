@@ -274,6 +274,7 @@ export class DockerManagement {
                     executableString += _.map(value.split(" "), function (item: any) {
                         return item;
                     }).join(" ");
+                    executableString += " ";
                 } else if (value instanceof DivaFile) {
                     //handle data parameters
                     executableString += (value as DivaFile).url + ' ';
