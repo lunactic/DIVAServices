@@ -1,18 +1,15 @@
-/**
- * Created by Marcel Würsch on 04.11.16.
- */
-
-"use strict";
-
-import { IoHelper } from "./ioHelper";
-import { ParameterHelper } from "./parameterHelper";
 import { Logger } from '../logging/logger';
 import { Collection } from '../processingQueue/collection';
 import IProcess = require('../processingQueue/iProcess');
 import { Process } from '../processingQueue/process';
 import { IoHelper } from './ioHelper';
 import { ParameterHelper } from './parameterHelper';
-import { Logger } from "../logging/logger";
+
+/**
+ * Created by Marcel Würsch on 04.11.16.
+ */
+
+"use strict";
 
 /**
  * Helper class for all result related things

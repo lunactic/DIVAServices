@@ -98,8 +98,8 @@ export class IoHelper {
         });
     }
 
-    static async moveFile(oldPath: string, newPath: string): Promise<void>{
-        return new Promise<void>(async (resolve, reject) =>{
+    static async moveFile(oldPath: string, newPath: string): Promise<void> {
+        return new Promise<void>(async (resolve, reject) => {
             await fsp.move(oldPath, newPath);
             resolve();
         });
@@ -242,7 +242,7 @@ export class IoHelper {
             archive.pipe(output);
 
             for (var file of IoHelper.readFolder(folder + path.sep + "original")) {
-                archive.append(fs.createReadStream(folder + path.sep + "original" + path.sep + file), { name: file});
+                archive.append(fs.createReadStream(folder + path.sep + "original" + path.sep + file), { name: file });
             }
             archive.finalize();
         });
