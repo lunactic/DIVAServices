@@ -15,6 +15,7 @@ import { Logger } from "../logging/logger";
 import { Process } from "../processingQueue/process";
 import { DivaFile } from "../models/divaFile";
 import { DivaError } from '../models/divaError';
+import { isNullOrUndefined } from "util";
 
 /**
  * A class for all file handling 
@@ -63,16 +64,17 @@ export class FileHelper {
     }
 
     /**
-     * Saves an image based on its base64 encoding
+     * Saves a file based on its base64 encoding
      * 
      * @static
-     * @param {*} file the image object containing the base64 string
+     * @param {*} file  the file object containing the base64 string
      * @param {string} folder the folder to save the image into
-     * @param {number} counter the running counter applied to this image
-     * 
-     * @memberOf FileHelper
+     * @param {number} counter the running counter applied to this file
+     * @param {string} [extension] the file extension (if available)
+     * @returns {Promise<any>} 
+     * @memberof FileHelper
      */
-    static saveBase64(file: any, folder: string, counter: number): Promise<any> {
+    static saveBase64(file: any, folder: string, counter: number, extension?: string): Promise<any> {
         return new Promise<any>((resolve, reject) => {
             let imagePath = nconf.get("paths:filesPath");
             let base64Data = file.value.replace(/^data:image\/png;base64,/, "");
@@ -81,7 +83,12 @@ export class FileHelper {
             let fileObject = new DivaFile();
             let fileFolder = imagePath + path.sep + folder + path.sep + "original" + path.sep;
             let fileName = file.name;
-            let fileExtension = this.getImageExtensionBase64(base64Data);
+            let fileExtension;
+            if (!isNullOrUndefined(extension)) {
+                fileExtension = extension;
+            } else {
+                fileExtension = this.getImageExtensionBase64(base64Data);
+            }
             fs.stat(fileFolder + fileName, function (err: any, stat: fs.Stats) {
                 fileObject.folder = fileFolder;
                 fileObject.filename = fileName;
