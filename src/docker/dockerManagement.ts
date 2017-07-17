@@ -79,12 +79,8 @@ export class DockerManagement {
             });
             //build an archive of the current contents of the inputFolder
             archive.pipe(output);
-            archive.bulk([{
-                expand: true,
-                cwd: inputFolder + path.sep,
-                src: ["*", "**/*"]
-            }
-            ]);
+
+            archive.directory(inputFolder + path.sep, false);
             //build the archive --> this will trigger the "close" handler
             archive.finalize();
         });
@@ -164,7 +160,7 @@ export class DockerManagement {
         for (let input of algorithmInfos.input) {
             let key = _.keys(algorithmInfos.input[index])[0];
             if (['json', 'file', 'inputFile'].indexOf(key) >= 0) {
-                content += String((inputCount + index)) + '=$' + (inputCount + index) + os.EOL;  
+                content += String((inputCount + index)) + '=$' + (inputCount + index) + os.EOL;
                 content += 'curl -o /data/' + input[key].name + '.' + mime.extension(input[key].options.mimeType) + ' $' + (inputCount + index) + os.EOL;
                 content += input[key].name + '="${' + (inputCount + index) + '##*/}"' + os.EOL;
                 content += 'mv /data/' + input[key].name + '.' + mime.extension(input[key].options.mimeType) + ' /data/$' + input[key].name + os.EOL;

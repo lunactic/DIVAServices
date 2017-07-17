@@ -404,8 +404,18 @@ export class FileHelper {
         await IoHelper.saveFile(nconf.get("paths:filesPath") + path.sep + collectionName + path.sep + "status.json", currentStatus, "utf-8");
     }
 
-    static deleteCollection(collection: string) {
-        IoHelper.deleteFolder(nconf.get("paths:filesPath") + path.sep + collection);
+    static async deleteCollection(collection: string): Promise<void> {
+        return new Promise<void>(async (resolve, reject) => {
+            let files: DivaFile[] = this.loadCollection(collection, null);
+            for (var file of files) {
+                _.remove(this.filesInfo, function (item: any) {
+                    return item.md5 === file.md5 && item.collection === collection;
+                });
+                Logger.log("info", "delete file" + file.path);
+            }
+            await this.saveFileInfo();
+            IoHelper.deleteFolder(nconf.get("paths:filesPath") + path.sep + collection);
+        });
     }
     /**
      * Check if a collection exists

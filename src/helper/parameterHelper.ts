@@ -323,11 +323,11 @@ export class ParameterHelper {
             let parameters = _.clone(process.parameters.outputParams);
             data = {
                 highlighters: _.clone(process.inputHighlighters),
-                highlighterHash: hash(process.inputHighlighters),
+                highlighterHash: hash.MD5(process.inputHighlighters),
                 parameters: _.clone(parameters),
-                paramHash: hash(process.parameters),
+                paramHash: hash.MD5(process.parameters.outputParams),
                 resultFile: process.resultFile,
-                dataHash: hash(process.data)
+                dataHash: hash.MD5(process.data)
             };
 
             //turn everything into strings
@@ -377,11 +377,11 @@ export class ParameterHelper {
             let parameters = _.clone(proc.parameters.outputParams);
             let data = {
                 highlighters: _.clone(proc.inputHighlighters),
-                highlighterHash: hash(proc.inputHighlighters),
-                parameters: _.clone(parameters),
-                paramHash: hash(proc.parameters),
+                highlighterHash: hash.MD5(proc.inputHighlighters),
+                parameters: parameters,
+                paramHash: hash.MD5(proc.parameters.outputParams),
                 resultFile: proc.resultFile,
-                dataHash: hash(proc.data)
+                dataHash: hash.MD5(proc.data)
             };
             try {
                 await fs.statSync(paramPath).isFile();
@@ -427,9 +427,9 @@ export class ParameterHelper {
         return new Promise<void>(async (resolve, reject) => {
             let paramPath = nconf.get("paths:resultsPath") + path.sep + process.method + ".json";
             let data = {
-                highlighterHash: hash(process.inputHighlighters),
-                dataHash: hash(process.data),
-                paramHash: hash(process.parameters)
+                highlighterHash: hash.MD5(process.inputHighlighters),
+                dataHash: hash.MD5(process.data),
+                paramHash: hash.MD5(process.parameters)
             };
             try {
                 await fs.statSync(paramPath).isFile();
