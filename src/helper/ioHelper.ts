@@ -100,7 +100,7 @@ export class IoHelper {
 
     static async moveFile(oldPath: string, newPath: string): Promise<void> {
         return new Promise<void>(async (resolve, reject) => {
-            await fsp.move(oldPath, newPath, {overwrite: true});
+            await fsp.move(oldPath, newPath, { overwrite: true });
             resolve();
         });
     }
@@ -345,6 +345,19 @@ export class IoHelper {
     }
 
     /**
+     * gets the root folder for log files of this method
+     * 
+     * @static
+     * @param {string} method the path to the method
+     * @returns {string} the root log folder for this method
+     * @memberof IoHelper
+     */
+    static getLogFolder(method: string): string {
+        let logPath = nconf.get("paths:logPath");
+        return logPath + method;
+    }
+
+    /**
      * compute the path for the result file
      * 
      * @static
@@ -372,6 +385,13 @@ export class IoHelper {
         return folder + fileName + "_temp.json";
     }
 
+    static buildStdLogFilePath(folder: string, now: Date): string {
+        return folder + path.sep + now.getFullYear() + "_" + now.getMonth() + "_" + now.getDay() + "_" + now.getHours() + "_" + now.getMinutes() + "_" + now.getSeconds() + "_" + now.getMilliseconds() + "_std.log";
+    }
+
+    static buildErrLogFilePath(folder: string, now: Date): string {
+        return folder + path.sep + now.getFullYear() + "_" + now.getMonth() + "_" + now.getDay() + "_" + now.getHours() + "_" + now.getMinutes() + "_" + now.getSeconds() + "_" + now.getMilliseconds() + "_err.log";
+    }
     /**
      * get the static url for an image
      * 

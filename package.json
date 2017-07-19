@@ -4,8 +4,11 @@
   "description": "DivaServices RESTFul Web Services for Document Image Analysis",
   "main": "server.js",
   "scripts": {
+    "build": "tsc",
     "grunt": "grunt",
-    "start": "node ./bin/www"
+    "start": "node ./bin/www",
+    "debug": "NODE_ENV=dev nodemon --inspect=9929 bin/www",
+    "test": " mocha tests/**/*Test.js"
   },
   "repository": {
     "type": "git",
@@ -27,6 +30,8 @@
   "dependencies": {
     "archiver": "^2.0.0",
     "body-parser": "^1.17.2",
+    "chai": "^4.1.0",
+    "chai-http": "^3.0.0",
     "crypto": "0.0.3",
     "dockerode": "2.5.0",
     "express": "^4.15.3",
@@ -38,6 +43,7 @@
     "manifesto.js": "^0.2.1",
     "md5": "^2.2.1",
     "mime": "^1.3.6",
+    "mocha": "^3.4.2",
     "morgan": "^1.8.2",
     "natural-compare-lite": "^1.4.0",
     "nconf": "^0.8.4",
@@ -53,19 +59,22 @@
   "devDependencies": {
     "@types/archiver": "^1.3.4",
     "@types/body-parser": "1.16.4",
+    "@types/chai": "^4.0.1",
+    "@types/chai-http": "^3.0.0",
     "@types/dockerode": "^2.4.3",
     "@types/express": "^4.0.36",
+    "@types/fs-extra": "^3.0.3",
     "@types/lodash": "^4.14.69",
     "@types/log4js": "0.0.32",
     "@types/md5": "^2.1.32",
     "@types/mime": "1.3.1",
+    "@types/mocha": "^2.2.41",
     "@types/morgan": "^1.7.32",
     "@types/natural-sort": "0.0.19",
     "@types/nconf": "0.0.34",
     "@types/node": "^8.0.13",
     "@types/object-hash": "^0.5.28",
     "@types/request": "0.0.47",
-    "@types/request-promise": "^4.1.36",
-    "@types/fs-extra": "^3.0.3"
+    "@types/request-promise": "^4.1.36"
   }
 }

@@ -136,6 +136,14 @@ export class Collection implements IProcess {
      */
     public rootFolder: string;
 
+    /**
+     * The root folder for log files
+     * 
+     * @type {string}
+     * @memberof Collection
+     */
+    public logFolder: string;
+
     constructor() {
         this.method = "";
         this.name = "";

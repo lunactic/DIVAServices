@@ -16,7 +16,7 @@ import { Process } from "../processingQueue/process";
 import { Collection } from "../processingQueue/collection";
 import IProcess = require("../processingQueue/iProcess");
 import { DivaFile } from "../models/divaFile";
-import { isNullOrUndefined } from 'util';
+import { isNullOrUndefined } from "util";
 require("natural-compare-lite");
 
 /**

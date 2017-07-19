@@ -260,6 +260,24 @@ export class Process implements IProcess {
 
 
     /**
+     * Path to the log file of the standard output 
+     * 
+     * @type {string}
+     * @memberof Process
+     */
+    public stdLogFile: string;
+
+    /**
+     * Path to the log file of the error output
+     * 
+     * @type {string}
+     * @memberof Process
+     */
+    public errLogFile: string;
+
+
+
+    /**
      * build the static url to access the result file
      * 
      * @returns {string}
