@@ -8,7 +8,7 @@
     "grunt": "grunt",
     "start": "node ./bin/www",
     "debug": "NODE_ENV=dev nodemon --inspect=9929 bin/www",
-    "test": " mocha tests/**/*Test.js"
+    "test": "NODE_ENV=dev mocha tests/*Tests.js"
   },
   "repository": {
     "type": "git",

@@ -92,6 +92,8 @@ imageFolder=($(cat conf/server.dev.json | jq -r '.paths.filesPath'))
 mkdir -p ${imageFolder}
 jsonFolder=($(cat conf/server.dev.json | jq -r '.paths.jsonPath'))
 mkdir -p ${jsonFolder}
+logFolder=($(cat conf/server.dev.json | jq -r '.paths.logPath'))
+mkdir -p ${logFolder}
 ocropyLanguageModelsFolder=($(cat conf/server.dev.json | jq -r '.paths.ocropyLanguageModelsPath'))
 mkdir -p ${ocropyLanguageModelsFolder}
 executableFolder=($(cat conf/server.dev.json | jq -r '.paths.executablePath'))
