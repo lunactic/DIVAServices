@@ -429,7 +429,7 @@ export class ParameterHelper {
             let data = {
                 highlighterHash: hash.MD5(process.inputHighlighters),
                 dataHash: hash.MD5(process.data),
-                paramHash: hash.MD5(process.parameters)
+                paramHash: hash.MD5(process.parameters.outputParams)
             };
             try {
                 await fs.statSync(paramPath).isFile();
@@ -441,6 +441,8 @@ export class ParameterHelper {
                 }).length > 0) {
                     _.remove(content, { "dataHash": data.dataHash, "highlighterHash": data.highlighterHash });
                     await IoHelper.saveFile(paramPath, content, "utf8");
+                    resolve();
+                } else {
                     resolve();
                 }
             } catch (error) {

@@ -233,6 +233,7 @@ export class AlgorithmManagement {
     static async generateFolders(route: string): Promise<void> {
         return new Promise<void>(async (resolve, reject) => {
             await IoHelper.createFolder(nconf.get("paths:executablePath") + path.sep + route);
+            await IoHelper.createFolder(nconf.get("paths:logPath") + path.sep + route);
             await IoHelper.createFolder(nconf.get("paths:jsonPath") + path.sep + route);
             resolve();
         });

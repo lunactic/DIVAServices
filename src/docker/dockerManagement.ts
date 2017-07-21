@@ -165,13 +165,13 @@ export class DockerManagement {
             let key = _.keys(algorithmInfos.input[index])[0];
             if (['json', 'file', 'inputFile'].indexOf(key) >= 0) {
                 //content += String((inputCount + index)) + '=$' + (inputCount + index) + os.EOL;
-                content += 'curl -s -o /data/' + input[key].name + '.' + mime.extension(input[key].options.mimeType) + ' $' + (inputCount + index) + os.EOL;
+                content += 'curl -vs -o /data/' + input[key].name + '.' + mime.extension(input[key].options.mimeType) + ' $' + (inputCount + index) + " 2>/dev/null" + os.EOL;
                 content += input[key].name + '="${' + (inputCount + index) + '##*/}"' + os.EOL;
                 content += 'mv /data/' + input[key].name + '.' + mime.extension(input[key].options.mimeType) + ' /data/$' + input[key].name + os.EOL;
                 content += 'echo ' + input[key].name + ' is using file: ' + '$' + (inputCount + index) + os.EOL;
                 AlgorithmManagement.addRemotePath(identifier, input[key].name, "/data/$" + input[key].name);
             } else if (['folder'].indexOf(key) >= 0) {
-                content += 'curl -s -o /data/' + input[key].name + '.zip' + ' $' + (inputCount + index) + os.EOL;
+                content += 'curl -vs -o /data/' + input[key].name + '.zip' + ' $' + (inputCount + index) + " 2>/dev/null" + os.EOL;
                 content += 'echo ' + input[key].name + ' is using file: ' + '$' + (inputCount + index) + os.EOL;
                 AlgorithmManagement.addRemotePath(identifier, input[key].name, "/data/" + input[key].name + "/");
             }
@@ -228,26 +228,19 @@ export class DockerManagement {
             }
             index++;
         }
-
-        //omit the error output stream for matlab, because it behaves weird
-        if (algorithmInfos.method.executableType === "matlab") {
-            content += '1> /data/result.json' + os.EOL;
-        } else {
-            content += '1> /data/result.json' + os.EOL;
-            //content += '1> /data/result.json 2> /data/error.txt' + os.EOL;
-        }
+        content += os.EOL;
         //add the response sending information
         content += 'if [ -s "/data/error.txt" ]' + os.EOL;
         content += 'then' + os.EOL;
-        content += '    curl -H "Content-Type: text/plain" --data @/data/error.txt $2' + os.EOL;
+        content += '    curl -vs -H "Content-Type: text/plain" --data @/data/error.txt $2' + " 2>/dev/null" + os.EOL;
         content += 'fi' + os.EOL;
         content += 'if [ -s "/data/result.json" ]' + os.EOL;
         content += 'then' + os.EOL;
-        content += '    curl -H "Content-Type: application/json" --data @/data/result.json $1' + os.EOL;
+        content += '    curl -vs -H "Content-Type: application/json" --data @/data/result.json $1' + " 2>/dev/null" + os.EOL;
         content += 'fi' + os.EOL;
         content += 'echo ------------------' + os.EOL;
         content += 'echo END OF DIVASERVICES LOG RECORDING' + os.EOL;
-        content += 'echo ------------------';
+        content += 'echo ------------------' + os.EOL;
         fs.writeFileSync(outputFolder + path.sep + "script.sh", content);
     }
 
@@ -298,34 +291,23 @@ export class DockerManagement {
             //run the docker image (see: https://docs.docker.com/engine/reference/run/)
             let container = null;
             try {
-                var logStream: stream.PassThrough = new stream.PassThrough();
-                var errLogStream: stream.PassThrough = new stream.PassThrough();
+                var logStream: stream.Writable = new stream.Writable();
+                var errLogStream: stream.Writable = new stream.Writable();
                 var logFileStream = fs.createWriteStream(process.stdLogFile);
                 var errFileStream = fs.createWriteStream(process.errLogFile);
-                logStream.on('data', function (chunk: any) {
+
+                logStream._write = function (chunk: any, encoding: string, callback: Function) {
                     logFileStream.write(chunk.toString('utf8'));
-                });
+                    callback();
+                };
 
-                errLogStream.on('data', function (chunk: any) {
+                errLogStream._write = function (chunk: any, encoding: string, callback: Function) {
                     errFileStream.write(chunk.toString('utf8'));
-                });
+                    callback();
+                };
 
-                let container: DOCKER.Container = await this.docker.run(imageName, ['-c', command], process.stdout, { entrypoint: '/bin/sh', Memory: (nconf.get("docker:maxMemory") * 1024 * 1024) }, null);
+                let container: DOCKER.Container = await this.docker.run(imageName, ['-c', command], [logStream, errLogStream], { Tty: false, entrypoint: '/bin/sh', Memory: (nconf.get("docker:maxMemory") * 1024 * 1024) }, null);
 
-                let stdoutStream = await container.logs({ stdout: true });
-                let stdErrStream = await container.logs({ stderr: true });
-
-                container.modem.demuxStream(stdoutStream, logStream, logStream);
-                container.modem.demuxStream(stdErrStream, errLogStream, errLogStream);
-
-                stdoutStream.on('end', function () {
-                    logStream.end();
-                    logFileStream.close();
-                });
-                stdErrStream.on('end', function () {
-                    errLogStream.end();
-                    errFileStream.close();
-                });
                 if (container.output.StatusCode !== 0) {
                     AlgorithmManagement.recordException(process.algorithmIdentifier, "error");
                     throw new Error("error processing the request");
@@ -339,7 +321,7 @@ export class DockerManagement {
             } catch (error) {
                 Logger.log("error", error, "DockerManagement");
                 if (container != null) {
-                    container.remove({ "volumes": true });
+                    await container.remove({ "volumes": true });
                 }
                 return reject(new DivaError(error.message, 500, "DockerError"));
             }
