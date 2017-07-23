@@ -240,7 +240,7 @@ router.post("/jobs/:jobId", async function (req: express.Request, res: express.R
             sendError(res, error);
         }
     } else {
-        res.status(500).end();
+        res.status(200).end();
     }
 });
 

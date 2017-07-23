@@ -485,6 +485,34 @@ export class IoHelper {
     }
 
     /**
+     * get the static url to an image from a relative path
+     *
+     * @static
+     * @param {string} relativeFilePath the relative path to the image
+     * @returns {string} the static url to access this image
+     *
+     * @memberOf IoHelper
+     */
+    static getStaticLogUrlRelative(relativeFilePath: string): string {
+        let rootUrl = nconf.get("server:rootUrl");
+        return "http://" + rootUrl + "/logs/" + relativeFilePath;
+    }
+
+    /**
+     * Get the static url to an image from its absolute path
+     * 
+     * @static
+     * @param {string} fullFilePath the absolute path to the image
+     * @returns {string} the static url to access this image
+     * 
+     * @memberOf IoHelper
+     */
+    static getStaticLogUrlFull(fullFilePath: string): string {
+        let relPath = fullFilePath.replace(nconf.get("paths:logPath") + path.sep, "");
+        return this.getStaticLogUrlRelative(relPath);
+    }    
+
+    /**
      * Checks if the file type of a remote url matches the expected type
      * 
      * @static

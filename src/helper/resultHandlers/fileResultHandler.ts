@@ -106,6 +106,33 @@ export class FileResultHandler implements IResultHandler {
                                         visualization = true;
                                     }
                                 }
+                                //add log files
+                                let stdLogFile = {
+                                    file: {
+                                        "mime-type": "text/plain",
+                                        url: IoHelper.getStaticLogUrlFull(process.stdLogFile),
+                                        name: "standardOutputLog.log",
+                                        options: {
+                                            visualization: false,
+                                            type: "logfile"
+                                        }
+                                    }
+                                };
+                                let errorLogFile = {
+                                    file: {
+                                        "mime-type": "text/plain",
+                                        url: IoHelper.getStaticLogUrlFull(process.errLogFile),
+                                        name: "errorOutputLog.log",
+                                        options: {
+                                            visualization: false,
+                                            type: "logfile"
+                                        }
+                                    }
+                                };
+
+                                data.output.push(stdLogFile);
+                                data.output.push(errorLogFile);
+
                                 //check if a visualization is available
                                 /*if (!visualization) {
                                     let file = {

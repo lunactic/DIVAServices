@@ -88,6 +88,8 @@ header "Compiling codebase"
 #tsc --project .
 
 header "Creating Folders"
+logFolder=($(cat conf/server.dev.json | jq -r '.paths.logPath'))
+mkdir -p ${logFolder}
 imageFolder=($(cat conf/server.dev.json | jq -r '.paths.filesPath'))
 mkdir -p ${imageFolder}
 jsonFolder=($(cat conf/server.dev.json | jq -r '.paths.jsonPath'))
