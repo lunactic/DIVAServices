@@ -181,6 +181,8 @@ export class ExecutableHelper extends EventEmitter {
             try {
                 let serviceInfo = ServicesInfoHelper.getInfoByPath(req.originalUrl);
                 let collection = new Collection();
+                let methodInfo = await IoHelper.openFile(nconf.get("paths:jsonPath") + req.originalUrl + path.sep + "info.json");
+                collection.outputs = methodInfo.output;
                 collection.method = serviceInfo.service;
                 collection.name = RandomWordGenerator.generateRandomWord();
                 collection.outputFolder = IoHelper.getOutputFolder(collection.name);
@@ -211,6 +213,7 @@ export class ExecutableHelper extends EventEmitter {
                     proc.neededData = _.cloneDeep(collection.neededData);
                     proc.parameters = _.cloneDeep(collection.parameters);
                     proc.remotePaths = _.cloneDeep(serviceInfo.remotePaths);
+                    proc.outputs = collection.outputs;
                     proc.matchedParameters = _.cloneDeep(serviceInfo.paramOrder);
                     proc.method = collection.method;
                     proc.rootFolder = collection.name;

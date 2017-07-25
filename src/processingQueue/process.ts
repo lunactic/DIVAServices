@@ -202,6 +202,15 @@ export class Process implements IProcess {
     */
     public result: any;
 
+
+    /**
+     * the defined outputs
+     * 
+     * @type {any[]}
+     * @memberof Process
+     */
+    public outputs: any[];
+
     /**
      * the static url to the results
      * 

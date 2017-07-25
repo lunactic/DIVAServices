@@ -98,6 +98,14 @@ export class Collection implements IProcess {
     public data: any[];
 
     /**
+     * the expected outputs
+     * 
+     * @type {any[]}
+     * @memberof Collection
+     */
+    public outputs: any[];
+
+    /**
      * the processes created in this collection
      * 
      * @type {Process[]}

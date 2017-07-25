@@ -223,7 +223,9 @@ router.post("/jobs/:jobId", async function (req: express.Request, res: express.R
             await process.resultHandler.handleResult(null, null, null, process);
             if (process.type === "test") {
                 try {
-                    await SchemaValidator.validate(await IoHelper.openFile(process.resultFile), "responseSchema");
+                    let results = await IoHelper.openFile(process.resultFile);
+                    await SchemaValidator.validate(results, "responseSchema");
+                    await AlgorithmManagement.testResults(results.output, process.outputs);
                     AlgorithmManagement.updateStatus(null, "ok", process.req.originalUrl, "");
                     await ResultHelper.removeResult(process);
                     res.status(200).end();

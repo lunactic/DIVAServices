@@ -13,6 +13,7 @@ interface IProcess {
     resultFile: string;
     tmpResultFile: string;
     rootFolder: string;
+    outputs: any[];
 }
 
 export = IProcess;
