@@ -666,7 +666,7 @@ export class AlgorithmManagement {
                         break;
                     case "file":
                         var result = _.find(results, function (o: any) {
-                            return Object.keys(o)[0] === "file" && o.file.name.contains(element.file.name);
+                            return Object.keys(o)[0] === "file" && o.file.name.indexOf(element.file.name) !== -1;
                         });
                         if (result == null) {
                             reject(new DivaError("did not find a result for output parameter: " + element.file.name, 500, "ResultValidationError"));

@@ -79,7 +79,7 @@ export class ParameterHelper {
                 for (let key in element) {
                     if (element.hasOwnProperty(key)) {
                         let value = element[key];
-                        if (value.contains("*")) {
+                        if (value.indexOf("*") !== -1) {
                             let collection = value.split("/")[0];
                             let images = IoHelper.readFolder(nconf.get("paths:filesPath") + path.sep + collection + path.sep + "original");
                             images.forEach((value, index, array) => {

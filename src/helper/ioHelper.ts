@@ -9,8 +9,6 @@ import { isNullOrUndefined } from 'util';
 import * as archiver from "archiver";
 import * as fsp from "fs-extra";
 import * as fs from "fs";
-import * as http from "http";
-import * as https from "https";
 import * as nconf from "nconf";
 import * as path from "path";
 import * as request from "request-promise";
@@ -190,24 +188,11 @@ export class IoHelper {
                 await this.checkFileType(fileType, fileUrl);
                 let filename = path.basename(url.parse(fileUrl).pathname);
                 let file = fsp.createWriteStream(localFolder + path.sep + filename);
-                switch (url.parse(fileUrl).protocol) {
-                    case "http:":
-                        http.get(fileUrl, function (response: http.IncomingMessage) {
-                            response.pipe(file);
-                            response.on("end", function () {
-                                resolve(localFolder + path.sep + filename);
-                            });
-                        });
-                        break;
-                    case "https":
-                        https.get(fileUrl, function (response: http.IncomingMessage) {
-                            response.pipe(file);
-                            response.on("end", function () {
-                                resolve(localFolder + path.sep + filename);
-                            });
-                        });
-                        break;
-                }
+                request(fileUrl)
+                    .pipe(file)
+                    .on("close", function () {
+                        resolve(localFolder + path.sep + filename);
+                    });
             } catch (error) {
                 return reject(new DivaError("Error downloading file from: " + fileUrl, 500, "IoError"));
             }
@@ -510,7 +495,7 @@ export class IoHelper {
     static getStaticLogUrlFull(fullFilePath: string): string {
         let relPath = fullFilePath.replace(nconf.get("paths:logPath") + path.sep, "");
         return this.getStaticLogUrlRelative(relPath);
-    }    
+    }
 
     /**
      * Checks if the file type of a remote url matches the expected type
