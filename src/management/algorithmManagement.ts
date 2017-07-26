@@ -649,11 +649,11 @@ export class AlgorithmManagement {
             outputs.forEach(element => {
                 switch (Object.keys(element)[0]) {
                     case "number":
-                        let result = _.find(results, function (o: any) {
+                        var result = _.find(results, function (o: any) {
                             return Object.keys(o)[0] === "number" && o.number.name === element.number.name;
                         });
                         if (result == null) {
-                            reject("did not find a result for output parameter: " + element.number.name);
+                            reject(new DivaError("did not find a result for output parameter: " + element.number.name, 500, "ResultValidationError"));
                         } else {
                             let resultValue = result.number.value;
                             let min: number = element.number.options.min;
@@ -665,6 +665,16 @@ export class AlgorithmManagement {
                         }
                         break;
                     case "file":
+                        var result = _.find(results, function (o: any) {
+                            return Object.keys(o)[0] === "file" && o.file.name.contains(element.file.name);
+                        });
+                        if (result == null) {
+                            reject(new DivaError("did not find a result for output parameter: " + element.file.name, 500, "ResultValidationError"));
+                        } else {
+                            if (result.file["mime-type"] !== element.file.options.mimeType) {
+                                reject(new DivaError("wrong mimeType for parameter: " + element.file.name + " expected " + element.file.options.mimeType + " got " + result.file["mime-type"], 500, "ResultValidationError"));
+                            }
+                        }
                         break;
                     default:
                         break;

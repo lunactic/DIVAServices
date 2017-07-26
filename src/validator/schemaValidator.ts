@@ -16,12 +16,13 @@ export class SchemaValidator {
             try {
                 let errors = SchemaValidator.validator.validate(input, nconf.get(schema)).errors;
                 if (errors.length > 0) {
-                    return reject(new DivaError(JSON.stringify(errors[0].instance) + ":" + errors[0].message, 500, "ValidationError"));
+                    reject(new DivaError(JSON.stringify(errors[0].instance) + ":" + errors[0].message, 500, "ValidationError"));
                 } else {
                     resolve();
                 }
             } catch (error) {
                 Logger.log("error", error, "SchemaValidator");
+                reject(error);
             }
         });
 

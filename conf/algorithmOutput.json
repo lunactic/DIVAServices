@@ -1,0 +1,98 @@
+{
+  "number": {
+    "displayText": "Number",
+    "infoText": "A numeric output",
+    "type": "object",
+    "userdefined": true,
+    "properties": {
+      "name": {
+        "type": "string",
+        "infoText": "Name of the output variable",
+        "minLength": 3,
+        "maxLength": 25,
+        "required": true
+      },
+      "description": {
+        "type": "string",
+        "infoText": "Description of the output variable",
+        "minLength": 0,
+        "maxLength": 255,
+        "required": false
+      },
+      "options": {
+        "type": "object",
+        "properties": {
+          "min": {
+            "infoText": "Minimum value of this variable",
+            "type": "number",
+            "required": true
+          },
+          "max": {
+            "infoText": "Maximum value of this variable",
+            "type": "number",
+            "required": true
+          },
+          "steps": {
+            "infoText": "Step size between values",
+            "type": "number",
+            "required": false
+          }
+        }
+      }
+    }
+  },
+  "text": {
+    "displayText": "Text",
+    "infoText": "An output variable containing text",
+    "type": "object",
+    "userdefined": true,
+    "properties": {
+      "name": {
+        "type": "string",
+        "infoText": "Name of the output variable",
+        "minLength": 3,
+        "maxLength": 25,
+        "required": true
+      },
+      "description": {
+        "type": "string",
+        "infoText": "Description of the parameter",
+        "minLength": 3,
+        "maxLength": 255,
+        "required": false
+      }
+    }
+  },
+  "file": {
+    "displayText": "Output file",
+    "infoText": "An output variable pointing to a file",
+    "type": "object",
+    "userdefined": true,
+    "properties": {
+      "name": {
+        "type": "string",
+        "infoText": "Name of the output file",
+        "minLength": 3,
+        "maxLength": 100,
+        "required": true
+      },
+      "description": {
+        "type": "string",
+        "infoText": "Description of the output variable",
+        "minLength": 3,
+        "maxLength": 255,
+        "required": false
+      },
+      "options": {
+        "type": "object",
+        "properties": {
+          "mimeType": {
+            "infoText": "Mime-Type of the output file",
+            "type": "string",
+            "required": true
+          }
+        }
+      }
+    }
+  }
+}

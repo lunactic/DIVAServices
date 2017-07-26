@@ -4,7 +4,7 @@
 "use strict";
 
 import * as _ from "lodash";
-import * as fs from "fs";
+import * as fs from "fs-extra";
 import { IoHelper } from "./ioHelper";
 import md5 = require("md5");
 import * as nconf from "nconf";
@@ -32,7 +32,8 @@ export class FileHelper {
      * 
      * @memberOf FileHelper
      */
-    static filesInfo = JSON.parse(fs.readFileSync(nconf.get("paths:imageInfoFile"), "utf-8"));
+
+    static filesInfo = IoHelper.openFile(nconf.get("paths:imageInfoFile"));
 
     /**
      * Checks if an image exists on the file system
@@ -98,7 +99,7 @@ export class FileHelper {
                 if (err === null) {
                     resolve(file);
                 } else if (err.code === "ENOENT") {
-                    fs.writeFile(fileObject.path, base64Data, "base64", function (err: any) {
+                    fs.writeFile(fileObject.path, base64Data, {encoding: "base64"}, function (err: any) {
                         resolve(fileObject);
                     });
                 } else {

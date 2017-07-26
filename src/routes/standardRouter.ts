@@ -230,7 +230,7 @@ router.post("/jobs/:jobId", async function (req: express.Request, res: express.R
                     await ResultHelper.removeResult(process);
                     res.status(200).end();
                 } catch (error) {
-                    AlgorithmManagement.updateStatus(null, "error", process.req.originalUrl, error.statusText);
+                    AlgorithmManagement.updateStatus(null, "error", process.req.originalUrl, error.message);
                     await ResultHelper.removeResult(process);
                     sendError(res, error);
                 }
@@ -383,6 +383,11 @@ router.get("/information/general", function (req: express.Request, res: express.
 router.get("/information/input", function (req: express.Request, res: express.Response) {
     let input = IoHelper.openFile("conf/algorithmInput.json");
     sendResponse(res, null, input);
+});
+
+router.get("/information/output", function (req: express.Request, res: express.Response) {
+    let output = IoHelper.openFile("conf/algorithmOutput.json");
+    sendResponse(res, null, output);
 });
 
 router.get("/information/method", function (req: express.Request, res: express.Response) {
