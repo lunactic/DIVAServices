@@ -80,11 +80,11 @@ test_all_mandatory_programs
 #header "Installing global npm packages"
 #install_global_npm_packages
 
-header "Installing local npm packages"
-npm install
-echo "done"
+#header "Installing local npm packages"
+#npm install
+#echo "done"
 
-header "Compiling codebase"
+#header "Compiling codebase"
 #tsc --project .
 
 header "Creating Folders"
