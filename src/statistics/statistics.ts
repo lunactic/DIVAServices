@@ -1,13 +1,16 @@
+import { IoHelper } from '../helper/ioHelper';
 /**
  * Created by Marcel Würsch on 02.11.16.
  */
 "use strict";
 
-import * as _ from "lodash";
-import * as nconf from "nconf";
-import * as fs from "fs";
+import { isNullOrUndefined } from 'util';
+import * as _ from 'lodash';
+import * as nconf from 'nconf';
+import * as fs from 'fs';
 import { Logger } from "../logging/logger";
 import { Process } from "../processingQueue/process";
+import * as path from 'path';
 
 /**
  * class for all statistics
@@ -124,16 +127,17 @@ export class Statistics {
     }
 
 
-    static removeActiveExecution(rand: string) : [number, number] {
+    static removeActiveExecution(rand: string): [number, number] {
         //remove the call from current executions
         let executionInfo = Statistics.currentExecutions.filter(function (x: any) {
-                return x.rand === rand;
+            return x.rand === rand;
         });
         Statistics.currentExecutions = Statistics.currentExecutions.filter(function (x: any) {
             return x.rand !== rand;
         });
         return executionInfo[0].startTime;
     }
+
     /**
      * get the mean execution time for a method
      * 
@@ -168,6 +172,45 @@ export class Statistics {
         } else {
             return 0;
         }
+    }
+
+    static recordUser(proc: Process): Promise<void> {
+        return new Promise<void>(async (resolve, reject) => {
+            let usageLogFile: string = proc.logFolder + path.sep + "usage.log";
+            let content = null;
+            if (!await IoHelper.fileExists(usageLogFile)) {
+                content = {
+                    users: [
+                        {
+                            name: proc.identification.name,
+                            email: proc.identification.email,
+                            country: proc.identification.country,
+                            uses: 1
+                        }
+                    ]
+                };
+            } else {
+                content = IoHelper.openFile(usageLogFile);
+
+                let filtered = _.filter(content.users, function (o: any) {
+                    return o.name === proc.identification.name && o.email === proc.identification.email && o.country === proc.identification.country;
+                });
+
+                if (filtered.length > 0) {
+                    filtered[0].uses = filtered[0].uses + 1;
+                } else {
+                    content.users.push({
+                        name: proc.identification.name,
+                        email: proc.identification.email,
+                        country: proc.identification.country,
+                        uses: 1
+                    });
+                }
+            }
+            await IoHelper.saveFile(usageLogFile, content, "utf-8");
+            resolve();
+        });
+
     }
 
     /**

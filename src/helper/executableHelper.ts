@@ -190,6 +190,9 @@ export class ExecutableHelper extends EventEmitter {
                 collection.inputParameters = _.cloneDeep(req.body.parameters);
                 collection.inputData = _.cloneDeep(req.body.data);
                 collection.resultFile = nconf.get("paths:resultsPath") + path.sep + collection.name + ".json";
+                if (!isNullOrUndefined(req.body.identification)) {
+                    collection.identification = req.body.identification;
+                }
                 this.setCollectionHighlighter(collection, req);
                 collection.neededParameters = serviceInfo.parameters;
                 collection.neededData = serviceInfo.data;
@@ -222,6 +225,11 @@ export class ExecutableHelper extends EventEmitter {
                     proc.executablePath = serviceInfo.executablePath;
                     proc.resultType = serviceInfo.output;
                     proc.type = executionType;
+                    proc.logFolder = collection.logFolder;
+                    if (!isNullOrUndefined(collection.identification)) {
+                        proc.identification = _.cloneDeep(collection.identification);
+                        Statistics.recordUser(proc);
+                    }
                     //assign temporary file paths, these might change if existing results are found
                     proc.resultFile = IoHelper.buildResultfilePath(proc.outputFolder, proc.methodFolder);
                     proc.tmpResultFile = IoHelper.buildTempResultfilePath(proc.outputFolder, proc.methodFolder);

@@ -152,6 +152,15 @@ export class Collection implements IProcess {
      */
     public logFolder: string;
 
+    /**
+     * Identification information about the creator
+     * 
+     * @type {*}
+     * @memberof Collection
+     */
+    public identification: any;
+
+
     constructor() {
         this.method = "";
         this.name = "";

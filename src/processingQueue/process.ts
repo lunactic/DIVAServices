@@ -284,7 +284,21 @@ export class Process implements IProcess {
      */
     public errLogFile: string;
 
+    /**
+     * Path to the log files folder
+     * 
+     * @type {string}
+     * @memberof Process
+     */
+    public logFolder: string;
 
+    /**
+     * Identification information
+     * 
+     * @type {*}
+     * @memberof Process
+     */
+    public identification: any;
 
     /**
      * build the static url to access the result file

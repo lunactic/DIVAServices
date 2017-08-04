@@ -14,6 +14,7 @@ interface IProcess {
     tmpResultFile: string;
     rootFolder: string;
     outputs: any[];
+    identification: any;
 }
 
 export = IProcess;
