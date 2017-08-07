@@ -122,8 +122,6 @@ router.post("/collections", async function (req: express.Request, res: express.R
     }
 });
 
-
-//TODO: TEST THIS!
 router.put("/collections/:collectionName", async function (req: express.Request, res: express.Response) {
     let collectionName = req.params["collectionName"];
     let numOfFiles: number = 0;
@@ -363,6 +361,15 @@ router.delete("/collections/:collection", function (req: express.Request, res: e
     } catch (error) {
         sendResponse(res, error, null);
     }
+});
+
+router.delete("/collections/:collection/:md5", async function (req: express.Request, res: express.Response) {
+    let collection = FileHelper.loadCollection(req.params.collection, null);
+    let filtered = _.filter(collection, function(o: DivaFile){
+        return o.md5 === req.params.md5;
+    });
+    await FileHelper.deleteFile(filtered[0]);
+    res.status(200).send();
 });
 
 router.get("/files/:md5/check", async function (req: express.Request, res: express.Response) {

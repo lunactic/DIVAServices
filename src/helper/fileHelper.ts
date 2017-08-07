@@ -99,7 +99,7 @@ export class FileHelper {
                 if (err === null) {
                     resolve(file);
                 } else if (err.code === "ENOENT") {
-                    fs.writeFile(fileObject.path, base64Data, {encoding: "base64"}, function (err: any) {
+                    fs.writeFile(fileObject.path, base64Data, { encoding: "base64" }, function (err: any) {
                         resolve(fileObject);
                     });
                 } else {
@@ -405,6 +405,14 @@ export class FileHelper {
         await IoHelper.saveFile(nconf.get("paths:filesPath") + path.sep + collectionName + path.sep + "status.json", currentStatus, "utf-8");
     }
 
+    /**
+     * Deletes a collection from DIVAServices
+     * 
+     * @static
+     * @param {string} collection the name of the collection to delete
+     * @returns {Promise<void>} 
+     * @memberof FileHelper
+     */
     static async deleteCollection(collection: string): Promise<void> {
         return new Promise<void>(async (resolve, reject) => {
             let files: DivaFile[] = this.loadCollection(collection, null);
@@ -416,8 +424,30 @@ export class FileHelper {
             }
             await this.saveFileInfo();
             IoHelper.deleteFolder(nconf.get("paths:filesPath") + path.sep + collection);
+            resolve();
         });
     }
+
+    /**
+     * Removes a single file from DIVAServices
+     * 
+     * @static
+     * @param {DivaFile} file the file to remove
+     * @returns {Promise<void>} 
+     * @memberof FileHelper
+     */
+    static async deleteFile(file: DivaFile): Promise<void> {
+        return new Promise<void>(async(resolve, reject) => {
+            _.remove(this.filesInfo, function (item: any) {
+                return item.md5 === file.md5 && item.collection === file.collection;
+            });
+            await this.saveFileInfo();
+            await IoHelper.deleteFile(file.path);
+            resolve();
+        });
+    }
+
+
     /**
      * Check if a collection exists
      * 
