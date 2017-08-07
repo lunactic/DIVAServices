@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 FROM node:8.2
 
 # Force git to use HTTPS transport

@@ -12,13 +12,13 @@ header "cleaning folders"
 logFolder=($(cat conf/server.dev.json | jq -r '.paths.logPath'))
 rm -r ${logFolder}/
 imageFolder=($(cat conf/server.dev.json | jq -r '.paths.filesPath'))
-rm -r ${imageFolder}/
+rm -rf ${imageFolder}/
 jsonFolder=($(cat conf/server.dev.json | jq -r '.paths.jsonPath'))
-rm -r ${jsonFolder}/
+rm -rf ${jsonFolder}/
 executableFolder=($(cat conf/server.dev.json | jq -r '.paths.executablePath'))
-rm -r ${executableFolder}/
+rm -rf ${executableFolder}/
 resultsFolder=($(cat conf/server.dev.json | jq -r '.paths.resultsPath'))
-rm -r ${resultsFolder}/
+rm -rf ${resultsFolder}/
 
 header "Creating Folders"
 imageFolder=($(cat conf/server.dev.json | jq -r '.paths.filesPath'))
@@ -30,6 +30,7 @@ mkdir -p ${executableFolder}
 mkdir -p ${resultsFolder}
 mkdir -p ${logFolder}
 mkdir -p ${imageFolder}/test/original
+mkdir -p ${resultsFolder}/
 
 header "Creating Files"
 imageInfoFile=($(cat conf/server.dev.json | jq -r '.paths.imageInfoFile'))
