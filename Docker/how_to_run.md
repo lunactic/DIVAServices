@@ -3,7 +3,7 @@ How to start the Docker image for testing DIVAServices
 
 To run application, launch the container with the appropriate commmand:
 ~~~
-docker run -it --rm --name divaservices-app --network "host" divaservices
+docker run -it --rm --name divaservices-app -e NODE_ENV=dev -p 8080:8080 divaservices
 ~~~
 
 FIXME --network "host" should be changed to something which specifies the DNS servers if needed
@@ -17,7 +17,7 @@ TODO also read the rootUrl from an environment variable
 Alternatively, to be able to inspect the container, you can run a shell 
 within the container to launch commands manually (notice the `bash`).
 ~~~
-docker run -it --rm --name divaservices-app --network "host" divaservices bash
+docker run -it --rm --name divaservices-app -e NODE_ENV=dev -p 8080:8080 divaservices bash
 ~~~
 
 

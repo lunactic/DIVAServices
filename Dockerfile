@@ -1,19 +1,17 @@
-<<<<<<< HEAD
 FROM node:8.2
 
 # Force git to use HTTPS transport
 RUN git config --global url.https://github.com/.insteadOf git://github.com/
 
 # Install application dependencies (copie from node:6.11-onbuild)
-RUN mkdir -p /usr/src/app
+RUN mkdir -p /code
 RUN mkdir /data
-WORKDIR /usr/src/app
+WORKDIR /code
 ARG NODE_ENV
 ENV NODE_ENV $NODE_ENV
-COPY package.json /usr/src/app/
+ADD . /code
 RUN npm install -g typings
 RUN npm install
-COPY . /usr/src/app
 
 # Install extra tools
 RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y \
