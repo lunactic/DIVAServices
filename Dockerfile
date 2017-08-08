@@ -4,27 +4,21 @@ FROM node:8.2
 RUN git config --global url.https://github.com/.insteadOf git://github.com/
 
 # Install application dependencies (copie from node:6.11-onbuild)
-RUN mkdir -p /code
+RUN mkdir -p /code/conf
 RUN mkdir /data
+RUN npm install -g typings
+# Install typescript globally so we can rebuild scripts upon startup
+RUN npm install -g typescript 
+
 WORKDIR /code
 ARG NODE_ENV
 ENV NODE_ENV $NODE_ENV
-ADD . /code
-RUN npm install -g typings
-RUN npm install
-
+#ADD . /code
 # Install extra tools
 RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y \
   jq
 
-# Install typescript globally so we can rebuild scripts upon startup
-RUN npm install -g typescript 
-RUN npm build
-RUN ./scripts/setup.sh
-
-# Prepare the application (done in dev startup script)
-# RUN scripts/setup.sh
-
+RUN npm install
 # Make sure we have some logs directory ready for use
 RUN mkdir logs
 

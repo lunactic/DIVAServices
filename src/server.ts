@@ -9,18 +9,27 @@ import * as _ from "lodash";
 import * as nconf from "nconf";
 import * as bodyParser from "body-parser";
 import * as express from "express";
+import * as session from "express-session";
 import * as path from "path";
 import * as fs from "fs";
 import * as morgan from "morgan";
 import * as mime from "mime";
+import * as mongoose from "mongoose";
+import * as passport from "passport";
+import * as redis from "redis";
+import {Account} from "./models/account";
 import { Logger } from "./logging/logger";
 import { Statistics } from "./statistics/statistics";
 import { FileHelper } from "./helper/fileHelper";
 import { QueueHandler } from "./processingQueue/queueHandler";
-let router = require("./routes/standardRouter");
-let algorithmRouter = require("./routes/algorithmRouter");
-let ipFilter = require("express-ipfilter").IpFilter;
-let IpDeniedError = require("express-ipfilter").IpDeniedError;
+import { Strategy as LocalStrategy } from "passport-local";
+
+var router = require("./routes/standardRouter");
+var algorithmRouter = require("./routes/algorithmRouter");
+var specialMethodsRouter = require("./routes/specialMethodsRouter");
+var ipFilter = require("express-ipfilter").IpFilter;
+var IpDeniedError = require("express-ipfilter").IpDeniedError;
+var redisStore = require("connect-redis")(session);
 /**
  * The server.
  *
@@ -29,7 +38,8 @@ let IpDeniedError = require("express-ipfilter").IpDeniedError;
 class Server {
 
     public app: express.Application;
-
+    public client: redis.RedisClient;
+    public conn: mongoose.MongooseThenable;
     /**
      * Bootstrap the application.
      *
@@ -52,7 +62,11 @@ class Server {
     constructor() {
         //create express js application
         this.app = express();
-
+        this.client = redis.createClient();
+        mongoose.Promise = global.Promise;
+        this.conn = mongoose.connect("mongodb://localhost:27017/divaservices", {
+            useMongoClient: true,
+        });
         //configure application
         this.config();
 
@@ -121,6 +135,19 @@ class Server {
                 res.json(error);
             }
         });
+
+        //configure redis
+        this.app.use(session({
+            secret: '1I2Am3Very4Secret!',
+            store: new redisStore({ host: 'localhost', port: 6379, client: this.client, ttl: 260 }),
+            saveUninitialized: false,
+            resave: false
+        }));
+        this.app.use(passport.initialize());
+        this.app.use(passport.session());
+        passport.use(new LocalStrategy(Account.authenticate()));
+        passport.serializeUser(Account.serializeUser());
+        passport.deserializeUser(Account.deserializeUser());
     }
 
     private routes() {
@@ -136,7 +163,7 @@ class Server {
         let whiteIps = nconf.get("server:managementWhitelistIp");
         this.app.use(ipFilter(whiteIps, { mode: 'allow', logLevel: 'deny' }));
         this.app.use(algorithmRouter);
-
+        this.app.use(specialMethodsRouter);
     }
 }
 

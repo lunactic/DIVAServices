@@ -278,7 +278,7 @@ router.post("/validate/:schema", async function (req: express.Request, res: expr
  * method handler
  */
 router.post("*", async function (req: express.Request, res: express.Response, next: express.NextFunction) {
-    if (unlike(req, "/algorithm")) {
+    if (unlike(req, "/algorithm") && unlike(req, "/mgmt")) {
         try {
             let response = await PostHandler.handleRequest(req);
             response["statusCode"] = 202;
@@ -365,7 +365,7 @@ router.delete("/collections/:collection", function (req: express.Request, res: e
 
 router.delete("/collections/:collection/:md5", async function (req: express.Request, res: express.Response) {
     let collection = FileHelper.loadCollection(req.params.collection, null);
-    let filtered = _.filter(collection, function(o: DivaFile){
+    let filtered = _.filter(collection, function (o: DivaFile) {
         return o.md5 === req.params.md5;
     });
     await FileHelper.deleteFile(filtered[0]);
@@ -425,7 +425,7 @@ router.get("/openapi", function (req: express.Request, res: express.Response) {
 });
 
 router.get("*", async function (req: express.Request, res: express.Response, next: express.NextFunction) {
-    if (unlike(req, "/algorithms")) {
+    if (unlike(req, "/algorithms") && unlike(req, "/mgmt")) {
         try {
             var response = await GetHandler.handleRequest(req);
             sendResponse(res, null, response);
