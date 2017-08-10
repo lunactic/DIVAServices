@@ -33,10 +33,12 @@ router.post("/mgmt/register", function (req: express.Request, res: express.Respo
 router.get("/mgmt/clearData", function (req: express.Request, res: express.Response, next: express.NextFunction) {
     passport.authenticate('local', function (err: any, user: any, info: any) {
         if (err) {
-            res.status(500).send();
+            res.status(401).send();
+            return;
         }
         if (!user) {
-            res.status(500).send();
+            res.status(403).send();
+            return;
         }
         req.logIn(user, (err: any) => {
             let collections = FileHelper.getAllCollections();
