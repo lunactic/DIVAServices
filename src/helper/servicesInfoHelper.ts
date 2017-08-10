@@ -22,7 +22,7 @@ export class ServicesInfoHelper {
      * 
      * @memberOf ServicesInfoHelper
      */
-    static fileContent = IoHelper.openFile(nconf.get("paths:servicesInfoFile"));
+    static fileContent = IoHelper.readFile(nconf.get("paths:servicesInfoFile"));
 
     /**
      * get service information for a route
@@ -96,7 +96,7 @@ export class ServicesInfoHelper {
      * @memberOf ServicesInfoHelper
      */
     static reload(): void {
-        this.fileContent = IoHelper.openFile(nconf.get("paths:servicesInfoFile"));
+        this.fileContent = IoHelper.readFile(nconf.get("paths:servicesInfoFile"));
     }
 
     /**

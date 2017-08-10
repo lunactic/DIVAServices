@@ -221,7 +221,7 @@ router.post("/jobs/:jobId", async function (req: express.Request, res: express.R
             await process.resultHandler.handleResult(null, null, null, process);
             if (process.type === "test") {
                 try {
-                    let results = await IoHelper.openFile(process.resultFile);
+                    let results = await IoHelper.readFile(process.resultFile);
                     await SchemaValidator.validate(results, "responseSchema");
                     await AlgorithmManagement.testResults(results.output, process.outputs);
                     AlgorithmManagement.updateStatus(null, "ok", process.req.originalUrl, "");
@@ -383,43 +383,43 @@ router.get("/files/:md5/check", async function (req: express.Request, res: expre
 
 //info routes
 router.get("/information/general", function (req: express.Request, res: express.Response) {
-    let general = IoHelper.openFile("conf/algorithmGeneral.json");
+    let general = IoHelper.readFile("conf/algorithmGeneral.json");
     sendResponse(res, null, general);
 });
 
 router.get("/information/input", function (req: express.Request, res: express.Response) {
-    let input = IoHelper.openFile("conf/algorithmInput.json");
+    let input = IoHelper.readFile("conf/algorithmInput.json");
     sendResponse(res, null, input);
 });
 
 router.get("/information/output", function (req: express.Request, res: express.Response) {
-    let output = IoHelper.openFile("conf/algorithmOutput.json");
+    let output = IoHelper.readFile("conf/algorithmOutput.json");
     sendResponse(res, null, output);
 });
 
 router.get("/information/method", function (req: express.Request, res: express.Response) {
-    let method = IoHelper.openFile("conf/algorithmMethod.json");
+    let method = IoHelper.readFile("conf/algorithmMethod.json");
     sendResponse(res, null, method);
 });
 
 //schema routes
 router.get("/schemas/create", function (req: express.Request, res: express.Response) {
-    let create = IoHelper.openFile("conf/schemas/createAlgorithmSchema.json");
+    let create = IoHelper.readFile("conf/schemas/createAlgorithmSchema.json");
     sendResponse(res, null, create);
 });
 
 router.get("/schemas/details", function (req: express.Request, res: express.Response) {
-    let details = IoHelper.openFile("conf/schemas/detailsAlgorithmSchema.json");
+    let details = IoHelper.readFile("conf/schemas/detailsAlgorithmSchema.json");
     sendResponse(res, null, details);
 });
 
 router.get("/schemas/general", function (req: express.Request, res: express.Response) {
-    let general = IoHelper.openFile("conf/schemas/generalAlgorithmSchema.json");
+    let general = IoHelper.readFile("conf/schemas/generalAlgorithmSchema.json");
     sendResponse(res, null, general);
 });
 
 router.get("/openapi", function (req: express.Request, res: express.Response) {
-    let swagger = IoHelper.openFile(nconf.get("paths:swaggerFile"));
+    let swagger = IoHelper.readFile(nconf.get("paths:swaggerFile"));
     swagger = JSON.parse(JSON.stringify(swagger).replace(new RegExp("\\$BASEURL$\\", "g"), nconf.get("server:rootUrl")));
     sendResponse(res, null, swagger);
 });

@@ -341,7 +341,7 @@ export class ParameterHelper {
 
             try {
                 fs.statSync(methodPath).isFile();
-                let content = IoHelper.openFile(methodPath);
+                let content = IoHelper.readFile(methodPath);
                 //only save the information if it is not already present
                 if (_.filter(content, _.filter(content, {
                     "highlighterHash": data.highlighterHash,
@@ -385,7 +385,7 @@ export class ParameterHelper {
             };
             try {
                 await fs.statSync(paramPath).isFile();
-                let content = IoHelper.openFile(paramPath);
+                let content = IoHelper.readFile(paramPath);
                 let info: any = {};
                 if ((info = _.filter(content, {
                     "highlighterHash": data.highlighterHash,
@@ -433,7 +433,7 @@ export class ParameterHelper {
             };
             try {
                 await fs.statSync(paramPath).isFile();
-                let content = IoHelper.openFile(paramPath);
+                let content = IoHelper.readFile(paramPath);
                 if (_.filter(content, {
                     "dataHash": data.dataHash,
                     "highlighterHash": data.highlighterHash,

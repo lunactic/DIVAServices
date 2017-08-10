@@ -17,7 +17,7 @@ import * as mime from "mime";
 import * as mongoose from "mongoose";
 import * as passport from "passport";
 import * as redis from "redis";
-import {Account} from "./models/account";
+import { Account } from "./models/account";
 import { Logger } from "./logging/logger";
 import { Statistics } from "./statistics/statistics";
 import { FileHelper } from "./helper/fileHelper";
@@ -30,6 +30,7 @@ var specialMethodsRouter = require("./routes/specialMethodsRouter");
 var ipFilter = require("express-ipfilter").IpFilter;
 var IpDeniedError = require("express-ipfilter").IpDeniedError;
 var redisStore = require("connect-redis")(session);
+
 /**
  * The server.
  *
@@ -40,6 +41,7 @@ class Server {
     public app: express.Application;
     public client: redis.RedisClient;
     public conn: mongoose.MongooseThenable;
+
     /**
      * Bootstrap the application.
      *
@@ -62,18 +64,6 @@ class Server {
     constructor() {
         //create express js application
         this.app = express();
-        this.client = redis.createClient();
-        mongoose.Promise = global.Promise;
-        this.conn = mongoose.connect("mongodb://localhost:27017/divaservices", {
-            useMongoClient: true,
-        });
-        //configure application
-        this.config();
-
-        //configure routes
-        this.routes();
-
-
     }
 
     /**
@@ -165,6 +155,23 @@ class Server {
         this.app.use(algorithmRouter);
         this.app.use(specialMethodsRouter);
     }
+
+    public initParams(params: any) {
+        nconf.set("server:rootUrl", params.rootIp);
+        nconf.set("docker:host", params.dockerIp);
+        nconf.set("docker:port", params.dockerPort);
+        nconf.set("docker:reportHost", params.dockerReport);
+        this.client = redis.createClient();
+        mongoose.Promise = global.Promise;
+        this.conn = mongoose.connect("mongodb://localhost:27017/divaservices", {
+            useMongoClient: true,
+        });
+        //configure application
+        this.config();
+
+        //configure routes
+        this.routes();
+    }
 }
 
 
@@ -180,4 +187,4 @@ process.on('unhandledRejection', (reason, p) => {
     // application specific logging, throwing an error, or other logic here
 });
 
-export = Server.bootstrap().app;
+export = Server.bootstrap();

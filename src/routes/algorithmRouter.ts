@@ -57,34 +57,13 @@ router.post("/algorithms", async function (req: express.Request, res: express.Re
                     break;
                 case 410:
                     //algorithm was deleted, create a new one
-                    IoHelper.deleteFolder(nconf.get("paths:executablePath") + path.sep + route);
-                    let identifier = AlgorithmManagement.createIdentifier();
-                    try {
-                        AlgorithmManagement.generateFolders(route);
-                        AlgorithmManagement.removeFromRootInfoFile("/" + route);
-                        AlgorithmManagement.removeFromServiceInfoFile("/" + baseroute);
-                        let response = await AlgorithmManagement.createAlgorithm(req, res, route, identifier, imageName, version, baseroute);
-                        sendWithStatus(res, response);
-                    } catch (error) {
-                        sendError(res, error);
-                    }
+                    var resp = await AlgorithmManagement.recreateAlgorithm(req, route, imageName, version, baseroute);
+                    sendWithStatus(res, resp);
                     break;
                 case 500:
                     //currently in error. Delete the current image and create a new one
-                    IoHelper.deleteFolder(nconf.get("paths:executablePath") + path.sep + route);
-                    AlgorithmManagement.generateFolders(route);
-                    AlgorithmManagement.removeFromRootInfoFile("/" + route);
-                    AlgorithmManagement.removeFromServiceInfoFile("/" + baseroute);
-                    try {
-                        //await DockerManagement.removeImage(status.image_name);
-                        let identifier = AlgorithmManagement.createIdentifier();
-                        //AlgorithmManagement.updateIdentifier("/" + route, identifier);
-                        let response = await AlgorithmManagement.createAlgorithm(req, res, route, identifier, imageName, version, baseroute);
-                        sendWithStatus(res, response);
-
-                    } catch (error) {
-                        sendError(res, error);
-                    }
+                    var resp = await AlgorithmManagement.recreateAlgorithm(req, route, imageName, version, baseroute);
+                    sendWithStatus(res, resp);
                     break;
                 default:
                     let response = {
@@ -98,9 +77,8 @@ router.post("/algorithms", async function (req: express.Request, res: express.Re
         } else {
             //create a new algorithm
             let identifier = AlgorithmManagement.createIdentifier();
-            await AlgorithmManagement.generateFolders(route);
             try {
-                let response = await AlgorithmManagement.createAlgorithm(req, res, route, identifier, imageName, version, baseroute);
+                let response = await AlgorithmManagement.createAlgorithm(req, route, identifier, imageName, version, baseroute);
                 sendWithStatus(res, response);
             } catch (error) {
                 Logger.log("error", error.message, "AlgorithmRouter");
@@ -129,24 +107,12 @@ router.put("/algorithms/:identifier", async function (req: express.Request, res:
         routeParts[routeParts.length - 1]++;
         let newRoute = routeParts.join("/");
         let version: number = parseInt(routeParts[routeParts.length - 1]);
-        switch (serviceInfo.status.statusCode) {
-            case 410:
-                //error recovery
-                AlgorithmManagement.removeFromServiceInfoFile(newRoute);
-                break;
-            default:
-                AlgorithmManagement.updateStatus(req.params.identifier, "delete", null, null);
-                //remove /route/info.json file
-                AlgorithmManagement.deleteInfoFile(nconf.get("paths:jsonPath") + serviceInfo.path);
-                AlgorithmManagement.removeFromRootInfoFile(serviceInfo.path);
-                break;
-        }
+        AlgorithmManagement.removeFromRootInfoFile(serviceInfo.path);
         try {
-            await DockerManagement.removeImage(serviceInfo.image_name);
             await SchemaValidator.validate(req.body, "createSchema");
             let identifier = AlgorithmManagement.createIdentifier();
             let imageName = AlgorithmManagement.generateImageName(req.body, version);
-            let response = await AlgorithmManagement.createAlgorithm(req, res, newRoute, identifier, imageName, version, baseroute);
+            let response = await AlgorithmManagement.createAlgorithm(req, newRoute, identifier, imageName, version, baseroute);
             sendWithStatus(res, response);
         } catch (error) {
             sendError(res, error);

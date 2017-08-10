@@ -37,7 +37,6 @@ export class AlgorithmManagement {
      * 
      * @static
      * @param {express.Request} req the incoming POST request
-     * @param {express.Response} res the HTTP response object
      * @param {string} route the called route
      * @param {string} identifier the identifier to use
      * @param {string} imageName the name of the image
@@ -46,9 +45,10 @@ export class AlgorithmManagement {
      * 
      * @memberOf AlgorithmManagement
      */
-    static async createAlgorithm(req: express.Request, res: express.Response, route: string, identifier: string, imageName: string, version: number, baseroute: string): Promise<any> {
+    static async createAlgorithm(req: express.Request, route: string, identifier: string, imageName: string, version: number, baseroute: string): Promise<any> {
         return new Promise<any>(async (resolve, reject) => {
             try {
+                await AlgorithmManagement.generateFolders(route);
                 AlgorithmManagement.updateServicesFile(req.body, identifier, route, imageName, version, baseroute);
                 await IoHelper.downloadFileWithTypecheck(req.body.method.file, nconf.get("paths:executablePath") + path.sep + route, "application/zip");
                 //create docker file
@@ -85,7 +85,7 @@ export class AlgorithmManagement {
                                     inputs[input.text.name] = input.text.options.default;
                                     break;
                                 case "json":
-                                    inputs[input.json.name] = IoHelper.openFile(nconf.get("paths:testPath") + path.sep + "json" + path.sep + "array.json");
+                                    inputs[input.json.name] = IoHelper.readFile(nconf.get("paths:testPath") + path.sep + "json" + path.sep + "array.json");
                                     break;
                                 case "file":
                                     data[input.file.name] = nconf.get("paths:executablePath") + path.sep + route + path.sep + input.file.name + "." + mime.extension(input.file.options.mimeType);
@@ -129,7 +129,7 @@ export class AlgorithmManagement {
                     QueueHandler.runningDockerJobs.push(job);
                     await ExecutableHelper.executeDockerRequest(job);
                     await AlgorithmManagement.updateRootInfoFile(req.body, route);
-                    let info = IoHelper.openFile(nconf.get("paths:jsonPath") + path.sep + route + path.sep + "info.json");
+                    let info = IoHelper.readFile(nconf.get("paths:jsonPath") + path.sep + route + path.sep + "info.json");
                     Swagger.createEntry(info, route);
 
                 } catch (error) {
@@ -144,6 +144,32 @@ export class AlgorithmManagement {
     }
 
     /**
+     * Reuse a route from a deleted algorithm
+     * 
+     * @static
+     * @param {express.Request} req the incoming POST request 
+     * @param {string} route the called route
+     * @param {string} imageName the name of the image to generate
+     * @param {number} version the version number
+     * @param {string} baseroute the base route information
+     * @returns {Promise<any>} 
+     * @memberof AlgorithmManagement
+     */
+    static async recreateAlgorithm(req: express.Request, route: string, imageName: string, version: number, baseroute: string): Promise<any> {
+        return new Promise(async (resolve, reject) => {
+            IoHelper.deleteFolder(nconf.get("paths:executablePath") + path.sep + route);
+            let identifier = AlgorithmManagement.createIdentifier();
+            try {
+                AlgorithmManagement.removeFromRootInfoFile("/" + route);
+                AlgorithmManagement.removeFromServiceInfoFile("/" + baseroute);
+                let response = await AlgorithmManagement.createAlgorithm(req, route, identifier, imageName, version, baseroute);
+            } catch (error) {
+                reject(error);
+            }
+        });
+    }
+
+    /**
      * get the status of an algorithm based on its identifier
      * 
      * @static
@@ -153,7 +179,7 @@ export class AlgorithmManagement {
      * @memberOf AlgorithmManagement
      */
     static getStatusByIdentifier(identifier: string): any {
-        let content = IoHelper.openFile(nconf.get("paths:servicesInfoFile"));
+        let content = IoHelper.readFile(nconf.get("paths:servicesInfoFile"));
         let info: any = _.find(content.services, { "identifier": identifier });
         if (info != null) {
             let message = {
@@ -176,7 +202,7 @@ export class AlgorithmManagement {
      * @memberOf AlgorithmManagement
      */
     static getStatusByRoute(route: string): any {
-        let content = IoHelper.openFile(nconf.get("paths:servicesInfoFile"));
+        let content = IoHelper.readFile(nconf.get("paths:servicesInfoFile"));
         let status = _.find(content.services, { "baseRoute": route });
         if (status != null) {
             return status;
@@ -186,7 +212,7 @@ export class AlgorithmManagement {
     }
 
     static getVersionByBaseRoute(route: string): number {
-        let content = IoHelper.openFile(nconf.get("paths:servicesInfoFile"));
+        let content = IoHelper.readFile(nconf.get("paths:servicesInfoFile"));
         let algorithm: any = _.find(content.services, { "baseroute": route });
         if (algorithm != null) {
             return algorithm.version;
@@ -309,7 +335,7 @@ export class AlgorithmManagement {
      * @memberOf AlgorithmManagement
      */
     static async updateRootInfoFile(algorithm: any, route: string) {
-        let fileContent = IoHelper.openFile(nconf.get("paths:rootInfoFile"));
+        let fileContent = IoHelper.readFile(nconf.get("paths:rootInfoFile"));
         let newEntry = {
             name: algorithm.general.name,
             description: algorithm.general.description,
@@ -330,7 +356,7 @@ export class AlgorithmManagement {
      * @memberOf AlgorithmManagement
      */
     static async removeFromRootInfoFile(route: string) {
-        let fileContent = IoHelper.openFile(nconf.get("paths:rootInfoFile"));
+        let fileContent = IoHelper.readFile(nconf.get("paths:rootInfoFile"));
         _.remove(fileContent, function (entry: any) {
             return entry.url === "http://$BASEURL$" + route;
         });
@@ -346,7 +372,7 @@ export class AlgorithmManagement {
      * @memberOf AlgorithmManagement
      */
     static async removeFromServiceInfoFile(route: string) {
-        let fileContent = IoHelper.openFile(nconf.get("paths:servicesInfoFile"));
+        let fileContent = IoHelper.readFile(nconf.get("paths:servicesInfoFile"));
         _.remove(fileContent.services, { "baseRoute": route });
         await IoHelper.saveFile(nconf.get("paths:servicesInfoFile"), fileContent, "utf8");
         ServicesInfoHelper.reload();
@@ -364,7 +390,7 @@ export class AlgorithmManagement {
      * @memberOf AlgorithmManagement
      */
     static async updateStatus(identifier: string, status: string, route: string, message: string) {
-        let content = IoHelper.openFile(nconf.get("paths:servicesInfoFile"));
+        let content = IoHelper.readFile(nconf.get("paths:servicesInfoFile"));
         let currentInfo: any = {};
         if (identifier != null && _.find(content.services, { "identifier": identifier }) != null) {
             currentInfo = _.find(content.services, { "identifier": identifier });
@@ -407,7 +433,7 @@ export class AlgorithmManagement {
      * @memberOf AlgorithmManagement
      */
     static async updateRoute(identifier: string, route: string) {
-        let content = IoHelper.openFile(nconf.get("paths:servicesInfoFile"));
+        let content = IoHelper.readFile(nconf.get("paths:servicesInfoFile"));
         if (identifier != null && _.find(content.services, { "identifier": identifier }) != null) {
             let currentInfo: any = _.find(content.services, { "identifier": identifier });
             currentInfo.path = route;
@@ -427,7 +453,7 @@ export class AlgorithmManagement {
      * @memberOf AlgorithmManagement
      */
     static async addUrlParameter(identifier: string, parameterName: string) {
-        let content = IoHelper.openFile(nconf.get("paths:servicesInfoFile"));
+        let content = IoHelper.readFile(nconf.get("paths:servicesInfoFile"));
         if (identifier != null && _.find(content.services, { "identifier": identifier }) != null) {
             let currentInfo: any = _.find(content.services, { "identifier": identifier });
             let info: any = {};
@@ -461,7 +487,7 @@ export class AlgorithmManagement {
      * @memberOf AlgorithmManagement
      */
     static async addRemotePath(identifier: string, parameterName: string, remotePath: string) {
-        let content = IoHelper.openFile(nconf.get("paths:servicesInfoFile"));
+        let content = IoHelper.readFile(nconf.get("paths:servicesInfoFile"));
         if (identifier != null && _.find(content.services, { "identifier": identifier }) != null) {
             let currentInfo: any = _.find(content.services, { "identifier": identifier });
             let info: any = {};
@@ -481,7 +507,7 @@ export class AlgorithmManagement {
     }
 
     static hasRemotePath(identifier: string, parameterName: string): boolean {
-        let content = IoHelper.openFile(nconf.get("paths:servicesInfoFile"));
+        let content = IoHelper.readFile(nconf.get("paths:servicesInfoFile"));
         if (identifier != null && _.find(content.services, { "identifier": identifier }) != null) {
             let currentInfo: any = _.find(content.services, { "identifier": identifier });
             let remotePath = _.find(currentInfo.remotePaths, function (path: any) {
@@ -493,7 +519,7 @@ export class AlgorithmManagement {
     }
 
     static getRemotePath(identifier: string, parameterName: string): string {
-        let content = IoHelper.openFile(nconf.get("paths:servicesInfoFile"));
+        let content = IoHelper.readFile(nconf.get("paths:servicesInfoFile"));
         if (identifier != null && _.find(content.services, { "identifier": identifier }) != null) {
             let currentInfo: any = _.find(content.services, { "identifier": identifier });
             let remotePath = _.find(currentInfo.remotePaths, function (path: any) {
@@ -514,7 +540,7 @@ export class AlgorithmManagement {
      * @memberOf AlgorithmManagement
      */
     static async recordException(identifier: string, exception: any) {
-        let content = IoHelper.openFile(nconf.get("paths:servicesInfoFile"));
+        let content = IoHelper.readFile(nconf.get("paths:servicesInfoFile"));
         if (identifier != null && _.find(content.services, { "identifier": identifier }) != null) {
             let currentInfo: any = _.find(content.services, { "identifier": identifier });
             let message = {
@@ -536,7 +562,7 @@ export class AlgorithmManagement {
      * @memberOf AlgorithmManagement
      */
     static getExceptions(identifier: string): any {
-        let content = IoHelper.openFile(nconf.get("paths:servicesInfoFile"));
+        let content = IoHelper.readFile(nconf.get("paths:servicesInfoFile"));
         if (identifier != null && _.find(content.services, { "identifier": identifier }) != null) {
             let currentInfo: any = _.find(content.services, { "identifier": identifier });
             return currentInfo.exceptions;
@@ -628,7 +654,7 @@ export class AlgorithmManagement {
      * @memberOf AlgorithmManagement
      */
     static updateIdentifier(route: string, identifier: string): void {
-        let content = IoHelper.openFile(nconf.get("paths:servicesInfoFile"));
+        let content = IoHelper.readFile(nconf.get("paths:servicesInfoFile"));
         let service: any = _.find(content.services, { "path": route });
         service.identifier = identifier;
         ServicesInfoHelper.update(content);

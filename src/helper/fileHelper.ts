@@ -33,7 +33,7 @@ export class FileHelper {
      * @memberOf FileHelper
      */
 
-    static filesInfo = IoHelper.openFile(nconf.get("paths:imageInfoFile"));
+    static filesInfo = IoHelper.readFile(nconf.get("paths:imageInfoFile"));
 
     /**
      * Checks if an image exists on the file system
@@ -275,7 +275,7 @@ export class FileHelper {
     static getAllCollections(): String[] {
         let collections = [];
 
-        let fileInfo: any = IoHelper.openFile(nconf.get("paths:imageInfoFile"));
+        let fileInfo: any = IoHelper.readFile(nconf.get("paths:imageInfoFile"));
         for (var file of fileInfo) {
             if (!(collections.indexOf(file.collection) > -1)) {
                 collections.push(file.collection);
@@ -395,7 +395,7 @@ export class FileHelper {
      */
     static async addFilesCollectionInformation(collectionName: string, newFiles: number) {
         let statusFile = nconf.get("paths:filesPath") + path.sep + collectionName + path.sep + "status.json";
-        let currentStatus = await IoHelper.openFile(statusFile);
+        let currentStatus = await IoHelper.readFile(statusFile);
 
         currentStatus.statusCode = 110;
         currentStatus.statusMessage = "Downloaded " + currentStatus.totalFiles + " of " + (currentStatus.totalFiles + newFiles) + " files";
@@ -509,7 +509,7 @@ export class FileHelper {
      */
     static getCollectionInformation(collection: string): any {
         let statusFile = nconf.get("paths:filesPath") + path.sep + collection + path.sep + "status.json";
-        return IoHelper.openFile(statusFile);
+        return IoHelper.readFile(statusFile);
     }
 
     /**

@@ -45,7 +45,7 @@ export class ResultHelper {
      * @memberOf ResultHelper
      */
     static loadResult(process: IProcess): any {
-        return IoHelper.openFile(process.resultFile);
+        return IoHelper.readFile(process.resultFile);
     }
 
     /**

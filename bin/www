@@ -3,13 +3,13 @@
 
 var nconf = require("nconf");
 
-nconf.add("server", {type: "file", file: "./conf/server." + process.env.NODE_ENV + ".json"});
-nconf.add("baseImages", {type: "file", file: "./conf/baseImages.json"});
-nconf.add("detailsAlgorithmSchema", {type: "file", file: "./conf/schemas/detailsAlgorithmSchema.json"});
-nconf.add("generalAlgorithmSchema", {type: "file", file: "./conf/schemas/generalAlgorithmSchema.json"});
-nconf.add("hostSchema", {type: "file", file: "./conf/schemas/hostSchema.json"});
-nconf.add("responseSchema", {type: "file", file: "./conf/schemas/responseSchema.json"});
-nconf.add("createSchema", {type: "file", file: "./conf/schemas/createAlgorithmSchema.json"});
+nconf.add("server", { type: "file", file: "./conf/server." + process.env.NODE_ENV + ".json" });
+nconf.add("baseImages", { type: "file", file: "./conf/baseImages.json" });
+nconf.add("detailsAlgorithmSchema", { type: "file", file: "./conf/schemas/detailsAlgorithmSchema.json" });
+nconf.add("generalAlgorithmSchema", { type: "file", file: "./conf/schemas/generalAlgorithmSchema.json" });
+nconf.add("hostSchema", { type: "file", file: "./conf/schemas/hostSchema.json" });
+nconf.add("responseSchema", { type: "file", file: "./conf/schemas/responseSchema.json" });
+nconf.add("createSchema", { type: "file", file: "./conf/schemas/createAlgorithmSchema.json" });
 
 var logger = require("../src/logging/logger");
 
@@ -18,14 +18,69 @@ var logger = require("../src/logging/logger");
 var app = require("../src/server");
 var debug = require("debug")("express:server");
 var http = require("http");
+var cmdArgs = require("command-line-args");
+var getUsage = require("command-line-usage");
+var isNullOrUndefined = require('util').isNullOrUndefined;
+//Define command line options
+const optionDefinitions = [
+  {
+    name: "help",
+    alias: 'h',
+    type: Boolean,
+    description: "Display the usage guide"
+  },
+  {
+    name: 'dockerIp',
+    type: String,
+    description: "The ip address of the docker machine to use"
+  },
+  {
+    name: 'dockerPort',
+    type: String,
+    description: "The port of the docker machine to use"
+  },
+  {
+    name: 'dockerReport',
+    type: String,
+    description: "IP address/port combination docker containers can use to send results to"
+  },
+  {
+    name: 'rootIp',
+    type: String,
+    description: "The ip address/port combination under which DIVAServices will be exposed (e.g. divaservices.unifr.ch/api/v2)"
+  }
+]
 
+const sections = [
+  {
+    header: "DIVAServices",
+    content: "DIVAServices is a RESTFul web server backend for providing Document Image Analysis methods as Web Services"
+  },
+  {
+    header: "Options",
+    optionList: optionDefinitions
+  },
+  {
+    content: "Project home: [underline]{https://github.com/lunactic/DIVAServices}"
+  }
+]
+
+const options = cmdArgs(optionDefinitions);
+const usage = getUsage(sections);
+
+if(options.help || Object.keys(options).length == 0){
+  console.log(usage);
+  process.exit();
+}
+
+app.initParams(options);
 //get port from environment and store in Express.
 var port = normalizePort(nconf.get("server:httpPort") || 8080);
 //app.set("port", port);
 
 
 //create http server
-var server = http.createServer(app);
+var server = http.createServer(app.app);
 server.timeout = nconf.get("server:timeout");
 //listen on provided ports
 server.listen(port);
@@ -36,7 +91,7 @@ server.on("error", onError);
 //start listening on port
 server.on("listening", onListening);
 
-logger.Logger.log("info","server started", "www");
+logger.Logger.log("info", "server started", "www");
 
 /**
  * Normalize a port into a number, string, or false.
@@ -95,4 +150,4 @@ function onListening() {
   debug("Listening on " + bind);
 }
 
-module.exports = app;
+module.exports = app.app;

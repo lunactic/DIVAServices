@@ -22,9 +22,9 @@
     }
   },
   "docker": {
-    "host": "127.0.0.1",
-    "port": "2375",
-    "reportHost": "134.21.72.48:8080",
+    "host": "DOCKER_HOST_IP",
+    "port": "DOCKER_HOST_PORT",
+    "reportHost": "DOCKER_REPORT_HOST",
     "maxContainers": 8,
     "maxMemory": 4096,
     "replacePaths": [
@@ -45,7 +45,7 @@
     "httpPort": 8080,
     "httpsPort": 8443,
     "maxFileSize": 20971520,
-    "rootUrl": "134.21.72.48:8080",
+    "rootUrl": "SERVER_ROOT_URL",
     "managementWhitelistIp": [
       "127.0.0.1",
       "::1",

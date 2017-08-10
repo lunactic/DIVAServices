@@ -1,22 +1,23 @@
+import { IoHelper } from '../helper/ioHelper';
 import { DivaCollection } from '../models/divaCollection';
 /**
  * Created by Marcel Würsch on 04.11.16.
  */
 
-import * as _ from "lodash";
+import * as _ from 'lodash';
 import { AlgorithmManagement } from "../management/algorithmManagement";
-import * as archiver from "archiver";
-import * as fs from "fs";
-import * as nconf from "nconf";
-import * as path from "path";
-import * as DOCKER from "dockerode";
-import * as mime from "mime";
+import * as archiver from 'archiver';
+import * as fs from 'fs-extra';
+import * as nconf from 'nconf';
+import * as path from 'path';
+import * as DOCKER from 'dockerode';
+import * as mime from 'mime';
 import { Logger } from "../logging/logger";
 import { DivaFile } from '../models/divaFile';
-import * as os from "os";
+import * as os from 'os';
 import { Process } from "../processingQueue/process";
 import { DivaError } from "../models/divaError";
-import * as stream from "stream";
+import * as stream from 'stream';
 /**
  * A class for managing, and running docker images
  */
@@ -24,8 +25,7 @@ export class DockerManagement {
     /**
      * The Docker communication object
      */
-    static docker = new DOCKER({ host: nconf.get("docker:host"), port: nconf.get("docker:port") });
-
+    static docker = null;
     /**
      * Create a new image
      * 
@@ -35,6 +35,9 @@ export class DockerManagement {
     static buildImage(inputFolder: string, imageName: string): Promise<number> {
         return new Promise<number>((resolve, reject) => {
             //create tar file
+            if (this.docker == null) {
+                this.initDocker();
+            }
             let output = fs.createWriteStream(inputFolder + path.sep + "archive.tar");
             let archive = archiver("tar");
             let self = this;
@@ -95,6 +98,9 @@ export class DockerManagement {
      */
     static removeImage(imageName: string): Promise<void> {
         return new Promise<void>((resolve, reject) => {
+            if (this.docker == null) {
+                this.initDocker();
+            }
             this.docker.getImage(imageName).remove(function (err: any, data: any) {
                 if (err != null) {
                     Logger.log("error", err, "DockerManagement");
@@ -253,6 +259,9 @@ export class DockerManagement {
      */
     static runDockerImage(process: Process, imageName: string): Promise<void> {
         return new Promise<void>(async (resolve, reject) => {
+            if (this.docker == null) {
+                this.initDocker();
+            }
             let params = process.matchedParameters;
             //The string passed to the executable containing all parameters
             let executableString = "";
@@ -309,12 +318,16 @@ export class DockerManagement {
                 let container: DOCKER.Container = await this.docker.run(imageName, ['-c', command], [logStream, errLogStream], { Tty: false, entrypoint: '/bin/sh', Memory: (nconf.get("docker:maxMemory") * 1024 * 1024) }, null);
 
                 if (container.output.StatusCode !== 0) {
-                    AlgorithmManagement.recordException(process.algorithmIdentifier, "error");
+                    AlgorithmManagement.recordException(process.algorithmIdentifier, IoHelper.readFile(process.errLogFile));
                     throw new Error("error processing the request");
                 }
                 if (process.type === "test" && container.output.StatusCode !== 0) {
                     AlgorithmManagement.updateStatus(null, "error", process.req.originalUrl, "Algorithm image did not execute properly");
                     //ResultHelper.removeResult(process);
+                }
+                let stats: fs.Stats = await fs.stat(process.errLogFile);
+                if (stats.size === 0) {
+                    IoHelper.deleteFile(process.errLogFile);
                 }
                 await container.remove({ "volumes": true });
                 resolve();
@@ -339,5 +352,9 @@ export class DockerManagement {
      */
     private static getDockerInput(input: string): string {
         return nconf.get("docker:paths:" + input);
+    }
+
+    private static initDocker() {
+        this.docker = new DOCKER({ host: nconf.get("docker:host"), port: nconf.get("docker:port") });
     }
 }

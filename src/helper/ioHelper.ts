@@ -55,7 +55,7 @@ export class IoHelper {
      * 
      * @memberOf IoHelper
      */
-    static openFile(filePath: string): any {
+    static readFile(filePath: string): any {
         try {
             let stats = fsp.statSync(filePath);
             if (stats.isFile()) {

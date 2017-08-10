@@ -190,7 +190,7 @@ export class Statistics {
                     ]
                 };
             } else {
-                content = IoHelper.openFile(usageLogFile);
+                content = IoHelper.readFile(usageLogFile);
 
                 let filtered = _.filter(content.users, function (o: any) {
                     return o.name === proc.identification.name && o.email === proc.identification.email && o.country === proc.identification.country;
