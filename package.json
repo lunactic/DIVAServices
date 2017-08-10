@@ -6,9 +6,10 @@
   "scripts": {
     "build": "tsc",
     "grunt": "grunt",
-    "start": "./scripts/startup.sh",
+    "start": "node bin/www",
     "debug": "NODE_ENV=dev nodemon --inspect=9929 bin/www",
-    "test": "NODE_ENV=dev mocha tests/*Tests.js"
+    "test": "NODE_ENV=dev mocha tests/*Tests.js",
+    "docker": "./scripts/startup.docker.sh"
   },
   "repository": {
     "type": "git",
