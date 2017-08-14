@@ -58,7 +58,7 @@ export class FileHelper {
 
     /**
      * 
-     * @param path 
+     * @param path path to the file to check
      */
     static fileExists(path: string): boolean {
         return fs.existsSync(path);
@@ -126,6 +126,15 @@ export class FileHelper {
     }
 
 
+    /**
+     * Downloads a file from a given URL
+     * 
+     * @static
+     * @param {string} url the URL pointing to a file
+     * @param {string} filepath the filepath to save the file to
+     * @returns {Promise<void>} 
+     * @memberof FileHelper
+     */
     static async downloadFile(url: string, filepath: string): Promise<void> {
         return new Promise<void>(async (resolve, reject) => {
             request.get(url).pipe(fs.createWriteStream(filepath)).on("finish", function () {
@@ -134,6 +143,15 @@ export class FileHelper {
         });
     }
 
+    /**
+     * save a Zip file from a URL and unzip it
+     * 
+     * @static
+     * @param {string} url the URL pointing to a zip file
+     * @param {string} folder the folder to unzip the contents into
+     * @returns {Promise<DivaFile[]>} an array of the unzipped files
+     * @memberof FileHelper
+     */
     static async saveZipUrl(url: string, folder: string): Promise<DivaFile[]> {
         return new Promise<DivaFile[]>(async (resolve, reject) => {
             let divaFiles: DivaFile[] = [];

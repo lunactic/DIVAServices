@@ -4,7 +4,8 @@
 
 import * as path from "path";
 import * as nconf from "nconf";
-
+import * as md5 from "md5";
+import * as fs from "fs-extra";
 /**
  * class representing an internal data item
  * 
@@ -90,6 +91,8 @@ export class DivaFile {
         item.url = "http://" + nconf.get("server:rootUrl") + "/test/" + relativePath;
         item.filename = path.parse(filePath).base;
         item.extension = path.parse(filePath).ext;
+        let base64 = fs.readFileSync(filePath, "base64");
+        item.md5 = md5(base64);
         return item;
     }
 

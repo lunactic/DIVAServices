@@ -14,6 +14,7 @@ import { Logger } from "../logging/logger";
 import * as mime from "mime";
 import * as nconf from "nconf";
 import * as path from "path";
+import * as multer from "multer";
 import { Statistics } from "../statistics/statistics";
 import { ResultHelper } from "../helper/resultHelper";
 import { AlgorithmManagement } from "../management/algorithmManagement";
@@ -23,6 +24,10 @@ import { PostHandler } from "./postHandler";
 import { GetHandler } from "./getHandler";
 import { QueueHandler } from '../processingQueue/queueHandler';
 import { DivaError } from '../models/divaError';
+import { isNullOrUndefined } from "util";
+
+var upload = multer({ dest: nconf.get("paths:filesPath") });
+
 let router = express.Router();
 
 /**
@@ -126,9 +131,9 @@ router.put("/collections/:collectionName", async function (req: express.Request,
     let collectionName = req.params["collectionName"];
     let numOfFiles: number = 0;
     let counter: number = 0;
-
     if (FileHelper.checkCollectionAvailable(collectionName)) {
         //count the total number of images
+        numOfFiles = FileHelper.loadCollection(collectionName, null).length;
         for (let file of req.body.files) {
             switch (file.type) {
                 case "iiif":
@@ -205,6 +210,62 @@ router.put("/collections/:collectionName", async function (req: express.Request,
     }
 
 });
+
+
+/**
+ * upload a file using form-multipart
+ */
+router.post("/upload", upload.single('file'), async function (req: express.Request, res: express.Response) {
+    try {
+        let collectionName = "";
+        if (!isNullOrUndefined(req.body.name)) {
+            collectionName = req.body.name;
+            if (FileHelper.checkCollectionAvailable(req.body.name)) {
+                sendError(res, new DivaError("A collection with the name: " + req.body.name + " already exists.", 500, "DuplicateCollectionError"));
+                return;
+            }
+        } else {
+            collectionName = RandomWordGenerator.generateRandomWord();
+        }
+        await IoHelper.createFilesCollectionFolders(collectionName);
+        FileHelper.createCollectionInformation(collectionName, 1);
+        await IoHelper.moveFile(req.file.path, nconf.get("paths:filesPath") + path.sep + collectionName + path.sep + "original" + path.sep + req.file.originalname);
+        let file = DivaFile.CreateFileFull(nconf.get("paths:filesPath") + path.sep + collectionName + path.sep + "original" + path.sep + req.file.originalname);
+        await FileHelper.addFileInfo(file.md5, file.path, collectionName);
+        await FileHelper.updateCollectionInformation(collectionName, 1, 1);
+        send200(res, { collection: collectionName });
+    } catch (error) {
+        sendError(res, error);
+    }
+
+});
+
+/**
+ * add a file to a collection using form-multipart data
+  */
+router.put("/upload/:collectionName", upload.single('file'), async function (req: express.Request, res: express.Response) {
+    try {
+        if (FileHelper.checkCollectionAvailable(req.params.collectionName)) {
+            let currentFiles = FileHelper.loadCollection(req.params.collectionName, null);
+            let numOfFiles: number = currentFiles.length + 1;
+            if (FileHelper.fileExists(nconf.get("paths:filesPath") + path.sep + req.params.collectionName + path.sep + "original" + path.sep + req.file.originalname)) {
+                sendError(res, new DivaError("File with the name: " + req.file.originalname + " exists already in collection: " + req.params.collectionName, 500, "DuplicateFileError"));
+            } else {
+                await IoHelper.moveFile(req.file.path, nconf.get("paths:filesPath") + path.sep + req.params.collectionName + path.sep + "original" + path.sep + req.file.originalname);
+                let file = DivaFile.CreateFileFull(nconf.get("paths:filesPath") + path.sep + req.params.collectionName + path.sep + "original" + path.sep + req.file.originalname);
+                await FileHelper.addFileInfo(file.md5, file.path, req.params.collectionName);
+                await FileHelper.updateCollectionInformation(req.params.collectionName, numOfFiles, numOfFiles);
+                res.status(200).send();
+            }
+        } else {
+            sendError(res, new DivaError("A collection with the name: " + req.params["collectionName"] + " does not exist.", 500, "CollectionNotExistingError"));
+        }
+    } catch (error) {
+        sendError(res, error);
+    }
+});
+
+
 
 /**
  * method reports a result
