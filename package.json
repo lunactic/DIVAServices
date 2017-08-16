@@ -9,7 +9,8 @@
     "start": "node bin/www",
     "debug": "NODE_ENV=dev nodemon --inspect=9929 bin/www",
     "test": "NODE_ENV=dev mocha tests/*Tests.js",
-    "docker": "./scripts/startup.docker.sh"
+    "docker": "./scripts/startup.docker.sh",
+    "doc":"jsdoc src/ -r -d doc/"
   },
   "repository": {
     "type": "git",
