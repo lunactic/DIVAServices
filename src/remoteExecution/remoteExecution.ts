@@ -9,6 +9,8 @@ import { Process } from "../processingQueue/process";
 let sequest = require("sequest");
 
 /**
+ * DISCLAIMER: This class in its current form will probably not work well and will need some updates
+ * 
  * class designed to handle executions on a Sun Grid Engine
  * 
  * @export

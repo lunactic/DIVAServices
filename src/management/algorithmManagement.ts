@@ -131,7 +131,6 @@ export class AlgorithmManagement {
                     await AlgorithmManagement.updateRootInfoFile(req.body, route);
                     let info = IoHelper.readFile(nconf.get("paths:jsonPath") + path.sep + route + path.sep + "info.json");
                     Swagger.createEntry(info, route);
-
                 } catch (error) {
                     AlgorithmManagement.updateStatus(identifier, "error", route, error.message);
                     return reject(new DivaError(error.message, 500, "AlgorithmCreationError"));

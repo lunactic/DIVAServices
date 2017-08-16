@@ -174,6 +174,14 @@ export class Statistics {
         }
     }
 
+    /**
+     * record what user used a method
+     * 
+     * @static
+     * @param {Process} proc the invoked process with the information
+     * @returns {Promise<void>} 
+     * @memberof Statistics
+     */
     static recordUser(proc: Process): Promise<void> {
         return new Promise<void>(async (resolve, reject) => {
             let usageLogFile: string = proc.logFolder + path.sep + "usage.log";
