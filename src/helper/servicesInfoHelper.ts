@@ -33,13 +33,15 @@ export class ServicesInfoHelper {
      * 
      * @memberOf ServicesInfoHelper
      */
-    static getInfoByPath(path: string): any {
-        this.reload();
-        let serviceInfo = this.fileContent.services.filter(function (item: any) {
-            return item.path === path;
-        });
+    static async getInfoByPath(path: string): Promise<any> {
+        return new Promise<any>(async (resolve, reject) => {
+            await this.reload();
+            let serviceInfo = this.fileContent.services.filter(function (item: any) {
+                return item.path === path;
+            });
 
-        return serviceInfo[0];
+            resolve(serviceInfo[0]);
+        });
     }
 
     /**
@@ -51,12 +53,14 @@ export class ServicesInfoHelper {
      * 
      * @memberOf ServicesInfoHelper
      */
-    static getInfoByName(name: string): any {
-        this.reload();
-        let serviceInfo = this.fileContent.services.filter(function (item: any) {
-            return item.service === name;
+    static async getInfoByName(name: string): Promise<any> {
+        return new Promise<any>(async (resolve, reject) => {
+            await this.reload();
+            let serviceInfo = this.fileContent.services.filter(function (item: any) {
+                return item.service === name;
+            });
+            resolve(serviceInfo[0]);
         });
-        return serviceInfo[0];
     }
 
     /**
@@ -68,22 +72,25 @@ export class ServicesInfoHelper {
      * 
      * @memberOf ServicesInfoHelper
      */
-    static getInfoByIdentifier(identifier: string): any {
-        this.reload();
-        let serviceInfo = this.fileContent.services.filter(function (item: any) {
-            return item.identifier === identifier;
+    static async getInfoByIdentifier(identifier: string): Promise<any> {
+        return new Promise<any>(async (resolve, reject) => {
+            await this.reload();
+            let serviceInfo = this.fileContent.services.filter(function (item: any) {
+                return item.identifier === identifier;
+            });
+            resolve(serviceInfo[0]);
         });
-        return serviceInfo[0];
+
     }
 
-     /**
-     * update the service information file
-     * 
-     * @static
-     * @param {*} newData the new service information object
-     * 
-     * @memberOf ServicesInfoHelper
-     */
+    /**
+    * update the service information file
+    * 
+    * @static
+    * @param {*} newData the new service information object
+    * 
+    * @memberOf ServicesInfoHelper
+    */
     static async update(newData: any): Promise<void> {
         await IoHelper.saveFile(nconf.get("paths:servicesInfoFile"), newData, "utf8");
     }
@@ -95,8 +102,11 @@ export class ServicesInfoHelper {
      * 
      * @memberOf ServicesInfoHelper
      */
-    static reload(): void {
-        this.fileContent = IoHelper.readFile(nconf.get("paths:servicesInfoFile"));
+    static async reload(): Promise<void> {
+        return new Promise<void>((resolve, reject) => {
+            this.fileContent = IoHelper.readFile(nconf.get("paths:servicesInfoFile"));
+            resolve();
+        });
     }
 
     /**

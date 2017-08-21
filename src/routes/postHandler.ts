@@ -26,7 +26,7 @@ export class PostHandler {
      */
     static async handleRequest(req: any): Promise<any> {
         return new Promise<any>(async (resolve, reject) => {
-            let serviceInfo = ServicesInfoHelper.getInfoByPath(req.originalUrl);
+            let serviceInfo = await ServicesInfoHelper.getInfoByPath(req.originalUrl);
 
             if (serviceInfo == null) {
                 //if no matching method for the route, return a 404

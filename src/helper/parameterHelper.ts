@@ -1,20 +1,21 @@
+import { FileHelper } from './fileHelper';
 import { DivaCollection } from '../models/divaCollection';
 /**
  * Created by Marcel Würsch on 03.11.16.
  */
 "use strict";
 
-import * as _ from "lodash";
-import * as fs from "fs-extra";
-import * as nconf from "nconf";
-import * as path from "path";
-import * as hash from "object-hash";
+import * as _ from 'lodash';
+import * as fs from 'fs-extra';
+import * as nconf from 'nconf';
+import * as path from 'path';
+import * as hash from 'object-hash';
 import { DivaError } from "../models/divaError";
 import { IoHelper } from "./ioHelper";
 import { Logger } from "../logging/logger";
 import { Process } from "../processingQueue/process";
 import { Collection } from "../processingQueue/collection";
-import IProcess = require("../processingQueue/iProcess");
+import IProcess = require('../processingQueue/iProcess');
 import { DivaFile } from "../models/divaFile";
 import { isNullOrUndefined } from "util";
 require("natural-compare-lite");
@@ -81,12 +82,17 @@ export class ParameterHelper {
                         let value = element[key];
                         if (value.indexOf("*") !== -1) {
                             let collection = value.split("/")[0];
-                            let images = IoHelper.readFolder(nconf.get("paths:filesPath") + path.sep + collection + path.sep + "original");
-                            images.forEach((value, index, array) => {
-                                array[index] = collection + "/" + value;
-                            });
-                            images.sort(String.naturalCompare);
-                            newMap.set(key, images);
+
+                            if (FileHelper.checkCollectionAvailable(collection)) {
+                                let images = IoHelper.readFolder(nconf.get("paths:filesPath") + path.sep + collection + path.sep + "original");
+                                images.forEach((value, index, array) => {
+                                    array[index] = collection + "/" + value;
+                                });
+                                images.sort(String.naturalCompare);
+                                newMap.set(key, images);
+                            } else {
+                                reject(new DivaError("Collection: " + collection + " does not exist!", 500, "CollectionNotExistingError"));
+                            }
                         } else {
                             let values = [value];
                             newMap.set(key, values);
@@ -338,9 +344,7 @@ export class ParameterHelper {
             Logger.log("info", "saveParamInfo", "ParameterHelper");
             //Logger.log("info", JSON.stringify(process.parameters), "ParameterHelper");
             //Logger.log("info", "hash: " + data.hash, "ParameterHelper");
-
-            try {
-                fs.statSync(methodPath).isFile();
+            if (await IoHelper.fileExists(methodPath)) {
                 let content = IoHelper.readFile(methodPath);
                 //only save the information if it is not already present
                 if (_.filter(content, _.filter(content, {
@@ -352,7 +356,7 @@ export class ParameterHelper {
                     await IoHelper.saveFile(methodPath, content, "utf8");
                 }
                 resolve();
-            } catch (error) {
+            } else {
                 content.push(data);
                 await IoHelper.saveFile(methodPath, content, "utf8");
                 resolve();

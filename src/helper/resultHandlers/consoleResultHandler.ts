@@ -10,7 +10,11 @@ import IResultHandler = require("./iResultHandler");
 import { Process } from "../../processingQueue/process";
 import { IoHelper } from "../ioHelper";
 import { DivaError } from '../../models/divaError';
+
 /**
+ * 
+ * DISCLAIMER: This class in its current form will probably not work well and will need some updates
+ * 
  * A Result Handler implementation for results coming from the console
  */
 export class ConsoleResultHandler implements IResultHandler {

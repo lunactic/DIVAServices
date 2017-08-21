@@ -1,19 +1,20 @@
 /**
  * Created by Marcel Würsch on 04.11.16.
  */
-import * as _ from "lodash";
-import * as express from "express";
+import * as _ from 'lodash';
+import * as express from 'express';
 import { IoHelper } from "../helper/ioHelper";
 import { Logger } from "../logging/logger";
-import * as nconf from "nconf";
-import * as path from "path";
-import * as mime from "mime";
+import * as nconf from 'nconf';
+import * as path from 'path';
+import * as mime from 'mime';
 import { ServicesInfoHelper } from "../helper/servicesInfoHelper";
 import { DockerManagement } from "../docker/dockerManagement";
 import { ExecutableHelper } from "../helper/executableHelper";
 import { QueueHandler } from "../processingQueue/queueHandler";
 import { Swagger } from "../swagger/swagger";
 import { DivaError } from "../models/divaError";
+import { CwlManager } from "../helper/cwl/cwlManager";
 
 let crypto = require("crypto");
 
@@ -51,6 +52,8 @@ export class AlgorithmManagement {
                 await AlgorithmManagement.generateFolders(route);
                 AlgorithmManagement.updateServicesFile(req.body, identifier, route, imageName, version, baseroute);
                 await IoHelper.downloadFileWithTypecheck(req.body.method.file, nconf.get("paths:executablePath") + path.sep + route, "application/zip");
+                //create workflow file
+                await AlgorithmManagement.createWorkflowFile(identifier, req.body, nconf.get("paths:executablePath") + path.sep + route + path.sep + identifier + ".cwl");
                 //create docker file
                 DockerManagement.createDockerFile(req.body, nconf.get("paths:executablePath") + path.sep + route);
                 //create bash script
@@ -165,6 +168,36 @@ export class AlgorithmManagement {
             } catch (error) {
                 reject(error);
             }
+        });
+    }
+
+    static async createWorkflowFile(identifier: string, algorithm: any, file: string): Promise<void> {
+        return new Promise<void>(async (resolve, reject) => {
+            var info: any = await ServicesInfoHelper.getInfoByIdentifier(identifier);
+            var cwlManager: CwlManager = new CwlManager(file, info.image_name);
+            await cwlManager.initialize();
+            algorithm.input.forEach((item, index) => {
+                switch (Object.keys(item)[0]) {
+                    case 'file':
+                        var name = item.file.name;
+                        cwlManager.addInput(Object.keys(item)[0], name, index);
+                        break;
+                    case 'number':
+                        break;
+                }
+            });
+            cwlManager.startOutputs();
+            algorithm.output.forEach((item, index) => {
+                switch (Object.keys(item)[0]) {
+                    case 'file':
+                        var name = item.file.name;
+                        var extension = mime.extension(item.file.options.mimeType);
+                        cwlManager.addOutput(Object.keys(item)[0], name, "*." + extension);
+                        break;
+                }
+            });
+            cwlManager.addOutput("file", "jsonResult", "result.json");
+            resolve();
         });
     }
 
@@ -582,65 +615,70 @@ export class AlgorithmManagement {
      * 
      * @memberOf AlgorithmManagement
      */
-    static updateServicesFile(algorithm: any, identifier: string, route: string, imageName: string, version: number, baseRoute: string): void {
-        ServicesInfoHelper.reload();
-        if (this.getStatusByIdentifier(identifier) != null || this.getStatusByRoute(baseRoute) != null) {
-            this.removeFromServiceInfoFile(baseRoute);
-        }
-        if ((this.getStatusByIdentifier(identifier) == null) && (this.getStatusByRoute(baseRoute) == null)) {
-            let newContent = _.cloneDeep(ServicesInfoHelper.fileContent);
-            let parameters: any = [];
-            let data: any = [];
-            let paramOrder: any = [];
-            let fileCount: number = 0;
-            _.forEach(algorithm.input, function (input: any, key: any) {
-                let inputType = _.keys(input)[0];
-                key = _.get(algorithm, "input[" + key + "]." + inputType + ".name", inputType);
-                let info: any = {};
-                if (inputType === 'file' || inputType === 'folder') {
-                    fileCount++;
-                    info[key] = inputType;
-                    data.push(info);
-                    paramOrder.push(info);
-                } else {
-                    info[key] = inputType;
-                    parameters.push(info);
-                    paramOrder.push(info);
-                }
-            });
-            let newServiceEntry = {
-                service: route.replace(/\//g, "").toLowerCase(),
-                baseRoute: "/" + baseRoute,
-                identifier: identifier,
-                path: "/" + route,
-                executablePath: nconf.get("paths:executablePath") + path.sep + route + path.sep + algorithm.method.executable_path,
-                allowParallel: true,
-                hasMultipleFiles: (fileCount > 1),
-                hasData: (fileCount > 0),
-                output: "file",
-                execute: "docker",
-                executableType: algorithm.method.executableType,
-                image_name: imageName,
-                parameters: parameters,
-                data: data,
-                paramOrder: paramOrder,
-                remotePaths: [],
-                version: version,
-                status: {
-                    statusCode: -1,
-                    statusMessage: ""
-                },
-                statistics: {
-                    runtime: -1,
-                    executions: 0
-                },
-                exceptions: []
-            };
-
-            newContent.services.push(newServiceEntry);
-            ServicesInfoHelper.update(newContent);
+    static async updateServicesFile(algorithm: any, identifier: string, route: string, imageName: string, version: number, baseRoute: string): Promise<void> {
+        return new Promise<void>(async (resolve, reject) => {
             ServicesInfoHelper.reload();
-        }
+            if (this.getStatusByIdentifier(identifier) != null || this.getStatusByRoute(baseRoute) != null) {
+                this.removeFromServiceInfoFile(baseRoute);
+            }
+            if ((this.getStatusByIdentifier(identifier) == null) && (this.getStatusByRoute(baseRoute) == null)) {
+                let newContent = _.cloneDeep(ServicesInfoHelper.fileContent);
+                let parameters: any = [];
+                let data: any = [];
+                let paramOrder: any = [];
+                let fileCount: number = 0;
+                _.forEach(algorithm.input, function (input: any, key: any) {
+                    let inputType = _.keys(input)[0];
+                    key = _.get(algorithm, "input[" + key + "]." + inputType + ".name", inputType);
+                    let info: any = {};
+                    if (inputType === 'file' || inputType === 'folder') {
+                        fileCount++;
+                        info[key] = inputType;
+                        data.push(info);
+                        paramOrder.push(info);
+                    } else {
+                        info[key] = inputType;
+                        parameters.push(info);
+                        paramOrder.push(info);
+                    }
+                });
+                let newServiceEntry = {
+                    service: route.replace(/\//g, "").toLowerCase(),
+                    baseRoute: "/" + baseRoute,
+                    identifier: identifier,
+                    path: "/" + route,
+                    executablePath: nconf.get("paths:executablePath") + path.sep + route + path.sep + algorithm.method.executable_path,
+                    allowParallel: true,
+                    hasMultipleFiles: (fileCount > 1),
+                    hasData: (fileCount > 0),
+                    output: "file",
+                    execute: "docker",
+                    executableType: algorithm.method.executableType,
+                    image_name: imageName,
+                    parameters: parameters,
+                    data: data,
+                    paramOrder: paramOrder,
+                    remotePaths: [],
+                    version: version,
+                    status: {
+                        statusCode: -1,
+                        statusMessage: ""
+                    },
+                    statistics: {
+                        runtime: -1,
+                        executions: 0
+                    },
+                    exceptions: []
+                };
+
+                newContent.services.push(newServiceEntry);
+                ServicesInfoHelper.update(newContent);
+                await ServicesInfoHelper.reload();
+                resolve();
+            }
+        });
+
+
     }
 
     /**

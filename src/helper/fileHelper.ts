@@ -60,8 +60,8 @@ export class FileHelper {
      * 
      * @param path path to the file to check
      */
-    static fileExists(path: string): boolean {
-        return fs.existsSync(path);
+    static async fileExists(path: string): Promise<boolean> {
+        return await fs.pathExists(path);
     }
 
     /**
@@ -76,11 +76,11 @@ export class FileHelper {
      * @memberof FileHelper
      */
     static saveBase64(file: any, folder: string, counter: number, extension?: string): Promise<any> {
-        return new Promise<any>((resolve, reject) => {
+        return new Promise<any>(async (resolve, reject) => {
             let imagePath = nconf.get("paths:filesPath");
+            //strip header information from the base64 string (necessary for Spotlight)
             let base64Data = file.value.replace(/^data:image\/png;base64,/, "");
             let md5String = md5(base64Data);
-
             let fileObject = new DivaFile();
             let fileFolder = imagePath + path.sep + folder + path.sep + "original" + path.sep;
             let fileName = file.name;
@@ -90,23 +90,23 @@ export class FileHelper {
             } else {
                 fileExtension = this.getImageExtensionBase64(base64Data);
             }
-            fs.stat(fileFolder + fileName, function (err: any, stat: fs.Stats) {
-                fileObject.folder = fileFolder;
-                fileObject.filename = fileName;
-                fileObject.extension = fileExtension;
-                fileObject.path = fileFolder + fileName + "." + fileExtension;
-                fileObject.md5 = md5String;
-                if (err === null) {
+            try {
+                if (await IoHelper.fileExists(fileFolder + fileName)) {
                     resolve(file);
-                } else if (err.code === "ENOENT") {
-                    fs.writeFile(fileObject.path, base64Data, { encoding: "base64" }, function (err: any) {
-                        resolve(fileObject);
-                    });
+
                 } else {
-                    Logger.log("error", "error saving the image", "ImageHelper");
-                    return reject(new DivaError("Error while saving the image", 500, "FileError"));
+                    fileObject.folder = fileFolder;
+                    fileObject.filename = fileName;
+                    fileObject.extension = fileExtension;
+                    fileObject.path = fileFolder + fileName + "." + fileExtension;
+                    fileObject.md5 = md5String;
+                    await fs.writeFile(fileObject.path, base64Data, { encoding: "base64" });
+                    resolve(fileObject);
                 }
-            });
+            } catch (error) {
+                Logger.log("error", "error saving the image", "ImageHelper");
+                return reject(new DivaError("Error while saving the image", 500, "FileError"));
+            }
         });
     }
 
@@ -120,9 +120,12 @@ export class FileHelper {
      * 
      * @memberOf FileHelper
      */
-    static saveJson(file: any, process: Process, filename: string) {
-        let base64Data = file.replace(/^data:image\/png;base64,/, "");
-        fs.writeFileSync(process.outputFolder + path.sep + filename, base64Data, "base64");
+    static async saveJson(file: any, process: Process, filename: string): Promise<void> {
+        return new Promise<void>(async (resolve, reject) => {
+            let base64Data = file.replace(/^data:image\/png;base64,/, "");
+            await fs.writeFile(process.outputFolder + path.sep + filename, base64Data, { encoding: "base64" });
+            resolve();
+        });
     }
 
 
@@ -226,15 +229,16 @@ export class FileHelper {
             file.extension = fileExtension;
             file.path = imgFolder + fileName + "." + fileExtension;
             file.md5 = md5String;
-
-            fs.stat(file.path, function (err: any, stat: fs.Stats) {
-                if (err == null) {
-                    fs.unlink(tmpFilePath);
-                } else if (err.code === "ENOENT") {
-                    fs.renameSync(tmpFilePath, file.path);
+            try {
+                await fs.stat(file.path);
+                fs.unlink(tmpFilePath);
+            } catch (error) {
+                if (error.code === "ENONENT") {
+                    await fs.rename(tmpFilePath, file.path);
+                    resolve(file);
                 }
-                resolve(file);
-            });
+            }
+
         });
 
     }
@@ -455,7 +459,7 @@ export class FileHelper {
      * @memberof FileHelper
      */
     static async deleteFile(file: DivaFile): Promise<void> {
-        return new Promise<void>(async(resolve, reject) => {
+        return new Promise<void>(async (resolve, reject) => {
             _.remove(this.filesInfo, function (item: any) {
                 return item.md5 === file.md5 && item.collection === file.collection;
             });

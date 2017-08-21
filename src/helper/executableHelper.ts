@@ -48,71 +48,9 @@ export class ExecutableHelper extends EventEmitter {
     }
 
     /**
-     * Builds the command line executable command
-     * @param {Process} process the process to execute
-     */
-    private buildCommand(process: Process): string {
-        let execType = this.getExecutionType(process.executableType);
-
-        let paramsPath = "";
-
-        for (let param of _.values(process.parameters.params)) {
-            paramsPath += "'" + param + "'";
-        }
-        return execType + " " + process.executablePath + " " + paramsPath;
-    }
-
-    /**
-     * Build the remote command for execution on a Sun Grid Engine using qsub
-     * @param {Process} process The process to execute
-     */
-    private buildRemoteCommand(process: Process): string {
-        let params = _.cloneDeep(process.parameters.params);
-        _.forIn(params, function (value: any, key: any) {
-            switch (key) {
-                case "inputImage":
-                case "outputImage":
-                case "resultFile":
-                    let extension = path.extname(value);
-                    let filename = path.basename(value, extension);
-                    params[key] = process.rootFolder + path.sep + filename + extension;
-                    break;
-                case "outputFolder":
-                    params[key] = process.rootFolder + path.sep;
-                    break;
-            }
-        });
-
-        _.forOwn(_.intersection(_.keys(params), _.keys(nconf.get("remotePaths"))), function (value: any, key: any) {
-            params[value] = nconf.get("remotePaths:" + value);
-        });
-
-        let paramsPath = _.values(params).join(" ");
-        return "qsub -o " + process.rootFolder + " -e " + process.rootFolder + " " + process.executablePath + " " + paramsPath;
-    }
-
-    /**
-     * executes a command using the [childProcess](https://nodejs.org/api/child_process.html) module
-     * @param {string} command the command to execute
-     * @param {Process} process the process
-     */
-    private executeCommand(command: string, process: Process): Promise<void> {
-        return new Promise<void>((resolve, reject) => {
-            let exec = childProcess.exec;
-            Logger.log("info", "Execute command: " + command, "ExecutableHelper");
-            exec(command, { maxBuffer: 1024 * 48828 }, async function (error: any, stdout: any, stderr: any) {
-                Statistics.endRecording(process.id, process.req.originalUrl, [0, 0]);
-                try {
-                    await process.resultHandler.handleResult(error, stdout, stderr, process);
-                    resolve();
-                } catch (error) {
-                    return reject(error);
-                }
-            });
-        });
-    }
-
-    /**
+     * 
+     * DISCLAIMER: This class in its current form will probably not work well and will need some updates
+     * 
      * Executes a process on the same host as this DivaServices instance is running
      * @param {Process} process The process to execute
      */
@@ -129,6 +67,8 @@ export class ExecutableHelper extends EventEmitter {
     }
 
     /**
+     * DISCLAIMER: This method in its current form will probably not work well and will need some updates
+     * 
      * Executes a request on the Sun Grid Engine
      * @param {Process} process The process to execute
      */
@@ -158,10 +98,11 @@ export class ExecutableHelper extends EventEmitter {
             process.id = Statistics.startRecording(process);
             process.remoteResultUrl = "http://" + nconf.get("docker:reportHost") + "/jobs/" + process.id;
             process.remoteErrorUrl = "http://" + nconf.get("docker:reportHost") + "/algorithms/" + process.algorithmIdentifier + "/exceptions/" + process.id;
-            let serviceInfo = ServicesInfoHelper.getInfoByPath(process.req.originalUrl);
+            let serviceInfo = await ServicesInfoHelper.getInfoByPath(process.req.originalUrl);
             try {
                 resolve();
-                DockerManagement.runDockerImage(process, serviceInfo.image_name);
+                DockerManagement.runDockerImageSSH(process, serviceInfo.image_name);
+                //DockerManagement.runDockerImage(process, serviceInfo.image_name);
             } catch (error) {
                 reject(error);
             }
@@ -179,7 +120,8 @@ export class ExecutableHelper extends EventEmitter {
     public async preprocess(req: any, processingQueue: ProcessingQueue, executionType: string): Promise<any> {
         return new Promise<any>(async (resolve, reject) => {
             try {
-                let serviceInfo = ServicesInfoHelper.getInfoByPath(req.originalUrl);
+                //add all information to the created collection of processes (things that are true for all processes)
+                let serviceInfo = await ServicesInfoHelper.getInfoByPath(req.originalUrl);
                 let collection = new Collection();
                 let methodInfo = await IoHelper.readFile(nconf.get("paths:jsonPath") + req.originalUrl + path.sep + "info.json");
                 collection.outputs = methodInfo.output;
@@ -201,9 +143,8 @@ export class ExecutableHelper extends EventEmitter {
                 //create processes
                 let index: number = 0;
                 //check if some parameter expanding is needed
-
                 collection.inputData = await ParameterHelper.expandDataWildcards(collection.inputData);
-
+                //create all individual processes
                 for (let element of collection.inputData) {
                     let proc: Process = new Process();
                     proc.req = _.cloneDeep(req);
@@ -299,8 +240,6 @@ export class ExecutableHelper extends EventEmitter {
         switch (programType) {
             case "java":
                 return "java -Djava.awt.headless=true -Xmx4096m -jar";
-            case "coffeescript":
-                return "coffeescript";
             default:
                 return "";
         }
@@ -319,4 +258,68 @@ export class ExecutableHelper extends EventEmitter {
         }
     }
 
+    /**
+     * Builds the command line executable command
+     * @param {Process} process the process to execute
+     */
+    private buildCommand(process: Process): string {
+        let execType = this.getExecutionType(process.executableType);
+
+        let paramsPath = "";
+
+        for (let param of _.values(process.parameters.params)) {
+            paramsPath += "'" + param + "'";
+        }
+        return execType + " " + process.executablePath + " " + paramsPath;
+    }
+
+    /**
+     * Build the remote command for execution on a Sun Grid Engine using qsub
+     * @param {Process} process The process to execute
+     */
+    private buildRemoteCommand(process: Process): string {
+        let params = _.cloneDeep(process.parameters.params);
+        _.forIn(params, function (value: any, key: any) {
+            switch (key) {
+                case "inputImage":
+                case "outputImage":
+                case "resultFile":
+                    let extension = path.extname(value);
+                    let filename = path.basename(value, extension);
+                    params[key] = process.rootFolder + path.sep + filename + extension;
+                    break;
+                case "outputFolder":
+                    params[key] = process.rootFolder + path.sep;
+                    break;
+            }
+        });
+
+        _.forOwn(_.intersection(_.keys(params), _.keys(nconf.get("remotePaths"))), function (value: any, key: any) {
+            params[value] = nconf.get("remotePaths:" + value);
+        });
+
+        let paramsPath = _.values(params).join(" ");
+        return "qsub -o " + process.rootFolder + " -e " + process.rootFolder + " " + process.executablePath + " " + paramsPath;
+    }
+
+    /**
+     * executes a command using the [childProcess](https://nodejs.org/api/child_process.html) module
+     * @param {string} command the command to execute
+     * @param {Process} process the process
+     */
+    private executeCommand(command: string, process: Process): Promise<void> {
+        return new Promise<void>((resolve, reject) => {
+            let exec = childProcess.exec;
+            Logger.log("info", "Execute command: " + command, "ExecutableHelper");
+            exec(command, { maxBuffer: 1024 * 48828 }, async function (error: any, stdout: any, stderr: any) {
+                Statistics.endRecording(process.id, process.req.originalUrl, [0, 0]);
+                try {
+                    await process.resultHandler.handleResult(error, stdout, stderr, process);
+                    resolve();
+                } catch (error) {
+                    return reject(error);
+                }
+            });
+        });
+    }
 }

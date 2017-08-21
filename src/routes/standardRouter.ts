@@ -248,7 +248,7 @@ router.put("/upload/:collectionName", upload.single('file'), async function (req
         if (FileHelper.checkCollectionAvailable(req.params.collectionName)) {
             let currentFiles = FileHelper.loadCollection(req.params.collectionName, null);
             let numOfFiles: number = currentFiles.length + 1;
-            if (FileHelper.fileExists(nconf.get("paths:filesPath") + path.sep + req.params.collectionName + path.sep + "original" + path.sep + req.file.originalname)) {
+            if (await FileHelper.fileExists(nconf.get("paths:filesPath") + path.sep + req.params.collectionName + path.sep + "original" + path.sep + req.file.originalname)) {
                 sendError(res, new DivaError("File with the name: " + req.file.originalname + " exists already in collection: " + req.params.collectionName, 500, "DuplicateFileError"));
             } else {
                 await IoHelper.moveFile(req.file.path, nconf.get("paths:filesPath") + path.sep + req.params.collectionName + path.sep + "original" + path.sep + req.file.originalname);
@@ -406,7 +406,7 @@ router.get("/collections/:collection", function (req: express.Request, res: expr
 router.get("/collections/:collection/zip", async function (req: express.Request, res: express.Response) {
     let collection = req.params.collection;
     let filename = nconf.get("paths:filesPath") + path.sep + collection + path.sep + "data.zip";
-    if (FileHelper.fileExists(filename)) {
+    if (await FileHelper.fileExists(filename)) {
         res.download(filename);
     } else {
         await IoHelper.zipFolder(nconf.get("paths:filesPath") + path.sep + collection, "data.zip");

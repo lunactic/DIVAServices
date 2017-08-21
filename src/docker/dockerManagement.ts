@@ -18,6 +18,10 @@ import * as os from 'os';
 import { Process } from "../processingQueue/process";
 import { DivaError } from "../models/divaError";
 import * as stream from 'stream';
+import * as ssh from 'ssh2';
+
+var Client = require('ssh2').Client;
+
 /**
  * A class for managing, and running docker images
  */
@@ -198,9 +202,6 @@ export class DockerManagement {
             case "java":
                 content += 'java -Djava.awt.headless=true -Xmx4096m -jar /data/' + algorithmInfos.method.executable_path + ' ';
                 break;
-            case "coffeescript":
-                content += 'coffee ' + algorithmInfos.method.executable_path + ' ';
-                break;
             case "bash":
             case "matlab":
                 content += '/data/' + algorithmInfos.method.executable_path + ' ';
@@ -339,6 +340,34 @@ export class DockerManagement {
                 return reject(new DivaError(error.message, 500, "DockerError"));
             }
         });
+    }
+
+    static runDockerImageSSH(process: Process, imageName: string): Promise<void> {
+        return new Promise<void>(async (resolve, reject) => {
+            var conn: ssh.Client = new Client();
+            conn.on('ready', () => {
+                Logger.log("debug", "Client :: ready", "DockerManagement::runDockerImageSSH");
+                var command: string = "cwltool --outdir " + process.outputFolder.replace("data", "data_test").replace("/mnt/d", "") + " /home/docker/cwl/docker.cwl /home/docker/cwl/docker-job.yaml";
+                conn.exec(command, (err: Error, stream: ssh.ClientChannel) => {
+                    if (err) {
+                        reject(err);
+                    }
+                    stream.on('close', (code, signal) => {
+                        Logger.log("debug", "Stream :: close :: code: " + code + ", signal: " + signal, "DockerManagement::runDockerImageSSH");
+                    }).on('data', (data) => {
+                        Logger.log("debug", "STDOUT: " + data, "DockerManagement::runDockerImageSSH");
+                    }).stderr.on('data', (data) => {
+                        Logger.log("error", "STDERR: " + data, "DockerManagement::runDockerImageSSH");
+                    });
+                });
+            }).connect({
+                host: 'diufpc51',
+                port: 22,
+                username: 'docker',
+                password: 'docker'
+            });
+        });
+
     }
 
     /**

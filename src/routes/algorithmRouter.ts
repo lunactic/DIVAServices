@@ -96,7 +96,7 @@ router.post("/algorithms", async function (req: express.Request, res: express.Re
  */
 router.put("/algorithms/:identifier", async function (req: express.Request, res: express.Response) {
     //perform a deletion and an addition of the new algorithm
-    let serviceInfo = ServicesInfoHelper.getInfoByIdentifier(req.params.identifier);
+    let serviceInfo = await ServicesInfoHelper.getInfoByIdentifier(req.params.identifier);
     if (serviceInfo != null) {
         let currentRoute = serviceInfo.path;
         let baseroute = serviceInfo.baseroute;
@@ -145,7 +145,7 @@ router.post("/algorithms/:identifier/exceptions/:jobId", function (req: express.
  */
 router.delete("/algorithms/:identifier", async function (req: express.Request, res: express.Response) {
     //set algorithm status to deleted
-    let serviceInfo = ServicesInfoHelper.getInfoByIdentifier(req.params.identifier);
+    let serviceInfo = await ServicesInfoHelper.getInfoByIdentifier(req.params.identifier);
     AlgorithmManagement.updateStatus(req.params.identifier, "delete", null, null);
     //remove /route/info.json file
     AlgorithmManagement.deleteInfoFile(nconf.get("paths:jsonPath") + serviceInfo.path);
