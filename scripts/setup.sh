@@ -54,9 +54,6 @@ function install_global_npm_packages {
     if [ ${status} -eq 1 ] ; then
       echo "skipping package=${package} because it is already installed"
     else
-      if [ ${package} = "coffee" ] ; then
-        package="coffee-script"
-      fi
       echo "installing package=${package}"
       npm install -g ${package}
     fi
