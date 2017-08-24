@@ -101,8 +101,11 @@ export class ExecutableHelper extends EventEmitter {
             let serviceInfo = await ServicesInfoHelper.getInfoByPath(process.req.originalUrl);
             try {
                 resolve();
-                DockerManagement.runDockerImageSSH(process, serviceInfo.image_name);
-                //DockerManagement.runDockerImage(process, serviceInfo.image_name);
+                if (nconf.get("server:cwlSupport")) {
+                    DockerManagement.runDockerImageSSH(process, serviceInfo.image_name);
+                } else {
+                    DockerManagement.runDockerImage(process, serviceInfo.image_name);
+                }
             } catch (error) {
                 reject(error);
             }

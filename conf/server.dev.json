@@ -45,6 +45,7 @@
     }
   },
   "server": {
+    "cwlSupport": false,
     "timeout": 600000,
     "httpPort": 8080,
     "httpsPort": 8443,
