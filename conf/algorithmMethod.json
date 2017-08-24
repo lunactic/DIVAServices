@@ -31,13 +31,11 @@
     "type": "enum",
     "values": [
       "java",
-      "coffeescript",
       "bash",
       "matlab"
     ],
     "keys": [
       "Java-JAR",
-      "CoffeeScript",
       "Bash Script",
       "Compiled Matlab Code"
     ],

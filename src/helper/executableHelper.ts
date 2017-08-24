@@ -167,6 +167,8 @@ export class ExecutableHelper extends EventEmitter {
                     proc.resultType = serviceInfo.output;
                     proc.type = executionType;
                     proc.logFolder = collection.logFolder;
+                    proc.yamlFile = proc.outputFolder + "data_" + index + ".yaml";
+                    proc.cwlFile = nconf.get("paths:executablePath") + serviceInfo.path + path.sep + serviceInfo.identifier + ".cwl";
                     if (!isNullOrUndefined(collection.identification)) {
                         proc.identification = _.cloneDeep(collection.identification);
                         Statistics.recordUser(proc);

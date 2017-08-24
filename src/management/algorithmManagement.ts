@@ -178,9 +178,13 @@ export class AlgorithmManagement {
             await cwlManager.initialize();
             algorithm.input.forEach((item, index) => {
                 switch (Object.keys(item)[0]) {
+                    case 'resultFile':
+                        var name: string = 'resultFile';
+                        cwlManager.addInput('string', name, index);
+                        break;
                     case 'file':
-                        var name = item.file.name;
-                        cwlManager.addInput(Object.keys(item)[0], name, index);
+                        var name: string = item.file.name;
+                        cwlManager.addInput('File', name, index);
                         break;
                     case 'number':
                         break;
@@ -192,11 +196,11 @@ export class AlgorithmManagement {
                     case 'file':
                         var name = item.file.name;
                         var extension = mime.extension(item.file.options.mimeType);
-                        cwlManager.addOutput(Object.keys(item)[0], name, "*." + extension);
+                        cwlManager.addOutput('File', name, "*." + extension);
                         break;
                 }
             });
-            cwlManager.addOutput("file", "jsonResult", "result.json");
+            cwlManager.addOutput("File", "jsonResult", "*.json");
             resolve();
         });
     }
@@ -647,6 +651,7 @@ export class AlgorithmManagement {
                     baseRoute: "/" + baseRoute,
                     identifier: identifier,
                     path: "/" + route,
+                    cwl: nconf.get("paths:executablePath") + path.sep + route + path.sep + identifier + ".cwl",
                     executablePath: nconf.get("paths:executablePath") + path.sep + route + path.sep + algorithm.method.executable_path,
                     allowParallel: true,
                     hasMultipleFiles: (fileCount > 1),

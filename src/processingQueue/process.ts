@@ -300,6 +300,24 @@ export class Process implements IProcess {
      */
     public identification: any;
 
+    
+    /**
+     * path to the cwl file for the method
+     * 
+     * @type {string}
+     * @memberof Process
+     */
+    public cwlFile: string;
+
+    /**
+     * 
+     * 
+     * @type {string}
+     * @memberof Process
+     */
+    public yamlFile: string;
+
+
     /**
      * build the static url to access the result file
      * 

@@ -11,17 +11,15 @@ export class CwlManager {
     }
 
     public initialize() {
-
         //Write header information
-        fs.writeFileSync(this.filePath, 'cwlVersion: 1.0' + os.EOL);
+        fs.writeFileSync(this.filePath, 'cwlVersion: v1.0' + os.EOL);
         fs.appendFileSync(this.filePath, 'class: CommandLineTool' + os.EOL);
         fs.appendFileSync(this.filePath, 'baseCommand: /input/script.sh' + os.EOL);
         fs.appendFileSync(this.filePath, 'hints:' + os.EOL);
         fs.appendFileSync(this.filePath, '  DockerRequirement:' + os.EOL);
-        fs.appendFileSync(this.filePath, '    dockerPull:' + this.dockerImage + os.EOL);
+        fs.appendFileSync(this.filePath, '    dockerPull: ' + this.dockerImage + os.EOL);
         fs.appendFileSync(this.filePath, '    dockerOutputDirectory: /output' + os.EOL);
         fs.appendFileSync(this.filePath, 'inputs:' + os.EOL);
-
     }
 
     public addInput(type: string, name: string, position: number) {

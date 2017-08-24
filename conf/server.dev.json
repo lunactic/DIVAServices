@@ -25,6 +25,10 @@
     "host": "DOCKER_HOST_IP",
     "port": "DOCKER_HOST_PORT",
     "reportHost": "DOCKER_REPORT_HOST",
+    "user":"lunactic",
+    "group":"lunactic",
+    "uid":"1000",
+    "gid":"1000",
     "maxContainers": 8,
     "maxMemory": 4096,
     "replacePaths": [
@@ -61,17 +65,17 @@
     "ip": "diuf-cluster"
   },
   "paths": {
-    "filesPath": "/data/files",
-    "resultsPath": "/data/results",
+    "filesPath": "/mnt/d/data/files",
+    "resultsPath": "/mnt/d/data/results",
     "testPath": "/data/testData",
-    "jsonPath": "/data/json",
-    "logPath": "/data/logs",
-    "imageInfoFile": "/data/files/filesInfo.json",
-    "dataInfoFile": "/data/data/dataInfo.json",
-    "rootInfoFile": "/data/json/info.json",
-    "servicesInfoFile": "/data/json/services.json",
-    "swaggerFile": "/data/json/swagger.json",
-    "executablePath": "/data/executables",
+    "jsonPath": "/mnt/d/data/json",
+    "logPath": "/mnt/d/data/logs",
+    "imageInfoFile": "/mnt/d/data/files/filesInfo.json",
+    "dataInfoFile": "/mnt/d/data/data/dataInfo.json",
+    "rootInfoFile": "/mnt/d/data/json/info.json",
+    "servicesInfoFile": "/mnt/d/data/json/services.json",
+    "swaggerFile": "/mnt/d/data/json/swagger.json",
+    "executablePath": "/mnt/d/data/executables",
     "mcr2014b": "$LD_LIBRARY_PATH"
   },
   "remotePaths": {

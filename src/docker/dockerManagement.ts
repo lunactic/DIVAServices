@@ -19,6 +19,7 @@ import { Process } from "../processingQueue/process";
 import { DivaError } from "../models/divaError";
 import * as stream from 'stream';
 import * as ssh from 'ssh2';
+import { YamlManager } from "../helper/cwl/yamlManager";
 
 var Client = require('ssh2').Client;
 
@@ -125,28 +126,37 @@ export class DockerManagement {
         let content: string = "FROM " + algorithmInfos.method.environment + os.EOL +
             'MAINTAINER marcel.wuersch@unifr.ch' + os.EOL;
 
+        //ADD USERGROUP (TODO: ADD gid and groupname to config)
         switch (nconf.get("baseImages:" + algorithmInfos.method.environment)) {
             case "apk":
+                content += 'RUN addgroup -S ' + nconf.get("docker:group") + os.EOL;
+                content += 'RUN adduser -S -g ' + nconf.get("docker:user") + ' ' + nconf.get("docker:group") + os.EOL;
                 content += 'RUN apk update' + os.EOL +
                     'RUN apk add curl bash' + os.EOL;
                 break;
             case "apt":
+                content += 'RUN groupadd ' + nconf.get("docker:group") + os.EOL;
+                content += 'RUN useradd --create-home --home-dir $HOME ' + nconf.get("docker:user") + os.EOL;
                 content += 'RUN apt-get update' + os.EOL +
                     'RUN apt-get install bash jq wget unzip curl -y' + os.EOL;
                 break;
         }
 
-        content += 'RUN mkdir -p /data/output' + os.EOL +
-            'COPY . /data' + os.EOL +
-            'RUN unzip /data/algorithm.zip -d /data' + os.EOL;
+        content += 'RUN mkdir -p /output' + os.EOL +
+            'RUN mkdir -p /input' + os.EOL +
+            'COPY . /input' + os.EOL +
+            'RUN unzip /input/algorithm.zip -d /input' + os.EOL +
+            'RUN chown -R ' + nconf.get("docker:group") + ':' + nconf.get("docker:user") + ' /input' + os.EOL;
 
         switch (nconf.get("baseImages:" + algorithmInfos.method.environment)) {
             case "apt":
                 content += 'RUN apt-get clean && rm -rf /tmp/* /var/lib/apt/lists/* /var/tmp/* .git' + os.EOL;
                 break;
         }
-        content += 'WORKDIR /data' + os.EOL;
+        content += 'WORKDIR /input' + os.EOL;
         content += 'RUN chmod +x *' + os.EOL;
+        content += 'USER ' + nconf.get("docker:user") + ':' + nconf.get("docker:group") + os.EOL;
+        content += 'CMD ["/input/script.sh"]';
         fs.writeFileSync(outputFolder + path.sep + "Dockerfile", content);
     }
 
@@ -164,10 +174,7 @@ export class DockerManagement {
         content += 'echo BEGINNING OF DIVASERVICES LOG RECORDING' + os.EOL;
         content += 'echo ------------------' + os.EOL;
 
-        //input count starts with 3. Params 1 and 2 are fix used
-        // 1: resultResponseUrl
-        // 2: errorResponseUrl
-        let inputCount: number = 3;
+        let inputCount: number = 1;
 
         //check if additional files need to be downloaded
         let index = 0;
@@ -175,24 +182,24 @@ export class DockerManagement {
             let key = _.keys(algorithmInfos.input[index])[0];
             if (['json', 'file', 'inputFile'].indexOf(key) >= 0) {
                 //content += String((inputCount + index)) + '=$' + (inputCount + index) + os.EOL;
-                content += 'curl -vs -o /data/' + input[key].name + '.' + mime.extension(input[key].options.mimeType) + ' $' + (inputCount + index) + " 2>/dev/null" + os.EOL;
-                content += input[key].name + '="${' + (inputCount + index) + '##*/}"' + os.EOL;
-                content += 'mv /data/' + input[key].name + '.' + mime.extension(input[key].options.mimeType) + ' /data/$' + input[key].name + os.EOL;
-                content += 'echo ' + input[key].name + ' is using file: ' + '$' + (inputCount + index) + os.EOL;
-                AlgorithmManagement.addRemotePath(identifier, input[key].name, "/data/$" + input[key].name);
+                //content += 'curl -vs -o /data/' + input[key].name + '.' + mime.extension(input[key].options.mimeType) + ' $' + (inputCount + index) + " 2>/dev/null" + os.EOL;
+                //content += input[key].name + '="${' + (inputCount + index) + '##*/}"' + os.EOL;
+                //content += 'mv /data/' + input[key].name + '.' + mime.extension(input[key].options.mimeType) + ' /data/$' + input[key].name + os.EOL;
+                //content += 'echo ' + input[key].name + ' is using file: ' + '$' + (inputCount + index) + os.EOL;
+                //AlgorithmManagement.addRemotePath(identifier, input[key].name, "/data/$" + input[key].name);
             } else if (['folder'].indexOf(key) >= 0) {
-                content += 'curl -vs -o /data/' + input[key].name + '.zip' + ' $' + (inputCount + index) + " 2>/dev/null" + os.EOL;
-                content += 'echo ' + input[key].name + ' is using file: ' + '$' + (inputCount + index) + os.EOL;
-                AlgorithmManagement.addRemotePath(identifier, input[key].name, "/data/" + input[key].name + "/");
+                //content += 'curl -vs -o /data/' + input[key].name + '.zip' + ' $' + (inputCount + index) + " 2>/dev/null" + os.EOL;
+                //content += 'echo ' + input[key].name + ' is using file: ' + '$' + (inputCount + index) + os.EOL;
+                //AlgorithmManagement.addRemotePath(identifier, input[key].name, "/data/" + input[key].name + "/");
             }
-            index++;
+            //index++;
         }
-        index = 0;
+        //index = 0;
         //check for unzipping
         for (let input of algorithmInfos.input) {
             let key = _.keys(algorithmInfos.input[index])[0];
             if (['folder'].indexOf(key) >= 0) {
-                content += 'unzip /data/' + input[key].name + '.zip' + ' -d /data/' + input[key].name + os.EOL;
+                content += 'unzip /input/' + input[key].name + '.zip' + ' -d /input/' + input[key].name + os.EOL;
             }
             index++;
         }
@@ -200,11 +207,11 @@ export class DockerManagement {
         //add the correct execution string
         switch (algorithmInfos.method.executableType) {
             case "java":
-                content += 'java -Djava.awt.headless=true -Xmx4096m -jar /data/' + algorithmInfos.method.executable_path + ' ';
+                content += 'java -Djava.awt.headless=true -Xmx4096m -jar /input/' + algorithmInfos.method.executable_path + ' ';
                 break;
             case "bash":
             case "matlab":
-                content += '/data/' + algorithmInfos.method.executable_path + ' ';
+                content += '/input/' + algorithmInfos.method.executable_path + ' ';
                 break;
         }
 
@@ -213,10 +220,7 @@ export class DockerManagement {
         for (let input of algorithmInfos.input) {
             let key = _.keys(algorithmInfos.input[index])[0];
             let value = ((_.values(algorithmInfos.input[index])[0]) as any).name;
-            if (nconf.get("reservedWords").indexOf(key) >= 0 && nconf.get("docker:replacePaths").indexOf(key) >= 0) {
-                content += this.getDockerInput(key) + " ";
-                inputCount++;
-            } else if (nconf.get("reservedWords").indexOf(key) >= 0 && !(nconf.get("docker:replacePaths").indexOf(key) >= 0)) {
+            if (nconf.get("reservedWords").indexOf(key) >= 0 && !(nconf.get("docker:replacePaths").indexOf(key) >= 0)) {
                 if (AlgorithmManagement.hasRemotePath(identifier, value)) {
                     content += AlgorithmManagement.getRemotePath(identifier, value) + " ";
                 } else if (key === "highlighter") {
@@ -237,14 +241,14 @@ export class DockerManagement {
         }
         content += os.EOL;
         //add the response sending information
-        content += 'if [ -s "/data/error.txt" ]' + os.EOL;
+        content += 'if [ -s "/output/error.txt" ]' + os.EOL;
         content += 'then' + os.EOL;
-        content += '    curl -vs -H "Content-Type: text/plain" --data @/data/error.txt $2' + " 2>/dev/null" + os.EOL;
+        content += '    curl -vs -H "Content-Type: text/plain" --data @/output/error.txt $2' + " 2>/dev/null" + os.EOL;
         content += 'fi' + os.EOL;
-        content += 'if [ -s "/data/result.json" ]' + os.EOL;
-        content += 'then' + os.EOL;
-        content += '    curl -vs -H "Content-Type: application/json" --data @/data/result.json $1' + " 2>/dev/null" + os.EOL;
-        content += 'fi' + os.EOL;
+        //content += 'if [ -s "/output/result.json" ]' + os.EOL;
+        //content += 'then' + os.EOL;
+        //content += '    curl -vs -H "Content-Type: application/json" --data @/data/result.json $1' + " 2>/dev/null" + os.EOL;
+        //content += 'fi' + os.EOL;
         content += 'echo ------------------' + os.EOL;
         content += 'echo END OF DIVASERVICES LOG RECORDING' + os.EOL;
         content += 'echo ------------------' + os.EOL;
@@ -344,10 +348,36 @@ export class DockerManagement {
 
     static runDockerImageSSH(process: Process, imageName: string): Promise<void> {
         return new Promise<void>(async (resolve, reject) => {
+            var yamlManager: YamlManager = new YamlManager(process.yamlFile);
             var conn: ssh.Client = new Client();
             conn.on('ready', () => {
                 Logger.log("debug", "Client :: ready", "DockerManagement::runDockerImageSSH");
-                var command: string = "cwltool --outdir " + process.outputFolder.replace("data", "data_test").replace("/mnt/d", "") + " /home/docker/cwl/docker.cwl /home/docker/cwl/docker-job.yaml";
+                let params = process.matchedParameters;
+                //create job.yaml file
+                for (let param of params) {
+                    let key = _.keys(param)[0];
+                    let value = param[key];
+                    if (key === "highlighter") {
+                        //TODO: add handler for arrays
+                    } else if (value instanceof DivaFile) {
+                        yamlManager.addInputValue(key, "file", (value as DivaFile).path.replace('/mnt/d', '/d'));
+                    } else if (value instanceof DivaCollection) {
+                        //add handler for folders
+                    } else {
+                        //handle regular parameters
+                        yamlManager.addInputValue(key, "string", value.replace('/mnt/d', '/d'));
+                    }
+                }
+
+                var command: string = "cwltool --outdir " + process.outputFolder.replace('/mnt/d', '/d')
+                    + " --tmp-outdir-prefix /d/output/ "
+                    + "--tmpdir-prefix /d/tmp/ "
+                    + "--docker-user lunactic "
+                    + "--workdir /input "
+                    + process.cwlFile
+                    + " "
+                    + process.yamlFile;
+                Logger.log("debug", command, "DockerManagement::runDockerImageSSH");
                 conn.exec(command, (err: Error, stream: ssh.ClientChannel) => {
                     if (err) {
                         reject(err);
@@ -361,10 +391,10 @@ export class DockerManagement {
                     });
                 });
             }).connect({
-                host: 'diufpc51',
+                host: '127.0.0.1',
                 port: 22,
-                username: 'docker',
-                password: 'docker'
+                username: 'lunactic',
+                password: 'wue57bmw'
             });
         });
 
