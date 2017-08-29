@@ -5,7 +5,7 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "type": "node2",
+            "type": "node",
             "request": "launch",
             "name": "Launch Program",
             "program": "${workspaceRoot}/bin/www",
@@ -17,15 +17,18 @@
         },
         {
             "name": "Attach to Process",
-            "type": "node2",
+            "type": "node",
             "request": "attach",
+            "protocol": "inspector",
             "port": 9929,
             "address": "localhost",
-            "outFiles": [],
             "sourceMaps": true,
             "restart": false,
             "localRoot": "${workspaceRoot}",
-            "remoteRoot": "/mnt/d/DEV/DIVAServices"
+            "remoteRoot": "/mnt/d/DEV/DIVAServices",
+            "outFiles": [
+                "${workspaceRoot}/**/*.js"
+            ]
         }
     ]
 }
