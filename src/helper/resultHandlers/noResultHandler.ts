@@ -15,6 +15,7 @@ import { IoHelper } from "../ioHelper";
  * @implements {IResultHandler}
  */
 export class NoResultHandler implements IResultHandler {
+
     filename: string;
 
     /**
@@ -68,6 +69,10 @@ export class NoResultHandler implements IResultHandler {
             }
         });
 
+    }
+    
+    handleCwlResult(process: Process): Promise<any> {
+        throw new Error("Method not implemented.");
     }
 
 }

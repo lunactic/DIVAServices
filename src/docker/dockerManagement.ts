@@ -7,7 +7,8 @@ import { DivaCollection } from '../models/divaCollection';
 import * as _ from 'lodash';
 import { AlgorithmManagement } from "../management/algorithmManagement";
 import * as archiver from 'archiver';
-import * as fs from 'fs-extra';
+import * as fs from 'fs';
+import * as fse from 'fs-extra';
 import * as nconf from 'nconf';
 import * as path from 'path';
 import * as DOCKER from 'dockerode';
@@ -43,7 +44,7 @@ export class DockerManagement {
             if (this.docker == null) {
                 this.initDocker();
             }
-            let output = fs.createWriteStream(inputFolder + path.sep + "archive.tar");
+            let output = fse.createWriteStream(inputFolder + path.sep + "archive.tar");
             let archive = archiver("tar");
             let self = this;
 
@@ -157,7 +158,7 @@ export class DockerManagement {
         content += 'RUN chmod +x *' + os.EOL;
         content += 'USER ' + nconf.get("docker:user") + ':' + nconf.get("docker:group") + os.EOL;
         content += 'CMD ["/input/script.sh"]';
-        fs.writeFileSync(outputFolder + path.sep + "Dockerfile", content);
+        fse.writeFileSync(outputFolder + path.sep + "Dockerfile", content);
     }
 
     /**
@@ -252,7 +253,7 @@ export class DockerManagement {
         content += 'echo ------------------' + os.EOL;
         content += 'echo END OF DIVASERVICES LOG RECORDING' + os.EOL;
         content += 'echo ------------------' + os.EOL;
-        fs.writeFileSync(outputFolder + path.sep + "script.sh", content);
+        fse.writeFileSync(outputFolder + path.sep + "script.sh", content);
     }
 
     /**
@@ -307,8 +308,8 @@ export class DockerManagement {
             try {
                 var logStream: stream.Writable = new stream.Writable();
                 var errLogStream: stream.Writable = new stream.Writable();
-                var logFileStream = fs.createWriteStream(process.stdLogFile);
-                var errFileStream = fs.createWriteStream(process.errLogFile);
+                var logFileStream = fse.createWriteStream(process.stdLogFile);
+                var errFileStream = fse.createWriteStream(process.errLogFile);
 
                 logStream._write = function (chunk: any, encoding: string, callback: Function) {
                     logFileStream.write(chunk.toString('utf8'));
@@ -330,7 +331,7 @@ export class DockerManagement {
                     AlgorithmManagement.updateStatus(null, "error", process.req.originalUrl, "Algorithm image did not execute properly");
                     //ResultHelper.removeResult(process);
                 }
-                let stats: fs.Stats = await fs.stat(process.errLogFile);
+                let stats: fse.Stats = await fse.stat(process.errLogFile);
                 if (stats.size === 0) {
                     IoHelper.deleteFile(process.errLogFile);
                 }
@@ -360,41 +361,65 @@ export class DockerManagement {
                     if (key === "highlighter") {
                         //TODO: add handler for arrays
                     } else if (value instanceof DivaFile) {
-                        yamlManager.addInputValue(key, "file", (value as DivaFile).path.replace('/mnt/d', '/d'));
+                        yamlManager.addInputValue(key, "file", (value as DivaFile).path.replace('/mnt/d', '').replace('/data', '/data_test'));
                     } else if (value instanceof DivaCollection) {
                         //add handler for folders
                     } else {
                         //handle regular parameters
-                        yamlManager.addInputValue(key, "string", value.replace('/mnt/d', '/d'));
+                        if (key === "resultFile") {
+                            yamlManager.addInputValue(key, "string", "/output/" + process.tmpResultFile.split("/").pop());
+                        } else {
+                            yamlManager.addInputValue(key, "string", value.replace('/mnt/d', '').replace('/data', '/data_test'));
+                        }
                     }
                 }
 
-                var command: string = "cwltool --outdir " + process.outputFolder.replace('/mnt/d', '/d')
-                    + " --tmp-outdir-prefix /d/output/ "
-                    + "--tmpdir-prefix /d/tmp/ "
+                var command: string = "cwltool --outdir " + process.outputFolder.replace('/mnt/d', '').replace('/data', '/data_test')
+                    + " --debug "
+                    + "--tmp-outdir-prefix /data_test/output/ "
+                    + "--tmpdir-prefix /data_test/tmp/ "
                     + "--docker-user lunactic "
                     + "--workdir /input "
-                    + process.cwlFile
+                    + process.cwlFile.replace('/mnt/d', '').replace('/data', '/data_test')
                     + " "
-                    + process.yamlFile;
+                    + process.yamlFile.replace('/mnt/d', '').replace('/data', '/data_test');
                 Logger.log("debug", command, "DockerManagement::runDockerImageSSH");
+                var errStream = fs.createWriteStream(process.errLogFile);
+                var outStream = fs.createWriteStream(process.stdLogFile);
+                var cwlStream = fs.createWriteStream(process.cwlLogFile);
+                
                 conn.exec(command, (err: Error, stream: ssh.ClientChannel) => {
                     if (err) {
-                        reject(err);
+                        reject(new DivaError("Error executing the Workflow", 500, "ExecutionError"));
                     }
-                    stream.on('close', (code, signal) => {
+                    stream.on('close', async (code, signal) => {
+                        if (code !== 0) {
+                            //error in execution
+                            Logger.log("error", "Error executing the workflow", "DockerManagement::runDockerImageSSH");
+                            reject(new DivaError("Error executing the Workflow", 500, "ExecutionError"));
+                        } else {
+                            await process.resultHandler.handleCwlResult(process);
+                            resolve();
+                        }
                         Logger.log("debug", "Stream :: close :: code: " + code + ", signal: " + signal, "DockerManagement::runDockerImageSSH");
                     }).on('data', (data) => {
+                        outStream.write(data);
                         Logger.log("debug", "STDOUT: " + data, "DockerManagement::runDockerImageSSH");
                     }).stderr.on('data', (data) => {
-                        Logger.log("error", "STDERR: " + data, "DockerManagement::runDockerImageSSH");
+                        if (data.toString().startsWith('[job')) {
+                            cwlStream.write(data);
+                            Logger.log("debug", "JOBLOG: " + data, "DockerManagement::runDockerImageSSH");                            
+                        } else {
+                            errStream.write(data);
+                            Logger.log("error", "STDERR: " + data, "DockerManagement::runDockerImageSSH");
+                        }
                     });
                 });
             }).connect({
-                host: '127.0.0.1',
+                host: 'diufpc51',
                 port: 22,
-                username: 'lunactic',
-                password: 'wue57bmw'
+                username: nconf.get("docker:sshUser"),
+                password: nconf.get("docker:sshPass")
             });
         });
 

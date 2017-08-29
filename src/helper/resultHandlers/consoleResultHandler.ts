@@ -97,5 +97,9 @@ export class ConsoleResultHandler implements IResultHandler {
 
     }
 
+    handleCwlResult(process: Process): Promise<any> {
+        throw new Error("Method not implemented.");
+    }
+
 
 }

@@ -377,6 +377,11 @@ export class IoHelper {
     static buildErrLogFilePath(folder: string, now: Date): string {
         return folder + path.sep + now.getFullYear() + "_" + now.getMonth() + "_" + now.getDay() + "_" + now.getHours() + "_" + now.getMinutes() + "_" + now.getSeconds() + "_" + now.getMilliseconds() + "_err.log";
     }
+
+    static buildCwlLogFilePath(folder: string, now: Date): string {
+        return folder + path.sep + now.getFullYear() + "_" + now.getMonth() + "_" + now.getDay() + "_" + now.getHours() + "_" + now.getMinutes() + "_" + now.getSeconds() + "_" + now.getMilliseconds() + "_cwl.log";
+    }
+
     /**
      * get the static url for an image
      * 

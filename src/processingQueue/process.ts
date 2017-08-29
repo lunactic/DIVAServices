@@ -20,14 +20,6 @@ export class Process implements IProcess {
     public id: string;
 
     /**
-     * the running process number
-     * 
-     * @type {number}
-     * @memberOf Process
-     */
-    public number: number;
-
-    /**
      * the identifier of the applied algorithm
      * 
      * @type {string}
@@ -283,6 +275,15 @@ export class Process implements IProcess {
      * @memberof Process
      */
     public errLogFile: string;
+
+    /**
+     * All logging from the cwl execution
+     * 
+     * @type {string}
+     * @memberof Process
+     */
+    public cwlLogFile: string;
+
 
     /**
      * Path to the log files folder

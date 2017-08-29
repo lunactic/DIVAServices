@@ -84,8 +84,8 @@ export class FileResultHandler implements IResultHandler {
         return new Promise<any>(async (resolve, reject) => {
             //check if temp result file exists
             try {
-                //check if the file exists
-                var stats: fs.Stats = await fs.stat(this.tempResultFile);
+                //check if the files exists
+                var resStats: fs.Stats = await fs.stat(this.tempResultFile);
                 var data = await fs.readJson(self.tempResultFile, { encoding: "utf-8" });
                 if (isNullOrUndefined(data.output)) {
                     data.output = [];
@@ -162,6 +162,91 @@ export class FileResultHandler implements IResultHandler {
                 Logger.log("error", error, "FileResultHandler");
                 return reject(new DivaError("Error parsing the result", 500, "ResultError"));
             }
+        });
+    }
+
+    /**
+     * Handle results coming from a cwltool execution
+     * 
+     * 
+     * @param {Process} process the process to handle 
+     * @returns {Promise<any>} 
+     * @memberof FileResultHandler
+     */
+    async handleCwlResult(process: Process): Promise<any> {
+        return new Promise(async (resolve, reject) => {
+            try {
+                var procResult = await await fs.readJson(this.tempResultFile, { encoding: "utf-8" });
+                var cwlResult = await fs.readJson(process.stdLogFile, { encoding: "utf-8" });
+
+                if (isNullOrUndefined(procResult.output)) {
+                    procResult.output = [];
+                }
+
+                let files = _.filter(procResult.output, function (entry: any) {
+                    return _.has(entry, "file");
+                });
+
+                for (let file of files) {
+                    //handle matlab output
+                    if (process.executableType === "matlab") {
+                        file.file['mime-type'] = file.file['mimetype'];
+                        file.file.options.visualization = Boolean(file.file.options.visualization);
+                        delete file.file['mimetype'];
+                    }
+
+                    //find the corresponding entry in the cwlResult to find the correct filename
+                    var cwlFile = cwlResult[file.file.name.split('.')[0]];
+                    await fs.move(process.outputFolder + path.sep + cwlFile.basename, process.outputFolder + path.sep + file.file.name);
+                    //rename the file according to file.file.name
+                    Logger.log("debug", "Hello", "FileResultHandler::handleCwlResult");
+
+                    file.file["url"] = IoHelper.getStaticResultFileUrl(process.outputFolder, file.file.name);
+                    delete file.file.content;
+
+                }
+
+                //add log files
+                let stdLogFile = {
+                    file: {
+                        "mime-type": "text/plain",
+                        url: IoHelper.getStaticLogUrlFull(process.errLogFile),
+                        name: "standardOutputLog.log",
+                        options: {
+                            visualization: false,
+                            type: "logfile"
+                        }
+                    }
+                };
+                let errorLogFile = {
+                    file: {
+                        "mime-type": "text/plain",
+                        url: IoHelper.getStaticLogUrlFull(process.cwlLogFile),
+                        name: "errorOutputLog.log",
+                        options: {
+                            visualization: false,
+                            type: "logfile"
+                        }
+                    }
+                };
+
+                procResult.output.push(stdLogFile);
+                procResult.output.push(errorLogFile);
+                //set final data fields
+                procResult["status"] = "done";
+                procResult["resultLink"] = process.resultLink;
+                procResult["collectionName"] = process.rootFolder;
+                await IoHelper.saveFile(this.tempResultFile, procResult, "utf8");
+                await IoHelper.moveFile(this.tempResultFile, this.filename);
+                resolve({ data: procResult, procId: process.id });
+            } catch (error) {
+                Logger.log("error", error, "FileResultHandler::handleCwlResult");
+                reject(new DivaError("Error handling the cwl result", 500, "ResultError"));
+            }
+
+
+
+            resolve();
         });
     }
 }
