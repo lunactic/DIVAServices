@@ -103,6 +103,8 @@ export class ExecutableHelper extends EventEmitter {
                 resolve();
                 if (nconf.get("server:cwlSupport")) {
                     DockerManagement.runDockerImageSSH(process, serviceInfo.image_name);
+                    //check if we are running a test request here and need to update information
+                    
                 } else {
                     DockerManagement.runDockerImage(process, serviceInfo.image_name);
                 }

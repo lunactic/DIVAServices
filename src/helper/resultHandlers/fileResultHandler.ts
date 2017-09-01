@@ -236,6 +236,8 @@ export class FileResultHandler implements IResultHandler {
                 procResult["status"] = "done";
                 procResult["resultLink"] = process.resultLink;
                 procResult["collectionName"] = process.rootFolder;
+                
+                //TODO Fix this once it is known how to properly fetch logs from cwltool
                 await IoHelper.saveFile(this.tempResultFile, procResult, "utf8");
                 await IoHelper.moveFile(this.tempResultFile, this.filename);
                 resolve({ data: procResult, procId: process.id });

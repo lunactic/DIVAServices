@@ -52,12 +52,17 @@ export class AlgorithmManagement {
                 await AlgorithmManagement.generateFolders(route);
                 AlgorithmManagement.updateServicesFile(req.body, identifier, route, imageName, version, baseroute);
                 await IoHelper.downloadFileWithTypecheck(req.body.method.file, nconf.get("paths:executablePath") + path.sep + route, "application/zip");
-                //create workflow file
-                await AlgorithmManagement.createWorkflowFile(identifier, req.body, nconf.get("paths:executablePath") + path.sep + route + path.sep + identifier + ".cwl");
                 //create docker file
                 DockerManagement.createDockerFile(req.body, nconf.get("paths:executablePath") + path.sep + route);
-                //create bash script
-                DockerManagement.createBashScript(identifier, req.body, nconf.get("paths:executablePath") + path.sep + route);
+                if (nconf.get("server:cwlcwlSupport")) {
+                    //create cwl workflow file
+                    await AlgorithmManagement.createWorkflowFile(identifier, req.body, nconf.get("paths:executablePath") + path.sep + route + path.sep + identifier + ".cwl");
+                    //create bash script
+                    DockerManagement.createCwlBashScript(identifier, req.body, nconf.get("paths:executablePath") + path.sep + route);
+                } else {
+                    //create bash script
+                    DockerManagement.createBashScript(identifier, req.body, nconf.get("paths:executablePath") + path.sep + route);
+                }
                 //update services file
                 AlgorithmManagement.updateStatus(identifier, "creating", "/" + route, null);
                 let response = {

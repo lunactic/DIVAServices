@@ -182,20 +182,20 @@ export class DockerManagement {
         for (let input of algorithmInfos.input) {
             let key = _.keys(algorithmInfos.input[index])[0];
             if (['json', 'file', 'inputFile'].indexOf(key) >= 0) {
-                //content += String((inputCount + index)) + '=$' + (inputCount + index) + os.EOL;
-                //content += 'curl -vs -o /data/' + input[key].name + '.' + mime.extension(input[key].options.mimeType) + ' $' + (inputCount + index) + " 2>/dev/null" + os.EOL;
-                //content += input[key].name + '="${' + (inputCount + index) + '##*/}"' + os.EOL;
-                //content += 'mv /data/' + input[key].name + '.' + mime.extension(input[key].options.mimeType) + ' /data/$' + input[key].name + os.EOL;
-                //content += 'echo ' + input[key].name + ' is using file: ' + '$' + (inputCount + index) + os.EOL;
-                //AlgorithmManagement.addRemotePath(identifier, input[key].name, "/data/$" + input[key].name);
+                content += String((inputCount + index)) + '=$' + (inputCount + index) + os.EOL;
+                content += 'curl -vs -o /data/' + input[key].name + '.' + mime.extension(input[key].options.mimeType) + ' $' + (inputCount + index) + " 2>/dev/null" + os.EOL;
+                content += input[key].name + '="${' + (inputCount + index) + '##*/}"' + os.EOL;
+                content += 'mv /data/' + input[key].name + '.' + mime.extension(input[key].options.mimeType) + ' /data/$' + input[key].name + os.EOL;
+                content += 'echo ' + input[key].name + ' is using file: ' + '$' + (inputCount + index) + os.EOL;
+                AlgorithmManagement.addRemotePath(identifier, input[key].name, "/data/$" + input[key].name);
             } else if (['folder'].indexOf(key) >= 0) {
-                //content += 'curl -vs -o /data/' + input[key].name + '.zip' + ' $' + (inputCount + index) + " 2>/dev/null" + os.EOL;
-                //content += 'echo ' + input[key].name + ' is using file: ' + '$' + (inputCount + index) + os.EOL;
-                //AlgorithmManagement.addRemotePath(identifier, input[key].name, "/data/" + input[key].name + "/");
+                content += 'curl -vs -o /data/' + input[key].name + '.zip' + ' $' + (inputCount + index) + " 2>/dev/null" + os.EOL;
+                content += 'echo ' + input[key].name + ' is using file: ' + '$' + (inputCount + index) + os.EOL;
+                AlgorithmManagement.addRemotePath(identifier, input[key].name, "/data/" + input[key].name + "/");
             }
-            //index++;
+            index++;
         }
-        //index = 0;
+        index = 0;
         //check for unzipping
         for (let input of algorithmInfos.input) {
             let key = _.keys(algorithmInfos.input[index])[0];
@@ -246,13 +246,73 @@ export class DockerManagement {
         content += 'then' + os.EOL;
         content += '    curl -vs -H "Content-Type: text/plain" --data @/output/error.txt $2' + " 2>/dev/null" + os.EOL;
         content += 'fi' + os.EOL;
-        //content += 'if [ -s "/output/result.json" ]' + os.EOL;
-        //content += 'then' + os.EOL;
-        //content += '    curl -vs -H "Content-Type: application/json" --data @/data/result.json $1' + " 2>/dev/null" + os.EOL;
-        //content += 'fi' + os.EOL;
+        content += 'if [ -s "/output/result.json" ]' + os.EOL;
+        content += 'then' + os.EOL;
+        content += '    curl -vs -H "Content-Type: application/json" --data @/data/result.json $1' + " 2>/dev/null" + os.EOL;
+        content += 'fi' + os.EOL;
         content += 'echo ------------------' + os.EOL;
         content += 'echo END OF DIVASERVICES LOG RECORDING' + os.EOL;
         content += 'echo ------------------' + os.EOL;
+        fse.writeFileSync(outputFolder + path.sep + "script.sh", content);
+    }
+
+    /**
+     * 
+     * 
+     * @static
+     * @param {string} identifier 
+     * @param {*} algorithmInfos 
+     * @param {string} outputFolder 
+     * @memberof DockerManagement
+     */
+    static createCwlBashScript(identifier: string, algorithmInfos: any, outputFolder: string): void {
+        let content: string = '#!/bin/bash' + os.EOL;
+        content += 'echo ' + os.EOL;
+        content += 'echo ------------------' + os.EOL;
+        content += 'echo BEGINNING OF DIVASERVICES LOG RECORDING' + os.EOL;
+        content += 'echo ------------------' + os.EOL;
+
+        let inputCount: number = 1;
+
+        //check if additional files need to be downloaded
+        let index = 0;
+        
+        //add the correct execution string
+        switch (algorithmInfos.method.executableType) {
+            case "java":
+                content += 'java -Djava.awt.headless=true -Xmx4096m -jar /input/' + algorithmInfos.method.executable_path + ' ';
+                break;
+            case "bash":
+            case "matlab":
+                content += '/input/' + algorithmInfos.method.executable_path + ' ';
+                break;
+        }
+
+        //add all parameters
+        index = 0;
+        for (let input of algorithmInfos.input) {
+            let key = _.keys(algorithmInfos.input[index])[0];
+            let value = ((_.values(algorithmInfos.input[index])[0]) as any).name;
+            if (nconf.get("reservedWords").indexOf(key) >= 0 && !(nconf.get("docker:replacePaths").indexOf(key) >= 0)) {
+                if (AlgorithmManagement.hasRemotePath(identifier, value)) {
+                    content += AlgorithmManagement.getRemotePath(identifier, value) + " ";
+                } else if (key === "highlighter") {
+                    content += "${" + inputCount++ + "} " + "${" + inputCount++ + "} " + "${" + inputCount++ + "} " + "${" + inputCount++ + "} " + "${" + inputCount++ + "} " + "${" + inputCount++ + "} " + "${" + inputCount++ + "} " + "${" + inputCount++ + "} ";
+                } else {
+                    content += "${" + inputCount + "} ";
+                }
+                inputCount++;
+            } else {
+                if (key === "highlighter") {
+                    content += "${" + inputCount++ + "} " + "${" + inputCount++ + "} " + "${" + inputCount++ + "} " + "${" + inputCount++ + "} " + "${" + inputCount++ + "} " + "${" + inputCount++ + "} " + "${" + inputCount++ + "} " + "${" + inputCount++ + "} ";
+                } else {
+                    content += "${" + inputCount + "} ";
+                    inputCount++;
+                }
+            }
+            index++;
+        }
+        content += os.EOL;
         fse.writeFileSync(outputFolder + path.sep + "script.sh", content);
     }
 
@@ -384,10 +444,12 @@ export class DockerManagement {
                     + " "
                     + process.yamlFile.replace('/mnt/d', '').replace('/data', '/data_test');
                 Logger.log("debug", command, "DockerManagement::runDockerImageSSH");
+
+                //TODO Fix this once it is known how to properly fetch logs from cwltool
                 var errStream = fs.createWriteStream(process.errLogFile);
                 var outStream = fs.createWriteStream(process.stdLogFile);
                 var cwlStream = fs.createWriteStream(process.cwlLogFile);
-                
+
                 conn.exec(command, (err: Error, stream: ssh.ClientChannel) => {
                     if (err) {
                         reject(new DivaError("Error executing the Workflow", 500, "ExecutionError"));
@@ -408,7 +470,7 @@ export class DockerManagement {
                     }).stderr.on('data', (data) => {
                         if (data.toString().startsWith('[job')) {
                             cwlStream.write(data);
-                            Logger.log("debug", "JOBLOG: " + data, "DockerManagement::runDockerImageSSH");                            
+                            Logger.log("debug", "JOBLOG: " + data, "DockerManagement::runDockerImageSSH");
                         } else {
                             errStream.write(data);
                             Logger.log("error", "STDERR: " + data, "DockerManagement::runDockerImageSSH");
