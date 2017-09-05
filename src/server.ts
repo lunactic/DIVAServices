@@ -161,6 +161,8 @@ class Server {
         nconf.set("docker:host", params.dockerIp);
         nconf.set("docker:port", params.dockerPort);
         nconf.set("docker:reportHost", params.dockerReport);
+        nconf.set("docker:sshUser", params.sshUser);
+        nconf.set("docker:sshPass", params.sshPass);
         this.client = redis.createClient();
         mongoose.Promise = global.Promise;
         this.conn = mongoose.connect("mongodb://localhost:27017/divaservices", {

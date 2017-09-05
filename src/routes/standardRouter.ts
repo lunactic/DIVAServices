@@ -115,7 +115,7 @@ router.post("/collections", async function (req: express.Request, res: express.R
                 break;
             default:
                 try {
-                    var newFile: DivaFile = await FileHelper.saveBase64(file, collectionName, imageCounter);
+                    var newFile: DivaFile = await FileHelper.saveBase64(file, collectionName, imageCounter, file.extension);
                     await FileHelper.addFileInfo(newFile.md5, newFile.path, collectionName);
                     await FileHelper.updateCollectionInformation(collectionName, numOfFiles, ++imageCounter);
                     break;

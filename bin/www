@@ -48,6 +48,16 @@ const optionDefinitions = [
     name: 'rootIp',
     type: String,
     description: "The ip address/port combination under which DIVAServices will be exposed (e.g. divaservices.unifr.ch/api/v2)"
+  }, 
+  {
+    name: 'sshUser',
+    type: String,
+    description: "The ssh user to access the docker client"
+  },
+  {
+    name: 'sshPass',
+    type: String,
+    description: "The ssh password to access the docker client"
   }
 ]
 
@@ -68,7 +78,7 @@ const sections = [
 const options = cmdArgs(optionDefinitions);
 const usage = getUsage(sections);
 
-if(options.help || Object.keys(options).length <= 3){
+if (options.help || Object.keys(options).length <= 5) {
   console.log(usage);
   process.exit();
 }
