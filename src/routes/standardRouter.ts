@@ -1,3 +1,4 @@
+import { ExecutableHelper } from '../helper/executableHelper';
 
 /**
  * Created by Marcel Würsch on 02.11.16.
@@ -5,16 +6,16 @@
 "use strict";
 
 import { IiifManifestParser } from "../parsers/iiifManifestParser";
-import * as _ from "lodash";
-import * as express from "express";
+import * as _ from 'lodash';
+import * as express from 'express';
 import { FileHelper } from "../helper/fileHelper";
 import { RandomWordGenerator } from "../randomizer/randomWordGenerator";
 import { IoHelper } from "../helper/ioHelper";
 import { Logger } from "../logging/logger";
-import * as mime from "mime";
-import * as nconf from "nconf";
-import * as path from "path";
-import * as multer from "multer";
+import * as mime from 'mime';
+import * as nconf from 'nconf';
+import * as path from 'path';
+import * as multer from 'multer';
 import { Statistics } from "../statistics/statistics";
 import { ResultHelper } from "../helper/resultHelper";
 import { AlgorithmManagement } from "../management/algorithmManagement";
@@ -280,23 +281,8 @@ router.post("/jobs/:jobId", async function (req: express.Request, res: express.R
         try {
             await ResultHelper.saveResult(process);
             await process.resultHandler.handleResult(null, null, null, process);
-            if (process.type === "test") {
-                try {
-                    let results = await IoHelper.readFile(process.resultFile);
-                    await SchemaValidator.validate(results, "responseSchema");
-                    await AlgorithmManagement.testResults(results.output, process.outputs);
-                    AlgorithmManagement.updateStatus(null, "ok", process.req.originalUrl, "");
-                    await ResultHelper.removeResult(process);
-                    res.status(200).end();
-                } catch (error) {
-                    AlgorithmManagement.updateStatus(null, "error", process.req.originalUrl, error.message);
-                    await ResultHelper.removeResult(process);
-                    sendError(res, error);
-                }
-            } else {
-                QueueHandler.executeDockerRequest();
-                res.status(200).end();
-            }
+            await ExecutableHelper.endProcess(process);
+            res.status(200).end();
         } catch (error) {
             sendError(res, error);
         }

@@ -1,12 +1,13 @@
 "use strict";
+import { QueueHandler } from '../processingQueue/queueHandler';
 /**
  * Created by Marcel Würsch on 07.11.16.
  */
 import { isNullOrUndefined } from 'util';
-import * as _ from "lodash";
-import * as childProcess from "child_process";
+import * as _ from 'lodash';
+import * as childProcess from 'child_process';
 import { EventEmitter } from "events";
-import * as nconf from "nconf";
+import * as nconf from 'nconf';
 import { Logger } from "../logging/logger";
 import { Collection } from "../processingQueue/collection";
 import { ConsoleResultHandler } from "./resultHandlers/consoleResultHandler";
@@ -15,7 +16,7 @@ import { FileResultHandler } from "./resultHandlers/fileResultHandler";
 import { DivaFile } from "../models/divaFile";
 import { IoHelper } from "./ioHelper";
 import { NoResultHandler } from "./resultHandlers/noResultHandler";
-import * as path from "path";
+import * as path from 'path';
 import { Process } from "../processingQueue/process";
 import { ParameterHelper } from "./parameterHelper";
 import { RemoteExecution } from "../remoteExecution/remoteExecution";
@@ -24,6 +25,8 @@ import { ServicesInfoHelper } from "./servicesInfoHelper";
 import { Statistics } from "../statistics/statistics";
 import { ProcessingQueue } from "../processingQueue/processingQueue";
 import { RandomWordGenerator } from "../randomizer/randomWordGenerator";
+import { SchemaValidator } from "../validator/schemaValidator";
+import { AlgorithmManagement } from "../management/algorithmManagement";
 
 /**
  * A class the provides all functionality needed before a process can be executed
@@ -102,17 +105,40 @@ export class ExecutableHelper extends EventEmitter {
             try {
                 resolve();
                 if (nconf.get("server:cwlSupport")) {
-                    DockerManagement.runDockerImageSSH(process, serviceInfo.image_name);
-                    //check if we are running a test request here and need to update information
-                    
+                    await DockerManagement.runDockerImageSSH(process, serviceInfo.image_name);
+                    await this.endProcess(process);
+                    resolve();
                 } else {
-                    DockerManagement.runDockerImage(process, serviceInfo.image_name);
+                    await DockerManagement.runDockerImage(process, serviceInfo.image_name);
                 }
             } catch (error) {
                 reject(error);
             }
         });
+    }
 
+    public static endProcess(process: Process): Promise<void> {
+        return new Promise(async (resolve, reject) => {
+            let startTime = Statistics.removeActiveExecution(process.id);
+            await Statistics.endRecording(process.id, process.req.originalUrl, startTime);
+            //check if we are running a test request here and need to update information
+            if (process.type === "test") {
+                try {
+                    let results = await IoHelper.readFile(process.resultFile);
+                    await SchemaValidator.validate(results, "responseSchema");
+                    await AlgorithmManagement.testResults(results.output, process.outputs);
+                    AlgorithmManagement.updateStatus(null, "ok", process.req.originalUrl, "");
+                    await ResultHelper.removeResult(process);
+                    resolve();
+                } catch (error) {
+                    AlgorithmManagement.updateStatus(null, "error", process.req.originalUrl, error.message);
+                    await ResultHelper.removeResult(process);
+                    reject(error);
+                }
+            } else {
+                QueueHandler.executeDockerRequest();
+            }
+        });
     }
 
     /**

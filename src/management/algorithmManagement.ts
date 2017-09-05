@@ -54,7 +54,7 @@ export class AlgorithmManagement {
                 await IoHelper.downloadFileWithTypecheck(req.body.method.file, nconf.get("paths:executablePath") + path.sep + route, "application/zip");
                 //create docker file
                 DockerManagement.createDockerFile(req.body, nconf.get("paths:executablePath") + path.sep + route);
-                if (nconf.get("server:cwlcwlSupport")) {
+                if (nconf.get("server:cwlSupport")) {
                     //create cwl workflow file
                     await AlgorithmManagement.createWorkflowFile(identifier, req.body, nconf.get("paths:executablePath") + path.sep + route + path.sep + identifier + ".cwl");
                     //create bash script

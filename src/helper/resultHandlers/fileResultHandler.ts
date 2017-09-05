@@ -199,8 +199,6 @@ export class FileResultHandler implements IResultHandler {
                     var cwlFile = cwlResult[file.file.name.split('.')[0]];
                     await fs.move(process.outputFolder + path.sep + cwlFile.basename, process.outputFolder + path.sep + file.file.name);
                     //rename the file according to file.file.name
-                    Logger.log("debug", "Hello", "FileResultHandler::handleCwlResult");
-
                     file.file["url"] = IoHelper.getStaticResultFileUrl(process.outputFolder, file.file.name);
                     delete file.file.content;
 

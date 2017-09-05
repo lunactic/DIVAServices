@@ -276,7 +276,7 @@ export class DockerManagement {
 
         //check if additional files need to be downloaded
         let index = 0;
-        
+
         //add the correct execution string
         switch (algorithmInfos.method.executableType) {
             case "java":
@@ -421,7 +421,7 @@ export class DockerManagement {
                     if (key === "highlighter") {
                         //TODO: add handler for arrays
                     } else if (value instanceof DivaFile) {
-                        yamlManager.addInputValue(key, "file", (value as DivaFile).path.replace('/mnt/d', '').replace('/data', '/data_test'));
+                        yamlManager.addInputValue(key, "file", (value as DivaFile).path.replace('/mnt/d', ''));
                     } else if (value instanceof DivaCollection) {
                         //add handler for folders
                     } else {
@@ -429,21 +429,21 @@ export class DockerManagement {
                         if (key === "resultFile") {
                             yamlManager.addInputValue(key, "string", "/output/" + process.tmpResultFile.split("/").pop());
                         } else {
-                            yamlManager.addInputValue(key, "string", value.replace('/mnt/d', '').replace('/data', '/data_test'));
+                            yamlManager.addInputValue(key, "string", value.replace('/mnt/d', ''));
                         }
                     }
                 }
 
-                var command: string = "cwltool --outdir " + process.outputFolder.replace('/mnt/d', '').replace('/data', '/data_test')
+                var command: string = "cwltool --outdir " + process.outputFolder.replace('/mnt/d', '')
                     + " --debug "
-                    + "--tmp-outdir-prefix /data_test/output/ "
-                    + "--tmpdir-prefix /data_test/tmp/ "
+                    + "--tmp-outdir-prefix /data/output/ "
+                    + "--tmpdir-prefix /data/tmp/ "
                     + "--docker-user lunactic "
                     + "--workdir /input "
-                    + process.cwlFile.replace('/mnt/d', '').replace('/data', '/data_test')
+                    + process.cwlFile.replace('/mnt/d', '')
                     + " "
-                    + process.yamlFile.replace('/mnt/d', '').replace('/data', '/data_test');
-                Logger.log("debug", command, "DockerManagement::runDockerImageSSH");
+                    + process.yamlFile.replace('/mnt/d', '');
+                //Logger.log("debug", command, "DockerManagement::runDockerImageSSH");
 
                 //TODO Fix this once it is known how to properly fetch logs from cwltool
                 var errStream = fs.createWriteStream(process.errLogFile);
@@ -463,25 +463,30 @@ export class DockerManagement {
                             await process.resultHandler.handleCwlResult(process);
                             resolve();
                         }
-                        Logger.log("debug", "Stream :: close :: code: " + code + ", signal: " + signal, "DockerManagement::runDockerImageSSH");
+                        //Logger.log("debug", "Stream :: close :: code: " + code + ", signal: " + signal, "DockerManagement::runDockerImageSSH");
+                    }).on('keyboard-interactive', (name, instruction, instructionsLang, prompts, finish) => {
+                        //Logger.log("debug", "Connection :: keyboard-interactive", "DockerManagement::runDockerImageSSH");                        
+                        finish([nconf.get("docker:sshPass")]);
                     }).on('data', (data) => {
                         outStream.write(data);
-                        Logger.log("debug", "STDOUT: " + data, "DockerManagement::runDockerImageSSH");
+                        //Logger.log("debug", "STDOUT: " + data, "DockerManagement::runDockerImageSSH");
                     }).stderr.on('data', (data) => {
                         if (data.toString().startsWith('[job')) {
                             cwlStream.write(data);
-                            Logger.log("debug", "JOBLOG: " + data, "DockerManagement::runDockerImageSSH");
+                            //Logger.log("debug", "JOBLOG: " + data, "DockerManagement::runDockerImageSSH");
                         } else {
                             errStream.write(data);
-                            Logger.log("error", "STDERR: " + data, "DockerManagement::runDockerImageSSH");
+                            //Logger.log("error", "STDERR: " + data, "DockerManagement::runDockerImageSSH");
                         }
                     });
                 });
             }).connect({
-                host: 'diufpc51',
+                host: nconf.get("docker:host"),
                 port: 22,
                 username: nconf.get("docker:sshUser"),
-                password: nconf.get("docker:sshPass")
+                password: nconf.get("docker:sshPass"),
+                forceIPv4: true,
+                tryKeyboard: true
             });
         });
 
