@@ -56,6 +56,7 @@ export class DivaCollection {
         let relativePath = filePath.replace(nconf.get("paths:executablePath") + path.sep, "");
         let item = new DivaCollection();
         item.collection = "";
+        item.folder = filePath;
         item.url = "http://" + nconf.get("server:rootUrl") + "/test/" + relativePath;
         item.zipUrl = "http://" + nconf.get("server:rootUrl") + "/test/" + relativePath;
         return item;

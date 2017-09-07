@@ -147,9 +147,12 @@ export class IoHelper {
      * 
      * @memberOf IoHelper
      */
-    static deleteFolder(folder: string): void {
-        rmdir(folder, function () {
-            Logger.log("info", "successfully deleted folder: " + folder, "IoHelper");
+    static deleteFolder(folder: string): Promise<void> {
+        return new Promise<void>((resolve, reject) => {
+            rmdir(folder, function () {
+                Logger.log("info", "successfully deleted folder: " + folder, "IoHelper");
+                resolve();
+            });
         });
     }
 

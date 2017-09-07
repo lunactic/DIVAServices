@@ -76,7 +76,7 @@ export class ResultHelper {
         return new Promise<void>(async (resolve, reject) => {
             try {
                 await ParameterHelper.removeParamInfo(process);
-                IoHelper.deleteFolder(process.outputFolder);
+                await IoHelper.deleteFolder(process.outputFolder);
                 resolve();
             } catch (error) {
                 Logger.log("error", error, "ResultHelper");

@@ -127,19 +127,18 @@ export class DockerManagement {
         let content: string = "FROM " + algorithmInfos.method.environment + os.EOL +
             'MAINTAINER marcel.wuersch@unifr.ch' + os.EOL;
 
-        //ADD USERGROUP (TODO: ADD gid and groupname to config)
         switch (nconf.get("baseImages:" + algorithmInfos.method.environment)) {
             case "apk":
                 content += 'RUN addgroup -S ' + nconf.get("docker:group") + os.EOL;
-                content += 'RUN adduser -S -g ' + nconf.get("docker:user") + ' ' + nconf.get("docker:group") + os.EOL;
+                content += 'RUN adduser -S -g ' + nconf.get("docker:group") + ' ' + nconf.get("docker:user") + os.EOL;
                 content += 'RUN apk update' + os.EOL +
-                    'RUN apk add curl bash' + os.EOL;
+                    'RUN apk add curl bash nano' + os.EOL;
                 break;
             case "apt":
                 content += 'RUN groupadd ' + nconf.get("docker:group") + os.EOL;
-                content += 'RUN useradd --create-home --home-dir $HOME ' + nconf.get("docker:user") + os.EOL;
+                content += 'RUN useradd --create-home --home-dir $HOME -g ' + nconf.get("docker:group") + ' ' + nconf.get("docker:user") + os.EOL;
                 content += 'RUN apt-get update' + os.EOL +
-                    'RUN apt-get install bash jq wget unzip curl -y' + os.EOL;
+                    'RUN apt-get install bash jq wget unzip curl nano -y' + os.EOL;
                 break;
         }
 
@@ -421,29 +420,29 @@ export class DockerManagement {
                     if (key === "highlighter") {
                         //TODO: add handler for arrays
                     } else if (value instanceof DivaFile) {
-                        yamlManager.addInputValue(key, "file", (value as DivaFile).path.replace('/mnt/d', ''));
+                        yamlManager.addInputValue(key, "file", (value as DivaFile).path);
                     } else if (value instanceof DivaCollection) {
-                        //add handler for folders
+                        yamlManager.addInputValue(key, 'directory', (value as DivaCollection).folder + 'original/');
                     } else {
                         //handle regular parameters
                         if (key === "resultFile") {
                             yamlManager.addInputValue(key, "string", "/output/" + process.tmpResultFile.split("/").pop());
                         } else {
-                            yamlManager.addInputValue(key, "string", value.replace('/mnt/d', ''));
+                            yamlManager.addInputValue(key, "string", value);
                         }
                     }
                 }
 
-                var command: string = "cwltool --outdir " + process.outputFolder.replace('/mnt/d', '')
+                var command: string = "cwltool --outdir " + process.outputFolder
                     + " --debug "
                     + "--tmp-outdir-prefix /data/output/ "
                     + "--tmpdir-prefix /data/tmp/ "
                     + "--docker-user lunactic "
                     + "--workdir /input "
-                    + process.cwlFile.replace('/mnt/d', '')
+                    + process.cwlFile
                     + " "
-                    + process.yamlFile.replace('/mnt/d', '');
-                //Logger.log("debug", command, "DockerManagement::runDockerImageSSH");
+                    + process.yamlFile;
+                Logger.log("debug", command, "DockerManagement::runDockerImageSSH");
 
                 //TODO Fix this once it is known how to properly fetch logs from cwltool
                 var errStream = fs.createWriteStream(process.errLogFile);
@@ -465,18 +464,18 @@ export class DockerManagement {
                         }
                         //Logger.log("debug", "Stream :: close :: code: " + code + ", signal: " + signal, "DockerManagement::runDockerImageSSH");
                     }).on('keyboard-interactive', (name, instruction, instructionsLang, prompts, finish) => {
-                        //Logger.log("debug", "Connection :: keyboard-interactive", "DockerManagement::runDockerImageSSH");                        
+                        Logger.log("debug", "Connection :: keyboard-interactive", "DockerManagement::runDockerImageSSH");                        
                         finish([nconf.get("docker:sshPass")]);
                     }).on('data', (data) => {
                         outStream.write(data);
-                        //Logger.log("debug", "STDOUT: " + data, "DockerManagement::runDockerImageSSH");
+                        Logger.log("debug", "STDOUT: " + data, "DockerManagement::runDockerImageSSH");
                     }).stderr.on('data', (data) => {
                         if (data.toString().startsWith('[job')) {
                             cwlStream.write(data);
-                            //Logger.log("debug", "JOBLOG: " + data, "DockerManagement::runDockerImageSSH");
+                            Logger.log("debug", "JOBLOG: " + data, "DockerManagement::runDockerImageSSH");
                         } else {
                             errStream.write(data);
-                            //Logger.log("error", "STDERR: " + data, "DockerManagement::runDockerImageSSH");
+                            Logger.log("error", "STDERR: " + data, "DockerManagement::runDockerImageSSH");
                         }
                     });
                 });

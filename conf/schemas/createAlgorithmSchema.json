@@ -305,6 +305,20 @@
             }
           }
         }
+      },
+      "outputFolder":{
+        "type": "object",
+        "required": [
+          "name"
+        ],
+        "properties": {
+          "name": {
+            "$ref": "#/definitions/name"
+          },
+          "description": {
+            "$ref": "#/definitions/description"
+          }
+        }
       }
     },
     "type": "object",
@@ -426,6 +440,9 @@
             },
             "file":{
               "$ref":"#/definitions/outputFile"
+            },
+            "folder":{
+              "$ref":"#/definitions/outputFolder"
             }
           },
           "additionalProperties":false

@@ -1,3 +1,4 @@
+import { FileHelper } from '../helper/fileHelper';
 /**
  * Created by Marcel Würsch on 04.11.16.
  */
@@ -99,7 +100,8 @@ export class AlgorithmManagement {
                                     data[input.file.name] = nconf.get("paths:executablePath") + path.sep + route + path.sep + input.file.name + "." + mime.extension(input.file.options.mimeType);
                                     break;
                                 case "folder":
-                                    data[input.folder.name] = nconf.get("paths:executablePath") + path.sep + route + path.sep + input.folder.name + ".zip";
+                                    await IoHelper.unzipFile(nconf.get("paths:executablePath") + path.sep + route + path.sep + input.folder.name + ".zip", nconf.get("paths:executablePath") + path.sep + route + path.sep + input.folder.name);
+                                    data[input.folder.name] = nconf.get("paths:executablePath") + path.sep + route + path.sep + input.folder.name;
                                     break;
                                 case "highlighter":
                                     switch (input.highlighter.type) {
@@ -164,7 +166,7 @@ export class AlgorithmManagement {
      */
     static async recreateAlgorithm(req: express.Request, route: string, imageName: string, version: number, baseroute: string): Promise<any> {
         return new Promise(async (resolve, reject) => {
-            IoHelper.deleteFolder(nconf.get("paths:executablePath") + path.sep + route);
+            await IoHelper.deleteFolder(nconf.get("paths:executablePath") + path.sep + route);
             let identifier = AlgorithmManagement.createIdentifier();
             try {
                 AlgorithmManagement.removeFromRootInfoFile("/" + route);
@@ -191,6 +193,10 @@ export class AlgorithmManagement {
                         var name: string = item.file.name;
                         cwlManager.addInput('File', name, index);
                         break;
+                    case 'folder':
+                        var name: string = item.folder.name;
+                        cwlManager.addInput('Directory', name, index);
+                        break;
                     case 'number':
                         break;
                 }
@@ -203,9 +209,14 @@ export class AlgorithmManagement {
                         var extension = mime.extension(item.file.options.mimeType);
                         cwlManager.addOutput('File', name, "*." + extension);
                         break;
+                    case 'folder':
+                        var name = item.folder.name;
+                        cwlManager.addOutput('Directory', name, '.');
+                        break;
                 }
             });
             cwlManager.addOutput("File", "jsonResult", "*.json");
+            cwlManager.addOutput("stdout", '', '');
             resolve();
         });
     }

@@ -5,6 +5,7 @@
 
 import * as _ from "lodash";
 import * as fs from "fs-extra";
+import * as crypto from "crypto";
 import { IoHelper } from "./ioHelper";
 import md5 = require("md5");
 import * as nconf from "nconf";
@@ -202,9 +203,8 @@ export class FileHelper {
 
             var headerResponse = await request.head(url);
             let fileExtension = "";
-            //TODO: FIX PROBLEM HERE IF content-type == "application/octet-stream"
             if (headerResponse["content-type"] === "application/octet-stream") {
-                //if conte-typpe === 'application/content-stream' we can not make use of it per RFC 2616 7.2.1
+                //if conte-type === 'application/content-stream' we can not make use of it per RFC 2616 7.2.1
                 // If the media type remains unknown, the recipient SHOULD treat it as type "application/octet-stream".
                 fileExtension = url.split(".").pop();
             } else {
@@ -219,10 +219,9 @@ export class FileHelper {
                 fileName = "input" + counter;
             }
 
-            await request(url).pipe(fs.createWriteStream(tmpFilePath));
-            let base64 = fs.readFileSync(tmpFilePath, "base64");
+            await this.downloadFile(url, tmpFilePath);
 
-            let md5String = md5(base64);
+            let md5String = await this.getMd5Hash(tmpFilePath);
             let imgFolder = filePath + path.sep + folder + path.sep + "original" + path.sep;
             file.filename = fileName;
             file.folder = imgFolder;
@@ -234,6 +233,10 @@ export class FileHelper {
                 fs.unlink(tmpFilePath);
             } catch (error) {
                 if (error.code === "ENONENT") {
+                    await fs.rename(tmpFilePath, file.path);
+                    resolve(file);
+                }
+                if (error.code === "ENOENT") {
                     await fs.rename(tmpFilePath, file.path);
                     resolve(file);
                 }
@@ -445,7 +448,7 @@ export class FileHelper {
                 Logger.log("info", "delete file" + file.path);
             }
             await this.saveFileInfo();
-            IoHelper.deleteFolder(nconf.get("paths:filesPath") + path.sep + collection);
+            await IoHelper.deleteFolder(nconf.get("paths:filesPath") + path.sep + collection);
             resolve();
         });
     }
@@ -469,6 +472,19 @@ export class FileHelper {
         });
     }
 
+    static async getMd5Hash(file: string): Promise<string> {
+        return new Promise<string>(async (resolve, reject) => {
+            var stream = fs.createReadStream(file, { encoding: 'base64' });
+            var hash = crypto.createHash('md5');
+            stream.on('data', function (data: any) {
+                hash.update(data, 'utf8');
+            });
+
+            stream.on('end', function () {
+                resolve(hash.digest('hex'));
+            });
+        });
+    }
 
     /**
      * Check if a collection exists

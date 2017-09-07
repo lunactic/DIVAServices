@@ -176,8 +176,37 @@ export class FileResultHandler implements IResultHandler {
     async handleCwlResult(process: Process): Promise<any> {
         return new Promise(async (resolve, reject) => {
             try {
-                var procResult = await await fs.readJson(this.tempResultFile, { encoding: "utf-8" });
                 var cwlResult = await fs.readJson(process.stdLogFile, { encoding: "utf-8" });
+
+                //iterate the cwlResult object
+                var tempDirectory = null;
+                for (var key in cwlResult) {
+                    if (cwlResult.hasOwnProperty(key)) {
+                        var element = cwlResult[key];
+                        switch (element.class) {
+                            case 'File':
+                                await IoHelper.moveFile(element.path, process.outputFolder + element.basename);
+                                break;
+                            case 'Directory':
+                                for (var listing of element.listing) {
+                                    if (!listing.basename.startsWith('.') && !listing.basename.startsWith('data') && !listing.basename.startsWith('log')) {
+                                        await IoHelper.moveFile(listing.path, process.outputFolder + listing.basename);
+                                    }
+                                }
+                                /*element.listing.forEach(async function (listing: any) {
+                                    
+                                });*/
+                                tempDirectory = element.path;
+                                break;
+                            default:
+                                break;
+                        }
+                    }
+                }
+                if (tempDirectory !== null) {
+                    await IoHelper.deleteFolder(tempDirectory);
+                }
+                var procResult = await fs.readJson(this.tempResultFile, { encoding: "utf-8" });
 
                 if (isNullOrUndefined(procResult.output)) {
                     procResult.output = [];
@@ -196,8 +225,9 @@ export class FileResultHandler implements IResultHandler {
                     }
 
                     //find the corresponding entry in the cwlResult to find the correct filename
-                    var cwlFile = cwlResult[file.file.name.split('.')[0]];
-                    await fs.move(process.outputFolder + path.sep + cwlFile.basename, process.outputFolder + path.sep + file.file.name);
+                    //var cwlFile = cwlResult[file.file.name.split('.')[0]];
+                    //await fs.move(process.outputFolder + path.sep + cwlFile.basename, process.outputFolder + path.sep + file.file.name);
+
                     //rename the file according to file.file.name
                     file.file["url"] = IoHelper.getStaticResultFileUrl(process.outputFolder, file.file.name);
                     delete file.file.content;
@@ -234,7 +264,7 @@ export class FileResultHandler implements IResultHandler {
                 procResult["status"] = "done";
                 procResult["resultLink"] = process.resultLink;
                 procResult["collectionName"] = process.rootFolder;
-                
+
                 //TODO Fix this once it is known how to properly fetch logs from cwltool
                 await IoHelper.saveFile(this.tempResultFile, procResult, "utf8");
                 await IoHelper.moveFile(this.tempResultFile, this.filename);
@@ -243,10 +273,8 @@ export class FileResultHandler implements IResultHandler {
                 Logger.log("error", error, "FileResultHandler::handleCwlResult");
                 reject(new DivaError("Error handling the cwl result", 500, "ResultError"));
             }
-
-
-
-            resolve();
         });
+
+
     }
 }

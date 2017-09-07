@@ -47,7 +47,7 @@
     }
   },
   "server": {
-    "cwlSupport": false,
+    "cwlSupport": true,
     "timeout": 600000,
     "httpPort": 8080,
     "httpsPort": 8443,
@@ -68,21 +68,21 @@
     "ip": "diuf-cluster"
   },
   "paths": {
-    "filesPath": "/mnt/d/data/files",
-    "resultsPath": "/mnt/d/data/results",
+    "filesPath": "/data/files",
+    "resultsPath": "/data/results",
     "testPath": "/data/testData",
-    "jsonPath": "/mnt/d/data/json",
-    "logPath": "/mnt/d/data/logs",
-    "imageInfoFile": "/mnt/d/data/files/filesInfo.json",
-    "dataInfoFile": "/mnt/d/data/data/dataInfo.json",
-    "rootInfoFile": "/mnt/d/data/json/info.json",
-    "servicesInfoFile": "/mnt/d/data/json/services.json",
-    "swaggerFile": "/mnt/d/data/json/swagger.json",
-    "executablePath": "/mnt/d/data/executables",
+    "jsonPath": "/data/json",
+    "logPath": "/data/logs",
+    "imageInfoFile": "/data/files/filesInfo.json",
+    "dataInfoFile": "/data/data/dataInfo.json",
+    "rootInfoFile": "/data/json/info.json",
+    "servicesInfoFile": "/data/json/services.json",
+    "swaggerFile": "/data/json/swagger.json",
+    "executablePath": "/data/executables",
     "mcr2014b": "$LD_LIBRARY_PATH"
   },
   "remotePaths": {
-    "jsonPath": "data/json",
+    "jsonPath": "/data/json",
     "noisingXmlPath": "/data/noise/scripts/realistic.xml",
     "mcr2014b": "$LD_LIBRARY_PATH"
   },
