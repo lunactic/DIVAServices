@@ -74,5 +74,9 @@ export class NoResultHandler implements IResultHandler {
     handleCwlResult(process: Process): Promise<any> {
         throw new Error("Method not implemented.");
     }
+    
+    handleCwlError(process: Process): Promise<any> {
+        throw new Error("Method not implemented.");
+    }
 
 }

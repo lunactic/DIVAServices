@@ -422,7 +422,11 @@ export class DockerManagement {
                     } else if (value instanceof DivaFile) {
                         yamlManager.addInputValue(key, "file", (value as DivaFile).path);
                     } else if (value instanceof DivaCollection) {
-                        yamlManager.addInputValue(key, 'directory', (value as DivaCollection).folder + 'original/');
+                        if (process.type === 'test') {
+                            yamlManager.addInputValue(key, 'directory', (value as DivaCollection).folder);
+                        } else {
+                            yamlManager.addInputValue(key, 'directory', (value as DivaCollection).folder + 'original/');
+                        }
                     } else {
                         //handle regular parameters
                         if (key === "resultFile") {
@@ -437,7 +441,7 @@ export class DockerManagement {
                     + " --debug "
                     + "--tmp-outdir-prefix /data/output/ "
                     + "--tmpdir-prefix /data/tmp/ "
-                    + "--docker-user lunactic "
+                    + "--docker-user " + nconf.get("docker:user") + " "
                     + "--workdir /input "
                     + process.cwlFile
                     + " "
@@ -457,6 +461,7 @@ export class DockerManagement {
                         if (code !== 0) {
                             //error in execution
                             Logger.log("error", "Error executing the workflow", "DockerManagement::runDockerImageSSH");
+                            await process.resultHandler.handleCwlError(process);
                             reject(new DivaError("Error executing the Workflow", 500, "ExecutionError"));
                         } else {
                             await process.resultHandler.handleCwlResult(process);
@@ -464,7 +469,7 @@ export class DockerManagement {
                         }
                         //Logger.log("debug", "Stream :: close :: code: " + code + ", signal: " + signal, "DockerManagement::runDockerImageSSH");
                     }).on('keyboard-interactive', (name, instruction, instructionsLang, prompts, finish) => {
-                        Logger.log("debug", "Connection :: keyboard-interactive", "DockerManagement::runDockerImageSSH");                        
+                        Logger.log("debug", "Connection :: keyboard-interactive", "DockerManagement::runDockerImageSSH");
                         finish([nconf.get("docker:sshPass")]);
                     }).on('data', (data) => {
                         outStream.write(data);

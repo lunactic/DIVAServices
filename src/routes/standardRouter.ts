@@ -85,7 +85,7 @@ router.post("/collections", async function (req: express.Request, res: express.R
                 let images = iiifManifestParser.getAllImages(0);
                 for (let inputImage of images) {
                     try {
-                        var image = await FileHelper.saveFileUrl(inputImage, collectionName + path.sep, imageCounter);
+                        var image = await FileHelper.saveFileUrl(inputImage, collectionName + path.sep, imageCounter, file.name);
                         FileHelper.addFileInfo(image.md5, image.path, collectionName);
                         FileHelper.updateCollectionInformation(collectionName, numOfFiles, ++imageCounter);
                     } catch (error) {

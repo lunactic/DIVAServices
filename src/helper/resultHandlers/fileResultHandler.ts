@@ -177,7 +177,6 @@ export class FileResultHandler implements IResultHandler {
         return new Promise(async (resolve, reject) => {
             try {
                 var cwlResult = await fs.readJson(process.stdLogFile, { encoding: "utf-8" });
-
                 //iterate the cwlResult object
                 var tempDirectory = null;
                 for (var key in cwlResult) {
@@ -233,23 +232,10 @@ export class FileResultHandler implements IResultHandler {
                     delete file.file.content;
 
                 }
-
-                //add log files
-                let stdLogFile = {
-                    file: {
-                        "mime-type": "text/plain",
-                        url: IoHelper.getStaticLogUrlFull(process.errLogFile),
-                        name: "standardOutputLog.log",
-                        options: {
-                            visualization: false,
-                            type: "logfile"
-                        }
-                    }
-                };
                 let errorLogFile = {
                     file: {
                         "mime-type": "text/plain",
-                        url: IoHelper.getStaticLogUrlFull(process.cwlLogFile),
+                        url: IoHelper.getStaticLogUrlFull(process.errLogFile),
                         name: "errorOutputLog.log",
                         options: {
                             visualization: false,
@@ -257,15 +243,12 @@ export class FileResultHandler implements IResultHandler {
                         }
                     }
                 };
-
-                procResult.output.push(stdLogFile);
                 procResult.output.push(errorLogFile);
                 //set final data fields
                 procResult["status"] = "done";
                 procResult["resultLink"] = process.resultLink;
                 procResult["collectionName"] = process.rootFolder;
 
-                //TODO Fix this once it is known how to properly fetch logs from cwltool
                 await IoHelper.saveFile(this.tempResultFile, procResult, "utf8");
                 await IoHelper.moveFile(this.tempResultFile, this.filename);
                 resolve({ data: procResult, procId: process.id });
@@ -276,5 +259,31 @@ export class FileResultHandler implements IResultHandler {
         });
 
 
+    }
+
+    async handleCwlError(process: Process): Promise<any> {
+        return new Promise<any>(async (resolve, reject) => {
+            var procResult = {
+                output: []
+            };
+            let errorLogFile = {
+                file: {
+                    "mime-type": "text/plain",
+                    url: IoHelper.getStaticLogUrlFull(process.errLogFile),
+                    name: "errorOutputLog.log",
+                    options: {
+                        visualization: false,
+                        type: "logfile"
+                    }
+                }
+            };
+            procResult.output.push(errorLogFile);
+            procResult["status"] = "error";
+            procResult["resultLink"] = process.resultLink;
+            procResult["collectionName"] = process.rootFolder;
+            await IoHelper.saveFile(this.tempResultFile, procResult, "utf8");
+            await IoHelper.moveFile(this.tempResultFile, this.filename);
+            resolve({ data: procResult, procId: process.id });
+        });
     }
 }

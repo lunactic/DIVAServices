@@ -208,9 +208,16 @@ export class ExecutableHelper extends EventEmitter {
                     proc.resultFile = IoHelper.buildResultfilePath(proc.outputFolder, proc.methodFolder);
                     proc.tmpResultFile = IoHelper.buildTempResultfilePath(proc.outputFolder, proc.methodFolder);
                     let now: Date = new Date();
-                    proc.stdLogFile = IoHelper.buildStdLogFilePath(collection.logFolder, now);
-                    proc.errLogFile = IoHelper.buildErrLogFilePath(collection.logFolder, now);
-                    proc.cwlLogFile = IoHelper.buildCwlLogFilePath(collection.logFolder, now);
+
+                    if (nconf.get("server:cwlSupport")) {
+                        proc.stdLogFile = IoHelper.buildStdLogFilePath(collection.logFolder, now);
+                        proc.errLogFile = IoHelper.buildErrLogFilePath(collection.logFolder, now);
+                        proc.cwlLogFile = IoHelper.buildCwlLogFilePath(collection.logFolder, now);
+                    } else {
+                        proc.cwlLogFile = IoHelper.buildCwlLogFilePath(collection.logFolder, now);
+                        proc.errLogFile = IoHelper.buildErrLogFilePath(collection.logFolder, now);
+
+                    }
                     proc.resultLink = proc.buildGetUrl();
 
                     switch (proc.resultType) {

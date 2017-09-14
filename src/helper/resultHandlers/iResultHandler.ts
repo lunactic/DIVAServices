@@ -29,6 +29,15 @@ interface IResultHandler {
      * @memberof IResultHandler
      */
     handleCwlResult(process: Process): Promise<any>;
+
+    /**
+     * Handle cwltool errors
+     * 
+     * @param {Process} process the executed process
+     * @returns {Promise<any>} 
+     * @memberof IResultHandler
+     */
+    handleCwlError(process: Process): Promise<any>;
 }
 
 export = IResultHandler;
