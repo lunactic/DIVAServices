@@ -74,7 +74,6 @@ class Server {
      * @return void
      */
     private config() {
-        mime.define({ 'application/gzip': ['gz', 'gz'] });
         Statistics.loadStatistics();
         QueueHandler.initialize();
 
