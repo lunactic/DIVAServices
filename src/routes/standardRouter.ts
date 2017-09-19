@@ -97,7 +97,7 @@ router.post("/collections", async function (req: express.Request, res: express.R
             case "url":
                 try {
                     let url: string = file.value;
-                    if (mime.lookup(url) === "application/zip") {
+                    if (mime.getType(url) === "application/zip") {
                         FileHelper.saveZipUrl(file.value, collectionName);
                     } else {
                         var newFile: DivaFile = await FileHelper.saveFileUrl(file.value, collectionName, imageCounter, file.name);
@@ -176,7 +176,7 @@ router.put("/collections/:collectionName", async function (req: express.Request,
                 case "url":
                     try {
                         let url: string = file.value;
-                        if (mime.lookup(url) === "application/zip") {
+                        if (mime.getType(url) === "application/zip") {
                             await FileHelper.saveZipUrl(file.value, collectionName);
                         } else {
                             var newFile: DivaFile = await FileHelper.saveFileUrl(file.value, collectionName, imageCounter, file.name);

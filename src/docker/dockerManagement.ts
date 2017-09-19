@@ -182,9 +182,9 @@ export class DockerManagement {
             let key = _.keys(algorithmInfos.input[index])[0];
             if (['json', 'file', 'inputFile'].indexOf(key) >= 0) {
                 content += String((inputCount + index)) + '=$' + (inputCount + index) + os.EOL;
-                content += 'curl -vs -o /data/' + input[key].name + '.' + mime.extension(input[key].options.mimeType) + ' $' + (inputCount + index) + " 2>/dev/null" + os.EOL;
+                content += 'curl -vs -o /data/' + input[key].name + '.' + mime.getExtension(input[key].options.mimeType) + ' $' + (inputCount + index) + " 2>/dev/null" + os.EOL;
                 content += input[key].name + '="${' + (inputCount + index) + '##*/}"' + os.EOL;
-                content += 'mv /data/' + input[key].name + '.' + mime.extension(input[key].options.mimeType) + ' /data/$' + input[key].name + os.EOL;
+                content += 'mv /data/' + input[key].name + '.' + mime.getExtension(input[key].options.mimeType) + ' /data/$' + input[key].name + os.EOL;
                 content += 'echo ' + input[key].name + ' is using file: ' + '$' + (inputCount + index) + os.EOL;
                 AlgorithmManagement.addRemotePath(identifier, input[key].name, "/data/$" + input[key].name);
             } else if (['folder'].indexOf(key) >= 0) {
@@ -256,12 +256,12 @@ export class DockerManagement {
     }
 
     /**
-     * 
+     * Create a bash script for a docker image with CWL support
      * 
      * @static
-     * @param {string} identifier 
-     * @param {*} algorithmInfos 
-     * @param {string} outputFolder 
+     * @param {string} identifier the identifier of the method
+     * @param {*} algorithmInfos  the infos about the algorithm
+     * @param {string} outputFolder the output folder of the algorithm
      * @memberof DockerManagement
      */
     static createCwlBashScript(identifier: string, algorithmInfos: any, outputFolder: string): void {
@@ -406,7 +406,15 @@ export class DockerManagement {
         });
     }
 
-    static runDockerImageSSH(process: Process, imageName: string): Promise<void> {
+    /**
+     * Run the docker image over SSH making use of CWL
+     * 
+     * @static
+     * @param {Process} process the process to run
+     * @returns {Promise<void>} 
+     * @memberof DockerManagement
+     */
+    static runDockerImageSSH(process: Process): Promise<void> {
         return new Promise<void>(async (resolve, reject) => {
             var yamlManager: YamlManager = new YamlManager(process.yamlFile);
             var conn: ssh.Client = new Client();
@@ -509,6 +517,13 @@ export class DockerManagement {
         return nconf.get("docker:paths:" + input);
     }
 
+    /**
+     * Initialize the docker connection
+     * 
+     * @private
+     * @static
+     * @memberof DockerManagement
+     */
     private static initDocker() {
         this.docker = new DOCKER({ host: nconf.get("docker:host"), port: nconf.get("docker:port") });
     }

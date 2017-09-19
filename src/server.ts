@@ -74,7 +74,7 @@ class Server {
      * @return void
      */
     private config() {
-        mime.load(__dirname + path.sep + "../conf/divaservices.types");
+        mime.define({ 'application/gzip': ['gz', 'gz'] });
         Statistics.loadStatistics();
         QueueHandler.initialize();
 

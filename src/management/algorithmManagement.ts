@@ -97,7 +97,7 @@ export class AlgorithmManagement {
                                     inputs[input.json.name] = IoHelper.readFile(nconf.get("paths:testPath") + path.sep + "json" + path.sep + "array.json");
                                     break;
                                 case "file":
-                                    data[input.file.name] = nconf.get("paths:executablePath") + path.sep + route + path.sep + input.file.name + "." + mime.extension(input.file.options.mimeType);
+                                    data[input.file.name] = nconf.get("paths:executablePath") + path.sep + route + path.sep + input.file.name + "." + mime.getExtension(input.file.options.mimeType);
                                     break;
                                 case "folder":
                                     await IoHelper.unzipFile(nconf.get("paths:executablePath") + path.sep + route + path.sep + input.folder.name + ".zip", nconf.get("paths:executablePath") + path.sep + route + path.sep + input.folder.name);
@@ -206,7 +206,7 @@ export class AlgorithmManagement {
                 switch (Object.keys(item)[0]) {
                     case 'file':
                         var name = item.file.name;
-                        var extension = mime.extension(item.file.options.mimeType);
+                        var extension = mime.getExtension(item.file.options.mimeType);
                         cwlManager.addOutput('File', name, "*." + extension);
                         break;
                     case 'folder':

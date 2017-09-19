@@ -1,5 +1,4 @@
 "use strict";
-import { QueueHandler } from '../processingQueue/queueHandler';
 /**
  * Created by Marcel Würsch on 07.11.16.
  */
@@ -27,6 +26,7 @@ import { ProcessingQueue } from "../processingQueue/processingQueue";
 import { RandomWordGenerator } from "../randomizer/randomWordGenerator";
 import { SchemaValidator } from "../validator/schemaValidator";
 import { AlgorithmManagement } from "../management/algorithmManagement";
+import { QueueHandler } from '../processingQueue/queueHandler';
 
 /**
  * A class the provides all functionality needed before a process can be executed
@@ -105,7 +105,7 @@ export class ExecutableHelper extends EventEmitter {
             try {
                 resolve();
                 if (nconf.get("server:cwlSupport")) {
-                    await DockerManagement.runDockerImageSSH(process, serviceInfo.image_name);
+                    await DockerManagement.runDockerImageSSH(process);
                     await this.endProcess(process);
                     resolve();
                 } else {
@@ -117,6 +117,14 @@ export class ExecutableHelper extends EventEmitter {
         });
     }
 
+    /**
+     * end a process, store statistics, and update status (if necessary)
+     * 
+     * @static
+     * @param {Process} process the finished process
+     * @returns {Promise<void>} 
+     * @memberof ExecutableHelper
+     */
     public static endProcess(process: Process): Promise<void> {
         return new Promise(async (resolve, reject) => {
             let startTime = Statistics.removeActiveExecution(process.id);
@@ -271,12 +279,15 @@ export class ExecutableHelper extends EventEmitter {
 
     }
 
-
     /**
-    * Get the execution type
-    * @param {string} programType the type of the program
-    * @returns {string} the executable code for this program type
-    */
+     * 
+     * Get the execution type
+     * 
+     * @private
+     * @param {string} programType the type of the program
+     * @returns {string} the executable code for this program type
+     * @memberof ExecutableHelper
+     */
     private getExecutionType(programType: string): string {
         switch (programType) {
             case "java":

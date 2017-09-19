@@ -172,7 +172,7 @@ export class FileHelper {
                 let md5String = md5(base64);
                 divaFile.filename = filename;
                 divaFile.folder = filePath + path.sep + folder + path.sep + "original" + path.sep;
-                divaFile.extension = mime.extension(mime.lookup(file));
+                divaFile.extension = mime.getExtension(mime.getType(file));
                 divaFile.path = divaFile.folder + file;
                 divaFile.md5 = md5String;
 
@@ -208,7 +208,7 @@ export class FileHelper {
                 // If the media type remains unknown, the recipient SHOULD treat it as type "application/octet-stream".
                 fileExtension = url.split(".").pop();
             } else {
-                fileExtension = mime.extension(headerResponse["content-type"]);
+                fileExtension = mime.getExtension(headerResponse["content-type"]);
             }
 
             if (filename != null) {
