@@ -94,5 +94,20 @@
         }
       }
     }
+  },
+  "folder": {
+    "displayText": "Output Folder",
+    "infoText": "An output variable pointing to a folder",
+    "type": "object",
+    "userdefined": true,
+    "properties": {
+      "name": {
+        "type": "string",
+        "infoText": "Name of the output folder",
+        "minLength": 3,
+        "maxLength": 100,
+        "required": true
+      }
+    }
   }
 }
