@@ -43,3 +43,5 @@ docs/
 *.js
 *.js.map
 *.d.ts
+
+.env
