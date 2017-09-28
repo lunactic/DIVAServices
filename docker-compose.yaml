@@ -1,11 +1,12 @@
 version: '2'
 services:
   web:
-    environment:
-     - NODE_ENV=dev
+    env_file:
+     .env
     build: .
+    command: npm run docker
     ports:
      - "8080:8080"
     volumes:
      - .:/code
-     - d:/data:/data
+     - d:/data:/divadata
