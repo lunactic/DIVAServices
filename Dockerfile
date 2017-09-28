@@ -30,6 +30,7 @@ RUN wget https://www.dotdeb.org/dotdeb.gpg && apt-key add dotdeb.gpg
 RUN chmod +x scripts/*
 #RUN /etc/init.d/mongod start
 COPY Docker/mongod /etc/init.d/mongod
+RUN chmod +x /etc/init.d/mongod
 RUN npm install
 # Make sure we have some logs directory ready for use
 RUN mkdir logs
