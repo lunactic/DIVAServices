@@ -7,7 +7,7 @@ RUN git config --global url.https://github.com/.insteadOf git://github.com/
 RUN echo "deb http://repo.mongodb.org/apt/debian jessie/mongodb-org/3.4 main" | tee /etc/apt/sources.list.d/mongodb-org-3.4.list $$ \
     echo "deb http://pkg.adfinis-sygroup.ch/dotdeb/ jessie all" | tee /etc/apt/sources.list.d/dotdeb.list && \
     apt-get update && \
-    DEBIAN_FRONTEND=noninteractive apt-get install --force-yes -y jq redis-server mongodb-org python-pip python-dev
+    DEBIAN_FRONTEND=noninteractive apt-get install --force-yes -y jq redis-server mongodb-org
 
 
 # Install application dependencies (copie from node:6.11-onbuild)
@@ -16,8 +16,6 @@ RUN mkdir /data
 RUN npm install -g typings
 # Install typescript globally so we can rebuild scripts upon startup
 RUN npm install -g typescript 
-#Install cwltool
-RUN git clone https://github.com/lunactic/cwltool.git && pip install cwltool/
 
 WORKDIR /code
 
