@@ -16,7 +16,7 @@ RUN mkdir /data
 RUN npm install -g typings
 # Install typescript globally so we can rebuild scripts upon startup
 RUN npm install -g typescript 
-
+RUN npm install -g nodemon
 WORKDIR /code
 
 ARG NODE_ENV
