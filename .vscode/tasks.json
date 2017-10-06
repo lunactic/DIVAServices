@@ -5,7 +5,25 @@
     "command": "tsc",
     "isBackground": true,
     "isShellCommand": true,
-    "args": ["-p", "."],
+    "args": [
+        "-p",
+        "."
+    ],
     "showOutput": "silent",
-    "problemMatcher": "$tsc"
+    "problemMatcher": "$tsc",
+    "tasks": [
+        {
+            "taskName": "tsc-watch",
+            "command": "npm",
+            "args": [
+                "run",
+                "watch"
+            ],
+            "isShellCommand": true,
+            "isBackground": true,
+            "isBuildCommand": true,
+            "problemMatcher": "$tsc-watch",
+            "showOutput": "always"
+        }
+    ]
 }

@@ -69,6 +69,7 @@
     "ip": "diuf-cluster"
   },
   "paths": {
+    "rootPath": "/divadata",
     "filesPath": "/divadata/files",
     "resultsPath": "/divadata/results",
     "testPath": "/divadata/testData",

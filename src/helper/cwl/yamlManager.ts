@@ -21,6 +21,8 @@ export class YamlManager {
                 fs.appendFileSync(this.filePath, "  class: Directory" + os.EOL);
                 fs.appendFileSync(this.filePath, "  location: " + value + os.EOL);
                 break;
+            case 'int':
+            case 'float':
             case 'string':
                 fs.appendFileSync(this.filePath, name + ": " + value + os.EOL);
                 break;

@@ -198,7 +198,12 @@ export class AlgorithmManagement {
                         cwlManager.addInput('Directory', name, index);
                         break;
                     case 'number':
+                        var name: string = item.number.name;
+                        cwlManager.addInput('float', name, index);
                         break;
+                    case 'select':
+                        var name: string = item.select.name;
+                        cwlManager.addInput('string', name, index);
                 }
             });
             cwlManager.startOutputs();

@@ -4,13 +4,16 @@
   "description": "DivaServices RESTFul Web Services for Document Image Analysis",
   "main": "server.js",
   "scripts": {
+    "postinstall": "tsc -p .",
+    "watch": "tsc -w -p .",
     "build": "tsc",
     "grunt": "grunt",
     "start": "NODE_ENV=dev node --max-old-space-size=4096 bin/www",
-    "debug": "NODE_ENV=dev nodemon --max-old-space-size=4096 --inspect=9929 bin/www",
+    "debug": "NODE_ENV=dev nodemon -L --max-old-space-size=4096 --inspect=0.0.0.0:9929 bin/www",
     "test": "NODE_ENV=dev mocha tests/*Tests.js",
     "docker": "./scripts/startup.docker.sh",
-    "doc": "jsdoc src/ -r -d doc/"
+    "doc": "jsdoc src/ -r -d doc/",
+    "docker-debug": "/etc/init.d/mongod start && npm run debug -- --dockerIp=134.21.72.225 --dockerPort=2375 --dockerReport=134.21.72.48:8080 --rootIp=134.21.72.48:8080 --sshUser=docker --sshPass=docker"
   },
   "repository": {
     "type": "git",

@@ -182,15 +182,15 @@ export class DockerManagement {
             let key = _.keys(algorithmInfos.input[index])[0];
             if (['json', 'file', 'inputFile'].indexOf(key) >= 0) {
                 content += String((inputCount + index)) + '=$' + (inputCount + index) + os.EOL;
-                content += 'curl -vs -o /data/' + input[key].name + '.' + mime.getExtension(input[key].options.mimeType) + ' $' + (inputCount + index) + " 2>/dev/null" + os.EOL;
+                content += 'curl -vs -o ' + nconf.get("paths:rootPath") + path.sep + input[key].name + '.' + mime.getExtension(input[key].options.mimeType) + ' $' + (inputCount + index) + " 2>/dev/null" + os.EOL;
                 content += input[key].name + '="${' + (inputCount + index) + '##*/}"' + os.EOL;
-                content += 'mv /data/' + input[key].name + '.' + mime.getExtension(input[key].options.mimeType) + ' /data/$' + input[key].name + os.EOL;
+                content += 'mv ' + nconf.get("paths:rootPath") + path.sep + input[key].name + '.' + mime.getExtension(input[key].options.mimeType) + ' ' + nconf.get("paths:rootPath") + path.sep + '$' + input[key].name + os.EOL;
                 content += 'echo ' + input[key].name + ' is using file: ' + '$' + (inputCount + index) + os.EOL;
-                AlgorithmManagement.addRemotePath(identifier, input[key].name, "/data/$" + input[key].name);
+                AlgorithmManagement.addRemotePath(identifier, input[key].name, nconf.get("paths:rootPath") + "$" + input[key].name);
             } else if (['folder'].indexOf(key) >= 0) {
-                content += 'curl -vs -o /data/' + input[key].name + '.zip' + ' $' + (inputCount + index) + " 2>/dev/null" + os.EOL;
+                content += 'curl -vs -o ' + nconf.get("paths:rootPath") + path.sep + input[key].name + '.zip' + ' $' + (inputCount + index) + " 2>/dev/null" + os.EOL;
                 content += 'echo ' + input[key].name + ' is using file: ' + '$' + (inputCount + index) + os.EOL;
-                AlgorithmManagement.addRemotePath(identifier, input[key].name, "/data/" + input[key].name + "/");
+                AlgorithmManagement.addRemotePath(identifier, input[key].name, nconf.get("paths:rootPath") + path.sep + input[key].name + "/");
             }
             index++;
         }
@@ -440,15 +440,21 @@ export class DockerManagement {
                         if (key === "resultFile") {
                             yamlManager.addInputValue(key, "string", "/output/" + process.tmpResultFile.split("/").pop());
                         } else {
-                            yamlManager.addInputValue(key, "string", value);
+                            if (Number.isInteger(value)) {
+                                yamlManager.addInputValue(key, "int", value);
+                            } else if (this.isFloat(value)) {
+                                yamlManager.addInputValue(key, 'float', value);
+                            } else {
+                                yamlManager.addInputValue(key, "string", "\"" + value + "\"");
+                            }
                         }
                     }
                 }
 
                 var command: string = "cwltool --outdir " + process.outputFolder
                     + " --debug "
-                    + "--tmp-outdir-prefix /data/output/ "
-                    + "--tmpdir-prefix /data/tmp/ "
+                    + "--tmp-outdir-prefix /divadata/output/ "
+                    + "--tmpdir-prefix /divadata/tmp/ "
                     + "--docker-user " + nconf.get("docker:user") + " "
                     + "--workdir /input "
                     + process.cwlFile
@@ -526,5 +532,9 @@ export class DockerManagement {
      */
     private static initDocker() {
         this.docker = new DOCKER({ host: nconf.get("docker:host"), port: nconf.get("docker:port") });
+    }
+
+    private static isFloat(n: any) {
+        return n === +n && n !== (n | 0);
     }
 }

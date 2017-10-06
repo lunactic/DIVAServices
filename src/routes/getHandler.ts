@@ -29,7 +29,7 @@ export class GetHandler {
      */
     static async handleRequest(req: express.Request): Promise<any> {
         return new Promise<any>(async (resolve, reject) => {
-            try {
+            try {                
                 let data = await fs.readFile(nconf.get("paths:jsonPath") + req.originalUrl + path.sep + "info.json", "utf8");
                 data = data.replace(new RegExp("\\$BASEURL\\$", "g"), nconf.get("server:rootUrl"));
                 let jsonData = JSON.parse(data);

@@ -11,7 +11,7 @@
             "program": "${workspaceRoot}/bin/www",
             "cwd": "${workspaceRoot}",
             "env": {
-                "NODE_ENV":"dev"
+                "NODE_ENV": "dev"
             },
             "sourceMaps": true
         },
@@ -26,6 +26,41 @@
             "restart": false,
             "localRoot": "${workspaceRoot}",
             "remoteRoot": "/mnt/d/DEV/DIVAServices",
+            "outFiles": [
+                "${workspaceRoot}/**/*.js"
+            ]
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Launch in Docker",
+            "preLaunchTask": "tsc-watch",
+            "protocol": "inspector",
+            "runtimeExecutable": "npm",
+            "runtimeArgs": [
+                "run",
+                "docker-debug"
+            ],
+            "port": 9929,
+            "restart": true,
+            "timeout": 60000,
+            "localRoot": "${workspaceRoot}",
+            "remoteRoot": "/code",
+            "outFiles": [
+                "${workspaceRoot}/**/*.js"
+            ],
+            "console": "integratedTerminal",
+            "internalConsoleOptions": "neverOpen"
+        },
+        {
+            "type": "node",
+            "request": "attach",
+            "name": "Attach to Docker",
+            "protocol": "inspector",
+            "port": 9929,
+            "restart": true,
+            "localRoot": "${workspaceRoot}",
+            "remoteRoot": "/code",
             "outFiles": [
                 "${workspaceRoot}/**/*.js"
             ]

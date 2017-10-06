@@ -4,7 +4,7 @@ services:
     env_file:
      .env
     build: .
-    command: npm run docker
+    command: npm run docker-debug
     ports:
      - "8080:8080"
      - "9929:9929"
