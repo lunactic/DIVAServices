@@ -40,11 +40,6 @@ const optionDefinitions = [
     description: "The port of the docker machine to use"
   },
   {
-    name: 'dockerReport',
-    type: String,
-    description: "IP address/port combination docker containers can use to send results to"
-  },
-  {
     name: 'rootIp',
     type: String,
     description: "The ip address/port combination under which DIVAServices will be exposed (e.g. divaservices.unifr.ch/api/v2)"

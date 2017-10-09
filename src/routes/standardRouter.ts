@@ -157,6 +157,11 @@ router.put("/collections/:collectionName", async function (req: express.Request,
         let imageCounter: number = 0;
         //download the files
         for (let file of req.body.files) {
+            let fullPath = nconf.get("paths:filePath") + path.sep + collectionName + path.sep + "original" + path.sep + file.name + "." + file.extension;
+            if (FileHelper.fileExists(fullPath)) {
+                continue;
+            }
+
             switch (file.type) {
                 case "iiif":
                     let iiifManifestParser = new IiifManifestParser(file.value);
@@ -417,6 +422,19 @@ router.delete("/collections/:collection/:md5", async function (req: express.Requ
     });
     await FileHelper.deleteFile(filtered[0]);
     res.status(200).send();
+});
+
+router.delete("/collections/:collection/:name", async function (req: express.Request, res: express.Response) {
+    let collection = req.params.collection;
+    let name = req.params.name;
+
+    try {
+        await FileHelper.deleteFileInCollection(collection, name);
+        res.status(200).send();
+    } catch (error) {
+        sendError(res, error);
+    }
+
 });
 
 router.get("/files/:md5/check", async function (req: express.Request, res: express.Response) {

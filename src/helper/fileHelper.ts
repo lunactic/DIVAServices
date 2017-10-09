@@ -230,7 +230,7 @@ export class FileHelper {
             file.md5 = md5String;
             try {
                 await fs.stat(file.path);
-                fs.unlink(tmpFilePath);
+                fs.unlinkSync(tmpFilePath);
             } catch (error) {
                 if (error.code === "ENONENT") {
                     await fs.rename(tmpFilePath, file.path);
@@ -471,6 +471,33 @@ export class FileHelper {
             resolve();
         });
     }
+
+
+    /**
+     * Removes a file in a collection
+     * 
+     * @static
+     * @param {string} collection the collection the file is in
+     * @param {string} target the filename of the file to delete 
+     * @returns {Promise<void>} 
+     * @memberof FileHelper
+     */
+    static async deleteFileInCollection(collection: string, target: string): Promise<void> {
+        return new Promise<void>(async (resolve, reject) => {
+            let files: DivaFile[] = this.loadCollection(collection, null);
+            for (var file of files) {
+                if (file.filename === target) {
+                    _.remove(this.filesInfo, function (item: any) {
+                        return item.file === file.path;
+                    });
+                    Logger.log("info", "delete file" + file.path);
+                }
+            }
+            await this.saveFileInfo();
+            IoHelper.deleteFile(nconf.get("paths:filesPath") + path.sep + collection + path.sep + "original" + path.sep + target);
+        });
+    }
+
 
     static async getMd5Hash(file: string): Promise<string> {
         return new Promise<string>(async (resolve, reject) => {

@@ -10,4 +10,4 @@ services:
      - "9929:9929"
     volumes:
      - .:/code
-     - d:/data:/divadata
+     - /divadata/data/:/data
