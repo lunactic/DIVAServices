@@ -548,7 +548,7 @@ export class IoHelper {
      * @memberof IoHelper
      */
     static isValidFileName(filename: string): boolean {
-        var value = !/[~`!#$%\^&*+=\-\[\]\\';,/{}|\\":<>\?\s]/g.test(filename);
+        var value = !/[~`!#$%\^&*+=\[\]\\';,/{}|\\":<>\?\s]/g.test(filename);
         return value;
     }
 
