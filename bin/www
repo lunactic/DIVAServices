@@ -73,7 +73,7 @@ const sections = [
 const options = cmdArgs(optionDefinitions);
 const usage = getUsage(sections);
 
-if (options.help || Object.keys(options).length <= 5) {
+if (options.help || Object.keys(options).length <= 4) {
   console.log(usage);
   process.exit();
 }
