@@ -4,10 +4,9 @@ services:
     env_file:
      .env
     build: .
-    command: npm run docker-debug
+    command: npm run start
     ports:
      - "8080:8080"
-     - "9929:9929"
     volumes:
      - .:/code
-     - /divadata/data/:/data
+     - /data/:/data

@@ -39,4 +39,4 @@ RUN mkdir logs
 #COPY Docker/etc_environment /etc/environment
 
 # Change this according to the `server.*.json` content
-EXPOSE 8080
+EXPOSE 8080 9929

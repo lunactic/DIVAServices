@@ -43,7 +43,7 @@ const optionDefinitions = [
     name: 'rootIp',
     type: String,
     description: "The ip address/port combination under which DIVAServices will be exposed (e.g. divaservices.unifr.ch/api/v2)"
-  }, 
+  },
   {
     name: 'sshUser',
     type: String,
@@ -73,12 +73,22 @@ const sections = [
 const options = cmdArgs(optionDefinitions);
 const usage = getUsage(sections);
 
-if (options.help || Object.keys(options).length <= 4) {
+if (options.help || (Object.keys(options).length <= 4 && process.env.NODE_ENV == null)) {
   console.log(usage);
   process.exit();
 }
 
-app.initParams(options);
+if (Object.keys(options).length > 0) {
+  app.initParams(options);
+} else {
+  let values = {};
+  values['rootIp'] = process.env.ROOTIP;
+  values['dockerIp'] = process.env.DOCKERIP;
+  values['dockerPort'] = process.env.DOCKERPORT;
+  values['sshUser'] = process.env.SSHUSER;
+  values['sshPass'] = process.env.SSHPASS;
+  app.initParams(values);
+}
 //get port from environment and store in Express.
 var port = normalizePort(nconf.get("server:httpPort") || 8080);
 //app.set("port", port);

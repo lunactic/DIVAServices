@@ -12,6 +12,7 @@
     "divaservices/tesseract": "apt",
     "divaservices/opencv32":{
       "1":"apt"
-    } 
+    },
+    "waldol1/hisdb": "apt"
   }
 }

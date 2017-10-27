@@ -159,7 +159,6 @@ class Server {
         nconf.set("server:rootUrl", params.rootIp);
         nconf.set("docker:host", params.dockerIp);
         nconf.set("docker:port", params.dockerPort);
-        nconf.set("docker:reportHost", params.dockerReport);
         nconf.set("docker:sshUser", params.sshUser);
         nconf.set("docker:sshPass", params.sshPass);
         this.client = redis.createClient();

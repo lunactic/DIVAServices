@@ -11,7 +11,8 @@
       "kbai/kraken",
       "divaservices/tesseract",
       "divaservices/noise",
-      "divaservices/opencv32:1"
+      "divaservices/opencv32:1",
+      "waldol1/hisdb"
     ],
     "keys": [
       "Java 7",
@@ -21,7 +22,8 @@
       "kraken",
       "Tesseract",
       "Noise Generation",
-      "OpenCV 3.2 (python and C++ bindings)"
+      "OpenCV 3.2 (python and C++ bindings)",
+      "Tensemeyer HisDB"
     ],
     "required": true
   },

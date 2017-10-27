@@ -45,3 +45,4 @@ docs/
 *.d.ts
 
 .env
+.env_dev
