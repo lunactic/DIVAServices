@@ -453,8 +453,8 @@ export class DockerManagement {
 
                 var command: string = "cwltool --outdir " + process.outputFolder
                     + " --debug "
-                    + "--tmp-outdir-prefix /divadata/output/ "
-                    + "--tmpdir-prefix /divadata/tmp/ "
+                    + "--tmp-outdir-prefix /data/output/ "
+                    + "--tmpdir-prefix /data/tmp/ "
                     + "--docker-user " + nconf.get("docker:user") + " "
                     + "--workdir /input "
                     + process.cwlFile
