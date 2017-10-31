@@ -117,7 +117,7 @@ export class AlgorithmManagement {
                                             highlighter = {
                                                 type: "rectangle",
                                                 closed: true,
-                                                segments: [[1, 1], [1, 150], [350, 150], [350, 1]]
+                                                segments: [[1, 1], [350, 1], [350, 150], [1, 150]]
                                             };
                                             break;
                                     }
@@ -183,27 +183,39 @@ export class AlgorithmManagement {
             var info: any = await ServicesInfoHelper.getInfoByIdentifier(identifier);
             var cwlManager: CwlManager = new CwlManager(file, info.image_name);
             await cwlManager.initialize();
+            var counter: number = 0;
             algorithm.input.forEach((item, index) => {
                 switch (Object.keys(item)[0]) {
                     case 'resultFile':
                         var name: string = 'resultFile';
-                        cwlManager.addInput('string', name, index);
+                        cwlManager.addInput('string', name, counter++);
                         break;
                     case 'file':
                         var name: string = item.file.name;
-                        cwlManager.addInput('File', name, index);
+                        cwlManager.addInput('File', name, counter++);
                         break;
                     case 'folder':
                         var name: string = item.folder.name;
-                        cwlManager.addInput('Directory', name, index);
+                        cwlManager.addInput('Directory', name, counter++);
                         break;
                     case 'number':
                         var name: string = item.number.name;
-                        cwlManager.addInput('float', name, index);
+                        cwlManager.addInput('float', name, counter++);
                         break;
                     case 'select':
                         var name: string = item.select.name;
-                        cwlManager.addInput('string', name, index);
+                        cwlManager.addInput('string', name, counter++);
+                        break;
+                    case 'highlighter':
+                        var name: string = "highlighter";
+                        switch (item.highlighter.type) {
+                            case 'rectangle':
+                                for (var recIndex = 0; recIndex < 8; recIndex++) {
+                                    cwlManager.addInput("float", "highlighter" + String(recIndex), counter++);
+                                }
+                                break;
+                        }
+                        break;
                 }
             });
             cwlManager.startOutputs();

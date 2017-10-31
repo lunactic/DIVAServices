@@ -1,10 +1,10 @@
-version: '2'
+version: '3.3'
 services:
   dev_web:
     env_file:
      .env_dev
     build: .
-    command: npm run docker-debug
+    command: npm run docker-dev-debug
     ports:
      - "8080:8080"
      - "9929:9929"

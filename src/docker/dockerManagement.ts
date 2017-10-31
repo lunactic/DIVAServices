@@ -129,14 +129,14 @@ export class DockerManagement {
 
         switch (nconf.get("baseImages:" + algorithmInfos.method.environment)) {
             case "apk":
-                content += 'RUN addgroup -S ' + nconf.get("docker:group") + os.EOL;
-                content += 'RUN adduser -S -g ' + nconf.get("docker:group") + ' ' + nconf.get("docker:user") + os.EOL;
+                //content += 'RUN addgroup -S ' + nconf.get("docker:group") + os.EOL;
+                //content += 'RUN adduser -S -g ' + nconf.get("docker:group") + ' ' + nconf.get("docker:user") + os.EOL;
                 content += 'RUN apk update' + os.EOL +
                     'RUN apk add curl bash nano' + os.EOL;
                 break;
             case "apt":
-                content += 'RUN groupadd ' + nconf.get("docker:group") + os.EOL;
-                content += 'RUN useradd --create-home --home-dir $HOME -g ' + nconf.get("docker:group") + ' ' + nconf.get("docker:user") + os.EOL;
+                //content += 'RUN groupadd ' + nconf.get("docker:group") + os.EOL;
+                //content += 'RUN useradd --create-home --home-dir $HOME -g ' + nconf.get("docker:group") + ' ' + nconf.get("docker:user") + os.EOL;
                 content += 'RUN apt-get update' + os.EOL +
                     'RUN apt-get install bash jq wget unzip curl nano -y' + os.EOL;
                 break;
@@ -145,8 +145,8 @@ export class DockerManagement {
         content += 'RUN mkdir -p /output' + os.EOL +
             'RUN mkdir -p /input' + os.EOL +
             'COPY . /input' + os.EOL +
-            'RUN unzip /input/algorithm.zip -d /input' + os.EOL +
-            'RUN chown -R ' + nconf.get("docker:group") + ':' + nconf.get("docker:user") + ' /input' + os.EOL;
+            'RUN unzip /input/algorithm.zip -d /input' + os.EOL;
+            //'RUN chown -R ' + nconf.get("docker:group") + ':' + nconf.get("docker:user") + ' /input' + os.EOL;
 
         switch (nconf.get("baseImages:" + algorithmInfos.method.environment)) {
             case "apt":
@@ -155,7 +155,7 @@ export class DockerManagement {
         }
         content += 'WORKDIR /input' + os.EOL;
         content += 'RUN chmod +x *' + os.EOL;
-        content += 'USER ' + nconf.get("docker:user") + ':' + nconf.get("docker:group") + os.EOL;
+        //content += 'USER ' + nconf.get("docker:user") + ':' + nconf.get("docker:group") + os.EOL;
         content += 'CMD ["/input/script.sh"]';
         fse.writeFileSync(outputFolder + path.sep + "Dockerfile", content);
     }
@@ -224,14 +224,14 @@ export class DockerManagement {
                 if (AlgorithmManagement.hasRemotePath(identifier, value)) {
                     content += AlgorithmManagement.getRemotePath(identifier, value) + " ";
                 } else if (key === "highlighter") {
-                    content += "${" + inputCount++ + "} " + "${" + inputCount++ + "} " + "${" + inputCount++ + "} " + "${" + inputCount++ + "} " + "${" + inputCount++ + "} " + "${" + inputCount++ + "} " + "${" + inputCount++ + "} " + "${" + inputCount++ + "} ";
+                    content += "${" + inputCount++ + "} " + "${" + inputCount++ + "} " + "${" + inputCount++ + "} " + "${" + inputCount++ + "} " + "${" + inputCount++ + "} " + "${" + inputCount++ + "} " + "${" + inputCount++ + "} " + "${" + inputCount + "} ";
                 } else {
                     content += "${" + inputCount + "} ";
                 }
                 inputCount++;
             } else {
                 if (key === "highlighter") {
-                    content += "${" + inputCount++ + "} " + "${" + inputCount++ + "} " + "${" + inputCount++ + "} " + "${" + inputCount++ + "} " + "${" + inputCount++ + "} " + "${" + inputCount++ + "} " + "${" + inputCount++ + "} " + "${" + inputCount++ + "} ";
+                    content += "${" + inputCount++ + "} " + "${" + inputCount++ + "} " + "${" + inputCount++ + "} " + "${" + inputCount++ + "} " + "${" + inputCount++ + "} " + "${" + inputCount++ + "} " + "${" + inputCount++ + "} " + "${" + inputCount + "} ";
                 } else {
                     content += "${" + inputCount + "} ";
                     inputCount++;
@@ -296,14 +296,14 @@ export class DockerManagement {
                 if (AlgorithmManagement.hasRemotePath(identifier, value)) {
                     content += AlgorithmManagement.getRemotePath(identifier, value) + " ";
                 } else if (key === "highlighter") {
-                    content += "${" + inputCount++ + "} " + "${" + inputCount++ + "} " + "${" + inputCount++ + "} " + "${" + inputCount++ + "} " + "${" + inputCount++ + "} " + "${" + inputCount++ + "} " + "${" + inputCount++ + "} " + "${" + inputCount++ + "} ";
+                    content += "${" + inputCount++ + "} " + "${" + inputCount++ + "} " + "${" + inputCount++ + "} " + "${" + inputCount++ + "} " + "${" + inputCount++ + "} " + "${" + inputCount++ + "} " + "${" + inputCount++ + "} " + "${" + inputCount + "} ";
                 } else {
                     content += "${" + inputCount + "} ";
                 }
                 inputCount++;
             } else {
                 if (key === "highlighter") {
-                    content += "${" + inputCount++ + "} " + "${" + inputCount++ + "} " + "${" + inputCount++ + "} " + "${" + inputCount++ + "} " + "${" + inputCount++ + "} " + "${" + inputCount++ + "} " + "${" + inputCount++ + "} " + "${" + inputCount++ + "} ";
+                    content += "${" + inputCount++ + "} " + "${" + inputCount++ + "} " + "${" + inputCount++ + "} " + "${" + inputCount++ + "} " + "${" + inputCount++ + "} " + "${" + inputCount++ + "} " + "${" + inputCount++ + "} " + "${" + inputCount + "} ";
                 } else {
                     content += "${" + inputCount + "} ";
                     inputCount++;
@@ -426,6 +426,11 @@ export class DockerManagement {
                     let key = _.keys(param)[0];
                     let value = param[key];
                     if (key === "highlighter") {
+                        let array = value.split(" ");
+                        for (var index = 0; index < array.length; index++) {
+                            var element = array[index];
+                            yamlManager.addInputValue(String(key) + String(index), "int", element);
+                        }
                         //TODO: add handler for arrays
                     } else if (value instanceof DivaFile) {
                         yamlManager.addInputValue(key, "file", (value as DivaFile).path);
@@ -455,7 +460,8 @@ export class DockerManagement {
                     + " --debug "
                     + "--tmp-outdir-prefix /data/output/ "
                     + "--tmpdir-prefix /data/tmp/ "
-                    + "--docker-user " + nconf.get("docker:user") + " "
+                    + "--no-match-user "
+                    + "--no-read-only "
                     + "--workdir /input "
                     + process.cwlFile
                     + " "
