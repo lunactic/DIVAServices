@@ -228,7 +228,7 @@ export class ParameterHelper {
     }
 
     static async matchOrder(process: Process): Promise<void> {
-        return new Promise<void>((resolve, reject) => {
+        return new Promise<void>(async (resolve, reject) => {
             for (let paramMatch of process.matchedParameters) {
                 let found: boolean = false;
                 //check if key is in global parameters
@@ -253,12 +253,19 @@ export class ParameterHelper {
                     });
                     found = true;
                     replaceObj[searchKey] = dataParams[searchKey];
-                    if (!(IoHelper.fileExists((replaceObj[searchKey] as DivaFile).path))) {
+                    if (!(await IoHelper.fileExists((replaceObj[searchKey] as DivaFile).path))) {
                         return reject(new DivaError("non existing file: " + ((replaceObj[searchKey] as DivaFile).collection) + "/" + ((replaceObj[searchKey] as DivaFile).filename) + " for data parameter: " + searchKey, 500, "ParameterError"));
                     }
                 }
                 if (!found) {
-                    return reject(new DivaError("Provided parameter: " + searchKey + " that is not needed by the method", 500, "ParameterError"));
+                    let needed = _.find(process.neededParameters, function (item: any) {
+                        return Object.keys(item)[0] === searchKey;
+                    });
+                    if (isNullOrUndefined(needed)) {
+                        return reject(new DivaError("Provided parameter: " + searchKey + " that is not needed by the method", 500, "ParameterError"));
+                    } else {
+                        return reject(new DivaError("Did not receive data for parameter: " + searchKey + " that is needed by the method", 500, "ParameterError"));
+                    }
                 }//if not found ==> throw error
             }
             resolve();
