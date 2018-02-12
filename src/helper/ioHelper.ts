@@ -253,6 +253,7 @@ export class IoHelper {
                     resolve();
                 }).on("error", function (error: any) {
                     Logger.log("error", JSON.stringify(error), "IoHelper");
+                    return reject(new DivaError("Error unzipping file", 500, "IoError"));
                 });
             } catch (error) {
                 Logger.log("error", JSON.stringify(error), "IoHelper");

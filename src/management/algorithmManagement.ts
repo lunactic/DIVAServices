@@ -206,6 +206,10 @@ export class AlgorithmManagement {
                         var name: string = item.select.name;
                         cwlManager.addInput('string', name, counter++);
                         break;
+                    case 'outputFolder':
+                        var name: string = "outputFolder";
+                        cwlManager.addInput('string', name, counter++);
+                        break;
                     case 'highlighter':
                         var name: string = "highlighter";
                         switch (item.highlighter.type) {
@@ -232,7 +236,7 @@ export class AlgorithmManagement {
                         break;
                 }
             });
-            cwlManager.addOutput("File", "jsonResult", "*.json");
+            //cwlManager.addOutput("File", "jsonResult", "*.json");
             cwlManager.addOutput("stdout", '', '');
             resolve();
         });
@@ -772,7 +776,7 @@ export class AlgorithmManagement {
                         if (result == null) {
                             reject(new DivaError("did not find a result for output parameter: " + element.file.name, 500, "ResultValidationError"));
                         } else {
-                            if (result.file["mime-type"] !== element.file.options.mimeType) {
+                            if (result.file["mime-type"] !== element.file["mime-type"]) {
                                 reject(new DivaError("wrong mimeType for parameter: " + element.file.name + " expected " + element.file.options.mimeType + " got " + result.file["mime-type"], 500, "ResultValidationError"));
                             }
                         }

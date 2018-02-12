@@ -4,7 +4,6 @@ let chaiHttp = require("chai-http");
 let should = chai.should();
 import { exec } from "child_process";
 
-
 process.env.NODE_ENV = 'dev';
 
 chai.use(chaiHttp);

@@ -76,6 +76,14 @@
         "maxLength": 100,
         "required": true
       },
+      "fileType": {
+        "type": "string",
+        "infoText": "The type of file that is generated",
+        "enum":[
+          "image", "model", "xml", "json", "text"
+        ],
+        "required": true
+      },
       "description": {
         "type": "string",
         "infoText": "Description of the output variable",
@@ -90,6 +98,17 @@
             "infoText": "Mime-Type of the output file",
             "type": "string",
             "required": true
+          },
+          "colorspace": {
+            "type": "string",
+            "infoText": "The colorspace of the image",
+            "enum":[
+             "rgb", "grayscale", "binary" 
+            ]
+          },
+          "visualization":{
+            "type":"boolean",
+            "infoText": "Can this file be used as a visualization?",
           }
         }
       }

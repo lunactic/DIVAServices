@@ -146,7 +146,7 @@ export class DockerManagement {
             'RUN mkdir -p /input' + os.EOL +
             'COPY . /input' + os.EOL +
             'RUN unzip /input/algorithm.zip -d /input' + os.EOL;
-            //'RUN chown -R ' + nconf.get("docker:group") + ':' + nconf.get("docker:user") + ' /input' + os.EOL;
+        //'RUN chown -R ' + nconf.get("docker:group") + ':' + nconf.get("docker:user") + ' /input' + os.EOL;
 
         switch (nconf.get("baseImages:" + algorithmInfos.method.environment)) {
             case "apt":
@@ -444,6 +444,8 @@ export class DockerManagement {
                         //handle regular parameters
                         if (key === "resultFile") {
                             yamlManager.addInputValue(key, "string", "/output/" + process.tmpResultFile.split("/").pop());
+                        } else if (key === "outputFolder") {
+                            yamlManager.addInputValue(key, "string", "/output/");
                         } else {
                             if (Number.isInteger(value)) {
                                 yamlManager.addInputValue(key, "int", value);

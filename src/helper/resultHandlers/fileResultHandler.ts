@@ -7,6 +7,7 @@ import * as fs from "fs-extra";
 import * as path from "path";
 import * as nconf from "nconf";
 import * as os from "os";
+import * as mime from "mime";
 import { isNullOrUndefined } from 'util';
 import { Logger } from "../../logging/logger";
 import { FileHelper } from "../fileHelper";
@@ -205,33 +206,32 @@ export class FileResultHandler implements IResultHandler {
                 if (tempDirectory !== null) {
                     await IoHelper.deleteFolder(tempDirectory);
                 }
-                var procResult = await fs.readJson(this.tempResultFile, { encoding: "utf-8" });
-
-                if (isNullOrUndefined(procResult.output)) {
-                    procResult.output = [];
-                }
-
-                let files = _.filter(procResult.output, function (entry: any) {
+                var procResult: any = {};
+                procResult.output = [];
+                let files = _.filter(process.outputs, function (entry: any) {
                     return _.has(entry, "file");
                 });
 
+
                 for (let file of files) {
-                    //handle matlab output
+                    //get the corresponding entry in the CWL file
+                    var cwlFile = cwlResult[file.file.name.split('.')[0]];
                     if (process.executableType === "matlab") {
                         file.file['mime-type'] = file.file['mimetype'];
                         file.file.options.visualization = Boolean(file.file.options.visualization);
                         delete file.file['mimetype'];
+                    } else {
+                        var mimeType = mime.getType(cwlFile.path);
+                        file.file['mime-type'] = mimeType;
+                        delete file.file.options['mimeType'];
                     }
-
-                    //find the corresponding entry in the cwlResult to find the correct filename
-                    //var cwlFile = cwlResult[file.file.name.split('.')[0]];
-                    //await fs.move(process.outputFolder + path.sep + cwlFile.basename, process.outputFolder + path.sep + file.file.name);
-
+                    
                     //rename the file according to file.file.name
-                    file.file["url"] = IoHelper.getStaticResultFileUrl(process.outputFolder, file.file.name);
+                    file.file["url"] = IoHelper.getStaticResultUrlFull(cwlFile.path);
                     delete file.file.content;
-
+                    procResult.output.push(file);
                 }
+
                 let errorLogFile = {
                     file: {
                         "mime-type": "text/plain",
