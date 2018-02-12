@@ -46,3 +46,4 @@ docs/
 
 .env
 .env_dev
+*.code-workspace
