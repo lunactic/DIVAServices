@@ -1,4 +1,4 @@
-FROM node:8.2
+FROM node:8.9.4
 
 # Force git to use HTTPS transport
 RUN git config --global url.https://github.com/.insteadOf git://github.com/
