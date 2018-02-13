@@ -201,7 +201,7 @@
           },
           "mimeType": {
             "infoText": "Mime-Type of the input file",
-            "type": "string",
+            "type": "array",
             "required": true
           }
         }

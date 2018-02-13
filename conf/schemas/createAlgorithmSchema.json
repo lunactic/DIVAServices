@@ -55,7 +55,7 @@
                 "type": "boolean"
               },
               "mimeType": {
-                "type": "string"
+                "type": "array"
               }
             }
           }
@@ -300,7 +300,7 @@
             ],
             "properties": {
               "mimeType": {
-                "type": "string"
+                "type": "array"
               }
             }
           }
