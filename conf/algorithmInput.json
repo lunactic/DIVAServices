@@ -199,64 +199,78 @@
             "type": "boolean",
             "required": true
           },
-          "mimeType": {
-            "infoText": "Mime-Type of the input file",
-            "type": "array",
-            "required": true
+          "mimeTypes": {
+            "type": "object",
+            "required": true,
+            "properties": {
+              "allowed": {
+                "infoText": "Allowed mime-types for this input",
+                "type": "array",
+                "required": true
+              },
+              "default": {
+                "infoText": "Default mime-type to use",
+                "type": "string",
+                "required": true
+              }
+            }
           }
         }
       }
     }
-  },"folder": {
-    "displayText": "Input Folder",
-    "infoText": "Path to an input Folder. The method will be provided with a local directory/",
-    "type": "object",
-    "userdefined": true,
-    "properties": {
-      "name": {
-        "type": "string",
-        "infoText": "Name of the parameter",
-        "minLength": 3,
-        "maxLength": 25,
-        "required": true
-      },
-      "description": {
-        "type": "string",
-        "infoText": "Description of the parameter",
-        "minLength": 3,
-        "maxLength": 255,
-        "required": true
-      },
-      "options": {
-        "type": "object",
-        "properties": {
-          "required": {
-            "infoText": "Boolean defining whether or not this parameter needs to be set",
-            "type": "boolean",
-            "required": true
-          }
-        }
-      }
-    }
-  },
-  "mcr2014b": {
-    "displayText": "MCR2014b Path",
-    "infoText": "Path to the MCR2014b Installation. Needs to be passed as FIRST parameter to matlab compiled code!",
-    "userdefined": false
-  },
-  "resultFile": {
-    "displayText": "Result File",
-    "infoText": "Path where to save the resulting json file",
-    "userdefined": false
-  },
-  "outputFolder": {
-    "displayText": "Output Folder",
-    "infoText": "Folder for saving results",
-    "userdefined": false
-  },
-  "host": {
-    "displayText": "Host",
-    "infoText": "The base url of the server (e.g. divaservices.unifr.ch). Can be used to generate URL responses.",
-    "userdefined": false
   }
+}
+},
+"folder": {
+"displayText": "Input Folder",
+"infoText": "Path to an input Folder. The method will be provided with a local directory/",
+"type": "object",
+"userdefined": true,
+"properties": {
+  "name": {
+    "type": "string",
+    "infoText": "Name of the parameter",
+    "minLength": 3,
+    "maxLength": 25,
+    "required": true
+  },
+  "description": {
+    "type": "string",
+    "infoText": "Description of the parameter",
+    "minLength": 3,
+    "maxLength": 255,
+    "required": true
+  },
+  "options": {
+    "type": "object",
+    "properties": {
+      "required": {
+        "infoText": "Boolean defining whether or not this parameter needs to be set",
+        "type": "boolean",
+        "required": true
+      }
+    }
+  }
+}
+},
+"mcr2014b": {
+"displayText": "MCR2014b Path",
+"infoText": "Path to the MCR2014b Installation. Needs to be passed as FIRST parameter to matlab compiled code!",
+"userdefined": false
+},
+"resultFile": {
+"displayText": "Result File",
+"infoText": "Path where to save the resulting json file",
+"userdefined": false
+},
+"outputFolder": {
+"displayText": "Output Folder",
+"infoText": "Folder for saving results",
+"userdefined": false
+},
+"host": {
+"displayText": "Host",
+"infoText": "The base url of the server (e.g. divaservices.unifr.ch). Can be used to generate URL responses.",
+"userdefined": false
+}
 }

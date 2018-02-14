@@ -48,14 +48,27 @@
             "type": "object",
             "required": [
               "required",
-              "mimeType"
+              "mimeTypes"
             ],
             "properties": {
               "required": {
                 "type": "boolean"
               },
-              "mimeType": {
-                "type": "array"
+              "mimeTypes": {
+                "type": "object",
+                "required": true,
+                "properties": {
+                  "allowed": {
+                    "infoText": "Allowed mime-types for this input",
+                    "type": "array",
+                    "required": true
+                  },
+                  "default": {
+                    "infoText": "Default mime-type to use",
+                    "type": "string",
+                    "required": true
+                  }
+                }
               }
             }
           }
@@ -245,8 +258,8 @@
         },
         "additionalProperties": false
       },
-      "outputNumber":{
-       "type": "object",
+      "outputNumber": {
+        "type": "object",
         "required": [
           "name",
           "options"
@@ -260,8 +273,7 @@
           },
           "options": {
             "type": "object",
-            "required": [
-            ],
+            "required": [],
             "properties": {
               "default": {
                 "type": "number"
@@ -281,7 +293,7 @@
         },
         "additionalProperties": false
       },
-      "outputFile":{
+      "outputFile": {
         "type": "object",
         "required": [
           "name"
@@ -296,17 +308,17 @@
           "options": {
             "type": "object",
             "required": [
-              "mimeType"
+              "mimeTypes"
             ],
             "properties": {
-              "mimeType": {
-                "type": "array"
+              "mimeTypes": {
+                "type": "object"
               }
             }
           }
         }
       },
-      "outputFolder":{
+      "outputFolder": {
         "type": "object",
         "required": [
           "name"
@@ -430,22 +442,22 @@
         },
         "additionalItems": false
       },
-      "output":{
+      "output": {
         "type": "array",
-        "items":{
-          "description":"Output types",
-          "properties":{
-            "number":{
-              "$ref":"#/definitions/outputNumber"
+        "items": {
+          "description": "Output types",
+          "properties": {
+            "number": {
+              "$ref": "#/definitions/outputNumber"
             },
-            "file":{
-              "$ref":"#/definitions/outputFile"
+            "file": {
+              "$ref": "#/definitions/outputFile"
             },
-            "folder":{
-              "$ref":"#/definitions/outputFolder"
+            "folder": {
+              "$ref": "#/definitions/outputFolder"
             }
           },
-          "additionalProperties":false
+          "additionalProperties": false
         },
         "additionalItems": false
       },

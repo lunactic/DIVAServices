@@ -97,7 +97,7 @@ export class AlgorithmManagement {
                                     inputs[input.json.name] = IoHelper.readFile(nconf.get("paths:testPath") + path.sep + "json" + path.sep + "array.json");
                                     break;
                                 case "file":
-                                    data[input.file.name] = nconf.get("paths:executablePath") + path.sep + route + path.sep + input.file.name + "." + mime.getExtension(input.file.options.mimeType);
+                                    data[input.file.name] = nconf.get("paths:executablePath") + path.sep + route + path.sep + input.file.name + "." + mime.getExtension(input.file.options.mimeTypes.default);
                                     break;
                                 case "folder":
                                     await IoHelper.unzipFile(nconf.get("paths:executablePath") + path.sep + route + path.sep + input.folder.name + ".zip", nconf.get("paths:executablePath") + path.sep + route + path.sep + input.folder.name);
@@ -227,8 +227,12 @@ export class AlgorithmManagement {
                 switch (Object.keys(item)[0]) {
                     case 'file':
                         var name = item.file.name;
-                        var extension = mime.getExtension(item.file.options.mimeType);
-                        cwlManager.addOutput('File', name, "*." + extension);
+                        var extensions = [];
+                        item.file.options.mimeTypes.allowed.forEach(element => {
+                            var extension = mime.getExtension(element);
+                            extensions.push("*." + extension);
+                        });
+                        cwlManager.addOutput('File', name, JSON.stringify(extensions));
                         break;
                     case 'folder':
                         var name = item.folder.name;
@@ -674,13 +678,17 @@ export class AlgorithmManagement {
                     let info: any = {};
                     if (inputType === 'file' || inputType === 'folder') {
                         fileCount++;
-                        info[key] = inputType;
+                        info[key] = input;
+                        var order = {};
+                        order[key] = inputType;
                         data.push(info);
-                        paramOrder.push(info);
+                        paramOrder.push(order);
                     } else {
-                        info[key] = inputType;
+                        info[key] = input;
+                        var order = {};
+                        order[key] = inputType;
                         parameters.push(info);
-                        paramOrder.push(info);
+                        paramOrder.push(order);
                     }
                 });
                 let newServiceEntry = {

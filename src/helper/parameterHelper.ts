@@ -10,6 +10,8 @@ import * as fs from 'fs-extra';
 import * as nconf from 'nconf';
 import * as path from 'path';
 import * as hash from 'object-hash';
+import * as  mime from 'mime';
+
 import { DivaError } from "../models/divaError";
 import { IoHelper } from "./ioHelper";
 import { Logger } from "../logging/logger";
@@ -186,13 +188,18 @@ export class ParameterHelper {
                     needed = Object.keys(found).length > 0;
                     if (needed) {
                         let value = element[key];
-                        switch (found[key]) {
+                        switch (Object.keys(found[key])[0]) {
                             case "file":
+                                let collection = value.split("/")[0];
+                                let filename = value.split("/")[1];
+                                //check if the mime-type is matching
+                                if (!found[key].file.options.mimeTypes.allowed.includes(mime.getType(filename))) {
+                                    reject(new DivaError("incompatile input for -- " + key + " -- expected file of type(s) " + JSON.stringify(found[key].file.options.mimeTypes.allowed, null, " ").replace(/\n/g, '').replace(/\"/g, '').replace(/\s/g, '') + " but found type " + mime.getType(filename),
+                                        500, "ParameterError"));
+                                }
                                 //perform lookup to get the correct file path, create the correct data item out of it
                                 if (!this.isPathAbsolute(value)) {
                                     //use relative file path to look up with collection / filename
-                                    let collection = value.split("/")[0];
-                                    let filename = value.split("/")[1];
                                     data[key] = DivaFile.CreateFile(collection, filename);
                                 } else {
                                     //use absolute path (used only when testing a method)

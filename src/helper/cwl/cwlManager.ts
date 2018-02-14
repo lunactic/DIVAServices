@@ -50,8 +50,9 @@ export class CwlManager {
                 fs.appendFileSync(this.filePath, '  ' + name + ':' + os.EOL);
                 fs.appendFileSync(this.filePath, '    type: ' + type + os.EOL);
                 fs.appendFileSync(this.filePath, '    outputBinding:' + os.EOL);
-                fs.appendFileSync(this.filePath, '      glob: "' + glob + '"' + os.EOL);
+                fs.appendFileSync(this.filePath, '      glob: ' + glob + os.EOL);
                 break;
         }
     }
+
 }

@@ -182,9 +182,9 @@ export class DockerManagement {
             let key = _.keys(algorithmInfos.input[index])[0];
             if (['json', 'file', 'inputFile'].indexOf(key) >= 0) {
                 content += String((inputCount + index)) + '=$' + (inputCount + index) + os.EOL;
-                content += 'curl -vs -o ' + nconf.get("paths:rootPath") + path.sep + input[key].name + '.' + mime.getExtension(input[key].options.mimeType) + ' $' + (inputCount + index) + " 2>/dev/null" + os.EOL;
+                content += 'curl -vs -o ' + nconf.get("paths:rootPath") + path.sep + input[key].name + '.' + mime.getExtension(input[key].options.mimeTypes.default) + ' $' + (inputCount + index) + " 2>/dev/null" + os.EOL;
                 content += input[key].name + '="${' + (inputCount + index) + '##*/}"' + os.EOL;
-                content += 'mv ' + nconf.get("paths:rootPath") + path.sep + input[key].name + '.' + mime.getExtension(input[key].options.mimeType) + ' ' + nconf.get("paths:rootPath") + path.sep + '$' + input[key].name + os.EOL;
+                content += 'mv ' + nconf.get("paths:rootPath") + path.sep + input[key].name + '.' + mime.getExtension(input[key].options.mimeTypes.default) + ' ' + nconf.get("paths:rootPath") + path.sep + '$' + input[key].name + os.EOL;
                 content += 'echo ' + input[key].name + ' is using file: ' + '$' + (inputCount + index) + os.EOL;
                 AlgorithmManagement.addRemotePath(identifier, input[key].name, nconf.get("paths:rootPath") + "$" + input[key].name);
             } else if (['folder'].indexOf(key) >= 0) {

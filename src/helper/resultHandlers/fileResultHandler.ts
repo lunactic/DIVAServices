@@ -222,10 +222,15 @@ export class FileResultHandler implements IResultHandler {
                         delete file.file['mimetype'];
                     } else {
                         var mimeType = mime.getType(cwlFile.path);
-                        file.file['mime-type'] = mimeType;
-                        delete file.file.options['mimeType'];
+                        if (file.file.options.mimeTypes.allowed.includes(mimeType)) {
+                            file.file['mime-type'] = mimeType;
+                            delete file.file.options['mimeType'];
+                            delete file.file.options['mimeTypes'];
+                        } else {
+                            reject(new DivaError("Output for " + file.name + " expected to be of type(s): " + JSON.stringify(file.file.options.mimeTypes.allowed) + " but was of type: " + mimeType, 500, "ResultError"));
+                        }
                     }
-                    
+
                     //rename the file according to file.file.name
                     file.file["url"] = IoHelper.getStaticResultUrlFull(cwlFile.path);
                     delete file.file.content;
