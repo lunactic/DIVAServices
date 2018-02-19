@@ -101,8 +101,13 @@ export class DockerManagement {
             }
             let self = this;
             this.docker.pull(imageName, function (err: any, stream: any) {
-                self.docker.modem.followProgress(stream, onFinished);
-                function onFinished(err: any, output: any) {
+                if (stream !== null) {
+                    self.docker.modem.followProgress(stream, onFinished);
+                    function onFinished(err: any, output: any) {
+                        resolve();
+                    }
+                } else {
+                    //TODO: check if image is actually locally available
                     resolve();
                 }
             });

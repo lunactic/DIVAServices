@@ -204,6 +204,7 @@ export class AlgorithmManagement {
     static async createWorkflowFile(identifier: string, algorithm: any, file: string): Promise<void> {
         return new Promise<void>(async (resolve, reject) => {
             var info: any = await ServicesInfoHelper.getInfoByIdentifier(identifier);
+            //TODO Initialize cwlManager with correct path to the executable (since it is not 100% sure the same one)
             var cwlManager: CwlManager = new CwlManager(file, info.image_name);
             await cwlManager.initialize();
             var counter: number = 0;
