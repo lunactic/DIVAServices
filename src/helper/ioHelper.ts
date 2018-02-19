@@ -167,11 +167,14 @@ export class IoHelper {
      * 
      * @memberOf IoHelper
      */
-    static downloadFileSync(fileUrl: string, localFolder: string, localFilename: string): string {
-        http.get(fileUrl, function (response: http.IncomingMessage) {
-            response.pipe(fs.createWriteStream(localFolder + path.sep + localFilename));
+    static downloadFileSync(fileUrl: string, localFolder: string, localFilename: string): Promise<string> {
+        return new Promise<string>((resolve, reject) => {
+            request(fileUrl)
+                .pipe(fs.createWriteStream(localFolder + path.sep + localFilename))
+                .on("close", function () {
+                    resolve(localFolder + path.sep + localFilename);
+                });
         });
-        return localFolder + path.sep + localFilename;
     }
 
     /**

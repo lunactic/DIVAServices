@@ -190,8 +190,9 @@ export class ParameterHelper {
                         let value = element[key];
                         switch (Object.keys(found[key])[0]) {
                             case "file":
-                                let collection = value.split("/")[0];
-                                let filename = value.split("/")[1];
+                                let values = value.split("/");
+                                let collection = values[values.length - 2];
+                                let filename = values[values.length - 1];
                                 //check if the mime-type is matching
                                 if (!found[key].file.options.mimeTypes.allowed.includes(mime.getType(filename))) {
                                     reject(new DivaError("incompatile input for -- " + key + " -- expected file of type(s) " + JSON.stringify(found[key].file.options.mimeTypes.allowed, null, " ").replace(/\n/g, '').replace(/\"/g, '').replace(/\s/g, '') + " but found type " + mime.getType(filename),
@@ -203,7 +204,7 @@ export class ParameterHelper {
                                     data[key] = DivaFile.CreateFile(collection, filename);
                                 } else {
                                     //use absolute path (used only when testing a method)
-                                    data[key] = DivaFile.CreateFileFull(value);
+                                    data[key] = DivaFile.CreateBasicFile(value);
                                 }
                                 break;
                             case "folder":
@@ -215,7 +216,6 @@ export class ParameterHelper {
                                 }
                                 break;
                         }
-
                         _.remove(process.neededData, function (item: any) {
                             return Object.keys(item)[0] === key;
                         });

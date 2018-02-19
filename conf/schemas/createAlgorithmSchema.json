@@ -476,13 +476,21 @@
           },
           "executable_path": {
             "type": "string"
+          },
+          "imageType": {
+            "type": "string",
+            "enum": [
+              "docker",
+              "file"
+            ]
+          },
+          "imageName": {
+            "type": "string"
           }
         },
         "required": [
-          "file",
-          "environment",
           "executableType",
-          "executable_path"
+          "imageType"
         ]
       }
     },

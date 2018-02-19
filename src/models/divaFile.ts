@@ -96,4 +96,14 @@ export class DivaFile {
         return item;
     }
 
+    static CreateBasicFile(filePath: string): DivaFile {
+        let relativePath = filePath.replace(nconf.get("paths:executablePath") + path.sep, "");
+        let item = new DivaFile();
+        item.path = filePath;
+        item.url = "http://" + nconf.get("server:rootUrl") + "/test/" + relativePath;
+        item.filename = path.parse(filePath).base;
+        item.extension = path.parse(filePath).ext;
+        return item;
+    }
+
 }

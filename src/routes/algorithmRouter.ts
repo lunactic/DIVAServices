@@ -48,7 +48,12 @@ router.post("/algorithms", async function (req: express.Request, res: express.Re
         let route = baseroute + "/" + version;
         //check if we have this route already
         let status = AlgorithmManagement.getStatusByRoute("/" + baseroute);
-        let imageName = AlgorithmManagement.generateImageName(req.body, version);
+        let imageName = "";
+        if (!(req.body.method.imageType === "docker")) {
+            imageName = AlgorithmManagement.generateImageName(req.body, version);
+        } else {
+            imageName = req.body.method.imageName;
+        }
         //2) generate route
         if (status != null) {
             switch (status.status.statusCode) {

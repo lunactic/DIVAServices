@@ -52,9 +52,15 @@ export class AlgorithmManagement {
             try {
                 await AlgorithmManagement.generateFolders(route);
                 AlgorithmManagement.updateServicesFile(req.body, identifier, route, imageName, version, baseroute);
-                await IoHelper.downloadFileWithTypecheck(req.body.method.file, nconf.get("paths:executablePath") + path.sep + route, "application/zip");
-                //create docker file
-                DockerManagement.createDockerFile(req.body, nconf.get("paths:executablePath") + path.sep + route);
+                if (req.body.method.imageType !== "docker") {
+                    await IoHelper.downloadFileWithTypecheck(req.body.method.file, nconf.get("paths:executablePath") + path.sep + route, "application/zip");
+                    //create docker file
+                    DockerManagement.createDockerFile(req.body, nconf.get("paths:executablePath") + path.sep + route);
+                } else if (req.body.method.imageType === "docker" && req.body.method.testData !== null) {
+                    //download testData
+                    let zipFile: string = await IoHelper.downloadFileSync(req.body.method.testData, nconf.get("paths:executablePath") + path.sep + route, "inputData.zip");
+                    await IoHelper.unzipFile(zipFile, nconf.get("paths:executablePath") + path.sep + route);
+                }
                 if (nconf.get("server:cwlSupport")) {
                     //create cwl workflow file
                     await AlgorithmManagement.createWorkflowFile(identifier, req.body, nconf.get("paths:executablePath") + path.sep + route + path.sep + identifier + ".cwl");
@@ -73,10 +79,14 @@ export class AlgorithmManagement {
                 };
                 resolve(response);
                 try {
-                    await DockerManagement.buildImage(nconf.get("paths:executablePath") + path.sep + route, imageName);
+                    if (req.body.method.imageType !== "docker") {
+                        await DockerManagement.buildImage(nconf.get("paths:executablePath") + path.sep + route, imageName);
+                        await IoHelper.unzipFile(nconf.get("paths:executablePath") + path.sep + route + path.sep + "algorithm.zip", nconf.get("paths:executablePath") + path.sep + route);
+                    } else {
+                        await DockerManagement.fetchRemoteImage(req.body.method.imageName);
+                    }
                     AlgorithmManagement.updateStatus(identifier, "testing", null, null);
                     //unzip the file
-                    await IoHelper.unzipFile(nconf.get("paths:executablePath") + path.sep + route + path.sep + "algorithm.zip", nconf.get("paths:executablePath") + path.sep + route);
                     let executableHelper = new ExecutableHelper();
                     let inputs = {};
                     let highlighter = {};
@@ -149,6 +159,19 @@ export class AlgorithmManagement {
                 AlgorithmManagement.updateStatus(identifier, "error", route, "algorithm file has the wrong format");
                 return reject(new DivaError("fileUrl does not point to a correct zip file", 500, "FileFormatError"));
             }
+        });
+    }
+
+
+    static async createFromFile(): Promise<any> {
+        return new Promise<any>(async (resolve, reject) => {
+            resolve();
+        });
+    }
+
+    static async createFromDockerImage(): Promise<any> {
+        return new Promise<any>(async (resolve, reject) => {
+            resolve();
         });
     }
 

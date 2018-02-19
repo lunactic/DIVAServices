@@ -32,14 +32,15 @@ export class DockerManagement {
      * The Docker communication object
      */
     static docker = null;
+
     /**
      * Create a new image
      * 
      * @param {string} inputFolder The folder where the container contents are stored
      * @param {string} imageName The name of the image to create
      */
-    static buildImage(inputFolder: string, imageName: string): Promise<number> {
-        return new Promise<number>((resolve, reject) => {
+    static buildImage(inputFolder: string, imageName: string): Promise<void> {
+        return new Promise<void>((resolve, reject) => {
             //create tar file
             if (this.docker == null) {
                 this.initDocker();
@@ -68,19 +69,11 @@ export class DockerManagement {
                             if (hasError) {
                                 return reject(new DivaError(errorMessage, 500, "DockerError"));
                             }
-                            try {
-                                let json = JSON.parse(data.toString());
-                                let id = json.stream.split(":")[1].replace(os.EOL, "");
-                                Logger.log("trace", "built new image with id: " + id, "DockerManagement");
-                            } catch (error) {
-                                hasError = true;
-                                return reject(new DivaError(data.toString(), 500, "DockerError"));
-                            }
                         });
                         response.on("end", function () {
                             if (!hasError) {
                                 Logger.log("info", "successfully build the image", "DockerManagement");
-                                resolve(id);
+                                resolve();
                             }
                         });
                     }
@@ -97,7 +90,25 @@ export class DockerManagement {
 
     }
 
+    /**
+     * Downloads a docker image from Docker hub using `docker pull`
+     * @param imageName image name to download
+     */
+    static fetchRemoteImage(imageName: string): Promise<number> {
+        return new Promise<number>(async (resolve, reject) => {
+            if (this.docker == null) {
+                this.initDocker();
+            }
+            let self = this;
+            this.docker.pull(imageName, function (err: any, stream: any) {
+                self.docker.modem.followProgress(stream, onFinished);
+                function onFinished(err: any, output: any) {
+                    resolve();
+                }
+            });
 
+        });
+    }
     /**
      * Remove an image from the docker server
      * @param {String} imageName the name of the image to remove
@@ -433,7 +444,11 @@ export class DockerManagement {
                         }
                         //TODO: add handler for arrays
                     } else if (value instanceof DivaFile) {
-                        yamlManager.addInputValue(key, "file", (value as DivaFile).path);
+                        if (process.type === 'test') {
+                            yamlManager.addInputValue(key, "file", (value as DivaFile).path);
+                        } else {
+                            yamlManager.addInputValue(key, "file", (value as DivaFile).path);
+                        }
                     } else if (value instanceof DivaCollection) {
                         if (process.type === 'test') {
                             yamlManager.addInputValue(key, 'directory', (value as DivaCollection).folder);
