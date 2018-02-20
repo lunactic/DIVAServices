@@ -205,8 +205,9 @@ export class AlgorithmManagement {
         return new Promise<void>(async (resolve, reject) => {
             var info: any = await ServicesInfoHelper.getInfoByIdentifier(identifier);
             //TODO Initialize cwlManager with correct path to the executable (since it is not 100% sure the same one)
+            var executable: string = info.executablePath.split("/").pop();
             var cwlManager: CwlManager = new CwlManager(file, info.image_name);
-            await cwlManager.initialize();
+            await cwlManager.initialize(executable);
             var counter: number = 0;
             algorithm.input.forEach((item, index) => {
                 switch (Object.keys(item)[0]) {
@@ -254,7 +255,9 @@ export class AlgorithmManagement {
                         var extensions = [];
                         item.file.options.mimeTypes.allowed.forEach(element => {
                             var extension = mime.getExtension(element);
-                            extensions.push("*." + extension);
+                            if (!(extensions.indexOf("*." + extension) >= 0)) {
+                                extensions.push("*." + extension);
+                            }
                         });
                         cwlManager.addOutput('File', name, JSON.stringify(extensions));
                         break;

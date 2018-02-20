@@ -10,11 +10,11 @@ export class CwlManager {
         this.dockerImage = dockerImage;
     }
 
-    public initialize() {
+    public initialize(executable: string) {
         //Write header information
         fs.writeFileSync(this.filePath, 'cwlVersion: v1.0' + os.EOL);
         fs.appendFileSync(this.filePath, 'class: CommandLineTool' + os.EOL);
-        fs.appendFileSync(this.filePath, 'baseCommand: /input/script.sh' + os.EOL);
+        fs.appendFileSync(this.filePath, 'baseCommand: /input/' + executable + os.EOL);
         fs.appendFileSync(this.filePath, 'stdout: logFile.txt' + os.EOL);
         fs.appendFileSync(this.filePath, 'hints:' + os.EOL);
         fs.appendFileSync(this.filePath, '  DockerRequirement:' + os.EOL);
