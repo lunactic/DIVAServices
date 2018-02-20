@@ -240,6 +240,7 @@ export class FileResultHandler implements IResultHandler {
                 let errorLogFile = {
                     file: {
                         "mime-type": "text/plain",
+                        type: "log",
                         url: IoHelper.getStaticLogUrlFull(process.errLogFile),
                         name: "errorOutputLog.log",
                         options: {
