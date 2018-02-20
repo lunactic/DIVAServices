@@ -148,7 +148,7 @@ export class ParameterHelper {
                 let paramKey = _.keys(neededParameter)[0];
                 let paramValue = neededParameter[paramKey];
                 if (self.checkReservedParameters(paramKey) || self.checkReservedParameters(paramValue)) {
-                    switch (paramValue) {
+                    switch (Object.keys(paramValue)[0]) {
                         case 'highlighter':
                             params[paramKey] = self.getHighlighterParamValues(collection.inputHighlighters.type, collection.inputHighlighters.segments);
                             break;
