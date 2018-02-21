@@ -178,36 +178,41 @@ export class FileResultHandler implements IResultHandler {
         return new Promise(async (resolve, reject) => {
             try {
                 var cwlResult = await fs.readJson(process.stdLogFile, { encoding: "utf-8" });
+
+                //create the result object
+                var procResult: any = {};
+                procResult.output = [];
+                let removeDirectories: string[] = [];
                 //iterate the cwlResult object
-                var tempDirectory = null;
                 for (var key in cwlResult) {
                     if (cwlResult.hasOwnProperty(key)) {
                         var element = cwlResult[key];
+                        IoHelper.createFolder(process.outputFolder + key);
                         switch (element.class) {
-                            case 'File':
-                                await IoHelper.moveFile(element.path, process.outputFolder + element.basename);
-                                break;
                             case 'Directory':
                                 for (var listing of element.listing) {
                                     if (!listing.basename.startsWith('.') && !listing.basename.startsWith('data') && !listing.basename.startsWith('log')) {
-                                        await IoHelper.moveFile(listing.path, process.outputFolder + listing.basename);
+                                        let file = {
+                                            'file': {
+                                                name: listing.basename.split('.')[0],
+                                                type: 'unknown',
+                                                'mime-type': mime.getType(listing.basename),
+                                                'options': {
+                                                    'visualization': false
+
+                                                },
+                                                url: IoHelper.getStaticResultUrlFull(process.outputFolder + key + path.sep + listing.basename)
+                                            }
+                                        };
+                                        procResult.output.push(file);
                                     }
                                 }
-                                /*element.listing.forEach(async function (listing: any) {
-                                    
-                                });*/
-                                tempDirectory = element.path;
                                 break;
                             default:
                                 break;
                         }
                     }
                 }
-                if (tempDirectory !== null) {
-                    await IoHelper.deleteFolder(tempDirectory);
-                }
-                var procResult: any = {};
-                procResult.output = [];
                 let files = _.filter(process.outputs, function (entry: any) {
                     return _.has(entry, "file");
                 });
@@ -244,8 +249,7 @@ export class FileResultHandler implements IResultHandler {
                         url: IoHelper.getStaticLogUrlFull(process.errLogFile),
                         name: "errorOutputLog.log",
                         options: {
-                            visualization: false,
-                            type: "logfile"
+                            visualization: false
                         }
                     }
                 };

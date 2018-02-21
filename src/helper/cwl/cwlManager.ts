@@ -40,11 +40,11 @@ export class CwlManager {
                 fs.appendFileSync(this.filePath, '  output:' + os.EOL);
                 fs.appendFileSync(this.filePath, '    type: stdout' + os.EOL);
                 break;
-            case 'directory':
+            case 'Directory':
                 fs.appendFileSync(this.filePath, '  ' + name + ':' + os.EOL);
                 fs.appendFileSync(this.filePath, '    type: ' + type + os.EOL);
                 fs.appendFileSync(this.filePath, '    outputBinding:' + os.EOL);
-                fs.appendFileSync(this.filePath, '      glob: ' + glob + os.EOL);
+                fs.appendFileSync(this.filePath, '      glob: "' + name + '"' + os.EOL);
                 break;
             default:
                 fs.appendFileSync(this.filePath, '  ' + name + ':' + os.EOL);

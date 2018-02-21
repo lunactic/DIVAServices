@@ -13,6 +13,9 @@
           "options"
         ],
         "properties": {
+          "type": {
+            "type": "string"
+          },
           "mime-type": {
             "type": "string"
           },
@@ -26,13 +29,9 @@
           "options": {
             "type": "object",
             "required": [
-              "visualization",
-              "type"
+              "visualization"
             ],
             "properties": {
-              "type": {
-                "type": "string"
-              },
               "visualization": {
                 "type": "boolean"
               }
@@ -288,7 +287,7 @@
             "file": {
               "$ref": "#/definitions/file"
             },
-            "highlighter":{
+            "highlighter": {
               "type": "array",
               "items": {
                 "description": "Highlighter types",

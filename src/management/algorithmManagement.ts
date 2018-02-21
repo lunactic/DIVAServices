@@ -153,6 +153,7 @@ export class AlgorithmManagement {
                     Swagger.createEntry(info, route);
                 } catch (error) {
                     AlgorithmManagement.updateStatus(identifier, "error", route, error.message);
+                    Logger.log("error", error.message, "AlgorithmManagement");
                     return reject(new DivaError(error.message, 500, "AlgorithmCreationError"));
                 }
             } catch (error) {
@@ -229,6 +230,10 @@ export class AlgorithmManagement {
                         break;
                     case 'select':
                         var name: string = item.select.name;
+                        cwlManager.addInput('string', name, counter++);
+                        break;
+                    case 'mcr2014b':
+                        var name: string = "mcr2014b";
                         cwlManager.addInput('string', name, counter++);
                         break;
                     case 'outputFolder':

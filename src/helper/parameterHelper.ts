@@ -260,8 +260,10 @@ export class ParameterHelper {
                     });
                     found = true;
                     replaceObj[searchKey] = dataParams[searchKey];
-                    if (!(await IoHelper.fileExists((replaceObj[searchKey] as DivaFile).path))) {
-                        return reject(new DivaError("non existing file: " + ((replaceObj[searchKey] as DivaFile).collection) + "/" + ((replaceObj[searchKey] as DivaFile).filename) + " for data parameter: " + searchKey, 500, "ParameterError"));
+                    if (replaceObj[searchKey] instanceof DivaFile) {
+                        if (!(await IoHelper.fileExists((replaceObj[searchKey] as DivaFile).path))) {
+                            return reject(new DivaError("non existing file: " + ((replaceObj[searchKey] as DivaFile).collection) + "/" + ((replaceObj[searchKey] as DivaFile).filename) + " for data parameter: " + searchKey, 500, "ParameterError"));
+                        }
                     }
                 }
                 if (!found) {

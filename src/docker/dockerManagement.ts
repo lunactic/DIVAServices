@@ -484,7 +484,7 @@ export class DockerManagement {
                     + "--tmpdir-prefix /data/tmp/ "
                     + "--no-match-user "
                     + "--no-read-only "
-                    + "--workdir /input "
+                    + "--basedir /input "
                     + process.cwlFile
                     + " "
                     + process.yamlFile;
