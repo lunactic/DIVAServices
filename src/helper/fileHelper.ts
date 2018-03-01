@@ -442,6 +442,7 @@ export class FileHelper {
             }
             await this.saveFileInfo();
             IoHelper.deleteFile(nconf.get("paths:filesPath") + path.sep + collection + path.sep + "original" + path.sep + target);
+            resolve();
         });
     }
     /**
