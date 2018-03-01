@@ -50,8 +50,8 @@ router.post("/collections", async function (req: express.Request, res: express.R
         }
     } else {
         collectionName = RandomWordGenerator.generateRandomWord();
-
     }
+
     //count the total number of files
     for (let file of req.body.files) {
         switch (file.type) {
@@ -64,6 +64,12 @@ router.post("/collections", async function (req: express.Request, res: express.R
                 numOfFiles++;
                 break;
             default:
+                if (!isNullOrUndefined(file.name)) {
+                    if (!IoHelper.isValidFileName(file.name)) {
+                        sendError(res, new DivaError("One of your files has a file name with a special character", 500, "FileNameError"));
+                        return;
+                    }
+                }
                 numOfFiles++;
                 break;
         }
@@ -98,7 +104,7 @@ router.post("/collections", async function (req: express.Request, res: express.R
                     if (mime.getType(url) === "application/zip") {
                         FileHelper.saveZipUrl(file.value, collectionName);
                     } else {
-                        var newFile: DivaFile = await FileHelper.saveFileUrl(file.value, collectionName, imageCounter, file.name);
+                        var newFile: DivaFile = await FileHelper.saveFileUrl(file.value, collectionName, imageCounter, file.name, file.extension);
                         await FileHelper.addFileInfo(newFile.md5, newFile.path, collectionName);
                         await FileHelper.updateCollectionInformation(collectionName, numOfFiles, ++imageCounter);
                     }
@@ -182,7 +188,7 @@ router.put("/collections/:collectionName", async function (req: express.Request,
                         if (mime.getType(url) === "application/zip") {
                             await FileHelper.saveZipUrl(file.value, collectionName);
                         } else {
-                            var newFile: DivaFile = await FileHelper.saveFileUrl(file.value, collectionName, imageCounter, file.name);
+                            var newFile: DivaFile = await FileHelper.saveFileUrl(file.value, collectionName, imageCounter, file.name, file.extension);
                             await FileHelper.addFileInfo(newFile.md5, newFile.path, collectionName);
                             await FileHelper.updateCollectionInformation(collectionName, numOfFiles, ++imageCounter);
                         }
@@ -413,25 +419,16 @@ router.delete("/collections/:collection", function (req: express.Request, res: e
     }
 });
 
-router.delete("/collections/:collection/:md5", async function (req: express.Request, res: express.Response) {
-    let collection = FileHelper.loadCollection(req.params.collection, null);
-    let filtered = _.filter(collection, function (o: DivaFile) {
-        return o.md5 === req.params.md5;
-    });
-    await FileHelper.deleteFile(filtered[0]);
-    res.status(200).send();
-});
-
 router.delete("/collections/:collection/:name", async function (req: express.Request, res: express.Response) {
     let collection = req.params.collection;
     let name = req.params.name;
+
     try {
         await FileHelper.deleteFileInCollection(collection, name);
         res.status(200).send();
     } catch (error) {
         sendError(res, error);
     }
-
 });
 
 router.get("/files/:md5/check", async function (req: express.Request, res: express.Response) {

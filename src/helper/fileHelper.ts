@@ -194,7 +194,7 @@ export class FileHelper {
      * 
      * @memberOf FileHelper
      */
-    static async saveFileUrl(url: string, folder: string, counter?: number, filename?: string): Promise<DivaFile> {
+    static async saveFileUrl(url: string, folder: string, counter?: number, filename?: string, extension?: string): Promise<DivaFile> {
         return new Promise<DivaFile>(async (resolve, reject) => {
             let filePath = nconf.get("paths:filesPath");
             let file = new DivaFile();
@@ -203,14 +203,17 @@ export class FileHelper {
 
             var headerResponse = await request.head(url);
             let fileExtension = "";
-            if (headerResponse["content-type"] === "application/octet-stream") {
-                //if conte-type === 'application/content-stream' we can not make use of it per RFC 2616 7.2.1
-                // If the media type remains unknown, the recipient SHOULD treat it as type "application/octet-stream".
-                fileExtension = url.split(".").pop();
+            if (!isNullOrUndefined(extension)) {
+                fileExtension = extension;
             } else {
-                fileExtension = mime.getExtension(headerResponse["content-type"]);
+                if (headerResponse["content-type"] === "application/octet-stream") {
+                    //if conte-typpe === 'application/content-stream' we can not make use of it per RFC 2616 7.2.1
+                    // If the media type remains unknown, the recipient SHOULD treat it as type "application/octet-stream".
+                    fileExtension = url.split(".").pop();
+                } else {
+                    fileExtension = mime.getExtension(headerResponse["content-type"]);
+                }
             }
-
             if (filename != null) {
                 tmpFilePath = filePath + path.sep + "temp_" + filename + "." + fileExtension;
                 fileName = filename;

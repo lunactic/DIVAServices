@@ -540,4 +540,17 @@ export class IoHelper {
         });
     }
 
+    /**
+     * Checks if the filename contains invalid characters
+     * 
+     * @static
+     * @param {string} filename the filename to check
+     * @returns {boolean} true if the filename is valid
+     * @memberof IoHelper
+     */
+    static isValidFileName(filename: string): boolean {
+        var value = !/[~`!#$%\^&*+=\[\]\\';,/{}|\\":<>\?\s]/g.test(filename);
+        return value;
+    }
+
 }
