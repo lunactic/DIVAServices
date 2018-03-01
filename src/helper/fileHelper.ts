@@ -419,6 +419,31 @@ export class FileHelper {
             IoHelper.deleteFolder(nconf.get("paths:filesPath") + path.sep + collection);
         });
     }
+
+    /**
+     * Removes a file in a collection
+     * 
+     * @static
+     * @param {string} collection the collection the file is in
+     * @param {string} target the filename of the file to delete 
+     * @returns {Promise<void>} 
+     * @memberof FileHelper
+     */
+    static async deleteFileInCollection(collection: string, target: string): Promise<void> {
+        return new Promise<void>(async (resolve, reject) => {
+            let files: DivaFile[] = this.loadCollection(collection, null);
+            for (var file of files) {
+                if (file.filename === target) {
+                    _.remove(this.filesInfo, function (item: any) {
+                        return item.file === file.path;
+                    });
+                    Logger.log("info", "delete file" + file.path);
+                }
+            }
+            await this.saveFileInfo();
+            IoHelper.deleteFile(nconf.get("paths:filesPath") + path.sep + collection + path.sep + "original" + path.sep + target);
+        });
+    }
     /**
      * Check if a collection exists
      * 

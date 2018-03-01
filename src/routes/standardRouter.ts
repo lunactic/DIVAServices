@@ -372,6 +372,18 @@ router.delete("/collections/:collection", function (req: express.Request, res: e
     }
 });
 
+router.delete("/collections/:collection/:name", async function (req: express.Request, res: express.Response) {
+    let collection = req.params.collection;
+    let name = req.params.name;
+
+    try {
+        await FileHelper.deleteFileInCollection(collection, name);
+        res.status(200).send();
+    } catch (error) {
+        sendError(res, error);
+    }
+});
+
 router.get("/files/:md5/check", async function (req: express.Request, res: express.Response) {
     try {
         var response = await FileHelper.fileExistsMd5(req.params.md5);
