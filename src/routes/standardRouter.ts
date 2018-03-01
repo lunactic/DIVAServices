@@ -52,8 +52,6 @@ router.post("/collections", async function (req: express.Request, res: express.R
         collectionName = RandomWordGenerator.generateRandomWord();
 
     }
-    send200(res, { collection: collectionName });
-
     //count the total number of files
     for (let file of req.body.files) {
         switch (file.type) {
@@ -74,7 +72,7 @@ router.post("/collections", async function (req: express.Request, res: express.R
     //create folders and info file
     await IoHelper.createFilesCollectionFolders(collectionName);
     FileHelper.createCollectionInformation(collectionName, numOfFiles);
-
+    send200(res, { collection: collectionName });
     let imageCounter: number = 0;
     //download the files
     for (let file of req.body.files) {
@@ -427,7 +425,6 @@ router.delete("/collections/:collection/:md5", async function (req: express.Requ
 router.delete("/collections/:collection/:name", async function (req: express.Request, res: express.Response) {
     let collection = req.params.collection;
     let name = req.params.name;
-
     try {
         await FileHelper.deleteFileInCollection(collection, name);
         res.status(200).send();

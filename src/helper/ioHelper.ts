@@ -157,22 +157,26 @@ export class IoHelper {
     }
 
     /**
-     * Download a file synchronously
+     * Download a file
      * 
      * @static
      * @param {string} fileUrl the file to download
      * @param {string} localFolder the local folder to save the file into
      * @param {string} localFilename the filename to assign the downloaded image
-     * @returns {string} the full path to the file
+     * @returns {Promise<string>} the full path to the file
      * 
      * @memberOf IoHelper
      */
-    static downloadFileSync(fileUrl: string, localFolder: string, localFilename: string): Promise<string> {
+    static downloadFile(fileUrl: string, localFolder: string, localFilename: string): Promise<string> {
         return new Promise<string>((resolve, reject) => {
             request(fileUrl)
                 .pipe(fs.createWriteStream(localFolder + path.sep + localFilename))
                 .on("close", function () {
                     resolve(localFolder + path.sep + localFilename);
+                })
+                .on("error", function (error: any) {
+                    Logger.log("error", JSON.stringify(error), "IoHelper");
+                    reject(new DivaError("Error downloading File", 500, "FileDownloadError"));
                 });
         });
     }

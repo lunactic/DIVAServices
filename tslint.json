@@ -4,7 +4,7 @@
     "curly": true,
     "eofline": false,
     "forin": true,
-    "indent": false,
+    "indent": true,
     "label-position": true,
     "max-line-length": [
       true,
@@ -31,7 +31,7 @@
       "check-whitespace"
     ],
     "quotemark": [
-      "double"
+      false
     ],
     "semicolon": true,
     "triple-equals": [

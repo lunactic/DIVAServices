@@ -16,6 +16,7 @@ import { QueueHandler } from "../processingQueue/queueHandler";
 import { Swagger } from "../swagger/swagger";
 import { DivaError } from "../models/divaError";
 import { CwlManager } from "../helper/cwl/cwlManager";
+import { isNullOrUndefined } from 'util';
 
 let crypto = require("crypto");
 
@@ -58,7 +59,7 @@ export class AlgorithmManagement {
                     DockerManagement.createDockerFile(req.body, nconf.get("paths:executablePath") + path.sep + route);
                 } else if (req.body.method.imageType === "docker" && req.body.method.testData !== null) {
                     //download testData
-                    let zipFile: string = await IoHelper.downloadFileSync(req.body.method.testData, nconf.get("paths:executablePath") + path.sep + route, "inputData.zip");
+                    let zipFile: string = await IoHelper.downloadFile(req.body.method.testData, nconf.get("paths:executablePath") + path.sep + route, "testData.zip");
                     await IoHelper.unzipFile(zipFile, nconf.get("paths:executablePath") + path.sep + route);
                 }
                 if (nconf.get("server:cwlSupport")) {
@@ -257,14 +258,22 @@ export class AlgorithmManagement {
                 switch (Object.keys(item)[0]) {
                     case 'file':
                         var name = item.file.name;
-                        var extensions = [];
-                        item.file.options.mimeTypes.allowed.forEach(element => {
-                            var extension = mime.getExtension(element);
-                            if (!(extensions.indexOf("*." + extension) >= 0)) {
-                                extensions.push("*." + extension);
-                            }
-                        });
-                        cwlManager.addOutput('File', name, JSON.stringify(extensions));
+
+                        if (!(isNullOrUndefined(item.file.options.filename))) {
+                            cwlManager.addOutput('File', name, item.file.options.filename);
+                        } else {
+                            var extensions = [];
+                            item.file.options.mimeTypes.allowed.forEach(element => {
+                                var extension = mime.getExtension(element);
+                                if (!(extensions.indexOf("*." + extension) >= 0)) {
+                                    extensions.push("*." + extension);
+                                    if (extension === "jpeg") {
+                                        extensions.push("*.jpg");
+                                    }
+                                }
+                            });
+                            cwlManager.addOutput('File', name, JSON.stringify(extensions));
+                        }
                         break;
                     case 'folder':
                         var name = item.folder.name;
@@ -272,7 +281,6 @@ export class AlgorithmManagement {
                         break;
                 }
             });
-            //cwlManager.addOutput("File", "jsonResult", "*.json");
             cwlManager.addOutput("stdout", '', '');
             resolve();
         });

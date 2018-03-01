@@ -220,26 +220,27 @@ export class FileResultHandler implements IResultHandler {
 
                 for (let file of files) {
                     //get the corresponding entry in the CWL file
-                    var cwlFile = cwlResult[file.file.name.split('.')[0]];
+                    let resFile = _.cloneDeep(file);
+                    var cwlFile = cwlResult[resFile.file.name.split('.')[0]];
                     if (process.executableType === "matlab") {
-                        file.file['mime-type'] = file.file['mimetype'];
-                        file.file.options.visualization = Boolean(file.file.options.visualization);
-                        delete file.file['mimetype'];
+                        resFile.file['mime-type'] = resFile.file['mimetype'];
+                        resFile.file.options.visualization = Boolean(resFile.file.options.visualization);
+                        delete resFile.file['mimetype'];
                     } else {
                         var mimeType = mime.getType(cwlFile.path);
-                        if (file.file.options.mimeTypes.allowed.includes(mimeType)) {
-                            file.file['mime-type'] = mimeType;
-                            delete file.file.options['mimeType'];
-                            delete file.file.options['mimeTypes'];
+                        if (resFile.file.options.mimeTypes.allowed.includes(mimeType)) {
+                            resFile.file['mime-type'] = mimeType;
+                            delete resFile.file.options['mimeType'];
+                            delete resFile.file.options['mimeTypes'];
                         } else {
                             reject(new DivaError("Output for " + file.name + " expected to be of type(s): " + JSON.stringify(file.file.options.mimeTypes.allowed) + " but was of type: " + mimeType, 500, "ResultError"));
                         }
                     }
 
                     //rename the file according to file.file.name
-                    file.file["url"] = IoHelper.getStaticResultUrlFull(cwlFile.path);
-                    delete file.file.content;
-                    procResult.output.push(file);
+                    resFile.file["url"] = IoHelper.getStaticResultUrlFull(cwlFile.path);
+                    delete resFile.file.content;
+                    procResult.output.push(resFile);
                 }
 
                 let errorLogFile = {
