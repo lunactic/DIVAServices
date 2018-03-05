@@ -824,8 +824,8 @@ export class AlgorithmManagement {
                         if (result == null) {
                             reject(new DivaError("did not find a result for output parameter: " + element.file.name, 500, "ResultValidationError"));
                         } else {
-                            if (result.file["mime-type"] !== element.file["mime-type"]) {
-                                reject(new DivaError("wrong mimeType for parameter: " + element.file.name + " expected " + element.file.options.mimeType + " got " + result.file["mime-type"], 500, "ResultValidationError"));
+                            if (result.file["mime-type"] !== element.file.options.mimeTypes.default) {
+                                reject(new DivaError("wrong mimeType for parameter: " + element.file.name + " expected " + element.file.options.mimeTypes.default + " got " + result.file["mime-type"], 500, "ResultValidationError"));
                             }
                         }
                         break;
