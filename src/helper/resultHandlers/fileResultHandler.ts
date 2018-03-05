@@ -243,18 +243,18 @@ export class FileResultHandler implements IResultHandler {
                     procResult.output.push(resFile);
                 }
 
-                let errorLogFile = {
+                let methodLogFile = {
                     file: {
                         "mime-type": "text/plain",
                         type: "log",
-                        url: IoHelper.getStaticLogUrlFull(process.errLogFile),
-                        name: "errorOutputLog.log",
+                        url: IoHelper.getStaticResultUrlFull(process.outputFolder + "logFile.txt"),
+                        name: "logFile.txt",
                         options: {
                             visualization: false
                         }
                     }
                 };
-                procResult.output.push(errorLogFile);
+                procResult.output.push(methodLogFile);
                 //set final data fields
                 procResult["status"] = "done";
                 procResult["resultLink"] = process.resultLink;
@@ -281,7 +281,7 @@ export class FileResultHandler implements IResultHandler {
                 file: {
                     "mime-type": "text/plain",
                     url: IoHelper.getStaticLogUrlFull(process.errLogFile),
-                    name: "errorOutputLog.log",
+                    name: "logfile.txt",
                     options: {
                         visualization: false,
                         type: "logfile"
