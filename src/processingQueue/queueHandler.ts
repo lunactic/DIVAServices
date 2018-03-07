@@ -247,6 +247,8 @@ export class QueueHandler {
             try {
                 await ExecutableHelper.executeDockerRequest(job);
             } catch (error) {
+                //remove failed requests from active executions to not block the execution queue
+                Statistics.removeActiveExecution(job.id);
                 Logger.log("error", error, "QueueHandler");
             }
             this.executeDockerRequest();
@@ -262,7 +264,7 @@ export class QueueHandler {
      * @memberOf QueueHandler
      */
     private static executeLocalRequest(): void {
-        if (Statistics.getNumberOfCurrentExecutions() < nconf.get("docker:maxContainers")  && this.localRequestAvailable()) {
+        if (Statistics.getNumberOfCurrentExecutions() < nconf.get("docker:maxContainers") && this.localRequestAvailable()) {
             QueueHandler.executableHelper.executeLocalRequest(this.getNextLocalRequest());
         }
     }
