@@ -225,6 +225,10 @@ export class AlgorithmManagement {
                         var name: string = item.folder.name;
                         cwlManager.addInput('Directory', name, counter++);
                         break;
+                    case 'text':
+                        var name: string = item.text.name;
+                        cwlManager.addInput('string', name, counter++);
+                        break;
                     case 'number':
                         var name: string = item.number.name;
                         cwlManager.addInput('float', name, counter++);

@@ -243,6 +243,7 @@ export class FileResultHandler implements IResultHandler {
                     procResult.output.push(resFile);
                 }
 
+
                 let methodLogFile = {
                     file: {
                         "mime-type": "text/plain",
