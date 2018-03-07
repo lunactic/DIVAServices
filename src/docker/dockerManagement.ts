@@ -145,14 +145,10 @@ export class DockerManagement {
 
         switch (nconf.get("baseImages:" + algorithmInfos.method.environment)) {
             case "apk":
-                //content += 'RUN addgroup -S ' + nconf.get("docker:group") + os.EOL;
-                //content += 'RUN adduser -S -g ' + nconf.get("docker:group") + ' ' + nconf.get("docker:user") + os.EOL;
                 content += 'RUN apk update' + os.EOL +
                     'RUN apk add curl bash nano' + os.EOL;
                 break;
             case "apt":
-                //content += 'RUN groupadd ' + nconf.get("docker:group") + os.EOL;
-                //content += 'RUN useradd --create-home --home-dir $HOME -g ' + nconf.get("docker:group") + ' ' + nconf.get("docker:user") + os.EOL;
                 content += 'RUN apt-get update' + os.EOL +
                     'RUN apt-get install bash jq wget unzip curl nano -y' + os.EOL;
                 break;
@@ -162,7 +158,6 @@ export class DockerManagement {
             'RUN mkdir -p /input' + os.EOL +
             'COPY . /input' + os.EOL +
             'RUN unzip /input/algorithm.zip -d /input' + os.EOL;
-        //'RUN chown -R ' + nconf.get("docker:group") + ':' + nconf.get("docker:user") + ' /input' + os.EOL;
 
         switch (nconf.get("baseImages:" + algorithmInfos.method.environment)) {
             case "apt":
@@ -171,7 +166,6 @@ export class DockerManagement {
         }
         content += 'WORKDIR /input' + os.EOL;
         content += 'RUN chmod +x *' + os.EOL;
-        //content += 'USER ' + nconf.get("docker:user") + ':' + nconf.get("docker:group") + os.EOL;
         content += 'CMD ["/input/script.sh"]';
         fse.writeFileSync(outputFolder + path.sep + "Dockerfile", content);
     }
@@ -482,10 +476,13 @@ export class DockerManagement {
                     + " --debug "
                     + "--tmp-outdir-prefix /data/output/ "
                     + "--tmpdir-prefix /data/tmp/ "
-                    + "--no-match-user "
                     + "--no-read-only "
-                    + "--basedir /input "
-                    + process.cwlFile
+                    + "--basedir /input ";
+                if (nconf.get("docker:noMatchUser")) {
+                    command = command + "--no-match-user ";
+                }
+
+                command = command + process.cwlFile
                     + " "
                     + process.yamlFile;
                 Logger.log("debug", command, "DockerManagement::runDockerImageSSH");
