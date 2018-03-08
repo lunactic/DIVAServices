@@ -27,7 +27,6 @@ export class PostHandler {
     static async handleRequest(req: any): Promise<any> {
         return new Promise<any>(async (resolve, reject) => {
             let serviceInfo = await ServicesInfoHelper.getInfoByPath(req.originalUrl);
-
             if (serviceInfo == null) {
                 //if no matching method for the route, return a 404
                 return reject(new DivaError("This method is not available", 404, "MethodNotAvailable"));
