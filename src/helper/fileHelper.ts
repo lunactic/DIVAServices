@@ -62,7 +62,15 @@ export class FileHelper {
      * @param path path to the file to check
      */
     static async fileExists(path: string): Promise<boolean> {
-        return await fs.pathExists(path);
+        return new Promise<boolean>(async (resolve, reject) => {
+            try {
+                await fs.access(path);
+                resolve(true);
+            } catch (error) {
+                resolve(false);
+            }
+        });
+
     }
 
     /**
@@ -196,55 +204,58 @@ export class FileHelper {
      */
     static async saveFileUrl(url: string, folder: string, counter?: number, filename?: string, extension?: string): Promise<DivaFile> {
         return new Promise<DivaFile>(async (resolve, reject) => {
-            let filePath = nconf.get("paths:filesPath");
-            let file = new DivaFile();
-            let tmpFilePath: string = "";
-            let fileName: string = "";
-
-            var headerResponse = await request.head(url);
-            let fileExtension = "";
-            if (!isNullOrUndefined(extension)) {
-                fileExtension = extension;
-            } else {
-                if (headerResponse["content-type"] === "application/octet-stream") {
-                    //if conte-typpe === 'application/content-stream' we can not make use of it per RFC 2616 7.2.1
-                    // If the media type remains unknown, the recipient SHOULD treat it as type "application/octet-stream".
-                    fileExtension = url.split(".").pop();
-                } else {
-                    fileExtension = mime.getExtension(headerResponse["content-type"]);
-                }
-            }
-            if (filename != null) {
-                tmpFilePath = filePath + path.sep + "temp_" + filename + "." + fileExtension;
-                fileName = filename;
-            } else if (counter != null) {
-                tmpFilePath = filePath + path.sep + "temp_" + counter + "." + fileExtension;
-                fileName = "input" + counter;
-            }
-
-            await this.downloadFile(url, tmpFilePath);
-
-            let md5String = await this.getMd5Hash(tmpFilePath);
-            let imgFolder = filePath + path.sep + folder + path.sep + "original" + path.sep;
-            file.filename = fileName;
-            file.folder = imgFolder;
-            file.extension = fileExtension;
-            file.path = imgFolder + fileName + "." + fileExtension;
-            file.md5 = md5String;
             try {
-                await fs.stat(file.path);
-                fs.unlinkSync(tmpFilePath);
-            } catch (error) {
-                if (error.code === "ENONENT") {
-                    await fs.rename(tmpFilePath, file.path);
-                    resolve(file);
-                }
-                if (error.code === "ENOENT") {
-                    await fs.rename(tmpFilePath, file.path);
-                    resolve(file);
-                }
-            }
+                let filePath = nconf.get("paths:filesPath");
+                let file = new DivaFile();
+                let tmpFilePath: string = "";
+                let fileName: string = "";
 
+                var headerResponse = await request.head(url);
+                let fileExtension = "";
+                if (!isNullOrUndefined(extension)) {
+                    fileExtension = extension;
+                } else {
+                    if (headerResponse["content-type"] === "application/octet-stream") {
+                        //if conte-typpe === 'application/content-stream' we can not make use of it per RFC 2616 7.2.1
+                        // If the media type remains unknown, the recipient SHOULD treat it as type "application/octet-stream".
+                        fileExtension = url.split(".").pop();
+                    } else {
+                        fileExtension = mime.getExtension(headerResponse["content-type"]);
+                    }
+                }
+                if (filename != null) {
+                    tmpFilePath = filePath + path.sep + "temp_" + filename + "." + fileExtension;
+                    fileName = filename;
+                } else if (counter != null) {
+                    tmpFilePath = filePath + path.sep + "temp_" + counter + "." + fileExtension;
+                    fileName = "input" + counter;
+                }
+
+                await this.downloadFile(url, tmpFilePath);
+
+                let md5String = await this.getMd5Hash(tmpFilePath);
+                let imgFolder = filePath + path.sep + folder + path.sep + "original" + path.sep;
+                file.filename = fileName;
+                file.folder = imgFolder;
+                file.extension = fileExtension;
+                file.path = imgFolder + fileName + "." + fileExtension;
+                file.md5 = md5String;
+                try {
+                    await fs.stat(file.path);
+                    fs.unlinkSync(tmpFilePath);
+                } catch (error) {
+                    if (error.code === "ENONENT") {
+                        await fs.rename(tmpFilePath, file.path);
+                        resolve(file);
+                    }
+                    if (error.code === "ENOENT") {
+                        await fs.rename(tmpFilePath, file.path);
+                        resolve(file);
+                    }
+                }
+            } catch (error) {
+                reject(error);
+            }
         });
 
     }
@@ -426,9 +437,9 @@ export class FileHelper {
         let currentStatus = await IoHelper.readFile(statusFile);
 
         currentStatus.statusCode = 110;
-        currentStatus.statusMessage = "Downloaded " + currentStatus.totalFiles + " of " + (currentStatus.totalFiles + newFiles) + " files";
-        currentStatus.percentage = (currentStatus.totalFiles) / (currentStatus.totalFiles + newFiles);
-        currentStatus.totalFiles = (currentStatus.totalFiles + newFiles);
+        currentStatus.statusMessage = "Downloaded " + currentStatus.totalFiles + " of " + (newFiles) + " files";
+        currentStatus.percentage = (currentStatus.totalFiles) / (newFiles);
+        currentStatus.totalFiles = (newFiles);
 
         await IoHelper.saveFile(nconf.get("paths:filesPath") + path.sep + collectionName + path.sep + "status.json", currentStatus, "utf-8");
     }
@@ -552,13 +563,15 @@ export class FileHelper {
                 status = {
                     statusCode: 110,
                     statusMessage: "Downloaded " + downloaded + " of " + files + " files",
-                    percentage: (downloaded / files) * 100
+                    percentage: (downloaded / files) * 100,
+                    totalFiles: files
                 };
             } else {
                 status = {
                     statusCode: 200,
                     statusMessage: "Collection is available",
-                    percentage: 100
+                    percentage: 100,
+                    totalFiles: files
                 };
             }
             let statusFile = nconf.get("paths:filesPath") + path.sep + collection + path.sep + "status.json";

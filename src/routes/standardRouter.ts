@@ -161,8 +161,8 @@ router.put("/collections/:collectionName", async function (req: express.Request,
         let imageCounter: number = 0;
         //download the files
         for (let file of req.body.files) {
-            let fullPath = nconf.get("paths:filePath") + path.sep + collectionName + path.sep + "original" + path.sep + file.name + "." + file.extension;
-            if (FileHelper.fileExists(fullPath)) {
+            let fullPath = nconf.get("paths:filesPath") + path.sep + collectionName + path.sep + "original" + path.sep + file.name + "." + file.extension;
+            if (await FileHelper.fileExists(fullPath)) {
                 continue;
             }
 
@@ -195,6 +195,8 @@ router.put("/collections/:collectionName", async function (req: express.Request,
                     } catch (error) {
                         //TODO add error info into the collection information
                         Logger.log("error", "error downloading image from url: " + file.value + " with message: " + error, "StandardRouter");
+                        sendError(res, new DivaError("Error downloading image from url: " + file.value + " with message " + error, 500, "DownloadError"));
+                        return;
                     }
                     break;
                 case "text":
