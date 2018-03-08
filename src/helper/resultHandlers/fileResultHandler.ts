@@ -182,14 +182,15 @@ export class FileResultHandler implements IResultHandler {
                 //create the result object
                 var procResult: any = {};
                 procResult.output = [];
+                var tmpOutput = [];
                 let removeDirectories: string[] = [];
                 //iterate the cwlResult object
                 for (var key in cwlResult) {
                     if (cwlResult.hasOwnProperty(key)) {
                         var element = cwlResult[key];
-                        IoHelper.createFolder(process.outputFolder + key);
                         switch (element.class) {
                             case 'Directory':
+                                //IoHelper.createFolder(process.outputFolder + key);
                                 for (var listing of element.listing) {
                                     if (!listing.basename.startsWith('.') && !listing.basename.startsWith('data') && !listing.basename.startsWith('log')) {
                                         let file = {
@@ -204,7 +205,7 @@ export class FileResultHandler implements IResultHandler {
                                                 url: IoHelper.getStaticResultUrlFull(process.outputFolder + key + path.sep + listing.basename)
                                             }
                                         };
-                                        procResult.output.push(file);
+                                        tmpOutput.push(file);
                                     }
                                 }
                                 break;
@@ -213,6 +214,8 @@ export class FileResultHandler implements IResultHandler {
                         }
                     }
                 }
+                procResult.output = _.sortBy(tmpOutput, ['file.name']);
+
                 let files = _.filter(process.outputs, function (entry: any) {
                     return _.has(entry, "file");
                 });
