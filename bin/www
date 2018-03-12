@@ -66,7 +66,7 @@ const sections = [
     optionList: optionDefinitions
   },
   {
-    content: "Project home: [underline]{https://github.com/lunactic/DIVAServices}"
+    content: "Project home: chalk.underline(https://github.com/lunactic/DIVAServices)"
   }
 ]
 
