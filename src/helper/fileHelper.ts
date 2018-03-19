@@ -88,7 +88,14 @@ export class FileHelper {
         return new Promise<any>(async (resolve, reject) => {
             let imagePath = nconf.get("paths:filesPath");
             //strip header information from the base64 string (necessary for Spotlight)
-            let base64Data = file.value.replace(/^data:image\/png;base64,/, "");
+            //TODO: Fix this for other file types
+            let splitValues = file.value.split(',');
+            let base64Data;
+            if (splitValues.length > 1) {
+                base64Data = splitValues[1];
+            } else {
+                base64Data = splitValues[0];
+            }
             let md5String = md5(base64Data);
             let fileObject = new DivaFile();
             let fileFolder = imagePath + path.sep + folder + path.sep + "original" + path.sep;
