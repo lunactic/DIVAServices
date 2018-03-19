@@ -4,14 +4,13 @@ import { DivaCollection } from '../models/divaCollection';
  * Created by Marcel Würsch on 03.11.16.
  */
 "use strict";
-
+import { promisify } from "util";
 import * as _ from 'lodash';
 import * as fs from 'fs-extra';
 import * as nconf from 'nconf';
 import * as path from 'path';
 import * as hash from 'object-hash';
 import * as  mime from 'mime';
-
 import { DivaError } from "../models/divaError";
 import { IoHelper } from "./ioHelper";
 import { Logger } from "../logging/logger";
@@ -21,6 +20,8 @@ import IProcess = require('../processingQueue/iProcess');
 import { DivaFile } from "../models/divaFile";
 import { isNullOrUndefined } from "util";
 require("natural-compare-lite");
+
+var sizeOf = promisify(require('image-size'));
 
 /**
  * Helping class for everything related to help matching parameters to the executables
@@ -141,7 +142,7 @@ export class ParameterHelper {
      */
     static async matchCollectionParams(collection: Collection, req: any): Promise<void> {
         let self = this;
-        return new Promise<void>((resolve, reject) => {
+        return new Promise<void>(async (resolve, reject) => {
             let params = {};
             let outputParams = {};
             for (let neededParameter of collection.neededParameters) {
@@ -150,7 +151,11 @@ export class ParameterHelper {
                 if (self.checkReservedParameters(paramKey) || self.checkReservedParameters(paramValue)) {
                     switch (Object.keys(paramValue)[0]) {
                         case 'highlighter':
-                            params[paramKey] = self.getHighlighterParamValues(collection.inputHighlighters.type, collection.inputHighlighters.segments);
+                            if (!isNullOrUndefined(collection.inputHighlighters.type)) {
+                                params[paramKey] = self.getHighlighterParamValues(collection.inputHighlighters.type, collection.inputHighlighters.segments);
+                            } else {
+                                params[paramKey] = await self.getHighlighterParamValuesFromFile(paramValue.highlighter.type, collection.inputData[0]);
+                            }
                             break;
                         default:
                             params[paramKey] = self.getReservedParamValue(paramKey, collection, req);
@@ -312,6 +317,23 @@ export class ParameterHelper {
                 let radius = Math.round(inputHighlighter.radius);
                 return position[0] + " " + position[1] + " " + radius;
         }
+    }
+
+    static async getHighlighterParamValuesFromFile(neededHighlighter: string, input: any): Promise<string> {
+        return new Promise<string>(async (resolve, reject) => {
+            let identifier = input[Object.keys(input)[0]];
+            let parts = identifier.split("/");
+            let filePath = nconf.get("paths:filesPath") + path.sep + parts[0] + path.sep + "original" + path.sep + parts[1];
+            try {
+                let dimensions = await sizeOf(filePath);
+                console.log(dimensions.width, dimensions.height);
+                resolve('1 1 ' + dimensions.width + ' 1 ' + dimensions.width + ' ' + dimensions.height + ' 1 ' + dimensions.height);
+            } catch (error) {
+                reject(error);
+                Logger.log("error", error, "ParameterHelper::getHighlighterParamValuesFromFile");
+            }
+        });
+
     }
 
     /**

@@ -4,7 +4,6 @@
   "description": "DivaServices RESTFul Web Services for Document Image Analysis",
   "main": "server.js",
   "scripts": {
-    "postinstall": "tsc -p .",
     "watch": "tsc -w -p .",
     "build": "tsc",
     "grunt": "grunt",
@@ -51,6 +50,7 @@
     "express-ipfilter": "^0.3.1",
     "express-session": "^1.15.6",
     "fs-extra": "^5.0.0",
+    "image-size": "^0.6.2",
     "jsonschema": "^1.2.2",
     "lodash": "^4.17.5",
     "log4js": "^2.5.3",

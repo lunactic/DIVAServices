@@ -70,6 +70,11 @@ export class IoHelper {
         }
     }
 
+    static readFileFromIdentifier(identifier: string): any {
+        let parts = identifier.split("/");
+        let filePath = nconf.get("paths:filesPath") + parts[0] + path.sep + "original" + path.sep + parts[1];
+        return this.readFile(filePath);
+    }
     /**
      * save a file on the filesystem
      * 
