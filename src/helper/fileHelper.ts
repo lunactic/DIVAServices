@@ -88,7 +88,6 @@ export class FileHelper {
         return new Promise<any>(async (resolve, reject) => {
             let imagePath = nconf.get("paths:filesPath");
             //strip header information from the base64 string (necessary for Spotlight)
-            //TODO: Fix this for other file types
             let splitValues = file.value.split(',');
             let base64Data;
             if (splitValues.length > 1) {
