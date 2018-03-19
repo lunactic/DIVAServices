@@ -4,7 +4,7 @@ services:
     env_file:
      .env
     build: .
-    command: npm run start
+    command: yarn run start
     ports:
      - "8080:8080"
     volumes:
