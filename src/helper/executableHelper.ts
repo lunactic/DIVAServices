@@ -102,12 +102,11 @@ export class ExecutableHelper extends EventEmitter {
             process.remoteResultUrl = "http://" + nconf.get("docker:reportHost") + "/jobs/" + process.id;
             process.remoteErrorUrl = "http://" + nconf.get("docker:reportHost") + "/algorithms/" + process.algorithmIdentifier + "/exceptions/" + process.id;
             let serviceInfo = await ServicesInfoHelper.getInfoByPath(process.req.originalUrl);
+            resolve();
             try {
-                resolve();
                 if (nconf.get("server:cwlSupport")) {
                     await DockerManagement.runDockerImageSSH(process);
                     await this.endProcess(process);
-                    resolve();
                 } else {
                     await DockerManagement.runDockerImage(process, serviceInfo.image_name);
                 }

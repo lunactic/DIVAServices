@@ -59,7 +59,7 @@ export class ResultHelper {
     static async saveResult(info: IProcess): Promise<any> {
         if (info instanceof Collection) {
             return await IoHelper.saveFile(info.resultFile, info.result, "utf8");
-        }else {
+        } else {
             return await IoHelper.saveFile(info.tmpResultFile, info.result, "utf8");
         }
     }

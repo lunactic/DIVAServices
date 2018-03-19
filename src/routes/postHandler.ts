@@ -55,7 +55,7 @@ export class PostHandler {
                             return reject(new DivaError("Error in method definition", 500, "MethodError"));
                     }
                 } catch (error) {
-                    return reject(error);
+                    reject(error);
                 }
             }
         });

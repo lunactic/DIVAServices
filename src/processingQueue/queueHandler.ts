@@ -10,6 +10,8 @@ import { Statistics } from "../statistics/statistics";
 import { ProcessingQueue } from "./processingQueue";
 import { Process } from "./process";
 import { ExecutableHelper } from "../helper/executableHelper";
+import { IoHelper } from "../helper/ioHelper";
+import { ResultHelper } from "../helper/resultHelper";
 
 /**
  * class for handling the different processing queues
@@ -247,8 +249,6 @@ export class QueueHandler {
             try {
                 await ExecutableHelper.executeDockerRequest(job);
             } catch (error) {
-                //remove failed requests from active executions to not block the execution queue
-                Statistics.removeActiveExecution(job.id);
                 Logger.log("error", error, "QueueHandler");
             }
             this.executeDockerRequest();
