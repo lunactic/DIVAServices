@@ -39,6 +39,20 @@ export class ParameterHelper {
     }
 
     /**
+     * Selects the default value for a parameter
+     * 
+     * @param param The parameter object
+     */
+    static getDefaultParamValue(param: any): string {
+        switch (Object.keys(param)[0]) {
+            case 'select':
+                return param.select.options.values[param.select.options.default];
+            default:
+                return param[Object.keys(param)[0]].options.default;
+        }
+    }
+
+    /**
      * 
      * get the values for reserved parameters defined in the conf/server.xxx.json file
      * 
@@ -167,7 +181,11 @@ export class ParameterHelper {
                         params[paramKey] = value;
                         outputParams[paramKey] = value;
                     } else {
-                        reject(new DivaError("Did not receive a parameter value for: " + paramKey + " that is required by the method", 500, "MissingParameter"));
+                        if (!paramValue[Object.keys(paramValue)[0]].options.required) {
+                            params[paramKey] = self.getDefaultParamValue(paramValue);
+                        } else {
+                            reject(new DivaError("Did not receive a parameter value for: " + paramKey + " that is required by the method", 500, "MissingParameter"));
+                        }
                     }
                 }
             }
