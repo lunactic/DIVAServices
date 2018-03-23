@@ -14,10 +14,11 @@ import * as path from "path";
 import * as fs from "fs";
 import * as morgan from "morgan";
 import * as mime from "mime";
-import * as mongoose from "mongoose";
-import * as passport from "passport";
-import * as redis from "redis";
-import { Account } from "./models/account";
+//import * as mongoose from "mongoose";
+//import * as passport from "passport";
+//import * as redis from "redis";
+import * as cors from "cors";
+//import { Account } from "./models/account";
 import { Logger } from "./logging/logger";
 import { Statistics } from "./statistics/statistics";
 import { FileHelper } from "./helper/fileHelper";
@@ -80,7 +81,7 @@ class Server {
         this.app.use(bodyParser.urlencoded({ extended: true, limit: "2500mb" }));
         //mount json form parser
         this.app.use(bodyParser.json({ limit: "2500mb" }));
-
+        this.app.use(cors());
 
         let accessLogStream = fs.createWriteStream(__dirname + path.sep + "../logs" + path.sep + "access.log", { flags: "a" });
         this.app.use(morgan("combined", { stream: accessLogStream }));
@@ -125,7 +126,7 @@ class Server {
         });
 
         //configure redis
-        this.app.use(session({
+        /**this.app.use(session({
             secret: '1I2Am3Very4Secret!',
             store: new redisStore({ host: 'localhost', port: 6379, client: this.client, ttl: 260 }),
             saveUninitialized: false,
@@ -136,6 +137,7 @@ class Server {
         passport.use(new LocalStrategy(Account.authenticate()));
         passport.serializeUser(Account.serializeUser());
         passport.deserializeUser(Account.deserializeUser());
+        */
     }
 
     private routes() {
@@ -151,7 +153,7 @@ class Server {
         let whiteIps = nconf.get("server:managementWhitelistIp");
         this.app.use(ipFilter(whiteIps, { mode: 'allow', logLevel: 'deny' }));
         this.app.use(algorithmRouter);
-        this.app.use(specialMethodsRouter);
+        //this.app.use(specialMethodsRouter);
     }
 
     public initParams(params: any) {
@@ -160,9 +162,9 @@ class Server {
         nconf.set("docker:port", params.dockerPort);
         nconf.set("docker:sshUser", params.sshUser);
         nconf.set("docker:sshPass", params.sshPass);
-        this.client = redis.createClient();
+        //this.client = redis.createClient();
         //mongoose.Promise = global.Promise;
-        mongoose.connect("mongodb://localhost:27017/divaservices");
+        //mongoose.connect("mongodb://localhost:27017/divaservices");
         //configure application
         this.config();
 
