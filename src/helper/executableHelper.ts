@@ -111,7 +111,7 @@ export class ExecutableHelper extends EventEmitter {
                     await DockerManagement.runDockerImage(process, serviceInfo.image_name);
                 }
             } catch (error) {
-                reject(error);
+                Statistics.removeActiveExecution(process.id);
             }
         });
     }

@@ -18,7 +18,7 @@ export class RandomWordGenerator {
      * 
      * @memberOf RandomWordGenerator
      */
-    static adjectives = fs.readFileSync(RandomWordGenerator.rootDir + "/adjectives", "utf8").toString().split("\n");
+    static adjectives = fs.readFileSync(RandomWordGenerator.rootDir + "/adjectives", "utf8").toString().split("\n").map(Function.prototype.call, String.prototype.trim);
 
     /**
      * a list of animal names
@@ -27,7 +27,7 @@ export class RandomWordGenerator {
      * 
      * @memberOf RandomWordGenerator
      */
-    static animals = fs.readFileSync(RandomWordGenerator.rootDir + "/animals", "utf8").toString().split("\n");
+    static animals = fs.readFileSync(RandomWordGenerator.rootDir + "/animals", "utf8").toString().split("\n").map(Function.prototype.call, String.prototype.trim);
 
     /**
      * generate a random word
