@@ -7,9 +7,6 @@
     "termsOfService": "http://divaservices.unifr.ch/tos",
     "contact": {
       "name": "Marcel Würsch"
-    },
-    "license": {
-      "name": "GPLv2.1"
     }
   },
   "host": "134.21.72.48:8080",
