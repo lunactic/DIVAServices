@@ -3,20 +3,20 @@
  */
 "use strict";
 
-import * as _ from "lodash";
-import * as fs from "fs-extra";
 import * as crypto from "crypto";
-import { IoHelper } from "./ioHelper";
-import md5 = require("md5");
+import * as fs from "fs-extra";
+import * as _ from "lodash";
+import * as mime from "mime";
 import * as nconf from "nconf";
 import * as path from "path";
 import * as request from "request-promise";
-import * as mime from "mime";
-import { Logger } from "../logging/logger";
-import { Process } from "../processingQueue/process";
-import { DivaFile } from "../models/divaFile";
-import { DivaError } from '../models/divaError';
 import { isNullOrUndefined } from "util";
+import { Logger } from "../logging/logger";
+import { DivaError } from '../models/divaError';
+import { DivaFile } from "../models/divaFile";
+import { Process } from "../processingQueue/process";
+import { IoHelper } from "./ioHelper";
+import md5 = require("md5");
 
 /**
  * A class for all file handling 
@@ -172,28 +172,32 @@ export class FileHelper {
      */
     static async saveZipUrl(url: string, folder: string): Promise<DivaFile[]> {
         return new Promise<DivaFile[]>(async (resolve, reject) => {
-            let divaFiles: DivaFile[] = [];
-            let filePath = nconf.get("paths:filesPath");
-            let tmpFilePath: string = filePath + path.sep + folder + path.sep + "data.zip";
-            await this.downloadFile(url, tmpFilePath);
-            await IoHelper.unzipFile(tmpFilePath, filePath + path.sep + folder + path.sep + "original");
-            let files: string[] = IoHelper.readFolder(filePath + path.sep + folder + path.sep + "original");
-            let imageCounter: number = 0;
-            for (var file of files) {
-                let divaFile = new DivaFile();
-                let filename = file.split(".").shift();
-                let base64 = fs.readFileSync(filePath + path.sep + folder + path.sep + "original" + path.sep + file, "base64");
-                let md5String = md5(base64);
-                divaFile.filename = filename;
-                divaFile.folder = filePath + path.sep + folder + path.sep + "original" + path.sep;
-                divaFile.extension = mime.getExtension(mime.getType(file));
-                divaFile.path = divaFile.folder + file;
-                divaFile.md5 = md5String;
+            try {
+                let divaFiles: DivaFile[] = [];
+                let filePath = nconf.get("paths:filesPath");
+                let tmpFilePath: string = filePath + path.sep + folder + path.sep + "data.zip";
+                await this.downloadFile(url, tmpFilePath);
+                await IoHelper.unzipFile(tmpFilePath, filePath + path.sep + folder + path.sep + "original");
+                let files: string[] = IoHelper.readFolder(filePath + path.sep + folder + path.sep + "original");
+                let imageCounter: number = 0;
+                for (var file of files) {
+                    let divaFile = new DivaFile();
+                    let filename = file.split(".").shift();
+                    let base64 = fs.readFileSync(filePath + path.sep + folder + path.sep + "original" + path.sep + file, "base64");
+                    let md5String = md5(base64);
+                    divaFile.filename = filename;
+                    divaFile.folder = filePath + path.sep + folder + path.sep + "original" + path.sep;
+                    divaFile.extension = mime.getExtension(mime.getType(file));
+                    divaFile.path = divaFile.folder + file;
+                    divaFile.md5 = md5String;
 
-                await FileHelper.addFileInfo(divaFile.md5, divaFile.path, folder);
-                await FileHelper.updateCollectionInformation(folder, files.length, ++imageCounter);
+                    await FileHelper.addFileInfo(divaFile.md5, divaFile.path, folder);
+                    await FileHelper.updateCollectionInformation(folder, files.length, ++imageCounter);
 
-                divaFiles.push(divaFile);
+                    divaFiles.push(divaFile);
+                }
+            } catch (error) {
+                reject(error);
             }
         });
     }

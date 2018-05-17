@@ -1,31 +1,30 @@
+import * as express from 'express';
+import * as _ from 'lodash';
+import * as mime from 'mime';
+import * as multer from 'multer';
+import * as nconf from 'nconf';
+import * as path from 'path';
+import { isNullOrUndefined } from "util";
 import { ExecutableHelper } from '../helper/executableHelper';
+import { FileHelper } from "../helper/fileHelper";
+import { IoHelper } from "../helper/ioHelper";
+import { ResultHelper } from "../helper/resultHelper";
+import { Logger } from "../logging/logger";
+import { DivaError } from '../models/divaError';
+import { DivaFile } from "../models/divaFile";
+import { IiifManifestParser } from "../parsers/iiifManifestParser";
+import { QueueHandler } from '../processingQueue/queueHandler';
+import { RandomWordGenerator } from "../randomizer/randomWordGenerator";
+import { Statistics } from "../statistics/statistics";
+import { SchemaValidator } from "../validator/schemaValidator";
+import { GetHandler } from "./getHandler";
+import { PostHandler } from "./postHandler";
 
 /**
  * Created by Marcel Würsch on 02.11.16.
  */
 "use strict";
 
-import { IiifManifestParser } from "../parsers/iiifManifestParser";
-import * as _ from 'lodash';
-import * as express from 'express';
-import { FileHelper } from "../helper/fileHelper";
-import { RandomWordGenerator } from "../randomizer/randomWordGenerator";
-import { IoHelper } from "../helper/ioHelper";
-import { Logger } from "../logging/logger";
-import * as mime from 'mime';
-import * as nconf from 'nconf';
-import * as path from 'path';
-import * as multer from 'multer';
-import { Statistics } from "../statistics/statistics";
-import { ResultHelper } from "../helper/resultHelper";
-import { AlgorithmManagement } from "../management/algorithmManagement";
-import { SchemaValidator } from "../validator/schemaValidator";
-import { DivaFile } from "../models/divaFile";
-import { PostHandler } from "./postHandler";
-import { GetHandler } from "./getHandler";
-import { QueueHandler } from '../processingQueue/queueHandler';
-import { DivaError } from '../models/divaError';
-import { isNullOrUndefined } from "util";
 
 var upload = multer({ dest: nconf.get("paths:filesPath") });
 
@@ -139,6 +138,7 @@ router.put("/collections/:collectionName", async function (req: express.Request,
     if (FileHelper.checkCollectionAvailable(collectionName)) {
         //count the total number of images
         numOfFiles = FileHelper.loadCollection(collectionName, null).length;
+        let imageCounter: number = numOfFiles;
         for (let file of req.body.files) {
             switch (file.type) {
                 case "iiif":
@@ -158,7 +158,6 @@ router.put("/collections/:collectionName", async function (req: express.Request,
         //update info file
         await FileHelper.addFilesCollectionInformation(collectionName, numOfFiles);
 
-        let imageCounter: number = 0;
         //download the files
         for (let file of req.body.files) {
             let fullPath = nconf.get("paths:filesPath") + path.sep + collectionName + path.sep + "original" + path.sep + file.name + "." + file.extension;
