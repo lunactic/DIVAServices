@@ -1,26 +1,25 @@
-import { IoHelper } from '../helper/ioHelper';
-import { DivaCollection } from '../models/divaCollection';
+import * as archiver from 'archiver';
+import * as DOCKER from 'dockerode';
+import * as fs from 'fs';
+import * as fse from 'fs-extra';
 /**
  * Created by Marcel Würsch on 04.11.16.
  */
-
 import * as _ from 'lodash';
-import { AlgorithmManagement } from "../management/algorithmManagement";
-import * as archiver from 'archiver';
-import * as fs from 'fs';
-import * as fse from 'fs-extra';
-import * as nconf from 'nconf';
-import * as path from 'path';
-import * as DOCKER from 'dockerode';
 import * as mime from 'mime';
-import { Logger } from "../logging/logger";
-import { DivaFile } from '../models/divaFile';
+import * as nconf from 'nconf';
 import * as os from 'os';
-import { Process } from "../processingQueue/process";
-import { DivaError } from "../models/divaError";
-import * as stream from 'stream';
+import * as path from 'path';
 import * as ssh from 'ssh2';
+import * as stream from 'stream';
 import { YamlManager } from "../helper/cwl/yamlManager";
+import { IoHelper } from '../helper/ioHelper';
+import { Logger } from "../logging/logger";
+import { AlgorithmManagement } from "../management/algorithmManagement";
+import { DivaCollection } from '../models/divaCollection';
+import { DivaError } from "../models/divaError";
+import { DivaFile } from '../models/divaFile';
+import { Process } from "../processingQueue/process";
 
 var Client = require('ssh2').Client;
 
@@ -426,6 +425,7 @@ export class DockerManagement {
      */
     static runDockerImageSSH(process: Process): Promise<void> {
         return new Promise<void>(async (resolve, reject) => {
+            await IoHelper.saveFile(process.resultFile, { status: "running" }, "utf8");
             var yamlManager: YamlManager = new YamlManager(process.yamlFile);
             var conn: ssh.Client = new Client();
             conn.on('ready', () => {
