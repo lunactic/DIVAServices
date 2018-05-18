@@ -1,29 +1,26 @@
 "use strict";
+import * as bodyParser from "body-parser";
+//import * as mongoose from "mongoose";
+//import * as passport from "passport";
+//import * as redis from "redis";
+import * as cors from "cors";
+import * as express from "express";
+import * as session from "express-session";
+import * as fs from "fs";
+import * as morgan from "morgan";
+import * as nconf from "nconf";
+import * as path from "path";
+import { FileHelper } from "./helper/fileHelper";
+//import { Account } from "./models/account";
+import { Logger } from "./logging/logger";
 import { DivaError } from './models/divaError';
+import { QueueHandler } from "./processingQueue/queueHandler";
+import { Statistics } from "./statistics/statistics";
 if (!(process.env.NODE_ENV != null) || ["dev", "test", "prod"].indexOf(process.env.NODE_ENV) < 0) {
     console.log("please set NODE_ENV to [dev, test, prod]. going to exit");
     process.exit(0);
 }
 
-import * as _ from "lodash";
-import * as nconf from "nconf";
-import * as bodyParser from "body-parser";
-import * as express from "express";
-import * as session from "express-session";
-import * as path from "path";
-import * as fs from "fs";
-import * as morgan from "morgan";
-import * as mime from "mime";
-//import * as mongoose from "mongoose";
-//import * as passport from "passport";
-//import * as redis from "redis";
-import * as cors from "cors";
-//import { Account } from "./models/account";
-import { Logger } from "./logging/logger";
-import { Statistics } from "./statistics/statistics";
-import { FileHelper } from "./helper/fileHelper";
-import { QueueHandler } from "./processingQueue/queueHandler";
-import { Strategy as LocalStrategy } from "passport-local";
 
 var router = require("./routes/standardRouter");
 var algorithmRouter = require("./routes/algorithmRouter");
@@ -40,7 +37,7 @@ var redisStore = require("connect-redis")(session);
 class Server {
 
     public app: express.Application;
-    public client: redis.RedisClient;
+    //public client: redis.RedisClient;
     
     /**
      * Bootstrap the application.

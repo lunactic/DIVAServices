@@ -9,7 +9,7 @@ import * as mime from "mime";
 import * as nconf from "nconf";
 import * as path from "path";
 import * as request from "request-promise";
-import { isNullOrUndefined } from "util";
+import * as url from "url";
 import { Logger } from "../logging/logger";
 import { DivaError } from '../models/divaError';
 import { DivaFile } from "../models/divaFile";
@@ -56,13 +56,11 @@ export class FileHelper {
      * @static
      * @param {*} file  the file object containing the base64 string
      * @param {string} folder the folder to save the image into
-     * @param {number} counter the running counter applied to this file
-     * @param {string} [extension] the file extension (if available)
-     * @returns {Promise<any>} 
+     * @returns {Promise<DivaFile>} the DivaFile created for the provided file data
      * @memberof FileHelper
      */
-    static saveBase64(file: any, folder: string, counter: number, extension?: string): Promise<any> {
-        return new Promise<any>(async (resolve, reject) => {
+    static saveBase64(file: any, folder: string): Promise<DivaFile> {
+        return new Promise<DivaFile>(async (resolve, reject) => {
             let imagePath = nconf.get("paths:filesPath");
             //strip header information from the base64 string (necessary for Spotlight)
             let splitValues = file.value.split(',');
@@ -74,12 +72,11 @@ export class FileHelper {
             }
             let fileObject = new DivaFile();
             let fileFolder = imagePath + path.sep + folder + path.sep + "original" + path.sep;
-            let fileName = file.name;
-            let fileExtension;
-            if (!isNullOrUndefined(extension)) {
-                fileExtension = extension;
+            let fileName = "";
+            if (file.name !== null) {
+                fileName = file.name;
             } else {
-                fileExtension = this.getImageExtensionBase64(base64Data);
+                reject(new DivaError("filename not provided", 500, "FileNameError"));
             }
             try {
                 if (await IoHelper.fileExists(fileFolder + fileName)) {
@@ -88,8 +85,7 @@ export class FileHelper {
                 } else {
                     fileObject.folder = fileFolder;
                     fileObject.filename = fileName;
-                    fileObject.extension = fileExtension;
-                    fileObject.path = fileFolder + fileName + "." + fileExtension;
+                    fileObject.path = fileFolder + fileName;
                     await fs.writeFile(fileObject.path, base64Data, { encoding: "base64" });
                     resolve(fileObject);
                 }
@@ -176,16 +172,17 @@ export class FileHelper {
     }
 
     /**
-     * Download a file from a URL and save it on the filesystem
+     * downloads a file from a given URL and stores it in a folder
+     * a local filename can be provided that should be assigned to this file
      * 
      * @static
-     * @param {string} url the remote url of the image
+     * @param {string} downloadUrl the remote url of the image
      * @param {string} folder the local folder to store the image in
-     * @param {number} counter the running counter that is assigned to this image
-     * 
-     * @memberOf FileHelper
+     * @param {string} [filename] the filename that should be assigned to this file (including the extension)
+     * @returns {Promise<DivaFile>} the DivaFile created for the downloaded file
+     * @memberof FileHelper
      */
-    static async saveFileUrl(url: string, folder: string, counter?: number, filename?: string, extension?: string): Promise<DivaFile> {
+    static async saveFileUrl(downloadUrl: string, folder: string, filename?: string): Promise<DivaFile> {
         return new Promise<DivaFile>(async (resolve, reject) => {
             try {
                 let filePath = nconf.get("paths:filesPath");
@@ -193,34 +190,21 @@ export class FileHelper {
                 let tmpFilePath: string = "";
                 let fileName: string = "";
 
-                var headerResponse = await request.head(url);
-                let fileExtension = "";
-                if (!isNullOrUndefined(extension)) {
-                    fileExtension = extension;
-                } else {
-                    if (headerResponse["content-type"] === "application/octet-stream") {
-                        //if conte-typpe === 'application/content-stream' we can not make use of it per RFC 2616 7.2.1
-                        // If the media type remains unknown, the recipient SHOULD treat it as type "application/octet-stream".
-                        fileExtension = url.split(".").pop();
-                    } else {
-                        fileExtension = mime.getExtension(headerResponse["content-type"]);
-                    }
-                }
+                var headerResponse = await request.head(downloadUrl);
                 if (filename != null) {
-                    tmpFilePath = filePath + path.sep + "temp_" + filename + "." + fileExtension;
+                    tmpFilePath = filePath + path.sep + "temp_" + filename;
                     fileName = filename;
-                } else if (counter != null) {
-                    tmpFilePath = filePath + path.sep + "temp_" + counter + "." + fileExtension;
-                    fileName = "input" + counter;
+                } else {
+                    //use the existing filename and extension
+                    fileName = path.basename(url.parse(downloadUrl).pathname);
                 }
 
-                await this.downloadFile(url, tmpFilePath);
+                await this.downloadFile(downloadUrl, tmpFilePath);
 
                 let imgFolder = filePath + path.sep + folder + path.sep + "original" + path.sep;
                 file.filename = fileName;
                 file.folder = imgFolder;
-                file.extension = fileExtension;
-                file.path = imgFolder + fileName + "." + fileExtension;
+                file.path = imgFolder + fileName;
                 try {
                     await fs.stat(file.path);
                     fs.unlinkSync(tmpFilePath);
@@ -242,39 +226,36 @@ export class FileHelper {
     }
 
     /**
-     * Saves a text file onto the file system
-     * @param data the textual data to save
-     * @param folder the folder to save the file in
-     * @param extension the file extension
-     * @param counter the data element counter
-     * @param filename the filename
+     * 
+     * 
+     * @static
+     * @param {string} data the textual data to save
+     * @param {string} folder the folder to save the file in
+     * @param {string} filename the filename including the file extension
+     * @returns {Promise<DivaFile>} the DivaFile created for this file
+     * @memberof FileHelper
      */
-    static saveFileText(data: string, folder: string, extension: string, counter?: number, filename?: string): Promise<DivaFile> {
+    static saveFileText(data: string, folder: string, filename: string): Promise<DivaFile> {
         let self = this;
         return new Promise<DivaFile>(async (resolve, reject) => {
             let filesPath = nconf.get("paths:filesPath");
             let filePath: string;
             let file = new DivaFile();
             let fileName: string = "";
-
             if (filename != null) {
-                filePath = filesPath + path.sep + folder + path.sep + "original" + path.sep + filename + "." + extension;
+                filePath = filesPath + path.sep + folder + path.sep + "original" + path.sep + filename;
                 fileName = filename;
-            } else if (counter != null) {
-                filePath = filesPath + path.sep + folder + path.sep + "original" + path.sep + counter + "." + extension;
-                fileName = String(counter);
+            } else {
+                reject(new DivaError("Required filename not provided", 500, "FileNameError"));
             }
 
             await IoHelper.saveFile(filePath, data, "utf-8");
-
             let base64 = fs.readFileSync(filePath, "base64");
 
             let imgFolder = filePath + path.sep + folder + path.sep + "original" + path.sep;
             file.filename = fileName;
             file.folder = imgFolder;
-            file.extension = extension;
-            file.path = imgFolder + fileName + "." + extension;
-
+            file.path = imgFolder + fileName;
             Logger.log("trace", "saved file", "FileHelper");
             resolve(file);
         });
@@ -533,23 +514,5 @@ export class FileHelper {
     static getCollectionInformation(collection: string): any {
         let statusFile = nconf.get("paths:filesPath") + path.sep + collection + path.sep + "status.json";
         return IoHelper.readFile(statusFile);
-    }
-
-    /**
-    * Get the image extension from a base64 string
-    * 
-    * @static
-    * @param {string} base64 the base64 string
-    * @returns {string} the file ending to use for the image type
-    * 
-    * @memberOf ImageHelper
-    */
-    static getImageExtensionBase64(base64: string): string {
-        if (base64.indexOf("/9j/4AAQ") !== -1 || base64.indexOf("_9j_4AA") !== -1) {
-            return "jpg";
-        }
-        if (base64.indexOf("iVBORw0KGgoAAAANSUhEU") !== -1) {
-            return "png";
-        }
     }
 }

@@ -88,7 +88,7 @@ router.post("/collections", async function (req: express.Request, res: express.R
                 let images = iiifManifestParser.getAllImages(0);
                 for (let inputImage of images) {
                     try {
-                        var image = await FileHelper.saveFileUrl(inputImage, collectionName + path.sep, imageCounter, file.name);
+                        var image = await FileHelper.saveFileUrl(inputImage, collectionName + path.sep, file.name);
                         FileHelper.addFileInfo(image.path, collectionName);
                         FileHelper.updateCollectionInformation(collectionName, numOfFiles, ++imageCounter);
                     } catch (error) {
@@ -103,7 +103,7 @@ router.post("/collections", async function (req: express.Request, res: express.R
                     if (mime.getType(url) === "application/zip") {
                         FileHelper.saveZipUrl(file.value, collectionName);
                     } else {
-                        var newFile: DivaFile = await FileHelper.saveFileUrl(file.value, collectionName, imageCounter, file.name, file.extension);
+                        var newFile: DivaFile = await FileHelper.saveFileUrl(file.value, collectionName, file.name);
                         await FileHelper.addFileInfo(newFile.path, collectionName);
                         await FileHelper.updateCollectionInformation(collectionName, numOfFiles, ++imageCounter);
                     }
@@ -113,13 +113,13 @@ router.post("/collections", async function (req: express.Request, res: express.R
                 }
                 break;
             case "text":
-                var newFile: DivaFile = await FileHelper.saveFileText(file.value, collectionName, file.extension, imageCounter, file.name);
+                var newFile: DivaFile = await FileHelper.saveFileText(file.value, collectionName, file.name);
                 await FileHelper.addFileInfo(newFile.path, collectionName);
                 await FileHelper.updateCollectionInformation(collectionName, numOfFiles, ++imageCounter);
                 break;
             default:
                 try {
-                    var newFile: DivaFile = await FileHelper.saveBase64(file, collectionName, imageCounter, file.extension);
+                    var newFile: DivaFile = await FileHelper.saveBase64(file, collectionName);
                     await FileHelper.addFileInfo(newFile.path, collectionName);
                     await FileHelper.updateCollectionInformation(collectionName, numOfFiles, ++imageCounter);
                     break;
@@ -172,7 +172,7 @@ router.put("/collections/:collectionName", async function (req: express.Request,
                     let images = iiifManifestParser.getAllImages(0);
                     for (let inputImage of images) {
                         try {
-                            var image = await FileHelper.saveFileUrl(inputImage, collectionName + path.sep, imageCounter);
+                            var image = await FileHelper.saveFileUrl(inputImage, collectionName + path.sep);
                             FileHelper.addFileInfo(image.path, collectionName);
                             FileHelper.updateCollectionInformation(collectionName, numOfFiles, ++imageCounter);
                         } catch (error) {
@@ -187,7 +187,7 @@ router.put("/collections/:collectionName", async function (req: express.Request,
                         if (mime.getType(url) === "application/zip") {
                             await FileHelper.saveZipUrl(file.value, collectionName);
                         } else {
-                            var newFile: DivaFile = await FileHelper.saveFileUrl(file.value, collectionName, imageCounter, file.name, file.extension);
+                            var newFile: DivaFile = await FileHelper.saveFileUrl(file.value, collectionName, file.name);
                             await FileHelper.addFileInfo(newFile.path, collectionName);
                             await FileHelper.updateCollectionInformation(collectionName, numOfFiles, ++imageCounter);
                         }
@@ -199,13 +199,13 @@ router.put("/collections/:collectionName", async function (req: express.Request,
                     }
                     break;
                 case "text":
-                    var newFile: DivaFile = await FileHelper.saveFileText(file.value, collectionName, file.extension, imageCounter, file.name);
+                    var newFile: DivaFile = await FileHelper.saveFileText(file.value, collectionName, file.name);
                     await FileHelper.addFileInfo(newFile.path, collectionName);
                     await FileHelper.updateCollectionInformation(collectionName, numOfFiles, ++imageCounter);
                     break;
                 default:
                     try {
-                        var newFile: DivaFile = await FileHelper.saveBase64(file, collectionName, imageCounter, file.extension);
+                        var newFile: DivaFile = await FileHelper.saveBase64(file, collectionName);
                         await FileHelper.addFileInfo(newFile.path, collectionName);
                         await FileHelper.updateCollectionInformation(collectionName, numOfFiles, ++imageCounter);
                         break;
