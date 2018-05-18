@@ -24,10 +24,10 @@ ENV NODE_ENV $NODE_ENV
 RUN apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 0C49F3730359A14518585931BC711F9BA15703C6
 RUN wget https://www.dotdeb.org/dotdeb.gpg && apt-key add dotdeb.gpg
 #COPY Docker/mongod /etc/init.d/mongod
-RUN chmod +x scripts/*
+#RUN chmod +x scripts/*
 #RUN /etc/init.d/mongod start
-COPY Docker/mongod /etc/init.d/mongod
-RUN chmod +x /etc/init.d/mongod
+#COPY Docker/mongod /etc/init.d/mongod
+#RUN chmod +x /etc/init.d/mongod
 RUN yarn install
 # Make sure we have some logs directory ready for use
 RUN mkdir logs

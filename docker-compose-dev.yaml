@@ -1,6 +1,7 @@
 version: '3.3'
 services:
   dev_web:
+    user: "1000:985"
     env_file:
      .env_dev
     build: .

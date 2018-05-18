@@ -96,8 +96,8 @@ DIETIME=10                  # Time to wait for the server to die, in seconds
                             # let some servers to die gracefully and
                             # 'restart' will not work
 
-DAEMONUSER=${DAEMONUSER:-mongodb}
-DAEMONGROUP=${DAEMONGROUP:-mongodb}
+DAEMONUSER=${DAEMONUSER:-1000}
+DAEMONGROUP=${DAEMONGROUP:-985}
 
 set -e
 
