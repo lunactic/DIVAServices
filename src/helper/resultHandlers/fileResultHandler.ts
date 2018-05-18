@@ -2,20 +2,18 @@
  * Created by Marcel Würsch on 04.11.16.
  */
 
-import * as _ from "lodash";
 import * as fs from "fs-extra";
-import * as path from "path";
-import * as nconf from "nconf";
-import * as os from "os";
+import * as _ from "lodash";
 import * as mime from "mime";
+import * as os from "os";
+import * as path from "path";
 import { isNullOrUndefined } from 'util';
 import { Logger } from "../../logging/logger";
+import { DivaError } from "../../models/divaError";
+import { Process } from "../../processingQueue/process";
 import { FileHelper } from "../fileHelper";
 import { IoHelper } from "../ioHelper";
-import { DivaError } from "../../models/divaError";
-import { DivaFile } from '../../models/divaFile';
 import IResultHandler = require("./iResultHandler");
-import { Process } from "../../processingQueue/process";
 
 /**
  * A Result Handler that reads the results from a file
@@ -178,7 +176,6 @@ export class FileResultHandler implements IResultHandler {
         return new Promise(async (resolve, reject) => {
             try {
                 var cwlResult = await fs.readJson(process.stdLogFile, { encoding: "utf-8" });
-
                 //create the result object
                 var procResult: any = {};
                 procResult.output = [];
