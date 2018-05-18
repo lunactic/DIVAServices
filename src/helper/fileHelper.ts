@@ -147,23 +147,24 @@ export class FileHelper {
                 let divaFiles: DivaFile[] = [];
                 let filePath = nconf.get("paths:filesPath");
                 let tmpFilePath: string = filePath + path.sep + folder + path.sep + "data.zip";
+                let rootPath = filePath + path.sep + folder + path.sep + "original";
                 await this.downloadFile(url, tmpFilePath);
-                await IoHelper.unzipFile(tmpFilePath, filePath + path.sep + folder + path.sep + "original");
-                let files: string[] = IoHelper.readFolder(filePath + path.sep + folder + path.sep + "original");
+                await IoHelper.unzipFile(tmpFilePath, rootPath);
+                let files: string[] = await IoHelper.readFolderRecursive(rootPath);
                 let imageCounter: number = 0;
                 for (var file of files) {
-                    let divaFile = new DivaFile();
-                    let filename = file.split(".").shift();
-                    let base64 = fs.readFileSync(filePath + path.sep + folder + path.sep + "original" + path.sep + file, "base64");
-                    divaFile.filename = filename;
-                    divaFile.folder = filePath + path.sep + folder + path.sep + "original" + path.sep;
-                    divaFile.extension = mime.getExtension(mime.getType(file));
-                    divaFile.path = divaFile.folder + file;
-
-                    await FileHelper.addFileInfo(divaFile.path, folder);
-                    await FileHelper.updateCollectionInformation(folder, files.length, ++imageCounter);
-
-                    divaFiles.push(divaFile);
+                    if (!(await IoHelper.isDirectory(file))) {
+                        let divaFile = new DivaFile();
+                        let filename = path.basename(file);
+                        let base64 = fs.readFileSync(file, "base64");
+                        divaFile.filename = filename;
+                        divaFile.folder = rootPath + path.sep;
+                        divaFile.extension = mime.getExtension(mime.getType(file));
+                        divaFile.path = file;
+                        await FileHelper.addFileInfo(divaFile.path, folder);
+                        await FileHelper.updateCollectionInformation(folder, files.length, ++imageCounter);
+                        divaFiles.push(divaFile);
+                    }
                 }
             } catch (error) {
                 reject(error);
@@ -302,7 +303,7 @@ export class FileHelper {
         });
         if (filtered.length > 0) {
             for (let item of filtered) {
-                let file = DivaFile.CreateFile(collectionName, path.basename(item.file));
+                let file = DivaFile.CreateFileFull(item.file);
                 files.push(file);
             }
             return files;
