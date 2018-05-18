@@ -29,7 +29,7 @@ executableFolder=($(cat conf/server.dev.json | jq -r '.paths.executablePath'))
 mkdir -p ${executableFolder}
 mkdir -p ${resultsFolder}
 mkdir -p ${logFolder}
-mkdir -p ${imageFolder}/test/original
+#mkdir -p ${imageFolder}/test/original
 mkdir -p ${resultsFolder}/
 
 header "Creating Files"

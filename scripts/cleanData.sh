@@ -19,7 +19,7 @@ rm -r ${resultsFolder}/
 header "Creating Folders"
 mkdir -p ${imageFolder}
 mkdir -p ${resultsFolder}
-mkdir -p ${imageFolder}/test/original
+#mkdir -p ${imageFolder}/test/original
 #mkdir -p ${logFolder}
 
 header "Creating Files"
