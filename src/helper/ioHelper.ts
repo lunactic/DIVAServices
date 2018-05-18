@@ -5,18 +5,17 @@
 
 "use strict";
 
-import { isNullOrUndefined } from 'util';
 import * as archiver from "archiver";
 import * as fs from "fs-extra";
 import * as nconf from "nconf";
 import * as path from "path";
-import * as http from "http";
+import * as recread from "recursive-readdir";
 import * as request from "request-promise";
-let rmdir = require("rmdir");
-let unzip = require("unzipper");
 import * as url from "url";
 import { Logger } from "../logging/logger";
 import { DivaError } from "../models/divaError";
+let rmdir = require("rmdir");
+let unzip = require("unzipper");
 
 /**
  * Class handling all input/output
@@ -33,13 +32,33 @@ export class IoHelper {
      * @param {string} filePath path of the file
      * @returns {boolean} boolean indicating wheter or not the file exists
      * 
-     * @memberOf IoHelper
+     * @memberof IoHelper
      */
     static async fileExists(filePath: string): Promise<boolean> {
         return new Promise<boolean>(async (resolve, reject) => {
             try {
                 let stats = await fs.stat(filePath);
                 resolve(stats.isFile());
+            } catch (error) {
+                resolve(false);
+            }
+        });
+    }
+
+    /**
+     * 
+     * Checks wheter a given path is a folder or not
+     * 
+     * @static
+     * @param {string} path the path to check
+     * @returns {Promise<boolean>} 
+     * @memberof IoHelper
+     */
+    static async isDirectory(path: string): Promise<boolean> {
+        return new Promise<boolean>(async (resolve, reject) => {
+            try {
+                let stats = await fs.stat(path);
+                resolve(stats.isDirectory());
             } catch (error) {
                 resolve(false);
             }
@@ -72,7 +91,8 @@ export class IoHelper {
 
     static readFileFromIdentifier(identifier: string): any {
         let parts = identifier.split("/");
-        let filePath = nconf.get("paths:filesPath") + parts[0] + path.sep + "original" + path.sep + parts[1];
+        let collectionName = parts.shift();
+        let filePath = nconf.get("paths:filesPath") + collectionName + path.sep + "original" + path.sep + parts.join(path.sep);
         return this.readFile(filePath);
     }
     /**
@@ -292,6 +312,18 @@ export class IoHelper {
         } catch (error) {
             return null;
         }
+    }
+    /**
+     * reads a folder recursively including all subfolders
+     * 
+     * @static
+     * @param {string} path the root folder so start reading
+     * @returns {Promise<string[]>} an array of all files with relative paths
+     * @memberof IoHelper
+     */
+    static async readFolderRecursive(rootPath: string): Promise<string[]> {
+        return await recread(rootPath);
+
     }
 
     /**
