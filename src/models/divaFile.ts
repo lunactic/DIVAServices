@@ -2,10 +2,9 @@
  * Created by Marcel Würsch on 03.11.16.
  */
 
-import * as path from "path";
-import * as nconf from "nconf";
-import * as md5 from "md5";
 import * as fs from "fs-extra";
+import * as nconf from "nconf";
+import * as path from "path";
 /**
  * class representing an internal data item
  * 
@@ -51,13 +50,6 @@ export class DivaFile {
      * @memberOf File
      */
     public path: string;
-    /**
-     * the md5 hash of the file
-     * 
-     * @type {string}
-     * @memberOf File
-     */
-    public md5: string;
 
     /**
      * the public url to retrieve this file
@@ -69,18 +61,16 @@ export class DivaFile {
         this.filename = "";
         this.extension = "";
         this.path = "";
-        this.md5 = "";
     }
 
 
-    static CreateFile(collection: string, filename: string, md5?: string): DivaFile {
+    static CreateFile(collection: string, filename: string): DivaFile {
         let item = new DivaFile();
         item.collection = collection;
         item.filename = filename;
         item.extension = filename.split(".").pop();
         item.path = nconf.get("paths:filesPath") + path.sep + collection + path.sep + "original" + path.sep + filename;
         item.url = "http://" + nconf.get("server:rootUrl") + "/files/" + collection + "/original/" + filename;
-        item.md5 = md5;
         return item;
     }
 
@@ -92,7 +82,6 @@ export class DivaFile {
         item.filename = path.parse(filePath).base;
         item.extension = path.parse(filePath).ext;
         let base64 = fs.readFileSync(filePath, "base64");
-        item.md5 = md5(base64);
         return item;
     }
 

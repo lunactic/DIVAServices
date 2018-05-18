@@ -89,7 +89,7 @@ router.post("/collections", async function (req: express.Request, res: express.R
                 for (let inputImage of images) {
                     try {
                         var image = await FileHelper.saveFileUrl(inputImage, collectionName + path.sep, imageCounter, file.name);
-                        FileHelper.addFileInfo(image.md5, image.path, collectionName);
+                        FileHelper.addFileInfo(image.path, collectionName);
                         FileHelper.updateCollectionInformation(collectionName, numOfFiles, ++imageCounter);
                     } catch (error) {
                         //TODO add error info into the collection information
@@ -104,7 +104,7 @@ router.post("/collections", async function (req: express.Request, res: express.R
                         FileHelper.saveZipUrl(file.value, collectionName);
                     } else {
                         var newFile: DivaFile = await FileHelper.saveFileUrl(file.value, collectionName, imageCounter, file.name, file.extension);
-                        await FileHelper.addFileInfo(newFile.md5, newFile.path, collectionName);
+                        await FileHelper.addFileInfo(newFile.path, collectionName);
                         await FileHelper.updateCollectionInformation(collectionName, numOfFiles, ++imageCounter);
                     }
                 } catch (error) {
@@ -114,13 +114,13 @@ router.post("/collections", async function (req: express.Request, res: express.R
                 break;
             case "text":
                 var newFile: DivaFile = await FileHelper.saveFileText(file.value, collectionName, file.extension, imageCounter, file.name);
-                await FileHelper.addFileInfo(newFile.md5, newFile.path, collectionName);
+                await FileHelper.addFileInfo(newFile.path, collectionName);
                 await FileHelper.updateCollectionInformation(collectionName, numOfFiles, ++imageCounter);
                 break;
             default:
                 try {
                     var newFile: DivaFile = await FileHelper.saveBase64(file, collectionName, imageCounter, file.extension);
-                    await FileHelper.addFileInfo(newFile.md5, newFile.path, collectionName);
+                    await FileHelper.addFileInfo(newFile.path, collectionName);
                     await FileHelper.updateCollectionInformation(collectionName, numOfFiles, ++imageCounter);
                     break;
                 } catch (error) {
@@ -137,7 +137,7 @@ router.put("/collections/:collectionName", async function (req: express.Request,
     let counter: number = 0;
     if (FileHelper.checkCollectionAvailable(collectionName)) {
         //count the total number of images
-        numOfFiles = FileHelper.loadCollection(collectionName, null).length;
+        numOfFiles = FileHelper.loadCollection(collectionName).length;
         let imageCounter: number = numOfFiles;
         for (let file of req.body.files) {
             switch (file.type) {
@@ -173,7 +173,7 @@ router.put("/collections/:collectionName", async function (req: express.Request,
                     for (let inputImage of images) {
                         try {
                             var image = await FileHelper.saveFileUrl(inputImage, collectionName + path.sep, imageCounter);
-                            FileHelper.addFileInfo(image.md5, image.path, collectionName);
+                            FileHelper.addFileInfo(image.path, collectionName);
                             FileHelper.updateCollectionInformation(collectionName, numOfFiles, ++imageCounter);
                         } catch (error) {
                             //TODO add error info into the collection information
@@ -188,7 +188,7 @@ router.put("/collections/:collectionName", async function (req: express.Request,
                             await FileHelper.saveZipUrl(file.value, collectionName);
                         } else {
                             var newFile: DivaFile = await FileHelper.saveFileUrl(file.value, collectionName, imageCounter, file.name, file.extension);
-                            await FileHelper.addFileInfo(newFile.md5, newFile.path, collectionName);
+                            await FileHelper.addFileInfo(newFile.path, collectionName);
                             await FileHelper.updateCollectionInformation(collectionName, numOfFiles, ++imageCounter);
                         }
                     } catch (error) {
@@ -200,13 +200,13 @@ router.put("/collections/:collectionName", async function (req: express.Request,
                     break;
                 case "text":
                     var newFile: DivaFile = await FileHelper.saveFileText(file.value, collectionName, file.extension, imageCounter, file.name);
-                    await FileHelper.addFileInfo(newFile.md5, newFile.path, collectionName);
+                    await FileHelper.addFileInfo(newFile.path, collectionName);
                     await FileHelper.updateCollectionInformation(collectionName, numOfFiles, ++imageCounter);
                     break;
                 default:
                     try {
                         var newFile: DivaFile = await FileHelper.saveBase64(file, collectionName, imageCounter, file.extension);
-                        await FileHelper.addFileInfo(newFile.md5, newFile.path, collectionName);
+                        await FileHelper.addFileInfo(newFile.path, collectionName);
                         await FileHelper.updateCollectionInformation(collectionName, numOfFiles, ++imageCounter);
                         break;
                     } catch (error) {
@@ -242,7 +242,7 @@ router.post("/upload", upload.single('file'), async function (req: express.Reque
         FileHelper.createCollectionInformation(collectionName, 1);
         await IoHelper.moveFile(req.file.path, nconf.get("paths:filesPath") + path.sep + collectionName + path.sep + "original" + path.sep + req.file.originalname);
         let file = DivaFile.CreateFileFull(nconf.get("paths:filesPath") + path.sep + collectionName + path.sep + "original" + path.sep + req.file.originalname);
-        await FileHelper.addFileInfo(file.md5, file.path, collectionName);
+        await FileHelper.addFileInfo(file.path, collectionName);
         await FileHelper.updateCollectionInformation(collectionName, 1, 1);
         send200(res, { collection: collectionName });
     } catch (error) {
@@ -257,14 +257,14 @@ router.post("/upload", upload.single('file'), async function (req: express.Reque
 router.put("/upload/:collectionName", upload.single('file'), async function (req: express.Request, res: express.Response) {
     try {
         if (FileHelper.checkCollectionAvailable(req.params.collectionName)) {
-            let currentFiles = FileHelper.loadCollection(req.params.collectionName, null);
+            let currentFiles = FileHelper.loadCollection(req.params.collectionName);
             let numOfFiles: number = currentFiles.length + 1;
             if (await FileHelper.fileExists(nconf.get("paths:filesPath") + path.sep + req.params.collectionName + path.sep + "original" + path.sep + req.file.originalname)) {
                 sendError(res, new DivaError("File with the name: " + req.file.originalname + " exists already in collection: " + req.params.collectionName, 500, "DuplicateFileError"));
             } else {
                 await IoHelper.moveFile(req.file.path, nconf.get("paths:filesPath") + path.sep + req.params.collectionName + path.sep + "original" + path.sep + req.file.originalname);
                 let file = DivaFile.CreateFileFull(nconf.get("paths:filesPath") + path.sep + req.params.collectionName + path.sep + "original" + path.sep + req.file.originalname);
-                await FileHelper.addFileInfo(file.md5, file.path, req.params.collectionName);
+                await FileHelper.addFileInfo(file.path, req.params.collectionName);
                 await FileHelper.updateCollectionInformation(req.params.collectionName, numOfFiles, numOfFiles);
                 res.status(200).send();
             }
@@ -376,12 +376,11 @@ router.get("/collections/:collection", function (req: express.Request, res: expr
     let collection = req.params.collection;
     if (FileHelper.checkCollectionAvailable(collection)) {
         let status = FileHelper.getCollectionInformation(collection);
-        let files = FileHelper.loadCollection(collection, null);
+        let files = FileHelper.loadCollection(collection);
         let response = [];
         for (let file of files) {
             response.push({
                 "file": {
-                    md5: file.md5,
                     url: file.url,
                     identifier: collection + '/' + file.filename
                 }
@@ -429,15 +428,6 @@ router.delete("/collections/:collection/:name", async function (req: express.Req
         res.status(200).send();
     } catch (error) {
         sendError(res, error);
-    }
-});
-
-router.get("/files/:md5/check", async function (req: express.Request, res: express.Response) {
-    try {
-        var response = await FileHelper.fileExistsMd5(req.params.md5);
-        sendResponse(res, null, response);
-    } catch (error) {
-        sendResponse(res, error, null);
     }
 });
 

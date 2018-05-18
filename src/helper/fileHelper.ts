@@ -3,7 +3,6 @@
  */
 "use strict";
 
-import * as crypto from "crypto";
 import * as fs from "fs-extra";
 import * as _ from "lodash";
 import * as mime from "mime";
@@ -16,7 +15,6 @@ import { DivaError } from '../models/divaError';
 import { DivaFile } from "../models/divaFile";
 import { Process } from "../processingQueue/process";
 import { IoHelper } from "./ioHelper";
-import md5 = require("md5");
 
 /**
  * A class for all file handling 
@@ -35,27 +33,6 @@ export class FileHelper {
      */
 
     static filesInfo = IoHelper.readFile(nconf.get("paths:imageInfoFile"));
-
-    /**
-     * Checks if an image exists on the file system
-     * 
-     * @static
-     * @param {string} md5 the md5 hash of the image
-     * 
-     * @memberOf FileHelper
-     */
-    static fileExistsMd5(md5: string): Promise<any> {
-        return new Promise<any>((resolve, reject) => {
-            let filtered = this.filesInfo.filter(function (item: any) {
-                return item.md5 === md5;
-            });
-            if (filtered.length > 0) {
-                resolve({ imageAvailable: true, collection: filtered[0].collection });
-            } else {
-                resolve({ imageAvailable: false });
-            }
-        });
-    }
 
     /**
      * 
@@ -95,7 +72,6 @@ export class FileHelper {
             } else {
                 base64Data = splitValues[0];
             }
-            let md5String = md5(base64Data);
             let fileObject = new DivaFile();
             let fileFolder = imagePath + path.sep + folder + path.sep + "original" + path.sep;
             let fileName = file.name;
@@ -114,7 +90,6 @@ export class FileHelper {
                     fileObject.filename = fileName;
                     fileObject.extension = fileExtension;
                     fileObject.path = fileFolder + fileName + "." + fileExtension;
-                    fileObject.md5 = md5String;
                     await fs.writeFile(fileObject.path, base64Data, { encoding: "base64" });
                     resolve(fileObject);
                 }
@@ -184,14 +159,12 @@ export class FileHelper {
                     let divaFile = new DivaFile();
                     let filename = file.split(".").shift();
                     let base64 = fs.readFileSync(filePath + path.sep + folder + path.sep + "original" + path.sep + file, "base64");
-                    let md5String = md5(base64);
                     divaFile.filename = filename;
                     divaFile.folder = filePath + path.sep + folder + path.sep + "original" + path.sep;
                     divaFile.extension = mime.getExtension(mime.getType(file));
                     divaFile.path = divaFile.folder + file;
-                    divaFile.md5 = md5String;
 
-                    await FileHelper.addFileInfo(divaFile.md5, divaFile.path, folder);
+                    await FileHelper.addFileInfo(divaFile.path, folder);
                     await FileHelper.updateCollectionInformation(folder, files.length, ++imageCounter);
 
                     divaFiles.push(divaFile);
@@ -243,13 +216,11 @@ export class FileHelper {
 
                 await this.downloadFile(url, tmpFilePath);
 
-                let md5String = await this.getMd5Hash(tmpFilePath);
                 let imgFolder = filePath + path.sep + folder + path.sep + "original" + path.sep;
                 file.filename = fileName;
                 file.folder = imgFolder;
                 file.extension = fileExtension;
                 file.path = imgFolder + fileName + "." + fileExtension;
-                file.md5 = md5String;
                 try {
                     await fs.stat(file.path);
                     fs.unlinkSync(tmpFilePath);
@@ -298,13 +269,11 @@ export class FileHelper {
 
             let base64 = fs.readFileSync(filePath, "base64");
 
-            let md5String = md5(base64);
             let imgFolder = filePath + path.sep + folder + path.sep + "original" + path.sep;
             file.filename = fileName;
             file.folder = imgFolder;
             file.extension = extension;
             file.path = imgFolder + fileName + "." + extension;
-            file.md5 = md5String;
 
             Logger.log("trace", "saved file", "FileHelper");
             resolve(file);
@@ -338,28 +307,21 @@ export class FileHelper {
      * 
      * @static
      * @param {string} collectionName The name of the collection
-     * @param {string[]} hashes an array of md5 hashes for files to load
      * @returns {File[]} The array of loaded files
      * 
      * @memberOf FileHelper
      */
-    static loadCollection(collectionName: string, hashes: string[]): DivaFile[] {
+    static loadCollection(collectionName: string): DivaFile[] {
         let files: DivaFile[] = [];
 
         let filtered = null;
 
-        if (hashes != null) {
-            filtered = _.filter(this.filesInfo, function (file: any) {
-                return file.collection === collectionName && _.includes(hashes, file.md5);
-            });
-        } else {
-            filtered = _.filter(this.filesInfo, function (file: any) {
-                return file.collection === collectionName;
-            });
-        }
+        filtered = _.filter(this.filesInfo, function (file: any) {
+            return file.collection === collectionName;
+        });
         if (filtered.length > 0) {
             for (let item of filtered) {
-                let file = DivaFile.CreateFile(collectionName, path.basename(item.file), item.md5);
+                let file = DivaFile.CreateFile(collectionName, path.basename(item.file));
                 files.push(file);
             }
             return files;
@@ -373,32 +335,16 @@ export class FileHelper {
      * Save the information of an file into the file information file
      * 
      * @static
-     * @param {string} md5 the md5 hash of the file
      * @param {string} file the filename of the file
      * @param {string} collection the collection the file belongs to
      * 
      * @memberOf FileHelper
      */
-    static async addFileInfo(md5: string, file: string, collection: string): Promise<void> {
+    static async addFileInfo(file: string, collection: string): Promise<void> {
         return new Promise<void>(async (resolve, reject) => {
-            this.filesInfo.push({ md5: md5, file: file, collection: collection });
+            this.filesInfo.push({ file: file, collection: collection });
             await this.saveFileInfo();
             resolve();
-        });
-    }
-
-    /**
-     * get information for a file
-     * 
-     * @static
-     * @param {string} md5 the md5 hash of the file
-     * @returns {*} the information belonging to this file
-     * 
-     * @memberOf FileHelper
-     */
-    static getFileInfo(md5: string): any {
-        return _.find(this.filesInfo, function (info: any) {
-            return info.md5 === md5;
         });
     }
 
@@ -464,10 +410,10 @@ export class FileHelper {
      */
     static async deleteCollection(collection: string): Promise<void> {
         return new Promise<void>(async (resolve, reject) => {
-            let files: DivaFile[] = this.loadCollection(collection, null);
+            let files: DivaFile[] = this.loadCollection(collection);
             for (var file of files) {
                 _.remove(this.filesInfo, function (item: any) {
-                    return item.md5 === file.md5 && item.collection === collection;
+                    return item.collection === collection;
                 });
                 Logger.log("info", "delete file" + file.path);
             }
@@ -488,7 +434,7 @@ export class FileHelper {
     static async deleteFile(file: DivaFile): Promise<void> {
         return new Promise<void>(async (resolve, reject) => {
             _.remove(this.filesInfo, function (item: any) {
-                return item.md5 === file.md5 && item.collection === file.collection;
+                return item.collection === file.collection;
             });
             await this.saveFileInfo();
             await IoHelper.deleteFile(file.path);
@@ -508,7 +454,7 @@ export class FileHelper {
      */
     static async deleteFileInCollection(collection: string, target: string): Promise<void> {
         return new Promise<void>(async (resolve, reject) => {
-            let files: DivaFile[] = this.loadCollection(collection, null);
+            let files: DivaFile[] = this.loadCollection(collection);
             for (var file of files) {
                 if (file.filename === target) {
                     _.remove(this.filesInfo, function (item: any) {
@@ -520,21 +466,6 @@ export class FileHelper {
             await this.saveFileInfo();
             IoHelper.deleteFile(nconf.get("paths:filesPath") + path.sep + collection + path.sep + "original" + path.sep + target);
             resolve();
-        });
-    }
-
-
-    static async getMd5Hash(file: string): Promise<string> {
-        return new Promise<string>(async (resolve, reject) => {
-            var stream = fs.createReadStream(file, { encoding: 'base64' });
-            var hash = crypto.createHash('md5');
-            stream.on('data', function (data: any) {
-                hash.update(data, 'utf8');
-            });
-
-            stream.on('end', function () {
-                resolve(hash.digest('hex'));
-            });
         });
     }
 
