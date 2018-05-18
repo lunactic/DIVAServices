@@ -241,7 +241,7 @@ router.post("/upload", upload.single('file'), async function (req: express.Reque
         await IoHelper.createFilesCollectionFolders(collectionName);
         FileHelper.createCollectionInformation(collectionName, 1);
         await IoHelper.moveFile(req.file.path, nconf.get("paths:filesPath") + path.sep + collectionName + path.sep + "original" + path.sep + req.file.originalname);
-        let file = DivaFile.CreateFileFull(nconf.get("paths:filesPath") + path.sep + collectionName + path.sep + "original" + path.sep + req.file.originalname);
+        let file = DivaFile.CreateFileFullTest(nconf.get("paths:filesPath") + path.sep + collectionName + path.sep + "original" + path.sep + req.file.originalname);
         await FileHelper.addFileInfo(file.path, collectionName);
         await FileHelper.updateCollectionInformation(collectionName, 1, 1);
         send200(res, { collection: collectionName });
@@ -263,7 +263,7 @@ router.put("/upload/:collectionName", upload.single('file'), async function (req
                 sendError(res, new DivaError("File with the name: " + req.file.originalname + " exists already in collection: " + req.params.collectionName, 500, "DuplicateFileError"));
             } else {
                 await IoHelper.moveFile(req.file.path, nconf.get("paths:filesPath") + path.sep + req.params.collectionName + path.sep + "original" + path.sep + req.file.originalname);
-                let file = DivaFile.CreateFileFull(nconf.get("paths:filesPath") + path.sep + req.params.collectionName + path.sep + "original" + path.sep + req.file.originalname);
+                let file = DivaFile.CreateFileFullTest(nconf.get("paths:filesPath") + path.sep + req.params.collectionName + path.sep + "original" + path.sep + req.file.originalname);
                 await FileHelper.addFileInfo(file.path, req.params.collectionName);
                 await FileHelper.updateCollectionInformation(req.params.collectionName, numOfFiles, numOfFiles);
                 res.status(200).send();
@@ -382,7 +382,7 @@ router.get("/collections/:collection", function (req: express.Request, res: expr
             response.push({
                 "file": {
                     url: file.url,
-                    identifier: collection + '/' + file.filename
+                    identifier: file.identifier
                 }
             });
         }
