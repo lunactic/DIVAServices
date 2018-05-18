@@ -2,7 +2,6 @@
  * Created by Marcel Würsch on 03.11.16.
  */
 
-import * as fs from "fs-extra";
 import * as nconf from "nconf";
 import * as path from "path";
 /**
@@ -17,22 +16,29 @@ export class DivaFile {
      * the folder name of the file on the filesystem
      * 
      * @type {string}
-     * @memberOf File
+     * @memberof File
      */
     public folder: string;
     /**
      * the name of the file
      * 
      * @type {string}
-     * @memberOf File
+     * @memberof File
      */
     public filename: string;
 
+    /**
+     * the DIVAServices identifier of the file 
+     * 
+     * @type {string}
+     * @memberof DivaFile
+     */
+    public identifier: string;
 
     /**
      * the name of the collection
      * @type {string}
-     * @memberOf File
+     * @memberof File
      */
     public collection: string;
 
@@ -40,14 +46,14 @@ export class DivaFile {
      * the file extension
      * 
      * @type {string}
-     * @memberOf File
+     * @memberof File
      */
     public extension: string;
     /**
      * the full path to the data file
      * 
      * @type {string}
-     * @memberOf File
+     * @memberof File
      */
     public path: string;
 
@@ -61,6 +67,7 @@ export class DivaFile {
         this.filename = "";
         this.extension = "";
         this.path = "";
+        this.identifier = "";
     }
 
 
@@ -70,18 +77,31 @@ export class DivaFile {
         item.filename = filename;
         item.extension = filename.split(".").pop();
         item.path = nconf.get("paths:filesPath") + path.sep + collection + path.sep + "original" + path.sep + filename;
+        item.identifier = item.path.replace(nconf.get("paths:filesPath") + path.sep, "").replace(path.sep + "original", "");
         item.url = "http://" + nconf.get("server:rootUrl") + "/files/" + collection + "/original/" + filename;
         return item;
     }
 
     static CreateFileFull(filePath: string): DivaFile {
+        let item = new DivaFile();
+        let relativePath = filePath.replace(nconf.get("paths:filesPath") + path.sep, "");
+        item.path = filePath;
+        item.identifier = relativePath.replace(path.sep + "original", "");
+        item.url = "http://" + nconf.get("server:rootUrl") + "/files/" + relativePath;
+        item.filename = path.parse(filePath).base;
+        item.extension = path.parse(filePath).ext;
+        return item;
+
+    }
+
+    static CreateFileFullTest(filePath: string): DivaFile {
         let relativePath = filePath.replace(nconf.get("paths:executablePath") + path.sep, "");
         let item = new DivaFile();
         item.path = filePath;
         item.url = "http://" + nconf.get("server:rootUrl") + "/test/" + relativePath;
         item.filename = path.parse(filePath).base;
         item.extension = path.parse(filePath).ext;
-        let base64 = fs.readFileSync(filePath, "base64");
+        item.identifier = relativePath.replace(path.sep + "original", "");
         return item;
     }
 
@@ -92,6 +112,7 @@ export class DivaFile {
         item.url = "http://" + nconf.get("server:rootUrl") + "/test/" + relativePath;
         item.filename = path.parse(filePath).base;
         item.extension = path.parse(filePath).ext;
+        item.identifier = relativePath.replace(path.sep + "original", "");
         return item;
     }
 
