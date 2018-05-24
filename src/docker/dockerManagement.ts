@@ -165,7 +165,7 @@ export class DockerManagement {
         }
         content += 'WORKDIR /input' + os.EOL;
         content += 'RUN chmod +x *' + os.EOL;
-        content += 'CMD ["/input/script.sh"]';
+        content += 'CMD ["' + algorithmInfos.method.executable_path + '"]';
         fse.writeFileSync(outputFolder + path.sep + "Dockerfile", content);
     }
 
@@ -216,11 +216,11 @@ export class DockerManagement {
         //add the correct execution string
         switch (algorithmInfos.method.executableType) {
             case "java":
-                content += 'java -Djava.awt.headless=true -Xmx4096m -jar /input/' + algorithmInfos.method.executable_path + ' ';
+                content += 'java -Djava.awt.headless=true -Xmx4096m -jar ' + algorithmInfos.method.executable_path + ' ';
                 break;
             case "bash":
             case "matlab":
-                content += '/input/' + algorithmInfos.method.executable_path + ' ';
+                content += algorithmInfos.method.executable_path + ' ';
                 break;
         }
 
@@ -288,11 +288,11 @@ export class DockerManagement {
         //add the correct execution string
         switch (algorithmInfos.method.executableType) {
             case "java":
-                content += 'java -Djava.awt.headless=true -Xmx4096m -jar /input/' + algorithmInfos.method.executable_path + ' ';
+                content += 'java -Djava.awt.headless=true -Xmx4096m -jar ' + algorithmInfos.method.executable_path + ' ';
                 break;
             case "bash":
             case "matlab":
-                content += '/input/' + algorithmInfos.method.executable_path + ' ';
+                content += algorithmInfos.method.executable_path + ' ';
                 break;
         }
 

@@ -1,22 +1,21 @@
-import { FileHelper } from '../helper/fileHelper';
+import * as express from 'express';
 /**
  * Created by Marcel Würsch on 04.11.16.
  */
 import * as _ from 'lodash';
-import * as express from 'express';
-import { IoHelper } from "../helper/ioHelper";
-import { Logger } from "../logging/logger";
+import * as mime from 'mime';
 import * as nconf from 'nconf';
 import * as path from 'path';
-import * as mime from 'mime';
-import { ServicesInfoHelper } from "../helper/servicesInfoHelper";
+import { isNullOrUndefined } from 'util';
 import { DockerManagement } from "../docker/dockerManagement";
+import { CwlManager } from "../helper/cwl/cwlManager";
 import { ExecutableHelper } from "../helper/executableHelper";
+import { IoHelper } from "../helper/ioHelper";
+import { ServicesInfoHelper } from "../helper/servicesInfoHelper";
+import { Logger } from "../logging/logger";
+import { DivaError } from "../models/divaError";
 import { QueueHandler } from "../processingQueue/queueHandler";
 import { Swagger } from "../swagger/swagger";
-import { DivaError } from "../models/divaError";
-import { CwlManager } from "../helper/cwl/cwlManager";
-import { isNullOrUndefined } from 'util';
 
 let crypto = require("crypto");
 
@@ -207,7 +206,7 @@ export class AlgorithmManagement {
         return new Promise<void>(async (resolve, reject) => {
             var info: any = await ServicesInfoHelper.getInfoByIdentifier(identifier);
             //TODO Initialize cwlManager with correct path to the executable (since it is not 100% sure the same one)
-            var executable: string = info.executablePath.split("/").pop();
+            var executable: string = info.executablePath;
             var cwlManager: CwlManager = new CwlManager(file, info.image_name);
             await cwlManager.initialize(executable);
             var counter: number = 0;
@@ -741,7 +740,7 @@ export class AlgorithmManagement {
                     identifier: identifier,
                     path: "/" + route,
                     cwl: nconf.get("paths:executablePath") + path.sep + route + path.sep + identifier + ".cwl",
-                    executablePath: nconf.get("paths:executablePath") + path.sep + route + path.sep + algorithm.method.executable_path,
+                    executablePath: algorithm.method.executable_path,
                     allowParallel: true,
                     hasMultipleFiles: (fileCount > 1),
                     hasData: (fileCount > 0),
