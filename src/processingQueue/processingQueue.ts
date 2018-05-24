@@ -12,39 +12,40 @@ import { Process } from "./process";
  * @class ProcessingQueue
  */
 export class ProcessingQueue {
-
     /**
-     * the queue array
+     * The array for the processing queue
      * 
      * @static
      * @type {Process[]}
-     * @memberOf ProcessingQueue
+     * @memberof ProcessingQueue
      */
     static queue: Process[] = [];
 
-    getQueue(): any {
-        return ProcessingQueue.queue;
-    }
-
     /**
-     * Add a process to the processing queue
-     * @param the process
+     * Add a process to the processing queue 
+     * 
+     * @param {Process} element the process to add to the queue
+     * @memberof ProcessingQueue
      */
     addElement(element: Process): void {
         ProcessingQueue.queue.push(element);
     }
 
-    /**
+    /**  
      * Returns the next process
-     * @returns {undefined|Process}
+     *
+     * @returns {Process} the next process in the queue 
+     * @memberof ProcessingQueue
      */
     getNext(): Process {
         return ProcessingQueue.queue.shift();
     }
 
     /**
-     * Returns the size
-     * @returns {number}
+     * 
+     * 
+     * @returns {Number} The size of the processing queue
+     * @memberof ProcessingQueue
      */
     getSize(): Number {
         return ProcessingQueue.queue.length;
