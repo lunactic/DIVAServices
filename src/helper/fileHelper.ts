@@ -29,7 +29,7 @@ export class FileHelper {
      * 
      * @static
      * 
-     * @memberOf FileHelper
+     * @memberof FileHelper
      */
 
     static filesInfo = IoHelper.readFile(nconf.get("paths:imageInfoFile"));
@@ -104,7 +104,7 @@ export class FileHelper {
      * @param {Process} process the process of this image
      * @param {string} filename the filename of this image
      * 
-     * @memberOf FileHelper
+     * @memberof FileHelper
      */
     static async saveJson(file: any, process: Process, filename: string): Promise<void> {
         return new Promise<void>(async (resolve, reject) => {
@@ -227,7 +227,7 @@ export class FileHelper {
     }
 
     /**
-     * 
+     * save a text file
      * 
      * @static
      * @param {string} data the textual data to save
@@ -270,7 +270,7 @@ export class FileHelper {
      * @static
      * @returns {String[]} An array of collection names
      * 
-     * @memberOf FileHelper
+     * @memberof FileHelper
      */
     static getAllCollections(): String[] {
         let collections = [];
@@ -291,7 +291,7 @@ export class FileHelper {
      * @param {string} collectionName The name of the collection
      * @returns {File[]} The array of loaded files
      * 
-     * @memberOf FileHelper
+     * @memberof FileHelper
      */
     static loadCollection(collectionName: string): DivaFile[] {
         let files: DivaFile[] = [];
@@ -320,7 +320,7 @@ export class FileHelper {
      * @param {string} file the filename of the file
      * @param {string} collection the collection the file belongs to
      * 
-     * @memberOf FileHelper
+     * @memberof FileHelper
      */
     static async addFileInfo(file: string, collection: string): Promise<void> {
         return new Promise<void>(async (resolve, reject) => {
@@ -335,7 +335,7 @@ export class FileHelper {
      * 
      * @static
      * 
-     * @memberOf FileHelper
+     * @memberof FileHelper
      */
     static async saveFileInfo() {
         await IoHelper.saveFile(nconf.get("paths:imageInfoFile"), this.filesInfo, "utf-8");
@@ -349,7 +349,7 @@ export class FileHelper {
      * @param {string} collectionName the name of the collection
      * @param {number} files the number of files belonging to this collection
      * 
-     * @memberOf FileHelper
+     * @memberof FileHelper
      */
     static async createCollectionInformation(collectionName: string, files: number) {
         let status = {
@@ -381,6 +381,7 @@ export class FileHelper {
 
         await IoHelper.saveFile(nconf.get("paths:filesPath") + path.sep + collectionName + path.sep + "status.json", currentStatus, "utf-8");
     }
+
 
     /**
      * Deletes a collection from DIVAServices
@@ -447,6 +448,14 @@ export class FileHelper {
             }
             await this.saveFileInfo();
             IoHelper.deleteFile(nconf.get("paths:filesPath") + path.sep + collection + path.sep + "original" + path.sep + target);
+            let statusFile = nconf.get("paths:filesPath") + path.sep + collection + path.sep + "status.json";
+            let currentStatus = await IoHelper.readFile(statusFile);
+            
+            currentStatus.statusCode = 200,
+            currentStatus.totalFiles = (currentStatus.totalFiles - 1);
+            currentStatus.statusMessage = "Collection is available";
+            currentStatus.percentage = 100;
+            await IoHelper.saveFile(nconf.get("paths:filesPath") + path.sep + collection + path.sep + "status.json", currentStatus, "utf-8");
             resolve();
         });
     }
@@ -458,7 +467,7 @@ export class FileHelper {
      * @param {string} collection the name of the collection
      * @returns {boolean} indicator whether or not the collection exists
      * 
-     * @memberOf FileHelper
+     * @memberof FileHelper
      */
     static checkCollectionAvailable(collection: string): boolean {
         try {
@@ -477,7 +486,7 @@ export class FileHelper {
      * @param {number} files the total number of files in the collection
      * @param {number} downloaded the number of downloaded files
      * 
-     * @memberOf ImageHelper
+     * @memberof ImageHelper
      */
     static async updateCollectionInformation(collection: string, files: number, downloaded: number): Promise<void> {
         return new Promise<void>(async (resolve, reject) => {
@@ -510,7 +519,7 @@ export class FileHelper {
      * @param {string} collection the name of the collection
      * @returns {*} the file information for the collection
      * 
-     * @memberOf ImageHelper
+     * @memberof ImageHelper
      */
     static getCollectionInformation(collection: string): any {
         let statusFile = nconf.get("paths:filesPath") + path.sep + collection + path.sep + "status.json";

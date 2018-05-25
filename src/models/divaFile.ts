@@ -59,9 +59,16 @@ export class DivaFile {
 
     /**
      * the public url to retrieve this file
+     * 
+     * @type {string}
+     * @memberof DivaFile
      */
     public url: string;
 
+    /**
+     * Creates an instance of DivaFile.
+     * @memberof DivaFile
+     */
     constructor() {
         this.folder = "";
         this.filename = "";
@@ -70,7 +77,15 @@ export class DivaFile {
         this.identifier = "";
     }
 
-
+    /**
+     * Create a DivaFile for a specific data item in a collection
+     * 
+     * @static
+     * @param {string} collection the collection containing the file
+     * @param {string} filename  the filename of the file
+     * @returns {DivaFile} The created DivaFile
+     * @memberof DivaFile
+     */
     static CreateFile(collection: string, filename: string): DivaFile {
         let item = new DivaFile();
         item.collection = collection;
@@ -81,7 +96,14 @@ export class DivaFile {
         item.url = "http://" + nconf.get("server:rootUrl") + "/files/" + collection + "/original/" + filename;
         return item;
     }
-
+    /**
+     * Create a DivaFile from a full path to the file
+     * 
+     * @static
+     * @param {string} filePath The path to the file 
+     * @returns {DivaFile} The created DivaFile
+     * @memberof DivaFile
+     */
     static CreateFileFull(filePath: string): DivaFile {
         let item = new DivaFile();
         let relativePath = filePath.replace(nconf.get("paths:filesPath") + path.sep, "");
@@ -93,7 +115,14 @@ export class DivaFile {
         return item;
 
     }
-
+    /**
+     * Create a DivaFile used in testing with a full path to the file
+     * 
+     * @static
+     * @param {string} filePath The path to the file
+     * @returns {DivaFile} The created DivaFile
+     * @memberof DivaFile
+     */
     static CreateFileFullTest(filePath: string): DivaFile {
         let relativePath = filePath.replace(nconf.get("paths:executablePath") + path.sep, "");
         let item = new DivaFile();
@@ -104,16 +133,4 @@ export class DivaFile {
         item.identifier = relativePath.replace(path.sep + "original", "");
         return item;
     }
-
-    static CreateBasicFile(filePath: string): DivaFile {
-        let relativePath = filePath.replace(nconf.get("paths:executablePath") + path.sep, "");
-        let item = new DivaFile();
-        item.path = filePath;
-        item.url = "http://" + nconf.get("server:rootUrl") + "/test/" + relativePath;
-        item.filename = path.parse(filePath).base;
-        item.extension = path.parse(filePath).ext;
-        item.identifier = relativePath.replace(path.sep + "original", "");
-        return item;
-    }
-
 }

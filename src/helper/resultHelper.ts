@@ -1,9 +1,9 @@
 import { Logger } from '../logging/logger';
 import { Collection } from '../processingQueue/collection';
-import IProcess = require('../processingQueue/iProcess');
 import { Process } from '../processingQueue/process';
 import { IoHelper } from './ioHelper';
 import { ParameterHelper } from './parameterHelper';
+import IProcess = require('../processingQueue/iProcess');
 
 /**
  * Created by Marcel Würsch on 04.11.16.
@@ -26,7 +26,7 @@ export class ResultHelper {
      * @param {Process} process the process to check
      * @returns {boolean} indication whether results are available or not
      * 
-     * @memberOf ResultHelper
+     * @memberof ResultHelper
      */
     static async checkProcessResultAvailable(process: Process): Promise<boolean> {
         return new Promise<boolean>(async (resolve, reject) => {
@@ -42,7 +42,7 @@ export class ResultHelper {
      * @param {IProcess} process the process to load results for
      * @returns {*}
      * 
-     * @memberOf ResultHelper
+     * @memberof ResultHelper
      */
     static loadResult(process: IProcess): any {
         return IoHelper.readFile(process.resultFile);
@@ -54,7 +54,7 @@ export class ResultHelper {
      * @static
      * @param {IProcess} info the process to save results for
      * 
-     * @memberOf ResultHelper
+     * @memberof ResultHelper
      */
     static async saveResult(info: IProcess): Promise<any> {
         if (info instanceof Collection) {
@@ -70,7 +70,7 @@ export class ResultHelper {
      * @static
      * @param {Process} process the process to delete results for
      * 
-     * @memberOf ResultHelper
+     * @memberof ResultHelper
      */
     static async removeResult(process: Process): Promise<void> {
         return new Promise<void>(async (resolve, reject) => {

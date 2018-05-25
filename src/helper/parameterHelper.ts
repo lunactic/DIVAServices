@@ -1,24 +1,23 @@
-import { FileHelper } from './fileHelper';
+import * as fs from 'fs-extra';
+import * as _ from 'lodash';
+import * as mime from 'mime';
+import * as nconf from 'nconf';
+import * as hash from 'object-hash';
+import * as path from 'path';
+import { isNullOrUndefined, promisify } from "util";
+import { Logger } from "../logging/logger";
 import { DivaCollection } from '../models/divaCollection';
+import { DivaError } from "../models/divaError";
+import { DivaFile } from "../models/divaFile";
+import { Collection } from "../processingQueue/collection";
+import { Process } from "../processingQueue/process";
+import { FileHelper } from './fileHelper';
+import { IoHelper } from "./ioHelper";
 /**
  * Created by Marcel Würsch on 03.11.16.
  */
 "use strict";
-import { promisify } from "util";
-import * as _ from 'lodash';
-import * as fs from 'fs-extra';
-import * as nconf from 'nconf';
-import * as path from 'path';
-import * as hash from 'object-hash';
-import * as  mime from 'mime';
-import { DivaError } from "../models/divaError";
-import { IoHelper } from "./ioHelper";
-import { Logger } from "../logging/logger";
-import { Process } from "../processingQueue/process";
-import { Collection } from "../processingQueue/collection";
 import IProcess = require('../processingQueue/iProcess');
-import { DivaFile } from "../models/divaFile";
-import { isNullOrUndefined } from "util";
 require("natural-compare-lite");
 
 var sizeOf = promisify(require('image-size'));
@@ -227,7 +226,7 @@ export class ParameterHelper {
                                     data[key] = DivaFile.CreateFile(collection, filename);
                                 } else {
                                     //use absolute path (used only when testing a method)
-                                    data[key] = DivaFile.CreateBasicFile(value);
+                                    data[key] = DivaFile.CreateFileFullTest(value);
                                 }
                                 break;
                             case "folder":

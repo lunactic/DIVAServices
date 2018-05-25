@@ -1,16 +1,15 @@
+import * as fs from 'fs';
+import * as _ from 'lodash';
+import * as nconf from 'nconf';
+import * as path from 'path';
 import { IoHelper } from '../helper/ioHelper';
+import { Logger } from "../logging/logger";
+import { Process } from "../processingQueue/process";
 /**
  * Created by Marcel Würsch on 02.11.16.
  */
 "use strict";
 
-import { isNullOrUndefined } from 'util';
-import * as _ from 'lodash';
-import * as nconf from 'nconf';
-import * as fs from 'fs';
-import { Logger } from "../logging/logger";
-import { Process } from "../processingQueue/process";
-import * as path from 'path';
 
 /**
  * class for all statistics
@@ -28,7 +27,7 @@ export class Statistics {
      * @static
      * @returns {number}
      * 
-     * @memberOf Statistics
+     * @memberof Statistics
      */
     static getNumberOfCurrentExecutions(): number {
         return Statistics.currentExecutions.length;
@@ -41,7 +40,7 @@ export class Statistics {
      * @param {string} reqPath the request path
      * @returns {boolean} true if a process is running for this route
      * 
-     * @memberOf Statistics
+     * @memberof Statistics
      */
     static isRunning(reqPath: string): boolean {
         let executionInfo = Statistics.currentExecutions.filter(function (x: any) {
@@ -57,7 +56,7 @@ export class Statistics {
      * @param {string} rand the random
      * @returns {Process} the process in the statistics
      * 
-     * @memberOf Statistics
+     * @memberof Statistics
      */
     static getProcess(rand: string): Process {
         let execution = Statistics.currentExecutions.filter(function (x: any) {
@@ -77,7 +76,7 @@ export class Statistics {
      * @param {Process} proc the process
      * @returns {*} the statistics object
      * 
-     * @memberOf Statistics
+     * @memberof Statistics
      */
     static startRecording(proc: Process): any {
         let startTime = process.hrtime();
@@ -100,7 +99,7 @@ export class Statistics {
      * @param {string} reqPath the request path
      * @returns {number} the run time
      * 
-     * @memberOf Statistics
+     * @memberof Statistics
      */
     static endRecording(rand: string, reqPath: string, startTime: [number, number]): Promise<number> {
         return new Promise<number>((resolve, reject) => {
@@ -145,7 +144,7 @@ export class Statistics {
      * @param {string} reqPath the request path
      * @returns {number} the mean execution time
      * 
-     * @memberOf Statistics
+     * @memberof Statistics
      */
     static getMeanExecutionTime(reqPath: string): number {
         if (_.find(Statistics.currentStatistics.services, { "path": reqPath }) != null) {
@@ -163,7 +162,7 @@ export class Statistics {
      * @param {string} reqPath the request path
      * @returns {number} the number of times this method has been executed
      * 
-     * @memberOf Statistics
+     * @memberof Statistics
      */
     static getNumberOfExecutions(reqPath: string): number {
         if (_.find(Statistics.currentStatistics.services, { "path": reqPath }) != null) {
@@ -226,7 +225,7 @@ export class Statistics {
      * 
      * @static
      * 
-     * @memberOf Statistics
+     * @memberof Statistics
      */
     static loadStatistics(): void {
         if (Object.keys(Statistics.currentStatistics).length === 0) {

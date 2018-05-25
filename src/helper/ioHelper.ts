@@ -72,7 +72,7 @@ export class IoHelper {
      * @param {string} filePath the path of the file to open
      * @returns {*} the content of the file as JSON object
      * 
-     * @memberOf IoHelper
+     * @memberof IoHelper
      */
     static readFile(filePath: string): any {
         try {
@@ -88,13 +88,21 @@ export class IoHelper {
             return null;
         }
     }
-
+    /**
+     * load a file from its DIVAServices identifier
+     * 
+     * @static
+     * @param {string} identifier the file identifier
+     * @returns {*} the loaded file
+     * @memberof IoHelper
+     */
     static readFileFromIdentifier(identifier: string): any {
         let parts = identifier.split("/");
         let collectionName = parts.shift();
         let filePath = nconf.get("paths:filesPath") + collectionName + path.sep + "original" + path.sep + parts.join(path.sep);
         return this.readFile(filePath);
     }
+
     /**
      * save a file on the filesystem
      * 
@@ -102,8 +110,8 @@ export class IoHelper {
      * @param {string} filePath the file path
      * @param {*} content the content as JSON object
      * @param {string} encoding the encoding to use
-     * 
-     * @memberOf IoHelper
+     * @returns {Promise<void>} resolves once the file has been saved
+     * @memberof IoHelper
      */
     static async saveFile(filePath: string, content: any, encoding: string): Promise<void> {
         return new Promise<void>(async (resolve, reject) => {
@@ -121,6 +129,15 @@ export class IoHelper {
         });
     }
 
+    /**
+     * Move a file
+     * 
+     * @static
+     * @param {string} oldPath original location 
+     * @param {string} newPath new location
+     * @returns {Promise<void>} resolves once the file has been moved
+     * @memberof IoHelper
+     */
     static async moveFile(oldPath: string, newPath: string): Promise<void> {
         return new Promise<void>(async (resolve, reject) => {
             await fs.move(oldPath, newPath, { overwrite: true });
@@ -134,7 +151,7 @@ export class IoHelper {
      * @static
      * @param {string} file the file path to remove
      * 
-     * @memberOf IoHelper
+     * @memberof IoHelper
      */
     static async deleteFile(file: string): Promise<any> {
         return new Promise<any>((resolve, reject) => {
@@ -155,7 +172,7 @@ export class IoHelper {
      * @static
      * @param {string} folder the folder to create
      * 
-     * @memberOf IoHelper
+     * @memberof IoHelper
      */
     static async createFolder(folder: string): Promise<void> {
         return new Promise<void>(async (resolve, reject) => {
@@ -170,7 +187,7 @@ export class IoHelper {
      * @static
      * @param {string} folder the folder to remove
      * 
-     * @memberOf IoHelper
+     * @memberof IoHelper
      */
     static deleteFolder(folder: string): Promise<void> {
         return new Promise<void>((resolve, reject) => {
@@ -190,7 +207,7 @@ export class IoHelper {
      * @param {string} localFilename the filename to assign the downloaded image
      * @returns {Promise<string>} the full path to the file
      * 
-     * @memberOf IoHelper
+     * @memberof IoHelper
      */
     static downloadFile(fileUrl: string, localFolder: string, localFilename: string): Promise<string> {
         return new Promise<string>((resolve, reject) => {
@@ -215,7 +232,7 @@ export class IoHelper {
      * @param {string} localFolder the local folder to save the file into
      * @param {string} fileType the expected file type
      * 
-     * @memberOf IoHelper
+     * @memberof IoHelper
      */
     static downloadFileWithTypecheck(fileUrl: string, localFolder: string, fileType: string): Promise<string> {
         return new Promise<string>(async (resolve, reject) => {
@@ -242,7 +259,7 @@ export class IoHelper {
      * @param {string} filename the name of the zip file to generate
      * @returns {string} the filename of the compressed zip file
      * 
-     * @memberOf IoHelper
+     * @memberof IoHelper
      */
     static async zipFolder(folder: string, filename: string): Promise<void> {
         return new Promise<void>((resolve, reject) => {
@@ -275,12 +292,11 @@ export class IoHelper {
      * @param {string} zipFile the path to the compressed file
      * @param {string} folder the folder to uncompress the files into
      * 
-     * @memberOf IoHelper
+     * @memberof IoHelper
      */
     static async unzipFile(zipFile: string, folder: string): Promise<void> {
         return new Promise<void>(async (resolve, reject) => {
             try {
-                //await fsp.mkdirs(folder);
                 fs.createReadStream(zipFile).pipe(unzip.Extract({ path: folder })).on("finish", function () {
                     resolve();
                 }).on("error", function (error: any) {
@@ -303,7 +319,7 @@ export class IoHelper {
      * @param {string} path the folder to read the files from
      * @returns {string[]} an array of files within the folder
      * 
-     * @memberOf IoHelper
+     * @memberof IoHelper
      */
     static readFolder(path: string): string[] {
         try {
@@ -313,6 +329,7 @@ export class IoHelper {
             return null;
         }
     }
+
     /**
      * reads a folder recursively including all subfolders
      * 
@@ -332,7 +349,7 @@ export class IoHelper {
      * @static
      * @param {string} collection the name of the collection
      * 
-     * @memberOf IoHelper
+     * @memberof IoHelper
      */
     static async createFilesCollectionFolders(collection: string): Promise<void> {
         return new Promise<void>(async (resolve, reject) => {
@@ -351,7 +368,7 @@ export class IoHelper {
      * @static
      * @param {string} collection the name of the collection
      * 
-     * @memberOf IoHelper
+     * @memberof IoHelper
      */
     static deleteImageCollectionFolders(collection: string): void {
         let rootFolder = nconf.get("paths:imageRootPath") + path.sep + collection + path.sep;
@@ -369,7 +386,7 @@ export class IoHelper {
      * @param {string} collectionName the name of the collection
      * @returns {string} the path of the folder
      * 
-     * @memberOf IoHelper
+     * @memberof IoHelper
      */
     static getOutputFolder(collectionName: string): string {
         let dataPath = nconf.get("paths:resultsPath");
@@ -398,7 +415,7 @@ export class IoHelper {
      * @param {string} fileName the file name
      * @returns {string} the path of the result file
      * 
-     * @memberOf IoHelper
+     * @memberof IoHelper
      */
     static buildResultfilePath(folder: string, fileName: string): string {
         return folder + fileName + ".json";
@@ -412,20 +429,45 @@ export class IoHelper {
      * @param {string} fileName the file name
      * @returns {string} the path of the temporary file
      * 
-     * @memberOf IoHelper
+     * @memberof IoHelper
      */
     static buildTempResultfilePath(folder: string, fileName: string): string {
         return folder + fileName + "_temp.json";
     }
 
+    /**
+     * Create the log file path for logging the standard output
+     * 
+     * @static
+     * @param {string} folder the path to store the log file in
+     * @param {Date} now the current date
+     * @returns {string} the path for the standard output log file
+     * @memberof IoHelper
+     */
     static buildStdLogFilePath(folder: string, now: Date): string {
         return folder + path.sep + now.getFullYear() + "_" + now.getMonth() + "_" + now.getDay() + "_" + now.getHours() + "_" + now.getMinutes() + "_" + now.getSeconds() + "_" + now.getMilliseconds() + "_std.log";
     }
-
+    /**
+     * create the error log file path
+     * 
+     * @static
+     * @param {string} folder the path to store the log file in
+     * @param {Date} now the current date
+     * @returns {string} the path for the error log file
+     * @memberof IoHelper
+     */
     static buildErrLogFilePath(folder: string, now: Date): string {
         return folder + path.sep + now.getFullYear() + "_" + now.getMonth() + "_" + now.getDay() + "_" + now.getHours() + "_" + now.getMinutes() + "_" + now.getSeconds() + "_" + now.getMilliseconds() + "_err.log";
     }
-
+    /**
+     * Create the Log File Path for CWL
+     * 
+     * @static
+     * @param {string} folder the path to store the log file in
+     * @param {Date} now the current date
+     * @returns {string} the path for the cwl log file
+     * @memberof IoHelper
+     */
     static buildCwlLogFilePath(folder: string, now: Date): string {
         return folder + path.sep + now.getFullYear() + "_" + now.getMonth() + "_" + now.getDay() + "_" + now.getHours() + "_" + now.getMinutes() + "_" + now.getSeconds() + "_" + now.getMilliseconds() + "_cwl.log";
     }
@@ -438,24 +480,7 @@ export class IoHelper {
      * @param {string} filename the filename of the image
      * @returns {string} the static url to access this image
      * 
-     * @memberOf IoHelper
-     */
-    static getStaticImageUrl(folder: string, filename: string): string {
-        let rootUrl = nconf.get("server:rootUrl");
-        let relPath = folder.replace(nconf.get("paths:resultsPath") + path.sep, "");
-
-        return "http://" + rootUrl + "/results/" + relPath + filename;
-    }
-
-    /**
-     * get the static url for an image
-     * 
-     * @static
-     * @param {string} folder the folder of the image
-     * @param {string} filename the filename of the image
-     * @returns {string} the static url to access this image
-     * 
-     * @memberOf IoHelper
+     * @memberof IoHelper
      */
     static getStaticResultFileUrl(folder: string, filename: string): string {
         let rootUrl = nconf.get("server:rootUrl");
@@ -473,7 +498,7 @@ export class IoHelper {
      * @param {string} extension the image extension
      * @returns {string} the static url to access this image
      * 
-     * @memberOf IoHelper
+     * @memberof IoHelper
      */
     static getStaticImageUrlWithExt(folder: string, filename: string, extension: string): string {
         let rootUrl = nconf.get("server:rootUrl");
@@ -487,7 +512,7 @@ export class IoHelper {
      * @param {string} relativeFilePath the relative path to the image
      * @returns {string} the static url to access this image
      *
-     * @memberOf IoHelper
+     * @memberof IoHelper
      */
     static getStaticImageUrlRelative(relativeFilePath: string): string {
         let rootUrl = nconf.get("server:rootUrl");
@@ -501,7 +526,7 @@ export class IoHelper {
      * @param {string} relativeFilePath the relative path to the image
      * @returns {string} the static url to access this image
      *
-     * @memberOf IoHelper
+     * @memberof IoHelper
      */
     static getStaticResultUrlRelative(relativeFilePath: string): string {
         let rootUrl = nconf.get("server:rootUrl");
@@ -515,7 +540,7 @@ export class IoHelper {
      * @param {string} fullFilePath the absolute path to the image
      * @returns {string} the static url to access this image
      * 
-     * @memberOf IoHelper
+     * @memberof IoHelper
      */
     static getStaticResultUrlFull(fullFilePath: string): string {
         let relPath = fullFilePath.replace(nconf.get("paths:resultsPath") + path.sep, "");
@@ -529,7 +554,7 @@ export class IoHelper {
      * @param {string} relativeFilePath the relative path to the image
      * @returns {string} the static url to access this image
      *
-     * @memberOf IoHelper
+     * @memberof IoHelper
      */
     static getStaticLogUrlRelative(relativeFilePath: string): string {
         let rootUrl = nconf.get("server:rootUrl");
@@ -543,7 +568,7 @@ export class IoHelper {
      * @param {string} fullFilePath the absolute path to the image
      * @returns {string} the static url to access this image
      * 
-     * @memberOf IoHelper
+     * @memberof IoHelper
      */
     static getStaticLogUrlFull(fullFilePath: string): string {
         let relPath = fullFilePath.replace(nconf.get("paths:logPath") + path.sep, "");
@@ -557,7 +582,7 @@ export class IoHelper {
      * @param {string} fileType the expected file type
      * @param {string} fileUrl the remote url 
      * 
-     * @memberOf IoHelper
+     * @memberof IoHelper
      */
     static checkFileType(fileType: string, fileUrl: string): Promise<any> {
         return new Promise<any>(async (resolve, reject) => {

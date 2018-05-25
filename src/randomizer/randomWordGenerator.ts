@@ -5,8 +5,8 @@
 
 
 import * as fs from "fs";
-import * as path from "path";
 import * as _ from "lodash";
+import * as path from "path";
 
 export class RandomWordGenerator {
 
@@ -15,8 +15,7 @@ export class RandomWordGenerator {
      * a list of ajdectives
      * 
      * @static
-     * 
-     * @memberOf RandomWordGenerator
+     * @memberof RandomWordGenerator
      */
     static adjectives = fs.readFileSync(RandomWordGenerator.rootDir + "/adjectives", "utf8").toString().split("\n").map(Function.prototype.call, String.prototype.trim);
 
@@ -24,8 +23,7 @@ export class RandomWordGenerator {
      * a list of animal names
      * 
      * @static
-     * 
-     * @memberOf RandomWordGenerator
+     * @memberof RandomWordGenerator
      */
     static animals = fs.readFileSync(RandomWordGenerator.rootDir + "/animals", "utf8").toString().split("\n").map(Function.prototype.call, String.prototype.trim);
 
@@ -37,7 +35,7 @@ export class RandomWordGenerator {
      * @static
      * @returns {string} the random name
      * 
-     * @memberOf RandomWordGenerator
+     * @memberof RandomWordGenerator
      */
     static generateRandomWord(): string {
         return _.sample(RandomWordGenerator.adjectives) + _.sample(RandomWordGenerator.adjectives) + _.sample(RandomWordGenerator.animals);
