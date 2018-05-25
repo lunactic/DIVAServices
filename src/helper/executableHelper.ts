@@ -2,31 +2,28 @@
 /**
  * Created by Marcel Würsch on 07.11.16.
  */
-import { isNullOrUndefined } from 'util';
-import * as _ from 'lodash';
-import * as childProcess from 'child_process';
 import { EventEmitter } from "events";
+import * as _ from 'lodash';
 import * as nconf from 'nconf';
-import { Logger } from "../logging/logger";
-import { Collection } from "../processingQueue/collection";
-import { ConsoleResultHandler } from "./resultHandlers/consoleResultHandler";
-import { DockerManagement } from "../docker/dockerManagement";
-import { FileResultHandler } from "./resultHandlers/fileResultHandler";
-import { DivaFile } from "../models/divaFile";
-import { IoHelper } from "./ioHelper";
-import { NoResultHandler } from "./resultHandlers/noResultHandler";
 import * as path from 'path';
+import { isNullOrUndefined } from 'util';
+import { DockerManagement } from "../docker/dockerManagement";
+import { Logger } from "../logging/logger";
+import { AlgorithmManagement } from "../management/algorithmManagement";
+import { Collection } from "../processingQueue/collection";
 import { Process } from "../processingQueue/process";
+import { ProcessingQueue } from "../processingQueue/processingQueue";
+import { QueueHandler } from '../processingQueue/queueHandler';
+import { RandomWordGenerator } from "../randomizer/randomWordGenerator";
+import { Statistics } from "../statistics/statistics";
+import { SchemaValidator } from "../validator/schemaValidator";
+import { IoHelper } from "./ioHelper";
 import { ParameterHelper } from "./parameterHelper";
-import { RemoteExecution } from "../remoteExecution/remoteExecution";
+import { ConsoleResultHandler } from "./resultHandlers/consoleResultHandler";
+import { FileResultHandler } from "./resultHandlers/fileResultHandler";
+import { NoResultHandler } from "./resultHandlers/noResultHandler";
 import { ResultHelper } from "./resultHelper";
 import { ServicesInfoHelper } from "./servicesInfoHelper";
-import { Statistics } from "../statistics/statistics";
-import { ProcessingQueue } from "../processingQueue/processingQueue";
-import { RandomWordGenerator } from "../randomizer/randomWordGenerator";
-import { SchemaValidator } from "../validator/schemaValidator";
-import { AlgorithmManagement } from "../management/algorithmManagement";
-import { QueueHandler } from '../processingQueue/queueHandler';
 
 /**
  * A class the provides all functionality needed before a process can be executed
@@ -37,72 +34,32 @@ import { QueueHandler } from '../processingQueue/queueHandler';
  */
 export class ExecutableHelper extends EventEmitter {
 
-    remoteExecution: RemoteExecution;
 
     /**
      * Creates an instance of ExecutableHelper.
-     * 
-     * 
-     * @memberOf ExecutableHelper
+     * @memberof ExecutableHelper
      */
     constructor() {
         super();
-        this.remoteExecution = new RemoteExecution(nconf.get("remoteServer:ip"), nconf.get("remoteServer:user"));
     }
 
     /**
      * 
-     * DISCLAIMER: This class in its current form will probably not work well and will need some updates
-     * 
-     * Executes a process on the same host as this DivaServices instance is running
-     * @param {Process} process The process to execute
-     */
-    public async executeLocalRequest(process: Process) {
-        let self = this;
-        process.id = Statistics.startRecording(process);
-        let command = self.buildCommand(process);
-        if (process.resultType === "console") {
-            command += " 1>" + process.tmpResultFile + ";mv " + process.tmpResultFile + " " + process.resultFile;
-        }
-        await self.executeCommand(command, process);
-        self.emit("processingFinished");
-        Promise.resolve();
-    }
-
-    /**
-     * DISCLAIMER: This method in its current form will probably not work well and will need some updates
-     * 
-     * Executes a request on the Sun Grid Engine
-     * @param {Process} process The process to execute
-     */
-    public async executeRemoteRequest(process: Process) {
-        let self = this;
-        try {
-            for (let dataItem of process.data) {
-                await self.remoteExecution.uploadFile((dataItem as DivaFile).path, process.rootFolder);
-            }
-            let command = self.buildRemoteCommand(process);
-            process.id = Statistics.startRecording(process);
-            command += " " + process.id + " " + process.rootFolder + " > /dev/null";
-            self.remoteExecution.executeCommand(command);
-            Promise.resolve();
-        } catch (error) {
-            Logger.log("error", error, "ExecutableHelper");
-            Promise.reject(error);
-        }
-    }
-
-    /**
      * Executes a request on a docker instance
+     * @static
      * @param {Process} process The process to execute
+     * @returns {Promise<void>} resolves before the process is spawned because of async execution
+     * @memberof ExecutableHelper
      */
     public static executeDockerRequest(process: Process): Promise<void> {
         return new Promise<void>(async (resolve, reject) => {
             process.id = Statistics.startRecording(process);
-            process.remoteResultUrl = "http://" + nconf.get("docker:reportHost") + "/jobs/" + process.id;
-            process.remoteErrorUrl = "http://" + nconf.get("docker:reportHost") + "/algorithms/" + process.algorithmIdentifier + "/exceptions/" + process.id;
             let serviceInfo = await ServicesInfoHelper.getInfoByPath(process.req.originalUrl);
-            resolve();
+            //do not resolve test executions immediately but wait for them to be finished
+            //this is important to not publish them too early
+            if (process.type !== "test") {
+                resolve();
+            }
             try {
                 if (nconf.get("server:cwlSupport")) {
                     await DockerManagement.runDockerImageSSH(process);
@@ -110,8 +67,15 @@ export class ExecutableHelper extends EventEmitter {
                 } else {
                     await DockerManagement.runDockerImage(process, serviceInfo.image_name);
                 }
+                if (process.type === "test") {
+                    resolve();
+                }
             } catch (error) {
-                Statistics.removeActiveExecution(process.id);
+                if (process.type !== "test") {
+                    Statistics.removeActiveExecution(process.id);
+                } else {
+                    reject(error);
+                }
             }
         });
     }
@@ -151,9 +115,11 @@ export class ExecutableHelper extends EventEmitter {
     /**
      * preprocess all the necessary information from the incoming POST request
      * This will either lead to the execution of one single image or the whole collection
-     * @param {any} req The incoming request
+     * @param {*} req The incoming request
      * @param {ProcessingQueue} processingQueue The Processing Queue to use
      * @param {string} executionType The execution type (e.g. java)
+     * @returns {Promise<any>} A JSON object containing the response
+     * @memberof ExecutableHelper
      */
     public async preprocess(req: any, processingQueue: ProcessingQueue, executionType: string): Promise<any> {
         return new Promise<any>(async (resolve, reject) => {
@@ -186,7 +152,6 @@ export class ExecutableHelper extends EventEmitter {
                 for (let element of collection.inputData) {
                     let proc: Process = new Process();
                     proc.req = _.cloneDeep(req);
-                    proc.type = executionType;
                     proc.algorithmIdentifier = serviceInfo.identifier;
                     proc.executableType = serviceInfo.executableType;
                     proc.outputFolder = collection.outputFolder + path.sep + "data_" + index + path.sep;
@@ -279,27 +244,12 @@ export class ExecutableHelper extends EventEmitter {
     }
 
     /**
-     * 
-     * Get the execution type
+     * Set the highlighter information for a collection
      * 
      * @private
-     * @param {string} programType the type of the program
-     * @returns {string} the executable code for this program type
-     * @memberof ExecutableHelper
-     */
-    private getExecutionType(programType: string): string {
-        switch (programType) {
-            case "java":
-                return "java -Djava.awt.headless=true -Xmx4096m -jar";
-            default:
-                return "";
-        }
-    }
-
-    /**
-     * Set the highlighter object on a collection
      * @param {Collection} collection the collection to set the highlighter for
      * @param {*} req the incoming POST request
+     * @memberof ExecutableHelper
      */
     private setCollectionHighlighter(collection: Collection, req: any): void {
         if (req.body.parameters != null && req.body.parameters.highlighter != null) {
@@ -307,70 +257,5 @@ export class ExecutableHelper extends EventEmitter {
         } else {
             collection.inputHighlighters = {};
         }
-    }
-
-    /**
-     * Builds the command line executable command
-     * @param {Process} process the process to execute
-     */
-    private buildCommand(process: Process): string {
-        let execType = this.getExecutionType(process.executableType);
-
-        let paramsPath = "";
-
-        for (let param of _.values(process.parameters.params)) {
-            paramsPath += "'" + param + "'";
-        }
-        return execType + " " + process.executablePath + " " + paramsPath;
-    }
-
-    /**
-     * Build the remote command for execution on a Sun Grid Engine using qsub
-     * @param {Process} process The process to execute
-     */
-    private buildRemoteCommand(process: Process): string {
-        let params = _.cloneDeep(process.parameters.params);
-        _.forIn(params, function (value: any, key: any) {
-            switch (key) {
-                case "inputImage":
-                case "outputImage":
-                case "resultFile":
-                    let extension = path.extname(value);
-                    let filename = path.basename(value, extension);
-                    params[key] = process.rootFolder + path.sep + filename + extension;
-                    break;
-                case "outputFolder":
-                    params[key] = process.rootFolder + path.sep;
-                    break;
-            }
-        });
-
-        _.forOwn(_.intersection(_.keys(params), _.keys(nconf.get("remotePaths"))), function (value: any, key: any) {
-            params[value] = nconf.get("remotePaths:" + value);
-        });
-
-        let paramsPath = _.values(params).join(" ");
-        return "qsub -o " + process.rootFolder + " -e " + process.rootFolder + " " + process.executablePath + " " + paramsPath;
-    }
-
-    /**
-     * executes a command using the [childProcess](https://nodejs.org/api/child_process.html) module
-     * @param {string} command the command to execute
-     * @param {Process} process the process
-     */
-    private executeCommand(command: string, process: Process): Promise<void> {
-        return new Promise<void>((resolve, reject) => {
-            let exec = childProcess.exec;
-            Logger.log("info", "Execute command: " + command, "ExecutableHelper");
-            exec(command, { maxBuffer: 1024 * 48828 }, async function (error: any, stdout: any, stderr: any) {
-                Statistics.endRecording(process.id, process.req.originalUrl, [0, 0]);
-                try {
-                    await process.resultHandler.handleResult(error, stdout, stderr, process);
-                    resolve();
-                } catch (error) {
-                    return reject(error);
-                }
-            });
-        });
     }
 }
