@@ -5,17 +5,14 @@ import * as multer from 'multer';
 import * as nconf from 'nconf';
 import * as path from 'path';
 import { isNullOrUndefined } from "util";
-import { ExecutableHelper } from '../helper/executableHelper';
 import { FileHelper } from "../helper/fileHelper";
 import { IoHelper } from "../helper/ioHelper";
-import { ResultHelper } from "../helper/resultHelper";
 import { Logger } from "../logging/logger";
 import { DivaError } from '../models/divaError';
 import { DivaFile } from "../models/divaFile";
 import { IiifManifestParser } from "../parsers/iiifManifestParser";
 import { QueueHandler } from '../processingQueue/queueHandler';
 import { RandomWordGenerator } from "../randomizer/randomWordGenerator";
-import { Statistics } from "../statistics/statistics";
 import { SchemaValidator } from "../validator/schemaValidator";
 import { GetHandler } from "./getHandler";
 import { PostHandler } from "./postHandler";
@@ -277,29 +274,6 @@ router.put("/upload/:collectionName", upload.single('file'), async function (req
 });
 
 
-
-/**
- * method reports a result
- */
-router.post("/jobs/:jobId", async function (req: express.Request, res: express.Response) {
-    Logger.log("info", "jobs route called", "StandardRouter");
-    let process = Statistics.getProcess(req.params.jobId);
-    if (process != null) {
-        let startTime = Statistics.removeActiveExecution(req.params.jobId);
-        await Statistics.endRecording(req.params.jobId, process.req.originalUrl, startTime);
-        process.result = req.body;
-        try {
-            await ResultHelper.saveResult(process);
-            await process.resultHandler.handleResult(null, null, null, process);
-            await ExecutableHelper.endProcess(process);
-            res.status(200).end();
-        } catch (error) {
-            sendError(res, error);
-        }
-    } else {
-        res.status(200).end();
-    }
-});
 
 /**
  * schema validation

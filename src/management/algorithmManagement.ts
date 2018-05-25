@@ -45,7 +45,7 @@ export class AlgorithmManagement {
      * @param {number} version the version number
      * @param {string} baseroute the base route information
      * 
-     * @memberOf AlgorithmManagement
+     * @memberof AlgorithmManagement
      */
     static async createAlgorithm(req: express.Request, route: string, identifier: string, imageName: string, version: number, baseroute: string): Promise<any> {
         return new Promise<any>(async (resolve, reject) => {
@@ -163,19 +163,6 @@ export class AlgorithmManagement {
         });
     }
 
-
-    static async createFromFile(): Promise<any> {
-        return new Promise<any>(async (resolve, reject) => {
-            resolve();
-        });
-    }
-
-    static async createFromDockerImage(): Promise<any> {
-        return new Promise<any>(async (resolve, reject) => {
-            resolve();
-        });
-    }
-
     /**
      * Reuse a route from a deleted algorithm
      * 
@@ -196,12 +183,22 @@ export class AlgorithmManagement {
                 AlgorithmManagement.removeFromRootInfoFile("/" + route);
                 AlgorithmManagement.removeFromServiceInfoFile("/" + baseroute);
                 let response = await AlgorithmManagement.createAlgorithm(req, route, identifier, imageName, version, baseroute);
+                resolve(response);
             } catch (error) {
                 reject(error);
             }
         });
     }
-
+    /**
+     * 
+     * 
+     * @static
+     * @param {string} identifier 
+     * @param {*} algorithm 
+     * @param {string} file 
+     * @returns {Promise<void>} 
+     * @memberof AlgorithmManagement
+     */
     static async createWorkflowFile(identifier: string, algorithm: any, file: string): Promise<void> {
         return new Promise<void>(async (resolve, reject) => {
             var info: any = await ServicesInfoHelper.getInfoByIdentifier(identifier);
@@ -296,7 +293,7 @@ export class AlgorithmManagement {
      * @param {string} identifier the identifier
      * @returns {*} the current status
      * 
-     * @memberOf AlgorithmManagement
+     * @memberof AlgorithmManagement
      */
     static getStatusByIdentifier(identifier: string): any {
         let content = IoHelper.readFile(nconf.get("paths:servicesInfoFile"));
@@ -319,7 +316,7 @@ export class AlgorithmManagement {
      * @param {string} route the route of the algorithm
      * @returns {*} the current status
      * 
-     * @memberOf AlgorithmManagement
+     * @memberof AlgorithmManagement
      */
     static getStatusByRoute(route: string): any {
         let content = IoHelper.readFile(nconf.get("paths:servicesInfoFile"));
@@ -330,7 +327,14 @@ export class AlgorithmManagement {
             return null;
         }
     }
-
+    /**
+     * Get the current version of an algorithm
+     * 
+     * @static
+     * @param {string} route the base route to the method
+     * @returns {number} the version number of the algorithm
+     * @memberof AlgorithmManagement
+     */
     static getVersionByBaseRoute(route: string): number {
         let content = IoHelper.readFile(nconf.get("paths:servicesInfoFile"));
         let algorithm: any = _.find(content.services, { "baseroute": route });
@@ -347,7 +351,7 @@ export class AlgorithmManagement {
      * @static
      * @returns {string} the new identifier
      * 
-     * @memberOf AlgorithmManagement
+     * @memberof AlgorithmManagement
      */
     static createIdentifier(): string {
         let currentDate = (new Date()).valueOf().toString();
@@ -362,7 +366,7 @@ export class AlgorithmManagement {
      * @param {*} algorithm the name of the algorithm
      * @returns {string} the dynamic route for this algorithm
      * 
-     * @memberOf AlgorithmManagement
+     * @memberof AlgorithmManagement
      */
     static generateBaseRoute(algorithm: any): string {
         return algorithm.general.type.toLowerCase() + "/" + algorithm.general.name.replace(/\s/g, "").toLowerCase();
@@ -374,7 +378,7 @@ export class AlgorithmManagement {
      * @static
      * @param {string} route the route of the new method
      * 
-     * @memberOf AlgorithmManagement
+     * @memberof AlgorithmManagement
      */
     static async generateFolders(route: string): Promise<void> {
         return new Promise<void>(async (resolve, reject) => {
@@ -393,7 +397,7 @@ export class AlgorithmManagement {
      * @param {number} version the version of the algorithm
      * @returns {string} the name for the image
      * 
-     * @memberOf AlgorithmManagement
+     * @memberof AlgorithmManagement
      */
     static generateImageName(algorithm: any, version: number): string {
         return algorithm.general.type.toLowerCase() + algorithm.general.name.toLowerCase().replace(/\s/g, "_") + ":" + String(version);
@@ -406,7 +410,7 @@ export class AlgorithmManagement {
      * @param {*} algorithm the algorithm information
      * @param {string} folder the algorithm folder
      * 
-     * @memberOf AlgorithmManagement
+     * @memberof AlgorithmManagement
      */
     static async createInfoFile(algorithm: any, folder: string) {
         let data = _.cloneDeep(algorithm);
@@ -439,7 +443,7 @@ export class AlgorithmManagement {
      * @static
      * @param {string} folder the folder of the file
      * 
-     * @memberOf AlgorithmManagement
+     * @memberof AlgorithmManagement
      */
     static deleteInfoFile(folder: string): void {
         IoHelper.deleteFile(folder + path.sep + "info.json");
@@ -452,7 +456,7 @@ export class AlgorithmManagement {
      * @param {*} algorithm the new algorithm information
      * @param {string} route the route of the new algorithm
      * 
-     * @memberOf AlgorithmManagement
+     * @memberof AlgorithmManagement
      */
     static async updateRootInfoFile(algorithm: any, route: string) {
         let fileContent = IoHelper.readFile(nconf.get("paths:rootInfoFile"));
@@ -473,7 +477,7 @@ export class AlgorithmManagement {
      * @static
      * @param {string} route the route to remove
      * 
-     * @memberOf AlgorithmManagement
+     * @memberof AlgorithmManagement
      */
     static async removeFromRootInfoFile(route: string) {
         let fileContent = IoHelper.readFile(nconf.get("paths:rootInfoFile"));
@@ -489,7 +493,7 @@ export class AlgorithmManagement {
      * @static
      * @param {string} route the route to remove
      * 
-     * @memberOf AlgorithmManagement
+     * @memberof AlgorithmManagement
      */
     static async removeFromServiceInfoFile(route: string) {
         let fileContent = IoHelper.readFile(nconf.get("paths:servicesInfoFile"));
@@ -507,7 +511,7 @@ export class AlgorithmManagement {
      * @param {string} route the route
      * @param {string} message the new message
      * 
-     * @memberOf AlgorithmManagement
+     * @memberof AlgorithmManagement
      */
     static async updateStatus(identifier: string, status: string, route: string, message: string) {
         let content = IoHelper.readFile(nconf.get("paths:servicesInfoFile"));
@@ -550,7 +554,7 @@ export class AlgorithmManagement {
      * @param {string} identifier the identifier to update
      * @param {string} route the new route 
      * 
-     * @memberOf AlgorithmManagement
+     * @memberof AlgorithmManagement
      */
     static async updateRoute(identifier: string, route: string) {
         let content = IoHelper.readFile(nconf.get("paths:servicesInfoFile"));
@@ -562,50 +566,16 @@ export class AlgorithmManagement {
     }
 
     /**
-     * add a url parameter to a method
-     * 
-     * this is used when a method requires additional input files that need to be downloaded
-     * 
-     * @static
-     * @param {string} identifier the algorithm identifier
-     * @param {string} parameterName the name of the parameter
-     * 
-     * @memberOf AlgorithmManagement
-     */
-    static async addUrlParameter(identifier: string, parameterName: string) {
-        let content = IoHelper.readFile(nconf.get("paths:servicesInfoFile"));
-        if (identifier != null && _.find(content.services, { "identifier": identifier }) != null) {
-            let currentInfo: any = _.find(content.services, { "identifier": identifier });
-            let info: any = {};
-            let exists: boolean = false;
-
-            _.forEach(currentInfo.parameters, function (value: any, key: any) {
-                if (_.has(value, parameterName)) {
-                    exists = true;
-                }
-            });
-
-            if (!exists) {
-                info[parameterName] = "url";
-                currentInfo.parameters.unshift(info);
-            }
-            await IoHelper.saveFile(nconf.get("paths:servicesInfoFile"), content, "utf8");
-        }
-    }
-
-    /**
-     * 
-     * add a remote path to a method
-     * 
-     * this is used for the replacement of fix remote paths
-     * 
-     * @static
-     * @param {string} identifier the algorithm identifier
-     * @param {string} parameterName the name of the parameter
-     * @param {string} remotePath the remote path value
-     * 
-     * @memberOf AlgorithmManagement
-     */
+    * add a remote path to a method
+    * 
+    * this is used for the replacement of fix remote paths
+    * 
+    * @static
+    * @param {string} identifier the algorithm identifier
+    * @param {string} parameterName the name of the parameter
+    * @param {string} remotePath the remote path value
+    * @memberof AlgorithmManagement
+    */
     static async addRemotePath(identifier: string, parameterName: string, remotePath: string) {
         let content = IoHelper.readFile(nconf.get("paths:servicesInfoFile"));
         if (identifier != null && _.find(content.services, { "identifier": identifier }) != null) {
@@ -626,6 +596,15 @@ export class AlgorithmManagement {
         }
     }
 
+    /**
+     * Check if for a given parameter we need to replace the path
+     * 
+     * @static
+     * @param {string} identifier The algorithm identifier
+     * @param {string} parameterName The parameter of the algorithm 
+     * @returns {boolean} True if path needs to be replaced
+     * @memberof AlgorithmManagement
+     */
     static hasRemotePath(identifier: string, parameterName: string): boolean {
         let content = IoHelper.readFile(nconf.get("paths:servicesInfoFile"));
         if (identifier != null && _.find(content.services, { "identifier": identifier }) != null) {
@@ -637,7 +616,15 @@ export class AlgorithmManagement {
         }
         return false;
     }
-
+    /**
+     * Get the remote path for a parameter of an algorithm
+     * 
+     * @static
+     * @param {string} identifier The algorithm identifier
+     * @param {string} parameterName The parameter of the algorithm
+     * @returns {string} The remote path
+     * @memberof AlgorithmManagement
+     */
     static getRemotePath(identifier: string, parameterName: string): string {
         let content = IoHelper.readFile(nconf.get("paths:servicesInfoFile"));
         if (identifier != null && _.find(content.services, { "identifier": identifier }) != null) {
@@ -657,7 +644,7 @@ export class AlgorithmManagement {
      * @param {string} identifier the algorithm identifier
      * @param {*} exception the execution that occured
      * 
-     * @memberOf AlgorithmManagement
+     * @memberof AlgorithmManagement
      */
     static async recordException(identifier: string, exception: any) {
         let content = IoHelper.readFile(nconf.get("paths:servicesInfoFile"));
@@ -679,7 +666,7 @@ export class AlgorithmManagement {
      * @param {string} identifier the algorithm identifier
      * @returns {*} all occured exceptions
      * 
-     * @memberOf AlgorithmManagement
+     * @memberof AlgorithmManagement
      */
     static getExceptions(identifier: string): any {
         let content = IoHelper.readFile(nconf.get("paths:servicesInfoFile"));
@@ -701,7 +688,7 @@ export class AlgorithmManagement {
      * @param {number} version the version number of the algorithm
      * @param {string} baseRoute the base route without the version number
      * 
-     * @memberOf AlgorithmManagement
+     * @memberof AlgorithmManagement
      */
     static async updateServicesFile(algorithm: any, identifier: string, route: string, imageName: string, version: number, baseRoute: string): Promise<void> {
         return new Promise<void>(async (resolve, reject) => {
@@ -770,8 +757,6 @@ export class AlgorithmManagement {
                 resolve();
             }
         });
-
-
     }
 
     /**
@@ -781,7 +766,7 @@ export class AlgorithmManagement {
      * @param {string} route the route of the algorithm
      * @param {string} identifier the new algorithm identifier
      * 
-     * @memberOf AlgorithmManagement
+     * @memberof AlgorithmManagement
      */
     static updateIdentifier(route: string, identifier: string): void {
         let content = IoHelper.readFile(nconf.get("paths:servicesInfoFile"));
@@ -792,12 +777,12 @@ export class AlgorithmManagement {
     }
 
     /**
-     * test if results are valid
+     * Test if the computed results from the test are according to the specified method
      * 
      * @static
      * @param {*} results the computed results from the test run
      * @param {any[]} outputs the output definitions
-     * @returns {Promise<void>} 
+     * @returns {Promise<void>} Resolves if the results are valid
      * @memberof AlgorithmManagement
      */
     static testResults(results: any, outputs: any[]): Promise<void> {

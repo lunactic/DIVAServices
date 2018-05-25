@@ -3,7 +3,6 @@
  */
 "use strict";
 
-import * as _ from "lodash";
 import * as nconf from "nconf";
 import { IoHelper } from "./ioHelper";
 
@@ -20,7 +19,7 @@ export class ServicesInfoHelper {
      * 
      * @static
      * 
-     * @memberOf ServicesInfoHelper
+     * @memberof ServicesInfoHelper
      */
     static fileContent = IoHelper.readFile(nconf.get("paths:servicesInfoFile"));
 
@@ -31,7 +30,7 @@ export class ServicesInfoHelper {
      * @param {string} path the route to check
      * @returns {*} the service information
      * 
-     * @memberOf ServicesInfoHelper
+     * @memberof ServicesInfoHelper
      */
     static async getInfoByPath(path: string): Promise<any> {
         return new Promise<any>(async (resolve, reject) => {
@@ -51,7 +50,7 @@ export class ServicesInfoHelper {
      * @param {string} name the name of the method
      * @returns {*} the service information
      * 
-     * @memberOf ServicesInfoHelper
+     * @memberof ServicesInfoHelper
      */
     static async getInfoByName(name: string): Promise<any> {
         return new Promise<any>(async (resolve, reject) => {
@@ -70,7 +69,7 @@ export class ServicesInfoHelper {
      * @param {string} identifier the identifier
      * @returns {*} the service information
      * 
-     * @memberOf ServicesInfoHelper
+     * @memberof ServicesInfoHelper
      */
     static async getInfoByIdentifier(identifier: string): Promise<any> {
         return new Promise<any>(async (resolve, reject) => {
@@ -89,7 +88,7 @@ export class ServicesInfoHelper {
     * @static
     * @param {*} newData the new service information object
     * 
-    * @memberOf ServicesInfoHelper
+    * @memberof ServicesInfoHelper
     */
     static async update(newData: any): Promise<void> {
         await IoHelper.saveFile(nconf.get("paths:servicesInfoFile"), newData, "utf8");
@@ -100,53 +99,12 @@ export class ServicesInfoHelper {
      * 
      * @static
      * 
-     * @memberOf ServicesInfoHelper
+     * @memberof ServicesInfoHelper
      */
     static async reload(): Promise<void> {
         return new Promise<void>((resolve, reject) => {
             this.fileContent = IoHelper.readFile(nconf.get("paths:servicesInfoFile"));
             resolve();
         });
-    }
-
-    /**
-     * check if a method requires input images or file
-     * 
-     * @static
-     * @param {*} serviceInfo the service information
-     * @returns {boolean} indication wheter or not the method requires file
-     * 
-     * @memberOf ServicesInfoHelper
-     */
-    static methodRequireImages(serviceInfo: any): boolean {
-        let fileParameters = _.filter(serviceInfo.parameters, function (parameter: string) {
-            return ["inputImage"].indexOf(String(_.values(parameter)[0])) >= 0;
-        });
-
-        return fileParameters.length > 0;
-    }
-
-    static methodRequireData(serviceInfo: any): boolean {
-        let fileParameters = _.filter(serviceInfo.parameters, function (parameter: string) {
-            return ["inputFile"].indexOf(String(_.values(parameter)[0])) >= 0;
-        });
-
-        return fileParameters.length > 0;
-    }
-
-    /**
-     * check if a method requires json
-     * 
-     * @static
-     * @param {*} serviceInfo the service information
-     * @returns {boolean} indication wheter or not the method requries data
-     * 
-     * @memberOf ServicesInfoHelper
-     */
-    static methodRequireJson(serviceInfo: any): boolean {
-        let fileParameters = _.filter(serviceInfo.parameters, function (parameter: string) {
-            return ["json"].indexOf(String(_.values(parameter)[0])) >= 0;
-        });
-        return fileParameters.length > 0;
     }
 }
