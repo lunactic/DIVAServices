@@ -37,6 +37,8 @@ export class DockerManagement {
      * 
      * @param {string} inputFolder The folder where the container contents are stored
      * @param {string} imageName The name of the image to create
+     * @returns {Promise<void>} 
+     * @memberof DockerManagement
      */
     static buildImage(inputFolder: string, imageName: string): Promise<void> {
         return new Promise<void>((resolve, reject) => {
@@ -90,11 +92,15 @@ export class DockerManagement {
     }
 
     /**
-     * Downloads a docker image from Docker hub using `docker pull`
-     * @param imageName image name to download
+     *  Downloads a docker image from Docker hub using `docker pull`
+     * 
+     * @static
+     * @param {string} imageName image name to download
+     * @returns {Promise<void>} 
+     * @memberof DockerManagement
      */
-    static fetchRemoteImage(imageName: string): Promise<number> {
-        return new Promise<number>(async (resolve, reject) => {
+    static fetchRemoteImage(imageName: string): Promise<void> {
+        return new Promise<void>(async (resolve, reject) => {
             if (this.docker == null) {
                 this.initDocker();
             }
@@ -113,9 +119,14 @@ export class DockerManagement {
 
         });
     }
+    
     /**
      * Remove an image from the docker server
-     * @param {String} imageName the name of the image to remove
+     * 
+     * @static
+     * @param {String} imageName the name of the image to remove 
+     * @returns {Promise<void>} 
+     * @memberof DockerManagement
      */
     static removeImage(imageName: string): Promise<void> {
         return new Promise<void>((resolve, reject) => {
@@ -134,9 +145,11 @@ export class DockerManagement {
 
     /**
      * Create and save a Dockerfile based on the algorithm information
-     *
+     * 
+     * @static
      * @param {any} algorithmInfos an object containing all necessary algorithm information
      * @param {string} outputFolder The folder where the Dockerfile will be saved
+     * @memberof DockerManagement
      */
     static createDockerFile(algorithmInfos: any, outputFolder: string): void {
         let content: string = "FROM " + algorithmInfos.method.environment + os.EOL +
@@ -171,10 +184,12 @@ export class DockerManagement {
 
     /**
      * Create the bash script that will be started once the docker image is executed
-     *
-     * @param {string} identifier
-     * @param {any} algorithmInfos
-     * @param {outputFolder} outputFolder
+     * 
+     * @static
+     * @param {string} identifier the algorithm identifier
+     * @param {*} algorithmInfos the algorithm informations
+     * @param {string} outputFolder the output folder where the bash script should be stored
+     * @memberof DockerManagement
      */
     static createBashScript(identifier: string, algorithmInfos: any, outputFolder: string): void {
         let content: string = '#!/bin/bash' + os.EOL;
@@ -327,9 +342,12 @@ export class DockerManagement {
     /**
      * Executes a docker image
      * This method makes use of [docker run](@link https://docs.docker.com/engine/reference/run/)
-     *
+     * 
+     * @static
      * @param {Process} process The process to run
      * @param {string} imageName The name of the image to use
+     * @returns {Promise<void>} 
+     * @memberof DockerManagement
      */
     static runDockerImage(process: Process, imageName: string): Promise<void> {
         return new Promise<void>(async (resolve, reject) => {
