@@ -123,6 +123,7 @@ export class FileResultHandler implements IResultHandler {
                     if (file.file.options.visualization) {
                         visualization = true;
                     }
+                    file.file.name = file.file.name + "." + mime.getExtension(file.file["mime-type"]);
                 }
                 //add log files
                 let stdLogFile = {
