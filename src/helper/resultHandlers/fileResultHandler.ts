@@ -193,7 +193,7 @@ export class FileResultHandler implements IResultHandler {
                                     if (!listing.basename.startsWith('.') && !listing.basename.startsWith('data') && !listing.basename.startsWith('log')) {
                                         let file = {
                                             'file': {
-                                                name: listing.basename.split('.')[0],
+                                                name: listing.basename,
                                                 type: 'unknown',
                                                 'mime-type': mime.getType(listing.basename),
                                                 'options': {
@@ -240,6 +240,7 @@ export class FileResultHandler implements IResultHandler {
 
                     //rename the file according to file.file.name
                     resFile.file["url"] = IoHelper.getStaticResultUrlFull(cwlFile.path);
+                    resFile.file.name = resFile.file.name + "." + mime.getExtension(cwlFile.path);
                     delete resFile.file.content;
                     procResult.output.push(resFile);
                 }
