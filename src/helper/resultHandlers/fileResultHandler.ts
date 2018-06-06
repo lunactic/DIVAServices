@@ -240,7 +240,8 @@ export class FileResultHandler implements IResultHandler {
 
                     //rename the file according to file.file.name
                     resFile.file["url"] = IoHelper.getStaticResultUrlFull(cwlFile.path);
-                    resFile.file.name = resFile.file.name + "." + mime.getExtension(resFile.file["mime-type"]);
+                    resFile.file.name = resFile.file.name;
+                    resFile.file.options['filename'] = resFile.file.name + "." + mime.getExtension(resFile.file["mime-type"]);
                     delete resFile.file.content;
                     procResult.output.push(resFile);
                 }
