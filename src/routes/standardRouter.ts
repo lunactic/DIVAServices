@@ -444,7 +444,7 @@ router.get("/schemas/general", function (req: express.Request, res: express.Resp
 
 router.get("/openapi", function (req: express.Request, res: express.Response) {
     let swagger = IoHelper.readFile(nconf.get("paths:swaggerFile"));
-    swagger = JSON.parse(JSON.stringify(swagger).replace(new RegExp("\\$BASEURL$\\", "g"), nconf.get("server:rootUrl")));
+    swagger = JSON.parse(JSON.stringify(swagger).replace(new RegExp("\\$BASEURL\\$", "g"), nconf.get("server:rootUrl")));
     sendResponse(res, null, swagger);
 });
 

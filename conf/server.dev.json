@@ -25,7 +25,7 @@
     "host": "DOCKER_HOST_IP",
     "port": "DOCKER_HOST_PORT",
     "reportHost": "DOCKER_REPORT_HOST",
-    "noMatchUser":true,
+    "noMatchUser":false,
     "sshUser": "DOCKER_SSH_USER",
     "sshPass": "DOCKER_SSH_PASS",
     "maxContainers": 8,
@@ -56,15 +56,10 @@
       "192.168.1.1/24",
       "172.18.0.1/16",
       "172.19.0.1",
-      "172.21.0.1"
+      "172.21.0.1",
+      "134.21.161.188",
+      "134.21.133.169"
     ]
-  },
-  "images": {
-    "storeResponse": false
-  },
-  "remoteServer": {
-    "user": "wuerschm",
-    "ip": "diuf-cluster"
   },
   "paths": {
     "rootPath": "/data",

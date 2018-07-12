@@ -4,8 +4,8 @@
  */
 
 import * as _ from "lodash";
-import { IoHelper } from "../helper/ioHelper";
 import * as nconf from "nconf";
+import { IoHelper } from "../helper/ioHelper";
 
 /**
  * class for handling swagger/openAPI things
@@ -33,12 +33,20 @@ export class Swagger {
 
         let names = [];
         let inputProps = {};
-        inputProps["highlighter"] = {
-            type: "object"
-        };
+        let inputData = {};
 
         _.forEach(inputs, function (input: any) {
             switch (_.keys(input)[0]) {
+                case "highlighter":
+                    inputProps["highlighter"] = {
+                        type: "object"
+                    };
+                    break;
+                case "file":
+                    inputData[input[_.keys(input)[0]].name] = {
+                        type: "string"
+                    };
+                    break;
                 case "select":
                     inputProps[input[_.keys(input)[0]].name] = {
                         type: "string",
@@ -73,6 +81,7 @@ export class Swagger {
             }
             names.push(input[_.keys(input)[0]].name);
         });
+        
         let jsonInputs = {
             type: "object",
             required: true,
@@ -81,12 +90,10 @@ export class Swagger {
 
         let definitions = {
             type: "object",
-            required: ["inputs", "images"],
+            required: ["parameters", "data"],
             properties: {
-                inputs: jsonInputs,
-                images: {
-                    $ref: "#/definitions/inputImages"
-                }
+                parameters: jsonInputs,
+                data: inputData
             }
         };
 
@@ -116,7 +123,7 @@ export class Swagger {
                         description: "needed execution parameters",
                         required: true,
                         schema: {
-                            $ref: "#/definitions" + algorithmInfos.general.name.replace(/\s/g, "").toLowerCase()
+                            $ref: "#/definitions/" + algorithmInfos.general.name.replace(/\s/g, "").toLowerCase()
                         }
                     }
                 ],
@@ -134,7 +141,4 @@ export class Swagger {
         currentSwagger.definitions[algorithmInfos.general.name.replace(/\s/g, "").toLowerCase()] = definitions;
         IoHelper.saveFile(nconf.get("paths:swaggerFile"), currentSwagger, "utf8");
     }
-
-    //TODO: Some things missing
-
 }
