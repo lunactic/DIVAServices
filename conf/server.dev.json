@@ -65,6 +65,7 @@
     "rootPath": "/data",
     "filesPath": "/data/files",
     "resultsPath": "/data/results",
+    "workflowsPath":"/data/workflows",
     "testPath": "/data/testData",
     "jsonPath": "/data/json",
     "logPath": "/data/logs",

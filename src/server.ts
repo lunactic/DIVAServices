@@ -24,6 +24,7 @@ if (!(process.env.NODE_ENV != null) || ["dev", "test", "prod"].indexOf(process.e
 
 var router = require("./routes/standardRouter");
 var algorithmRouter = require("./routes/algorithmRouter");
+var workflowRouter = require("./routes/workflowRouter");
 var specialMethodsRouter = require("./routes/specialMethodsRouter");
 var ipFilter = require("express-ipfilter").IpFilter;
 var IpDeniedError = require("express-ipfilter").IpDeniedError;
@@ -146,6 +147,7 @@ class Server {
         //use router middleware
 
         this.app.use(router);
+        this.app.use(workflowRouter);
         // Set up the white listed ips for the Algorithm Router
         let whiteIps = nconf.get("server:managementWhitelistIp");
         this.app.use(ipFilter(whiteIps, { mode: 'allow', logLevel: 'deny' }));

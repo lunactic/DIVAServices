@@ -2,19 +2,17 @@
 /**
  * Created by Marcel Würsch on 08.11.16.
  */
-import { AlgorithmManagement } from "../management/algorithmManagement";
-import { DockerManagement } from "../docker/dockerManagement";
-import { Logger } from "../logging/logger";
-import * as nconf from "nconf";
-import { ResultHelper } from "../helper/resultHelper";
 import * as express from "express";
-import { SchemaValidator } from "../validator/schemaValidator";
+import * as nconf from "nconf";
+import { DockerManagement } from "../docker/dockerManagement";
+import { ResultHelper } from "../helper/resultHelper";
 import { ServicesInfoHelper } from "../helper/servicesInfoHelper";
-import { Statistics } from "../statistics/statistics";
-import { QueueHandler } from "../processingQueue/queueHandler";
+import { Logger } from "../logging/logger";
+import { AlgorithmManagement } from "../management/algorithmManagement";
 import { DivaError } from '../models/divaError';
-import { IoHelper } from '../helper/ioHelper';
-import * as path from "path";
+import { QueueHandler } from "../processingQueue/queueHandler";
+import { Statistics } from "../statistics/statistics";
+import { SchemaValidator } from "../validator/schemaValidator";
 
 let router = express.Router();
 

@@ -309,7 +309,7 @@ router.post("/validate/:schema", async function (req: express.Request, res: expr
  * method handler
  */
 router.post("*", async function (req: express.Request, res: express.Response, next: express.NextFunction) {
-    if (unlike(req, "/algorithm") && unlike(req, "/mgmt")) {
+    if (unlike(req, "/workflows") && unlike(req, "/algorithm") && unlike(req, "/mgmt")) {
         try {
             let response = await PostHandler.handleRequest(req);
             response["statusCode"] = 202;

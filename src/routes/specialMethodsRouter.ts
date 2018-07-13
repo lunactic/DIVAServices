@@ -1,15 +1,8 @@
 "use strict";
-/**
- * Created by Marcel Würsch on 08.11.16.
- */
-import { Logger } from "../logging/logger";
-import * as nconf from "nconf";
 import * as express from "express";
-import { DivaError } from '../models/divaError';
-import { IoHelper } from '../helper/ioHelper';
 import * as passport from "passport";
-import { Account } from "../models/account";
 import { FileHelper } from "../helper/fileHelper";
+import { Account } from "../models/account";
 
 let router = express.Router();
 
@@ -20,7 +13,7 @@ router.post("/mgmt/register", function (req: express.Request, res: express.Respo
     Account.register(new Account({
         username: req.body["username"],
         type: "user"
-    }), req.body["password"], (err: any, account: any) => {
+    }), req.body["password"], (err: any) => {
         if (err) {
             res.status(500).send();
         } else {
@@ -31,7 +24,7 @@ router.post("/mgmt/register", function (req: express.Request, res: express.Respo
 
 //auth routes
 router.get("/mgmt/clearData", function (req: express.Request, res: express.Response, next: express.NextFunction) {
-    passport.authenticate('local', function (err: any, user: any, info: any) {
+    passport.authenticate('local', function (err: any, user: any) {
         if (err) {
             res.status(401).send();
             return;
@@ -40,7 +33,7 @@ router.get("/mgmt/clearData", function (req: express.Request, res: express.Respo
             res.status(403).send();
             return;
         }
-        req.logIn(user, (err: any) => {
+        req.logIn(user, () => {
             let collections = FileHelper.getAllCollections();
             collections.forEach(collection => {
                 FileHelper.deleteCollection(collection.toString());
