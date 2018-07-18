@@ -163,6 +163,7 @@ export class ExecutableHelper extends EventEmitter {
                 for (let element of collection.inputData) {
                     let proc: Process = new Process();
                     proc.req = _.cloneDeep(req);
+                    proc.rewriteRules = serviceInfo.rewriteRules;
                     proc.resultCollection = outputCollectionName;
                     proc.algorithmIdentifier = serviceInfo.identifier;
                     proc.executableType = serviceInfo.executableType;
@@ -174,7 +175,7 @@ export class ExecutableHelper extends EventEmitter {
                     proc.remotePaths = _.cloneDeep(serviceInfo.remotePaths);
                     proc.outputs = collection.outputs;
                     proc.matchedParameters = _.cloneDeep(serviceInfo.paramOrder);
-                    proc.method = collection.method;
+                    proc.method = serviceInfo.name;
                     proc.rootFolder = collection.name;
                     proc.methodFolder = path.basename(proc.outputFolder);
                     proc.programType = serviceInfo.programType;

@@ -239,11 +239,22 @@ export class FileResultHandler implements IResultHandler {
                             reject(new DivaError("Output for " + file.name + " expected to be of type(s): " + JSON.stringify(file.file.options.mimeTypes.allowed) + " but was of type: " + mimeType, 500, "ResultError"));
                         }
                     }
+                    let rewriteRule = _.find(process.rewriteRules, function (rule: any) { return rule.target === file.file.name; })
+                    //rename the output file if needed                  
 
+                    if (!isNullOrUndefined(rewriteRule)) {
+                        console.log('break');
+                        let originalFilename = _.find(process.matchedParameters, function (o: any) { return Object.keys(o)[0] === rewriteRule.source; })[rewriteRule.source].filename;
+                        originalFilename = path.basename(originalFilename, path.extname(originalFilename));
+                        let outputFilename = originalFilename + '_' + process.method + path.extname(cwlFile.basename);
+                        await IoHelper.moveFile(cwlFile.path, process.outputFolder + outputFilename);
+                        cwlFile.path = process.outputFolder + outputFilename;
+                        resFile.file.options['filename'] = outputFilename;
+                    } else {
+                        resFile.file.options['filename'] = resFile.file.name + "." + mime.getExtension(resFile.file["mime-type"]);
+                    }
                     //rename the file according to file.file.name
                     resFile.file["url"] = IoHelper.getStaticResultUrlFull(cwlFile.path);
-                    resFile.file.name = resFile.file.name;
-                    resFile.file.options['filename'] = resFile.file.name + "." + mime.getExtension(resFile.file["mime-type"]);
                     delete resFile.file.content;
                     procResult.output.push(resFile);
                     await this.addFileToOutputCollection(process, resFile);
@@ -293,7 +304,7 @@ export class FileResultHandler implements IResultHandler {
             await FileHelper.addFilesCollectionInformation(process.resultCollection, numOfFiles + 1);
             var newFile: DivaFile = await FileHelper.saveFileUrl(file.file.url, process.resultCollection, file.name);
             await FileHelper.addFileInfo(newFile.path, process.resultCollection);
-            await FileHelper.updateCollectionInformation(process.resultCollection, numOfFiles+1, numOfFiles + 1);
+            await FileHelper.updateCollectionInformation(process.resultCollection, numOfFiles + 1, numOfFiles + 1);
             resolve();
         });
     }

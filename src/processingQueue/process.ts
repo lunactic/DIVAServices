@@ -170,6 +170,14 @@ export class Process implements IProcess {
      */
     public resultCollection: string;
 
+
+    /**
+     * Rewrite rules for rewriting output file names based on input file names
+     *
+     * @type {any[]}
+     * @memberof Process
+     */
+    public rewriteRules: any[];
     /**
      * the result type
      * 
