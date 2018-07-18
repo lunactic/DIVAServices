@@ -198,6 +198,7 @@ export class FileHelper {
                 } else {
                     //use the existing filename and extension
                     fileName = path.basename(url.parse(downloadUrl).pathname);
+                    tmpFilePath = filePath + path.sep + "temp_" + fileName;
                 }
 
                 await this.downloadFile(downloadUrl, tmpFilePath);

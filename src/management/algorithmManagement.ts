@@ -722,6 +722,7 @@ export class AlgorithmManagement {
                     }
                 });
                 let newServiceEntry = {
+                    name: algorithm.general.name.replace(/\s/g, '').toLowerCase(),
                     service: route.replace(/\//g, "").toLowerCase(),
                     baseRoute: "/" + baseRoute,
                     identifier: identifier,

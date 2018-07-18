@@ -17,6 +17,7 @@ import { QueueHandler } from '../processingQueue/queueHandler';
 import { RandomWordGenerator } from "../randomizer/randomWordGenerator";
 import { Statistics } from "../statistics/statistics";
 import { SchemaValidator } from "../validator/schemaValidator";
+import { FileHelper } from "./fileHelper";
 import { IoHelper } from "./ioHelper";
 import { ParameterHelper } from "./parameterHelper";
 import { ConsoleResultHandler } from "./resultHandlers/consoleResultHandler";
@@ -136,6 +137,16 @@ export class ExecutableHelper extends EventEmitter {
                 collection.inputParameters = _.cloneDeep(req.body.parameters);
                 collection.inputData = _.cloneDeep(req.body.data);
                 collection.resultFile = nconf.get("paths:resultsPath") + path.sep + collection.name + ".json";
+                let outputCollectionName = '';
+                //Take the first entry from the data and its collection name as inputCollectionName
+                if (executionType !== 'test') {
+                    let inputCollectionName = req.body.data[0][Object.keys(req.body.data[0])[0]].split('/')[0];
+                    let now: Date = new Date();
+                    //Generate outputCollectionName from inputCollectionName and current date
+                    outputCollectionName = inputCollectionName + '_' + serviceInfo.name + '_' + now.getFullYear() + '_' + now.getMonth() + '_' + now.getDay() + '_' + now.getHours() + '_' + now.getMinutes() + '_' + now.getSeconds();
+                    await IoHelper.createFilesCollectionFolders(outputCollectionName);
+                    FileHelper.createCollectionInformation(outputCollectionName, 0);
+                }
                 if (!isNullOrUndefined(req.body.identification)) {
                     collection.identification = req.body.identification;
                 }
@@ -152,6 +163,7 @@ export class ExecutableHelper extends EventEmitter {
                 for (let element of collection.inputData) {
                     let proc: Process = new Process();
                     proc.req = _.cloneDeep(req);
+                    proc.resultCollection = outputCollectionName;
                     proc.algorithmIdentifier = serviceInfo.identifier;
                     proc.executableType = serviceInfo.executableType;
                     proc.outputFolder = collection.outputFolder + path.sep + "data_" + index + path.sep;
@@ -228,7 +240,8 @@ export class ExecutableHelper extends EventEmitter {
                 if (isNullOrUndefined(collection.result)) {
                     collection.result = {
                         results: results,
-                        collection: collection.name,
+                        resultCollection: outputCollectionName,
+                        resultCollectionLink: 'http://' + nconf.get('server:rootUrl') + '/collections/' + outputCollectionName,
                         resultLink: collection.buildGetUrl(),
                         message: "This url is available for 24 hours",
                         status: "done"
