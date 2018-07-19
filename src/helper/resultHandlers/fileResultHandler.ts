@@ -239,11 +239,10 @@ export class FileResultHandler implements IResultHandler {
                             reject(new DivaError("Output for " + file.name + " expected to be of type(s): " + JSON.stringify(file.file.options.mimeTypes.allowed) + " but was of type: " + mimeType, 500, "ResultError"));
                         }
                     }
-                    let rewriteRule = _.find(process.rewriteRules, function (rule: any) { return rule.target === file.file.name; })
-                    //rename the output file if needed                  
 
+                    //rename the output file if needed                  
+                    let rewriteRule = _.find(process.rewriteRules, function (rule: any) { return rule.target === file.file.name; })
                     if (!isNullOrUndefined(rewriteRule)) {
-                        console.log('break');
                         let originalFilename = _.find(process.matchedParameters, function (o: any) { return Object.keys(o)[0] === rewriteRule.source; })[rewriteRule.source].filename;
                         originalFilename = path.basename(originalFilename, path.extname(originalFilename));
                         let outputFilename = originalFilename + '_' + process.method + path.extname(cwlFile.basename);
