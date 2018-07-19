@@ -4,6 +4,7 @@
 "use strict";
 
 import * as fs from "fs-extra";
+import * as im from 'imagemagick-cli';
 import * as _ from "lodash";
 import * as mime from "mime";
 import * as nconf from "nconf";
@@ -126,7 +127,7 @@ export class FileHelper {
      */
     static async downloadFile(url: string, filepath: string): Promise<void> {
         return new Promise<void>(async (resolve, reject) => {
-            request.get(url).pipe(fs.createWriteStream(filepath)).on("finish", function () {
+            request.get(url).pipe(fs.createWriteStream(filepath, { flags: 'w' })).on("finish", function () {
                 resolve();
             });
         });
@@ -208,8 +209,11 @@ export class FileHelper {
                 file.folder = imgFolder;
                 file.path = imgFolder + fileName;
                 try {
-                    await fs.stat(file.path);
-                    fs.unlinkSync(tmpFilePath);
+                    let stats: fs.Stats = await fs.stat(file.path);
+                    if (stats.isFile()) {
+                        fs.rename(tmpFilePath, file.path);
+                        resolve(file);
+                    }
                 } catch (error) {
                     if (error.code === "ENONENT") {
                         await fs.rename(tmpFilePath, file.path);
@@ -305,6 +309,7 @@ export class FileHelper {
         if (filtered.length > 0) {
             for (let item of filtered) {
                 let file = DivaFile.CreateFileFull(item.file);
+                //let file = DivaFile.CreateFileFull(item.file, item.options);
                 files.push(file);
             }
             return files;
@@ -318,14 +323,28 @@ export class FileHelper {
      * Save the information of an file into the file information file
      * 
      * @static
-     * @param {string} file the filename of the file
+     * @param {string} path the path tothe file
      * @param {string} collection the collection the file belongs to
      * 
      * @memberof FileHelper
      */
-    static async addFileInfo(file: string, collection: string): Promise<void> {
+    static async addFileInfo(path: string, collection: string): Promise<void> {
         return new Promise<void>(async (resolve, reject) => {
-            this.filesInfo.push({ file: file, collection: collection });
+            /**let mimeType = mime.getType(path);
+            let options = {};
+            if (mimeType.startsWith('image')) {
+                let dimensions = await FileHelper.getImageDimensions(path);
+                options = {
+                    dimensions: {
+                        width: dimensions.width,
+                        height: dimensions.height
+                    }
+                };
+            }
+            this.filesInfo.push({ file: path, collection: collection, options: options });
+            await this.saveFileInfo();
+            resolve();*/
+            this.filesInfo.push({ file: path, collection: collection });
             await this.saveFileInfo();
             resolve();
         });
@@ -451,9 +470,9 @@ export class FileHelper {
             IoHelper.deleteFile(nconf.get("paths:filesPath") + path.sep + collection + path.sep + "original" + path.sep + target);
             let statusFile = nconf.get("paths:filesPath") + path.sep + collection + path.sep + "status.json";
             let currentStatus = await IoHelper.readFile(statusFile);
-            
+
             currentStatus.statusCode = 200,
-            currentStatus.totalFiles = (currentStatus.totalFiles - 1);
+                currentStatus.totalFiles = (currentStatus.totalFiles - 1);
             currentStatus.statusMessage = "Collection is available";
             currentStatus.percentage = 100;
             await IoHelper.saveFile(nconf.get("paths:filesPath") + path.sep + collection + path.sep + "status.json", currentStatus, "utf-8");
@@ -525,5 +544,23 @@ export class FileHelper {
     static getCollectionInformation(collection: string): any {
         let statusFile = nconf.get("paths:filesPath") + path.sep + collection + path.sep + "status.json";
         return IoHelper.readFile(statusFile);
+    }
+
+
+    /**
+     *Get the image dimensions
+     *
+     * @static
+     * @param {string} path the path to an input image
+     * @returns {Promise<any>} json object with `width` and `height`
+     * @memberof FileHelper
+     */
+    static async getImageDimensions(path: string): Promise<any> {
+        return new Promise<any>(async (resolve, reject) => {
+            let result: any = await im.exec('identify -verbose ' + path);
+            result = result.stdout.split("\n");
+            //TODO Write a parser for the identify result
+            resolve({});
+        });
     }
 }

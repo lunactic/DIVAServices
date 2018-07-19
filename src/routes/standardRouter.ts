@@ -32,7 +32,6 @@ let router = express.Router();
  */
 router.post("/collections", async function (req: express.Request, res: express.Response) {
     let numOfFiles: number = 0;
-    let counter: number = 0;
     let collectionName = "";
     if (_.has(req.body, "name")) {
         if (req.body.name.length === 0) {
@@ -69,7 +68,6 @@ router.post("/collections", async function (req: express.Request, res: express.R
                 numOfFiles++;
                 break;
         }
-        counter++;
     }
     //create folders and info file
     await IoHelper.createFilesCollectionFolders(collectionName);
@@ -137,6 +135,12 @@ router.put("/collections/:collectionName", async function (req: express.Request,
         numOfFiles = FileHelper.loadCollection(collectionName).length;
         let imageCounter: number = numOfFiles;
         for (let file of req.body.files) {
+            let fullPath = nconf.get("paths:filesPath") + path.sep + collectionName + path.sep + "original" + path.sep + file.name;
+            let fileExists: boolean = false;
+            if (await FileHelper.fileExists(fullPath)) {
+                fileExists = true;
+            }
+
             switch (file.type) {
                 case "iiif":
                     let iiifManifestParser = new IiifManifestParser(file.value);
@@ -144,10 +148,14 @@ router.put("/collections/:collectionName", async function (req: express.Request,
                     numOfFiles += iiifManifestParser.getAllImages(0).length;
                     break;
                 case "url":
-                    numOfFiles++;
+                    if (!fileExists) {
+                        numOfFiles++;
+                    }
                     break;
                 default:
-                    numOfFiles++;
+                    if (!fileExists) {
+                        numOfFiles++;
+                    }
                     break;
             }
             counter++;
@@ -157,9 +165,10 @@ router.put("/collections/:collectionName", async function (req: express.Request,
 
         //download the files
         for (let file of req.body.files) {
-            let fullPath = nconf.get("paths:filesPath") + path.sep + collectionName + path.sep + "original" + path.sep + file.name + "." + file.extension;
+            let fullPath = nconf.get("paths:filesPath") + path.sep + collectionName + path.sep + "original" + path.sep + file.name;
+            let fileExists: boolean = false;
             if (await FileHelper.fileExists(fullPath)) {
-                continue;
+                fileExists = true;
             }
 
             switch (file.type) {
@@ -185,8 +194,10 @@ router.put("/collections/:collectionName", async function (req: express.Request,
                             await FileHelper.saveZipUrl(file.value, collectionName);
                         } else {
                             var newFile: DivaFile = await FileHelper.saveFileUrl(file.value, collectionName, file.name);
-                            await FileHelper.addFileInfo(newFile.path, collectionName);
-                            await FileHelper.updateCollectionInformation(collectionName, numOfFiles, ++imageCounter);
+                            if (!fileExists) {
+                                await FileHelper.addFileInfo(newFile.path, collectionName);
+                                await FileHelper.updateCollectionInformation(collectionName, numOfFiles, ++imageCounter);
+                            }
                         }
                     } catch (error) {
                         //TODO add error info into the collection information
@@ -357,6 +368,7 @@ router.get("/collections/:collection", function (req: express.Request, res: expr
                 "file": {
                     url: file.url,
                     identifier: file.identifier
+                    //options: file.options
                 }
             });
         }
