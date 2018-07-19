@@ -430,7 +430,7 @@ export class ParameterHelper {
      * 
      * @memberOf ParameterHelper
      */
-    static loadParamInfo(proc: Process): Promise<void> {
+    static loadParamInfo(proc: Process, noCache: boolean): Promise<void> {
         return new Promise<void>(async (resolve, reject) => {
             let paramPath = nconf.get("paths:resultsPath") + path.sep + proc.method + ".json";
             let parameters = _.clone(proc.parameters.outputParams);
@@ -450,7 +450,7 @@ export class ParameterHelper {
                     "highlighterHash": data.highlighterHash,
                     "dataHash": data.dataHash,
                     "paramHash": data.paramHash
-                })).length > 0) {
+                })).length > 0 && !noCache) {
                     //found some method information
                     proc.resultFile = info[0].resultFile;
                     proc.outputFolder = info[0].folder;

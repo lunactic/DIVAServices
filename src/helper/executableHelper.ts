@@ -222,7 +222,7 @@ export class ExecutableHelper extends EventEmitter {
                     await ParameterHelper.matchProcessData(proc, element);
                     await ParameterHelper.matchOrder(proc);
                     //try to find existing results
-                    await ParameterHelper.loadParamInfo(proc);
+                    await ParameterHelper.loadParamInfo(proc, serviceInfo.noCache);
                     if (isNullOrUndefined(proc.resultFile)) {
                         await IoHelper.createFolder(proc.outputFolder);
                         proc.resultFile = IoHelper.buildResultfilePath(proc.outputFolder, proc.methodFolder);
