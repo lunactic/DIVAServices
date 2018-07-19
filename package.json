@@ -37,6 +37,7 @@
     "node": "~8.10.0"
   },
   "dependencies": {
+    "@types/image-size": "^0.0.29",
     "archiver": "^2.1.1",
     "body-parser": "^1.18.2",
     "chai": "^4.1.2",
@@ -51,7 +52,8 @@
     "express-ipfilter": "^0.3.1",
     "express-session": "^1.15.6",
     "fs-extra": "^5.0.0",
-    "image-size": "^0.6.2",
+    "image-size": "^0.6.3",
+    "imagemagick-cli": "^0.3.0",
     "jsonschema": "^1.2.2",
     "lodash": "^4.17.5",
     "log4js": "^2.5.3",
