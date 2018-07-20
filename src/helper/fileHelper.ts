@@ -256,8 +256,6 @@ export class FileHelper {
             }
 
             await IoHelper.saveFile(filePath, data, "utf-8");
-            let base64 = fs.readFileSync(filePath, "base64");
-
             let imgFolder = filePath + path.sep + folder + path.sep + "original" + path.sep;
             file.filename = fileName;
             file.folder = imgFolder;
@@ -308,8 +306,8 @@ export class FileHelper {
         });
         if (filtered.length > 0) {
             for (let item of filtered) {
-                let file = DivaFile.CreateFileFull(item.file);
-                //let file = DivaFile.CreateFileFull(item.file, item.options);
+                //let file = DivaFile.CreateFileFull(item.file);
+                let file = DivaFile.CreateFileFull(item.file, item.options);
                 files.push(file);
             }
             return files;
@@ -330,23 +328,19 @@ export class FileHelper {
      */
     static async addFileInfo(path: string, collection: string): Promise<void> {
         return new Promise<void>(async (resolve, reject) => {
-            /**let mimeType = mime.getType(path);
+            let mimeType = mime.getType(path);
             let options = {};
             if (mimeType.startsWith('image')) {
-                let dimensions = await FileHelper.getImageDimensions(path);
-                options = {
-                    dimensions: {
-                        width: dimensions.width,
-                        height: dimensions.height
-                    }
-                };
+                options = await FileHelper.getImageInformation(path);
             }
             this.filesInfo.push({ file: path, collection: collection, options: options });
             await this.saveFileInfo();
-            resolve();*/
+            resolve();
+
+            /**
             this.filesInfo.push({ file: path, collection: collection });
             await this.saveFileInfo();
-            resolve();
+            resolve(); */
         });
     }
 
@@ -548,19 +542,45 @@ export class FileHelper {
 
 
     /**
-     *Get the image dimensions
-     *
+     * Get the image information 
+     * This function parses the output of imagemagick `identify` function.
+     * 
      * @static
      * @param {string} path the path to an input image
      * @returns {Promise<any>} json object with `width` and `height`
      * @memberof FileHelper
      */
-    static async getImageDimensions(path: string): Promise<any> {
+    static async getImageInformation(path: string): Promise<any> {
         return new Promise<any>(async (resolve, reject) => {
             let result: any = await im.exec('identify -verbose ' + path);
             result = result.stdout.split("\n");
+            let options = {};
+            for (const line of result) {
+                let info = line.trim().split(':');
+                switch (info[0].toLowerCase()) {
+                    case 'geometry':
+                        let dimensions = info[1].split('+')[0].split('x');
+                        options['width'] = Number(dimensions[0].replace(' ', ''));
+                        options['height'] = Number(dimensions[1].replace(' ', ''));
+                        break;
+                    case 'colorspace':
+                        options['colorspace'] = info[1].replace(' ', '');
+                        break;
+                    case 'units':
+                        options['units'] = info[1].replace(' ', '');
+                        break;
+                    case 'resolution':
+                        options['resolution'] = info[1].replace(' ', '');
+                        break;
+                    case 'print size':
+                        options['print_size'] = info[1].replace(' ', '');
+                        break;
+                    default:
+                        break;
+                }
+            }
             //TODO Write a parser for the identify result
-            resolve({});
+            resolve(options);
         });
     }
 }

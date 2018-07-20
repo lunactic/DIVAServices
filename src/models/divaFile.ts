@@ -121,7 +121,7 @@ export class DivaFile {
         item.url = "http://" + nconf.get("server:rootUrl") + "/files/" + relativePath;
         item.filename = path.parse(filePath).base;
         item.extension = path.parse(filePath).ext;
-        //item.options = options;
+        item.options = options;
         return item;
 
     }

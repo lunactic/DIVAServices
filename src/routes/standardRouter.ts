@@ -367,8 +367,8 @@ router.get("/collections/:collection", function (req: express.Request, res: expr
             response.push({
                 "file": {
                     url: file.url,
-                    identifier: file.identifier
-                    //options: file.options
+                    identifier: file.identifier,
+                    options: file.options
                 }
             });
         }
