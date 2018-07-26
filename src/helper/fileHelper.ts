@@ -4,6 +4,7 @@
 "use strict";
 
 import * as fs from "fs-extra";
+import * as im from 'imagemagick-cli';
 import * as _ from "lodash";
 import * as mime from "mime";
 import * as nconf from "nconf";
@@ -126,7 +127,7 @@ export class FileHelper {
      */
     static async downloadFile(url: string, filepath: string): Promise<void> {
         return new Promise<void>(async (resolve, reject) => {
-            request.get(url).pipe(fs.createWriteStream(filepath)).on("finish", function () {
+            request.get(url).pipe(fs.createWriteStream(filepath, { flags: 'w' })).on("finish", function () {
                 resolve();
             });
         });
@@ -198,6 +199,7 @@ export class FileHelper {
                 } else {
                     //use the existing filename and extension
                     fileName = path.basename(url.parse(downloadUrl).pathname);
+                    tmpFilePath = filePath + path.sep + "temp_" + fileName;
                 }
 
                 await this.downloadFile(downloadUrl, tmpFilePath);
@@ -207,8 +209,11 @@ export class FileHelper {
                 file.folder = imgFolder;
                 file.path = imgFolder + fileName;
                 try {
-                    await fs.stat(file.path);
-                    fs.unlinkSync(tmpFilePath);
+                    let stats: fs.Stats = await fs.stat(file.path);
+                    if (stats.isFile()) {
+                        fs.rename(tmpFilePath, file.path);
+                        resolve(file);
+                    }
                 } catch (error) {
                     if (error.code === "ENONENT") {
                         await fs.rename(tmpFilePath, file.path);
@@ -251,8 +256,6 @@ export class FileHelper {
             }
 
             await IoHelper.saveFile(filePath, data, "utf-8");
-            let base64 = fs.readFileSync(filePath, "base64");
-
             let imgFolder = filePath + path.sep + folder + path.sep + "original" + path.sep;
             file.filename = fileName;
             file.folder = imgFolder;
@@ -303,7 +306,8 @@ export class FileHelper {
         });
         if (filtered.length > 0) {
             for (let item of filtered) {
-                let file = DivaFile.CreateFileFull(item.file);
+                //let file = DivaFile.CreateFileFull(item.file);
+                let file = DivaFile.CreateFileFull(item.file, item.options);
                 files.push(file);
             }
             return files;
@@ -317,16 +321,26 @@ export class FileHelper {
      * Save the information of an file into the file information file
      * 
      * @static
-     * @param {string} file the filename of the file
+     * @param {string} path the path tothe file
      * @param {string} collection the collection the file belongs to
      * 
      * @memberof FileHelper
      */
-    static async addFileInfo(file: string, collection: string): Promise<void> {
+    static async addFileInfo(path: string, collection: string): Promise<void> {
         return new Promise<void>(async (resolve, reject) => {
-            this.filesInfo.push({ file: file, collection: collection });
+            let mimeType = mime.getType(path);
+            let options = {};
+            if (mimeType.startsWith('image')) {
+                options = await FileHelper.getImageInformation(path);
+            }
+            this.filesInfo.push({ file: path, collection: collection, options: options });
             await this.saveFileInfo();
             resolve();
+
+            /**
+            this.filesInfo.push({ file: path, collection: collection });
+            await this.saveFileInfo();
+            resolve(); */
         });
     }
 
@@ -450,9 +464,9 @@ export class FileHelper {
             IoHelper.deleteFile(nconf.get("paths:filesPath") + path.sep + collection + path.sep + "original" + path.sep + target);
             let statusFile = nconf.get("paths:filesPath") + path.sep + collection + path.sep + "status.json";
             let currentStatus = await IoHelper.readFile(statusFile);
-            
+
             currentStatus.statusCode = 200,
-            currentStatus.totalFiles = (currentStatus.totalFiles - 1);
+                currentStatus.totalFiles = (currentStatus.totalFiles - 1);
             currentStatus.statusMessage = "Collection is available";
             currentStatus.percentage = 100;
             await IoHelper.saveFile(nconf.get("paths:filesPath") + path.sep + collection + path.sep + "status.json", currentStatus, "utf-8");
@@ -524,5 +538,49 @@ export class FileHelper {
     static getCollectionInformation(collection: string): any {
         let statusFile = nconf.get("paths:filesPath") + path.sep + collection + path.sep + "status.json";
         return IoHelper.readFile(statusFile);
+    }
+
+
+    /**
+     * Get the image information 
+     * This function parses the output of imagemagick `identify` function.
+     * 
+     * @static
+     * @param {string} path the path to an input image
+     * @returns {Promise<any>} json object with `width` and `height`
+     * @memberof FileHelper
+     */
+    static async getImageInformation(path: string): Promise<any> {
+        return new Promise<any>(async (resolve, reject) => {
+            let result: any = await im.exec('identify -verbose ' + path);
+            result = result.stdout.split("\n");
+            let options = {};
+            for (const line of result) {
+                let info = line.trim().split(':');
+                switch (info[0].toLowerCase()) {
+                    case 'geometry':
+                        let dimensions = info[1].split('+')[0].split('x');
+                        options['width'] = Number(dimensions[0].replace(' ', ''));
+                        options['height'] = Number(dimensions[1].replace(' ', ''));
+                        break;
+                    case 'colorspace':
+                        options['colorspace'] = info[1].replace(' ', '');
+                        break;
+                    case 'units':
+                        options['units'] = info[1].replace(' ', '');
+                        break;
+                    case 'resolution':
+                        options['resolution'] = info[1].replace(' ', '');
+                        break;
+                    case 'print size':
+                        options['print_size'] = info[1].replace(' ', '');
+                        break;
+                    default:
+                        break;
+                }
+            }
+            //TODO Write a parser for the identify result
+            resolve(options);
+        });
     }
 }

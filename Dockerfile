@@ -8,8 +8,7 @@ RUN apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 2930ADAE8CAF505
 RUN echo "deb http://repo.mongodb.org/apt/debian jessie/mongodb-org/3.6 main" | tee /etc/apt/sources.list.d/mongodb-org-3.6.list
 RUN curl -s http://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add -
 RUN echo "deb http://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list
-RUN apt-get update
-RUN DEBIAN_FRONTEND=noninteractive apt-get install --force-yes -y jq redis-server mongodb-org yarn
+RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install --fix-missing --force-yes -y jq redis-server mongodb-org yarn imagemagick
 
 RUN mkdir -p /code/conf
 RUN mkdir /data

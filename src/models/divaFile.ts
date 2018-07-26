@@ -66,6 +66,14 @@ export class DivaFile {
     public url: string;
 
     /**
+     * Additional information on a file
+     *
+     * @type {*}
+     * @memberof DivaFile
+     */
+    public options: any;
+
+    /**
      * Creates an instance of DivaFile.
      * @memberof DivaFile
      */
@@ -101,10 +109,11 @@ export class DivaFile {
      * 
      * @static
      * @param {string} filePath The path to the file 
+     * @param {*} [options] additional information
      * @returns {DivaFile} The created DivaFile
      * @memberof DivaFile
      */
-    static CreateFileFull(filePath: string): DivaFile {
+    static CreateFileFull(filePath: string, options?: any): DivaFile {
         let item = new DivaFile();
         let relativePath = filePath.replace(nconf.get("paths:filesPath") + path.sep, "");
         item.path = filePath;
@@ -112,6 +121,7 @@ export class DivaFile {
         item.url = "http://" + nconf.get("server:rootUrl") + "/files/" + relativePath;
         item.filename = path.parse(filePath).base;
         item.extension = path.parse(filePath).ext;
+        item.options = options;
         return item;
 
     }

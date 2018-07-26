@@ -20,22 +20,6 @@ import IProcess = require('../processingQueue/iProcess');
 export class ResultHelper {
 
     /**
-     * check if results for a process are available
-     * 
-     * @static
-     * @param {Process} process the process to check
-     * @returns {boolean} indication whether results are available or not
-     * 
-     * @memberof ResultHelper
-     */
-    static async checkProcessResultAvailable(process: Process): Promise<boolean> {
-        return new Promise<boolean>(async (resolve, reject) => {
-            ParameterHelper.loadParamInfo(process);
-            resolve(process.resultFile != null && await IoHelper.fileExists(process.resultFile));
-        });
-    }
-
-    /**
      * load the results for a process / collection
      * 
      * @static

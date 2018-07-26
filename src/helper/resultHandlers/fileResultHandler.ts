@@ -10,6 +10,7 @@ import * as path from "path";
 import { isNullOrUndefined } from 'util';
 import { Logger } from "../../logging/logger";
 import { DivaError } from "../../models/divaError";
+import { DivaFile } from "../../models/divaFile";
 import { Process } from "../../processingQueue/process";
 import { FileHelper } from "../fileHelper";
 import { IoHelper } from "../ioHelper";
@@ -204,6 +205,7 @@ export class FileResultHandler implements IResultHandler {
                                             }
                                         };
                                         tmpOutput.push(file);
+                                        await this.addFileToOutputCollection(process, file);
                                     }
                                 }
                                 break;
@@ -238,12 +240,23 @@ export class FileResultHandler implements IResultHandler {
                         }
                     }
 
+                    //rename the output file if needed                  
+                    let rewriteRule = _.find(process.rewriteRules, function (rule: any) { return rule.target === file.file.name; })
+                    if (!isNullOrUndefined(rewriteRule)) {
+                        let originalFilename = _.find(process.matchedParameters, function (o: any) { return Object.keys(o)[0] === rewriteRule.source; })[rewriteRule.source].filename;
+                        originalFilename = path.basename(originalFilename, path.extname(originalFilename));
+                        let outputFilename = originalFilename + '_' + process.method + path.extname(cwlFile.basename);
+                        await IoHelper.moveFile(cwlFile.path, process.outputFolder + outputFilename);
+                        cwlFile.path = process.outputFolder + outputFilename;
+                        resFile.file.options['filename'] = outputFilename;
+                    } else {
+                        resFile.file.options['filename'] = resFile.file.name + "." + mime.getExtension(resFile.file["mime-type"]);
+                    }
                     //rename the file according to file.file.name
                     resFile.file["url"] = IoHelper.getStaticResultUrlFull(cwlFile.path);
-                    resFile.file.name = resFile.file.name;
-                    resFile.file.options['filename'] = resFile.file.name + "." + mime.getExtension(resFile.file["mime-type"]);
                     delete resFile.file.content;
                     procResult.output.push(resFile);
+                    await this.addFileToOutputCollection(process, resFile);
                 }
 
 
@@ -274,6 +287,25 @@ export class FileResultHandler implements IResultHandler {
         });
 
 
+    }
+
+    /**
+     * add the file to the output collection
+     *
+     * @param {Process} process the current process
+     * @param {*} file the output file
+     * @returns {Promise<void>}
+     * @memberof FileResultHandler
+     */
+    async addFileToOutputCollection(process: Process, file: any): Promise<void> {
+        return new Promise<void>(async (resolve, reject) => {
+            let numOfFiles = FileHelper.loadCollection(process.resultCollection).length;
+            await FileHelper.addFilesCollectionInformation(process.resultCollection, numOfFiles + 1);
+            var newFile: DivaFile = await FileHelper.saveFileUrl(file.file.url, process.resultCollection, file.name);
+            await FileHelper.addFileInfo(newFile.path, process.resultCollection);
+            await FileHelper.updateCollectionInformation(process.resultCollection, numOfFiles + 1, numOfFiles + 1);
+            resolve();
+        });
     }
 
     async handleCwlError(process: Process): Promise<any> {

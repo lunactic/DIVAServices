@@ -3,10 +3,10 @@
  */
 
 "use strict";
+import * as express from "express";
 import { IoHelper } from "../helper/ioHelper";
 import IProcess = require("./iProcess");
 import IResultHandler = require("../helper/resultHandlers/iResultHandler");
-import * as express from "express";
 /**
  *Class representing a process to be executed
  */
@@ -163,6 +163,22 @@ export class Process implements IProcess {
     public resultHandler: IResultHandler;
 
     /**
+     * the name of the created resultCollection
+     *
+     * @type {string}
+     * @memberof Process
+     */
+    public resultCollection: string;
+
+
+    /**
+     * Rewrite rules for rewriting output file names based on input file names
+     *
+     * @type {any[]}
+     * @memberof Process
+     */
+    public rewriteRules: any[];
+    /**
      * the result type
      * 
      * @type {string}
@@ -301,7 +317,7 @@ export class Process implements IProcess {
      */
     public identification: any;
 
-    
+
     /**
      * path to the cwl file for the method
      * 
