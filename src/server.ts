@@ -1,9 +1,5 @@
 "use strict";
 import * as bodyParser from "body-parser";
-//import * as mongoose from "mongoose";
-//import * as passport from "passport";
-//import * as redis from "redis";
-import * as cors from "cors";
 import * as express from "express";
 import * as session from "express-session";
 import * as fs from "fs";
@@ -78,7 +74,7 @@ class Server {
         this.app.use(bodyParser.urlencoded({ extended: true, limit: "2500mb" }));
         //mount json form parser
         this.app.use(bodyParser.json({ limit: "2500mb" }));
-        this.app.use(cors());
+        //this.app.use(cors());
 
         let accessLogStream = fs.createWriteStream(__dirname + path.sep + "../logs" + path.sep + "access.log", { flags: "a" });
         this.app.use(morgan("combined", { stream: accessLogStream }));
