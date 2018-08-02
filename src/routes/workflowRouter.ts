@@ -9,7 +9,8 @@ let router = express.Router();
 
 router.post("/workflows", async function (req: express.Request, res: express.Response) {
     try {
-        await WorkflowManager.parseWorkflow(req.body);
+        let workflowManager = new WorkflowManager(req.body);
+        await workflowManager.parseWorkflow();
         res.status(200).send();
     } catch (error) {
         sendError(res, error);

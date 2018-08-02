@@ -182,7 +182,6 @@ export class FileResultHandler implements IResultHandler {
                 var procResult: any = {};
                 procResult.output = [];
                 var tmpOutput = [];
-                let removeDirectories: string[] = [];
                 //iterate the cwlResult object
                 for (var key in cwlResult) {
                     if (cwlResult.hasOwnProperty(key)) {
@@ -205,7 +204,9 @@ export class FileResultHandler implements IResultHandler {
                                             }
                                         };
                                         tmpOutput.push(file);
-                                        await this.addFileToOutputCollection(process, file);
+                                        if (process.type !== 'test') {
+                                            await this.addFileToOutputCollection(process, file);
+                                        }
                                     }
                                 }
                                 break;
@@ -241,7 +242,7 @@ export class FileResultHandler implements IResultHandler {
                     }
 
                     //rename the output file if needed                  
-                    let rewriteRule = _.find(process.rewriteRules, function (rule: any) { return rule.target === file.file.name; })
+                    let rewriteRule = _.find(process.rewriteRules, function (rule: any) { return rule.target === file.file.name; });
                     if (!isNullOrUndefined(rewriteRule)) {
                         let originalFilename = _.find(process.matchedParameters, function (o: any) { return Object.keys(o)[0] === rewriteRule.source; })[rewriteRule.source].filename;
                         originalFilename = path.basename(originalFilename, path.extname(originalFilename));
@@ -256,7 +257,9 @@ export class FileResultHandler implements IResultHandler {
                     resFile.file["url"] = IoHelper.getStaticResultUrlFull(cwlFile.path);
                     delete resFile.file.content;
                     procResult.output.push(resFile);
-                    await this.addFileToOutputCollection(process, resFile);
+                    if (process.type !== 'test') {
+                        await this.addFileToOutputCollection(process, resFile);
+                    }
                 }
 
 

@@ -146,6 +146,22 @@ export class IoHelper {
     }
 
     /**
+     * Copy a file
+     *
+     * @static
+     * @param {string} source the source path
+     * @param {string} destination the target path
+     * @returns {Promise<void>} resolves once the file has been copied
+     * @memberof IoHelper
+     */
+    static async copyFile(source: string, destination: string): Promise<void> {
+        return new Promise<void>(async (resolve, reject) => {
+            await fs.copy(source, destination);
+            resolve();
+        });
+    }
+
+    /**
      * remove a file from the filesystem
      * 
      * @static
