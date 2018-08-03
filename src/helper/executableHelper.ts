@@ -66,7 +66,7 @@ export class ExecutableHelper extends EventEmitter {
                     await DockerManagement.runDockerImageSSH(process);
                     await this.endProcess(process);
                 } else {
-                    await DockerManagement.runDockerImage(process, serviceInfo.image_name);
+                    await DockerManagement.runDockerImage(process, serviceInfo.imageName);
                 }
                 if (process.type === "test") {
                     resolve();

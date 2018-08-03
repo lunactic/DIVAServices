@@ -3,17 +3,18 @@ import * as _ from "lodash";
 import * as os from "os";
 import { isNullOrUndefined } from "util";
 import { WorkflowInput } from "../../workflows/workflowInput";
+import { WorkflowOutput } from "../../workflows/workflowOutput";
 
 export class CwlWorkflowManager {
     private filePath: string;
     private inputs: WorkflowInput[];
-    private outputs: Map<string, Map<string, string>>;
+    private outputs: WorkflowOutput[];
     private steps: string[];
 
     constructor(path: string) {
         this.filePath = path;
         this.inputs = [];
-        this.outputs = new Map();
+        this.outputs = [];
         this.steps = [];
     }
 
@@ -23,28 +24,20 @@ export class CwlWorkflowManager {
         fs.appendFileSync(this.filePath, 'class: Workflow' + os.EOL);
     }
 
-    public addInput(step: string, type: string, name: string, value?: any) {
+    public addInput(step: string, type: string, name: string, infoSpec: any, serviceSpec: any, value?: any) {
         if (!isNullOrUndefined(value)) {
             if (typeof value === "string" && value.startsWith('$')) {
-                this.inputs.push(new WorkflowInput(step, type, name, value, null));
+                this.inputs.push(new WorkflowInput(step, type, name, infoSpec, serviceSpec, value, null));
             } else {
-                this.inputs.push(new WorkflowInput(step, type, name, null, value));
+                this.inputs.push(new WorkflowInput(step, type, name, infoSpec, serviceSpec, null, value));
             }
         } else {
-            this.inputs.push(new WorkflowInput(step, type, name));
+            this.inputs.push(new WorkflowInput(step, type, name, infoSpec, serviceSpec));
         }
     }
 
-    public addOutput(step: string, type: string, name: string) {
-        if (this.outputs.has(step)) {
-            let map = this.outputs.get(step);
-            map.set(name, type);
-            this.outputs.set(step, map);
-        } else {
-            let map = new Map();
-            map.set(name, type);
-            this.outputs.set(step, map);
-        }
+    public addOutput(step: string, type: string, name: string, infoSpec: any) {
+        this.outputs.push(new WorkflowOutput(step, name, type, infoSpec));
     }
 
     public addStep(name: string) {
@@ -68,12 +61,10 @@ export class CwlWorkflowManager {
 
         //add outputs
         fs.appendFileSync(this.filePath, os.EOL + 'outputs:' + os.EOL);
-        this.outputs.forEach((map, step) => {
-            map.forEach((value, key) => {
-                fs.appendFileSync(this.filePath, '  ' + key + ': ' + os.EOL);
-                fs.appendFileSync(this.filePath, '    type: ' + value + os.EOL);
-                fs.appendFileSync(this.filePath, '    outputSource: ' + step + '/' + key + os.EOL);
-            });
+        this.outputs.forEach((output) => {
+            fs.appendFileSync(this.filePath, '  ' + output.getName() + ': ' + os.EOL);
+            fs.appendFileSync(this.filePath, '    type: ' + output.getType() + os.EOL);
+            fs.appendFileSync(this.filePath, '    outputSource: ' + output.getStep() + '/' + output.getName() + os.EOL);
         });
 
         //add steps
@@ -91,11 +82,23 @@ export class CwlWorkflowManager {
                 }
             });
             fs.appendFileSync(this.filePath, '    out: [');
-            let keys = Array.from(this.outputs.get(step).keys());
+            let keys = [];
+            let outputs = _.filter(this.outputs, { 'step': step });
+            outputs.forEach((output: WorkflowOutput) => {
+                keys.push(output.getName());
+            });
             fs.appendFileSync(this.filePath, keys.join(', '));
             fs.appendFileSync(this.filePath, ']' + os.EOL);
 
         });
         //write all steps       
+    }
+
+    public getOutputs(): WorkflowOutput[] {
+        return this.outputs;
+    }
+
+    public getInputs(): WorkflowInput[] {
+        return this.inputs;
     }
 }

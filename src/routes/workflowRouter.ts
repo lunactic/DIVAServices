@@ -11,6 +11,9 @@ router.post("/workflows", async function (req: express.Request, res: express.Res
     try {
         let workflowManager = new WorkflowManager(req.body);
         await workflowManager.parseWorkflow();
+        await workflowManager.createServicesEntry();
+        await workflowManager.createInfoFile();
+        await workflowManager.updateRootFile();
         res.status(200).send();
     } catch (error) {
         sendError(res, error);

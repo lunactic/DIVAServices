@@ -6,15 +6,27 @@ export class WorkflowInput {
     private name: string;
     private reference: string;
     private defaultValue: any;
+    private infoSpecification: any;
+    private serviceSpecification: any;
+    private isData: boolean;
 
-    constructor(step: string, wfType: string, name: string, reference?: string, defaultValue?: any) {
+    constructor(step: string, wfType: string, name: string, infoSpecification: any, serviceSpecification: any, reference?: string, defaultValue?: any) {
         this.step = step;
         this.wfType = wfType;
+        if (wfType === 'File' || wfType === 'Directory') {
+            this.isData = true;
+        } else {
+            this.isData = false;
+        }
         this.name = name;
         if (!isNullOrUndefined(reference)) {
             this.reference = reference.replace(/\$/g, '');
         }
-
+        this.infoSpecification = infoSpecification;
+        this.infoSpecification[Object.keys(this.infoSpecification)[0]].name = this.name;
+        this.serviceSpecification = serviceSpecification;
+        this.serviceSpecification[this.name] = this.serviceSpecification[name.split('_')[1]];
+        delete this.serviceSpecification[name.split('_')[1]];
         this.defaultValue = defaultValue;
     }
 
@@ -37,6 +49,18 @@ export class WorkflowInput {
 
     public getDefaultValue() {
         return this.defaultValue;
+    }
+
+    public getInfoSpecification() {
+        return this.infoSpecification;
+    }
+
+    public getServiceSpecification() {
+        return this.serviceSpecification;
+    }
+
+    public isDataInput(): boolean {
+        return this.isData;
     }
 
     public hasReference(): boolean {

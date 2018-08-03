@@ -51,6 +51,7 @@ export class AlgorithmManagement {
         return new Promise<any>(async (resolve, reject) => {
             try {
                 await AlgorithmManagement.generateFolders(route);
+                //TODO: Add noCache, and rewriteRules overwrite
                 AlgorithmManagement.updateServicesFile(req.body, identifier, route, imageName, version, baseroute);
                 if (req.body.method.imageType !== "docker") {
                     await IoHelper.downloadFileWithTypecheck(req.body.method.file, nconf.get("paths:executablePath") + path.sep + route, "application/zip");
@@ -204,7 +205,7 @@ export class AlgorithmManagement {
             var info: any = await ServicesInfoHelper.getInfoByIdentifier(identifier);
             //TODO Initialize cwlManager with correct path to the executable (since it is not 100% sure the same one)
             var executable: string = info.executablePath;
-            var cwlManager: CwlManager = new CwlManager(file, info.image_name);
+            var cwlManager: CwlManager = new CwlManager(file, info.imageName);
             await cwlManager.initialize(executable);
             var counter: number = 0;
             algorithm.input.forEach((item, index) => {
@@ -729,13 +730,12 @@ export class AlgorithmManagement {
                     path: "/" + route,
                     cwl: nconf.get("paths:executablePath") + path.sep + route + path.sep + identifier + ".cwl",
                     executablePath: algorithm.method.executable_path,
-                    allowParallel: true,
-                    hasMultipleFiles: (fileCount > 1),
-                    hasData: (fileCount > 0),
                     output: "file",
                     execute: "docker",
+                    noCache: false,
+                    rewriteRules: [],
                     executableType: algorithm.method.executableType,
-                    image_name: imageName,
+                    imageName: imageName,
                     parameters: parameters,
                     data: data,
                     paramOrder: paramOrder,
