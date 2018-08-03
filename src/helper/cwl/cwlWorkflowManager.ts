@@ -52,22 +52,21 @@ export class CwlWorkflowManager {
     }
 
     public finalize() {
+        //add inputs
         fs.appendFileSync(this.filePath, 'inputs:' + os.EOL);
         this.inputs.forEach((input) => {
             if (input.hasReference()) {
-                let name = input.getName().split('_')[1];
-                fs.appendFileSync(this.filePath, '      ' + name + ': ' + input.getReference() + os.EOL);
+                return;
             } else if (input.hasDefaultValue()) {
-                let name = input.getName().split('_')[1];
-                fs.appendFileSync(this.filePath, '      ' + input.getName() + os.EOL);
-                fs.appendFileSync(this.filePath, '        default: ' + input.getDefaultValue() + os.EOL);
-                fs.appendFileSync(this.filePath, '        type: ' + input.getWfType() + os.EOL);
+                fs.appendFileSync(this.filePath, '  ' + input.getName() + ':' + os.EOL);
+                fs.appendFileSync(this.filePath, '    type: ' + input.getWfType() + os.EOL);
+                fs.appendFileSync(this.filePath, '    default: ' + input.getDefaultValue() + os.EOL);
             } else {
-                let name = input.getName().split('_')[1];
-                fs.appendFileSync(this.filePath, '      ' + name + ': ' + input.getName() + os.EOL);
+                fs.appendFileSync(this.filePath, '  ' + input.getName() + ': ' + input.getWfType() + os.EOL);
             }
         });
 
+        //add outputs
         fs.appendFileSync(this.filePath, os.EOL + 'outputs:' + os.EOL);
         this.outputs.forEach((map, step) => {
             map.forEach((value, key) => {
@@ -77,6 +76,7 @@ export class CwlWorkflowManager {
             });
         });
 
+        //add steps
         fs.appendFileSync(this.filePath, os.EOL + 'steps:' + os.EOL);
         this.steps.forEach(step => {
             fs.appendFileSync(this.filePath, '  ' + step + ':' + os.EOL);
@@ -84,7 +84,11 @@ export class CwlWorkflowManager {
             fs.appendFileSync(this.filePath, '    in:' + os.EOL);
             let inputs = _.filter(this.inputs, { 'step': step });
             inputs.forEach((input: WorkflowInput) => {
-                fs.appendFileSync(this.filePath, '      ' + input.getName().split('_')[1] + ': ' + input.getName() + os.EOL);
+                if (input.hasReference()) {
+                    fs.appendFileSync(this.filePath, '      ' + input.getName().split('_')[1] + ': ' + input.getReference() + os.EOL);
+                } else {
+                    fs.appendFileSync(this.filePath, '      ' + input.getName().split('_')[1] + ': ' + input.getName() + os.EOL);
+                }
             });
             fs.appendFileSync(this.filePath, '    out: [');
             let keys = Array.from(this.outputs.get(step).keys());
