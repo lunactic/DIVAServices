@@ -205,7 +205,9 @@ export class FileResultHandler implements IResultHandler {
                                             }
                                         };
                                         tmpOutput.push(file);
-                                        await this.addFileToOutputCollection(process, file);
+                                        if (!process.noCache) {
+                                            await this.addFileToOutputCollection(process, file);
+                                        }
                                     }
                                 }
                                 break;
@@ -256,7 +258,9 @@ export class FileResultHandler implements IResultHandler {
                     resFile.file["url"] = IoHelper.getStaticResultUrlFull(cwlFile.path);
                     delete resFile.file.content;
                     procResult.output.push(resFile);
-                    await this.addFileToOutputCollection(process, resFile);
+                    if (!process.noCache) {
+                        await this.addFileToOutputCollection(process, resFile);
+                    }
                 }
 
 

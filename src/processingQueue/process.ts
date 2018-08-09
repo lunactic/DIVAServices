@@ -334,6 +334,13 @@ export class Process implements IProcess {
      */
     public yamlFile: string;
 
+    /**
+     * indication wheter or not results should be cached for this method
+     *
+     * @type {boolean}
+     * @memberof Process
+     */
+    public noCache: boolean;
 
     /**
      * build the static url to access the result file

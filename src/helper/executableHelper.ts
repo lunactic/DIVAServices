@@ -174,6 +174,7 @@ export class ExecutableHelper extends EventEmitter {
                     proc.parameters = _.cloneDeep(collection.parameters);
                     proc.remotePaths = _.cloneDeep(serviceInfo.remotePaths);
                     proc.outputs = collection.outputs;
+                    proc.noCache = serviceInfo.noCache;
                     proc.matchedParameters = _.cloneDeep(serviceInfo.paramOrder);
                     proc.method = serviceInfo.name;
                     proc.rootFolder = collection.name;
