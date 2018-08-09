@@ -129,36 +129,33 @@ router.post("/collections", async function (req: express.Request, res: express.R
 router.put("/collections/:collectionName", async function (req: express.Request, res: express.Response) {
     let collectionName = req.params["collectionName"];
     let numOfFiles: number = 0;
-    let counter: number = 0;
     if (FileHelper.checkCollectionAvailable(collectionName)) {
         //count the total number of images
         numOfFiles = FileHelper.loadCollection(collectionName).length;
         let imageCounter: number = numOfFiles;
         for (let file of req.body.files) {
             let fullPath = nconf.get("paths:filesPath") + path.sep + collectionName + path.sep + "original" + path.sep + file.name;
-            let fileExists: boolean = false;
-            if (await FileHelper.fileExists(fullPath)) {
-                fileExists = true;
-            }
+            let fileExists: boolean = await FileHelper.fileExists(fullPath);
 
-            switch (file.type) {
-                case "iiif":
-                    let iiifManifestParser = new IiifManifestParser(file.value);
-                    await iiifManifestParser.initialize();
-                    numOfFiles += iiifManifestParser.getAllImages(0).length;
-                    break;
-                case "url":
-                    if (!fileExists) {
-                        numOfFiles++;
-                    }
-                    break;
-                default:
-                    if (!fileExists) {
-                        numOfFiles++;
-                    }
-                    break;
+            if (!fileExists) {
+                switch (file.type) {
+                    case "iiif":
+                        let iiifManifestParser = new IiifManifestParser(file.value);
+                        await iiifManifestParser.initialize();
+                        numOfFiles += iiifManifestParser.getAllImages(0).length;
+                        break;
+                    case "url":
+                        if (!fileExists) {
+                            numOfFiles++;
+                        }
+                        break;
+                    default:
+                        if (!fileExists) {
+                            numOfFiles++;
+                        }
+                        break;
+                }
             }
-            counter++;
         }
         //update info file
         await FileHelper.addFilesCollectionInformation(collectionName, numOfFiles);
@@ -166,10 +163,7 @@ router.put("/collections/:collectionName", async function (req: express.Request,
         //download the files
         for (let file of req.body.files) {
             let fullPath = nconf.get("paths:filesPath") + path.sep + collectionName + path.sep + "original" + path.sep + file.name;
-            let fileExists: boolean = false;
-            if (await FileHelper.fileExists(fullPath)) {
-                fileExists = true;
-            }
+            let fileExists: boolean = await FileHelper.fileExists(fullPath);
 
             switch (file.type) {
                 case "iiif":
@@ -208,14 +202,18 @@ router.put("/collections/:collectionName", async function (req: express.Request,
                     break;
                 case "text":
                     var newFile: DivaFile = await FileHelper.saveFileText(file.value, collectionName, file.name);
-                    await FileHelper.addFileInfo(newFile.path, collectionName);
-                    await FileHelper.updateCollectionInformation(collectionName, numOfFiles, ++imageCounter);
+                    if (!fileExists) {
+                        await FileHelper.addFileInfo(newFile.path, collectionName);
+                        await FileHelper.updateCollectionInformation(collectionName, numOfFiles, ++imageCounter);
+                    }
                     break;
                 default:
                     try {
                         var newFile: DivaFile = await FileHelper.saveBase64(file, collectionName);
-                        await FileHelper.addFileInfo(newFile.path, collectionName);
-                        await FileHelper.updateCollectionInformation(collectionName, numOfFiles, ++imageCounter);
+                        if (!fileExists) {
+                            await FileHelper.addFileInfo(newFile.path, collectionName);
+                            await FileHelper.updateCollectionInformation(collectionName, numOfFiles, ++imageCounter);
+                        }
                         break;
                     } catch (error) {
                         //TODO add error info into the collection information
