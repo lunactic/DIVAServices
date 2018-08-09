@@ -139,11 +139,11 @@ export class ExecutableHelper extends EventEmitter {
                 collection.resultFile = nconf.get("paths:resultsPath") + path.sep + collection.name + ".json";
                 let outputCollectionName = '';
                 //Take the first entry from the data and its collection name as inputCollectionName
-                if (executionType !== 'test') {
+                if (executionType !== 'test' && !serviceInfo.noCache) {
                     let inputCollectionName = req.body.data[0][Object.keys(req.body.data[0])[0]].split('/')[0];
                     let now: Date = new Date();
                     //Generate outputCollectionName from inputCollectionName and current date
-                    outputCollectionName = inputCollectionName + '_' + serviceInfo.name + '_' + now.getFullYear() + '_' + now.getMonth() + '_' + now.getDay() + '_' + now.getHours() + '_' + now.getMinutes() + '_' + now.getSeconds();
+                    outputCollectionName = inputCollectionName + '_' + serviceInfo.name + '_' + now.getFullYear() + '_' + now.getMonth() + '_' + now.getDate() + '_' + now.getHours() + '_' + now.getMinutes() + '_' + now.getSeconds();
                     await IoHelper.createFilesCollectionFolders(outputCollectionName);
                     FileHelper.createCollectionInformation(outputCollectionName, 0);
                 }

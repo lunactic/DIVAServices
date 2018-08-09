@@ -11,6 +11,7 @@ import * as nconf from "nconf";
 import * as path from "path";
 import * as request from "request-promise";
 import * as url from "url";
+import { isNullOrUndefined } from "util";
 import { Logger } from "../logging/logger";
 import { DivaError } from '../models/divaError';
 import { DivaFile } from "../models/divaFile";
@@ -256,10 +257,10 @@ export class FileHelper {
             }
 
             await IoHelper.saveFile(filePath, data, "utf-8");
-            let imgFolder = filePath + path.sep + folder + path.sep + "original" + path.sep;
+            let imgFolder = filesPath + path.sep + folder + path.sep + "original" + path.sep;
             file.filename = fileName;
             file.folder = imgFolder;
-            file.path = imgFolder + fileName;
+            file.path = filePath;
             Logger.log("trace", "saved file", "FileHelper");
             resolve(file);
         });
@@ -330,7 +331,7 @@ export class FileHelper {
         return new Promise<void>(async (resolve, reject) => {
             let mimeType = mime.getType(path);
             let options = {};
-            if (mimeType.startsWith('image')) {
+            if (!isNullOrUndefined(mimeType) && mimeType.startsWith('image')) {
                 options = await FileHelper.getImageInformation(path);
             }
             this.filesInfo.push({ file: path, collection: collection, options: options });

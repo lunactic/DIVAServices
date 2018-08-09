@@ -182,7 +182,6 @@ export class FileResultHandler implements IResultHandler {
                 var procResult: any = {};
                 procResult.output = [];
                 var tmpOutput = [];
-                let removeDirectories: string[] = [];
                 //iterate the cwlResult object
                 for (var key in cwlResult) {
                     if (cwlResult.hasOwnProperty(key)) {
