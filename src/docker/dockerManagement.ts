@@ -119,7 +119,7 @@ export class DockerManagement {
 
         });
     }
-    
+
     /**
      * Remove an image from the docker server
      * 
@@ -474,9 +474,9 @@ export class DockerManagement {
                         }
                     } else {
                         //handle regular parameters
-                        if (key === "resultFile") {
+                        if (key.includes("resultFile")) {
                             yamlManager.addInputValue(key, "string", "/output/" + process.tmpResultFile.split("/").pop());
-                        } else if (key === "outputFolder") {
+                        } else if (key.includes("outputFolder")) {
                             yamlManager.addInputValue(key, "string", "/output/");
                         } else {
                             if (Number.isInteger(value)) {

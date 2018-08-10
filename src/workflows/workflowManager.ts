@@ -9,13 +9,14 @@ import { ServicesInfoHelper } from '../helper/servicesInfoHelper';
 import { AlgorithmManagement } from '../management/algorithmManagement';
 export class WorkflowManager {
     private workflowName: string;
-    private workflowFolder: string;
     private cwlWorkflowFile: string;
     private workflow: any;
     private cwlWorkflowManager: CwlWorkflowManager;
     private outputs: any;
     private inputs: any;
 
+    private workflowFolder: string;
+    private logFolder: string;
     private infoFolder: string;
 
     private generalInfo: any;
@@ -40,6 +41,7 @@ export class WorkflowManager {
 
         this.infoFolder = nconf.get('paths:jsonPath') + path.sep + 'workflows' + path.sep + this.workflowName.toLowerCase() + path.sep + this.version;
         this.generalInfo = workflowInput.general;
+        this.logFolder = nconf.get('paths:logPath') + path.sep + this.route;
     }
 
 
@@ -62,8 +64,14 @@ export class WorkflowManager {
                 if (!input.hasDefaultValue() && !input.hasReference()) {
                     if (input.isDataInput()) {
                         data.push(input.getServiceSpecification());
+                        var obj = {};
+                        obj[input.getName()] = Object.keys(input.getInfoSpecification())[0];
+                        paramOrder.push(obj);
                     } else {
                         parameters.push(input.getServiceSpecification());
+                        var obj = {};
+                        obj[input.getName()] = Object.keys(input.getInfoSpecification())[0];
+                        paramOrder.push(obj);
                     }
                 }
             });
@@ -74,7 +82,7 @@ export class WorkflowManager {
                 baseRoute: '/' + this.baseRoute,
                 identifier: this.identifier,
                 path: '/' + this.route,
-                cwl: nconf.get('paths:workflowsPath') + path.sep + this.route + path.sep + this.workflowName + '.cwl',
+                cwl: nconf.get('paths:rootPath') + path.sep + this.route + path.sep + this.workflowName + '.cwl',
                 executablePath: '',
                 output: 'file',
                 execute: 'docker',
@@ -97,7 +105,7 @@ export class WorkflowManager {
                 },
                 exceptions: []
             };
-            //newContent.services.push(newServiceEntry);
+            newContent.services.push(newServiceEntry);
             ServicesInfoHelper.update(newContent);
             await ServicesInfoHelper.reload();
             resolve();
@@ -110,7 +118,8 @@ export class WorkflowManager {
             let info = {
                 general: this.generalInfo,
                 input: [],
-                output: []
+                output: [],
+                steps: this.workflow.steps
             };
 
             this.cwlWorkflowManager.getInputs().forEach(input => {
@@ -149,6 +158,7 @@ export class WorkflowManager {
         return new Promise<void>(async (resolve, reject) => {
             await IoHelper.createFolder(this.workflowFolder);
             await IoHelper.createFolder(this.infoFolder);
+            await IoHelper.createFolder(this.logFolder);
             this.cwlWorkflowManager.initialize();
             await this.processSteps(this.workflow.steps);
             resolve();

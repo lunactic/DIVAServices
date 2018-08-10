@@ -64,15 +64,14 @@ export class ParameterHelper {
      * @memberOf ParameterHelper
      */
     static getReservedParamValue(parameter: string, process: IProcess, req: any): string {
-        switch (parameter) {
-            case "outputFolder":
-                return process.outputFolder;
-            case "host":
-                return nconf.get("server:rootUrl");
-            case "outputImage":
-                return "##outputImage##";
-            case "mcr2014b":
-                return nconf.get("paths:mcr2014b");
+        if (parameter.includes('outputFolder')) {
+            return process.outputFolder;
+        } else if (parameter.includes('host')) {
+            return nconf.get("server:rootUrl");
+        } else if (parameter.includes('outputImage')) {
+            return "##outputImage##";
+        } else if (parameter.includes('mcr2014b')) {
+            return nconf.get("paths:mcr2014b");
         }
     }
 
@@ -161,7 +160,7 @@ export class ParameterHelper {
             for (let neededParameter of collection.neededParameters) {
                 let paramKey = _.keys(neededParameter)[0];
                 let paramValue = neededParameter[paramKey];
-                if (self.checkReservedParameters(paramKey) || self.checkReservedParameters(paramValue)) {
+                if (self.checkReservedParameters(paramKey) || self.checkReservedParameters(Object.keys(paramValue)[0]) {
                     switch (Object.keys(paramValue)[0]) {
                         case 'highlighter':
                             if (!isNullOrUndefined(collection.inputHighlighters.type)) {

@@ -261,7 +261,7 @@ export class FileResultHandler implements IResultHandler {
                     resFile.file["url"] = IoHelper.getStaticResultUrlFull(cwlFile.path);
                     delete resFile.file.content;
                     procResult.output.push(resFile);
-                    if (!process.noCache) {
+                    if (process.type !== 'test' && !process.noCache) {
                         await this.addFileToOutputCollection(process, resFile);
                     }
                 }

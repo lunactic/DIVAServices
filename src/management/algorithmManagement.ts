@@ -702,13 +702,11 @@ export class AlgorithmManagement {
                 let parameters: any = [];
                 let data: any = [];
                 let paramOrder: any = [];
-                let fileCount: number = 0;
                 _.forEach(algorithm.input, function (input: any, key: any) {
                     let inputType = _.keys(input)[0];
                     key = _.get(algorithm, "input[" + key + "]." + inputType + ".name", inputType);
                     let info: any = {};
                     if (inputType === 'file' || inputType === 'folder') {
-                        fileCount++;
                         info[key] = input;
                         var order = {};
                         order[key] = inputType;
