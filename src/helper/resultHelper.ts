@@ -1,9 +1,9 @@
 import { Logger } from '../logging/logger';
 import { Collection } from '../processingQueue/collection';
+import { IProcess } from '../processingQueue/iProcess';
 import { Process } from '../processingQueue/process';
 import { IoHelper } from './ioHelper';
 import { ParameterHelper } from './parameterHelper';
-import IProcess = require('../processingQueue/iProcess');
 
 /**
  * Created by Marcel Würsch on 04.11.16.

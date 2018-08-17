@@ -2,7 +2,7 @@
  * Created by Marcel Würsch on 04.11.16.
  */
 
-interface IProcess {
+export interface IProcess {
     method: string;
     outputFolder: string;
     inputParameters: any;
@@ -16,5 +16,3 @@ interface IProcess {
     outputs: any[];
     identification: any;
 }
-
-export = IProcess;

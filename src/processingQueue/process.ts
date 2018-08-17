@@ -5,8 +5,8 @@
 "use strict";
 import * as express from "express";
 import { IoHelper } from "../helper/ioHelper";
-import IProcess = require("./iProcess");
-import IResultHandler = require("../helper/resultHandlers/iResultHandler");
+import { IResultHandler } from "../helper/resultHandlers/iResultHandler";
+import { IProcess } from "./iProcess";
 /**
  *Class representing a process to be executed
  */
@@ -109,14 +109,6 @@ export class Process implements IProcess {
     public inputHighlighters: any;
 
     /**
-     * the input folder
-     * 
-     * @type {string}
-     * @memberOf Process
-     */
-    public inputFolder: string;
-
-    /**
      * the global parameter values
      * 
      * @type {*}
@@ -137,22 +129,6 @@ export class Process implements IProcess {
      * @memberOf Process
      */
     public matchedParameters: any;
-
-    /**
-     * the type of the program
-     * 
-     * @type {string}
-     * @memberOf Process
-     */
-    public programType: string;
-
-    /**
-     * the path to the executable
-     * 
-     * @type {string}
-     * @memberOf Process
-     */
-    public executablePath: string;
 
     /**
      * the result handler to use after computation is done
@@ -178,13 +154,6 @@ export class Process implements IProcess {
      * @memberof Process
      */
     public rewriteRules: any[];
-    /**
-     * the result type
-     * 
-     * @type {string}
-     * @memberOf Process
-     */
-    public resultType: string;
 
     /**
      * the path to the result file
@@ -228,22 +197,6 @@ export class Process implements IProcess {
     public resultLink: string;
 
     /**
-     * the url to POST results to
-     * 
-     * @type {string}
-     * @memberOf Process
-     */
-    public remoteResultUrl: string;
-
-    /**
-     * the url to POST errors to
-     * 
-     * @type {string}
-     * @memberOf Process
-     */
-    public remoteErrorUrl: string;
-
-    /**
      * the remote paths to use for certain parameters
      * 
      * @type {*}
@@ -258,22 +211,6 @@ export class Process implements IProcess {
      * @memberOf Process
      */
     public type: string;
-
-    /**
-     * the standard output
-     * 
-     * @type {*}
-     * @memberOf Process
-     */
-    public stdout: any;
-
-    /**
-     * the standard input
-     * 
-     * @type {*}
-     * @memberOf Process
-     */
-    public stdin: any;
 
 
     /**

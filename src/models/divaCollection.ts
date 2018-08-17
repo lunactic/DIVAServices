@@ -19,14 +19,14 @@ export class DivaCollection {
      * @type {string}
      * @memberof File
      */
-    public folder: string;
+    private _folder: string;
 
     /**
      * the name of the collection
      * @type {string}
      * @memberof File
      */
-    public collection: string;
+    private _collection: string;
 
     /**
      * the public url to retrieve this file
@@ -34,7 +34,7 @@ export class DivaCollection {
      * @type {string}
      * @memberof DivaCollection
      */
-    public url: string;
+    private _url: string;
 
     /**
      * The URL to download a zip file from a collection
@@ -42,7 +42,7 @@ export class DivaCollection {
      * @type {string}
      * @memberof DivaCollection
      */
-    public zipUrl: string;
+    private _zipUrl: string;
 
     /**
      * Creates an instance of DivaCollection.
@@ -90,5 +90,72 @@ export class DivaCollection {
         item.zipUrl = "http://" + nconf.get("server:rootUrl") + "/test/" + relativePath;
         return item;
     }
+
+
+
+    /**
+     * Getter folder
+     * @return {string}
+     */
+	public get folder(): string {
+		return this._folder;
+	}
+
+    /**
+     * Getter collection
+     * @return {string}
+     */
+	public get collection(): string {
+		return this._collection;
+	}
+
+    /**
+     * Getter url
+     * @return {string}
+     */
+	public get url(): string {
+		return this._url;
+	}
+
+    /**
+     * Getter zipUrl
+     * @return {string}
+     */
+	public get zipUrl(): string {
+		return this._zipUrl;
+	}
+
+    /**
+     * Setter folder
+     * @param {string} value
+     */
+	public set folder(value: string) {
+		this._folder = value;
+	}
+
+    /**
+     * Setter collection
+     * @param {string} value
+     */
+	public set collection(value: string) {
+		this._collection = value;
+	}
+
+    /**
+     * Setter url
+     * @param {string} value
+     */
+	public set url(value: string) {
+		this._url = value;
+	}
+
+    /**
+     * Setter zipUrl
+     * @param {string} value
+     */
+	public set zipUrl(value: string) {
+		this._zipUrl = value;
+	}
+
 
 }

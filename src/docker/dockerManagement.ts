@@ -387,7 +387,7 @@ export class DockerManagement {
 
 
             //build the command
-            let command = './script.sh ' + process.remoteResultUrl + ' ' + process.remoteErrorUrl + ' ' + executableString;
+            let command = './script.sh ' + executableString;
             Logger.log("info", command, "DockerManagement");
             //run the docker image (see: https://docs.docker.com/engine/reference/run/)
             let container = null;
@@ -492,8 +492,8 @@ export class DockerManagement {
 
                 var command: string = "cwltool --outdir " + process.outputFolder
                     + " --debug "
-                    + "--tmp-outdir-prefix /data/output/ "
-                    + "--tmpdir-prefix /data/tmp/ "
+                    + "--tmp-outdir-prefix " + nconf.get("docker:paths:outputFolder") + path.sep + " "
+                    + "--tmpdir-prefix " +  nconf.get("docker:paths:tmpFolder") + path.sep + " "
                     + "--no-read-only "
                     + "--basedir /input ";
                 if (nconf.get("docker:noMatchUser")) {
@@ -578,6 +578,7 @@ export class DockerManagement {
     }
 
     private static isFloat(n: any) {
+        // tslint:disable-next-line:no-bitwise
         return n === +n && n !== (n | 0);
     }
 }

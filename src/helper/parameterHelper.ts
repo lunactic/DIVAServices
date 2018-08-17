@@ -10,14 +10,15 @@ import { DivaCollection } from '../models/divaCollection';
 import { DivaError } from "../models/divaError";
 import { DivaFile } from "../models/divaFile";
 import { Collection } from "../processingQueue/collection";
+import { IProcess } from '../processingQueue/iProcess';
 import { Process } from "../processingQueue/process";
 import { FileHelper } from './fileHelper';
 import { IoHelper } from "./ioHelper";
+
 /**
  * Created by Marcel Würsch on 03.11.16.
  */
 "use strict";
-import IProcess = require('../processingQueue/iProcess');
 require("natural-compare-lite");
 
 var sizeOf = promisify(require('image-size'));
@@ -160,7 +161,7 @@ export class ParameterHelper {
             for (let neededParameter of collection.neededParameters) {
                 let paramKey = _.keys(neededParameter)[0];
                 let paramValue = neededParameter[paramKey];
-                if (self.checkReservedParameters(paramKey) || self.checkReservedParameters(Object.keys(paramValue)[0]) {
+                if (self.checkReservedParameters(paramKey) || self.checkReservedParameters(Object.keys(paramValue)[0])) {
                     switch (Object.keys(paramValue)[0]) {
                         case 'highlighter':
                             if (!isNullOrUndefined(collection.inputHighlighters.type)) {

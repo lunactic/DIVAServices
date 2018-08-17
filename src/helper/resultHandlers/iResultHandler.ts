@@ -1,10 +1,10 @@
-import {Process} from "../../processingQueue/process";
+import { Process } from "../../processingQueue/process";
 
 /**
  * Result Handler interface
  * @author Marcel Würsch
  */
-interface IResultHandler {
+export interface IResultHandler {
     filename: string;
     /**
      * Handles errors
@@ -39,5 +39,3 @@ interface IResultHandler {
      */
     handleCwlError(process: Process): Promise<any>;
 }
-
-export = IResultHandler;

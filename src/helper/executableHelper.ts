@@ -20,9 +20,7 @@ import { SchemaValidator } from "../validator/schemaValidator";
 import { FileHelper } from "./fileHelper";
 import { IoHelper } from "./ioHelper";
 import { ParameterHelper } from "./parameterHelper";
-import { ConsoleResultHandler } from "./resultHandlers/consoleResultHandler";
 import { FileResultHandler } from "./resultHandlers/fileResultHandler";
-import { NoResultHandler } from "./resultHandlers/noResultHandler";
 import { ResultHelper } from "./resultHelper";
 import { ServicesInfoHelper } from "./servicesInfoHelper";
 
@@ -179,9 +177,6 @@ export class ExecutableHelper extends EventEmitter {
                     proc.method = serviceInfo.name;
                     proc.rootFolder = collection.name;
                     proc.methodFolder = path.basename(proc.outputFolder);
-                    proc.programType = serviceInfo.programType;
-                    proc.executablePath = serviceInfo.executablePath;
-                    proc.resultType = serviceInfo.output;
                     proc.type = executionType;
                     proc.logFolder = collection.logFolder;
                     proc.yamlFile = proc.outputFolder + "data_" + index + ".yaml";
@@ -206,18 +201,9 @@ export class ExecutableHelper extends EventEmitter {
                     }
                     proc.resultLink = proc.buildGetUrl();
 
-                    switch (proc.resultType) {
-                        case "console":
-                            proc.resultHandler = new ConsoleResultHandler(proc.resultFile);
-                            break;
-                        case "file":
-                            proc.parameters.params["resultFile"] = proc.resultFile;
-                            proc.resultHandler = new FileResultHandler(proc.resultFile, proc.tmpResultFile);
-                            break;
-                        case "none":
-                            proc.resultHandler = new NoResultHandler(proc.resultFile);
-                            break;
-                    }
+                    proc.parameters.params["resultFile"] = proc.resultFile;
+                    proc.resultHandler = new FileResultHandler(proc.resultFile, proc.tmpResultFile);
+
                     collection.processes.push(proc);
                     index++;
                     await ParameterHelper.matchProcessData(proc, element);

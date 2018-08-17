@@ -14,7 +14,7 @@ import { DivaFile } from "../../models/divaFile";
 import { Process } from "../../processingQueue/process";
 import { FileHelper } from "../fileHelper";
 import { IoHelper } from "../ioHelper";
-import IResultHandler = require("./iResultHandler");
+import { IResultHandler } from "./iResultHandler";
 
 /**
  * A Result Handler that reads the results from a file
@@ -204,11 +204,7 @@ export class FileResultHandler implements IResultHandler {
                                             }
                                         };
                                         tmpOutput.push(file);
-<<<<<<< HEAD
-                                        if (process.type !== 'test') {
-=======
-                                        if (!process.noCache) {
->>>>>>> development
+                                        if (process.type !== 'test' && !process.noCache) {
                                             await this.addFileToOutputCollection(process, file);
                                         }
                                     }

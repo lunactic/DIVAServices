@@ -2,9 +2,9 @@
  * Created by Marcel Würsch on 02.11.16.
  */
 "use strict";
-import { Process } from "./process";
 import { IoHelper } from "../helper/ioHelper";
-import IProcess = require("./iProcess");
+import { IProcess } from "./iProcess";
+import { Process } from "./process";
 
 /**
  * Class representing a collection
