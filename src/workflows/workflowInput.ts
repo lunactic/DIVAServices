@@ -1,17 +1,15 @@
 import { isNullOrUndefined } from "util";
 
 export class WorkflowInput {
-    private step: string;
-    private wfType: string;
-    private name: string;
-    private reference: string;
-    private defaultValue: any;
-    private infoSpecification: any;
-    private serviceSpecification: any;
-    private isData: boolean;
+    private _wfType: string;
+    private _name: string;
+    private _reference: string;
+    private _defaultValue: any;
+    private _infoSpecification: any;
+    private _serviceSpecification: any;
+    private _isData: boolean;
 
-    constructor(step: string, wfType: string, name: string, infoSpecification: any, serviceSpecification: any, reference?: string, defaultValue?: any) {
-        this.step = step;
+    constructor(wfType: string, name: string, infoSpecification: any, serviceSpecification: any, reference?: string, defaultValue?: any) {
         this.wfType = wfType;
         if (wfType === 'File' || wfType === 'Directory') {
             this.isData = true;
@@ -30,37 +28,60 @@ export class WorkflowInput {
         this.defaultValue = defaultValue;
     }
 
-
-    public getStep(): string {
-        return this.step;
+    public get wfType(): string {
+        return this._wfType;
     }
 
-    public getWfType(): string {
-        return this.wfType;
+    public set wfType(wfType: string) {
+        this._wfType = wfType;
     }
 
-    public getName(): string {
-        return this.name;
+    public get name(): string {
+        return this._name;
     }
 
-    public getReference() {
-        return this.reference;
+    public set name(name: string) {
+        this._name = name;
     }
 
-    public getDefaultValue() {
-        return this.defaultValue;
+    public get reference() {
+        return this._reference;
     }
 
-    public getInfoSpecification() {
-        return this.infoSpecification;
+    public set reference(reference: string) {
+        this._reference = reference;
     }
 
-    public getServiceSpecification() {
-        return this.serviceSpecification;
+    public get defaultValue() {
+        return this._defaultValue;
     }
 
-    public isDataInput(): boolean {
-        return this.isData;
+    public set defaultValue(defaultValue: any) {
+        this._defaultValue = defaultValue;
+    }
+
+    public get infoSpecification() {
+        return this._infoSpecification;
+    }
+
+    public set infoSpecification(infoSpecification: any) {
+        this._infoSpecification = infoSpecification;
+    }
+
+    public get serviceSpecification() {
+        return this._serviceSpecification;
+    }
+
+    public set serviceSpecification(serviceSpecification: any) {
+        this._serviceSpecification = serviceSpecification;
+    }
+
+    public get isData(): boolean {
+        return this._isData;
+    }
+
+    public set isData(isData: boolean) {
+        this._isData = isData;
     }
 
     public hasReference(): boolean {

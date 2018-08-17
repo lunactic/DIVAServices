@@ -7,25 +7,147 @@ import { CwlWorkflowManager } from '../helper/cwl/cwlWorkflowManager';
 import { IoHelper } from "../helper/ioHelper";
 import { ServicesInfoHelper } from '../helper/servicesInfoHelper';
 import { AlgorithmManagement } from '../management/algorithmManagement';
+import { DivaError } from '../models/divaError';
+import { WorkflowStep } from './workflowStep';
+
+/**
+ * The WorkflowManager provides functionality for creating and managing workflows
+ *
+ * @export
+ * @class WorkflowManager
+ */
 export class WorkflowManager {
+    /**
+     * The name of the workflow
+     *
+     * @private
+     * @type {string}
+     * @memberof WorkflowManager
+     */
     private workflowName: string;
+
+
+    /**
+     * The path to the cwl file of the workflow
+     *
+     * @private
+     * @type {string}
+     * @memberof WorkflowManager
+     */
     private cwlWorkflowFile: string;
+
+    /**
+     * The JSON workflow specification
+     *
+     * @private
+     * @type {*}
+     * @memberof WorkflowManager
+     */
     private workflow: any;
+
+    /**
+     * The workflow manager for the cwl files
+     *
+     * @private
+     * @type {CwlWorkflowManager}
+     * @memberof WorkflowManager
+     */
     private cwlWorkflowManager: CwlWorkflowManager;
+
+    /**
+     * All outputs
+     *
+     * @private
+     * @type {*}
+     * @memberof WorkflowManager
+     */
     private outputs: any;
+
+    /**
+     * All inputs
+     *
+     * @private
+     * @type {*}
+     * @memberof WorkflowManager
+     */
     private inputs: any;
 
+    /**
+     * The workflow folder where all information is stored
+     *
+     * @private
+     * @type {string}
+     * @memberof WorkflowManager
+     */
     private workflowFolder: string;
+
+    /**
+     * The log folder for the workflow
+     *
+     * @private
+     * @type {string}
+     * @memberof WorkflowManager
+     */
     private logFolder: string;
+    /**
+     * The folder to store the public information file
+     *
+     * @private
+     * @type {string}
+     * @memberof WorkflowManager
+     */
     private infoFolder: string;
 
+    /**
+     * The 'general' information from the POST request
+     *
+     * @private
+     * @type {*}
+     * @memberof WorkflowManager
+     */
     private generalInfo: any;
 
+    /**
+     * The base route for the generated workflow
+     *
+     * @private
+     * @type {string}
+     * @memberof WorkflowManager
+     */
     private baseRoute: string;
+
+    /**
+     * The version of this workflow
+     *
+     * @private
+     * @type {string}
+     * @memberof WorkflowManager
+     */
     private version: string;
+
+    /**
+     * The complete route for this workflow
+     *
+     * @private
+     * @type {string}
+     * @memberof WorkflowManager
+     */
     private route: string;
+
+    /**
+     * The identifier of this workflow
+     *
+     * @private
+     * @type {string}
+     * @memberof WorkflowManager
+     */
     private identifier: string;
 
+    /**
+     *Creates an instance of WorkflowManager.
+     * @param {*} workflowInput the workflow information from the POST request
+     * @memberof WorkflowManager
+     */
     constructor(workflowInput: any) {
         this.workflow = workflowInput.workflow;
         this.workflowName = this.workflow.name;
@@ -60,21 +182,24 @@ export class WorkflowManager {
             let data = [];
             let paramOrder = [];
 
-            this.cwlWorkflowManager.getInputs().forEach((input) => {
-                if (!input.hasDefaultValue() && !input.hasReference()) {
-                    if (input.isDataInput()) {
-                        data.push(input.getServiceSpecification());
-                        var obj = {};
-                        obj[input.getName()] = Object.keys(input.getInfoSpecification())[0];
-                        paramOrder.push(obj);
-                    } else {
-                        parameters.push(input.getServiceSpecification());
-                        var obj = {};
-                        obj[input.getName()] = Object.keys(input.getInfoSpecification())[0];
-                        paramOrder.push(obj);
+            this.cwlWorkflowManager.steps.forEach((step) => {
+                step.inputs.forEach((input) => {
+                    if (!input.hasDefaultValue() && !input.hasReference()) {
+                        if (input.isData) {
+                            data.push(input.serviceSpecification);
+                            var obj = {};
+                            obj[input.name] = Object.keys(input.infoSpecification)[0];
+                            paramOrder.push(obj);
+                        } else {
+                            parameters.push(input.serviceSpecification);
+                            var obj = {};
+                            obj[input.name] = Object.keys(input.infoSpecification)[0];
+                            paramOrder.push(obj);
+                        }
                     }
-                }
+                });
             });
+
 
             let newServiceEntry = {
                 name: this.workflowName,
@@ -113,6 +238,12 @@ export class WorkflowManager {
     }
 
 
+    /**
+     * Create the public information file for the workflow
+     *
+     * @returns {Promise<void>} resolves once the information file is created
+     * @memberof WorkflowManager
+     */
     public createInfoFile(): Promise<void> {
         return new Promise<void>(async (resolve, reject) => {
             let info = {
@@ -121,16 +252,20 @@ export class WorkflowManager {
                 output: [],
                 steps: this.workflow.steps
             };
-
-            this.cwlWorkflowManager.getInputs().forEach(input => {
-                if (!input.hasDefaultValue() && !input.hasReference()) {
-                    info.input.push(input.getInfoSpecification());
-                }
+            this.cwlWorkflowManager.steps.forEach((step) => {
+                step.inputs.forEach(input => {
+                    if (!input.hasDefaultValue() && !input.hasReference()) {
+                        info.input.push(input.infoSpecification);
+                    }
+                });
             });
 
-            this.cwlWorkflowManager.getOutputs().forEach(output => {
-                info.output.push(output.getInfoSpecification());
+            this.cwlWorkflowManager.steps.forEach((step) => {
+                step.outputs.forEach(output => {
+                    info.output.push(output.infoSpecification);
+                });
             });
+
 
             await IoHelper.saveFile(this.infoFolder + path.sep + 'info.json', info, 'utf-8');
 
@@ -138,6 +273,12 @@ export class WorkflowManager {
         });
     }
 
+    /**
+     * Update the root information file with the new added workflow
+     *
+     * @returns {Promise<void>} Resolves once the file is updated
+     * @memberof WorkflowManager
+     */
     public updateRootFile(): Promise<void> {
         return new Promise<void>(async (resolve, reject) => {
             let info = {
@@ -156,35 +297,62 @@ export class WorkflowManager {
      */
     public parseWorkflow(): Promise<void> {
         return new Promise<void>(async (resolve, reject) => {
-            await IoHelper.createFolder(this.workflowFolder);
-            await IoHelper.createFolder(this.infoFolder);
-            await IoHelper.createFolder(this.logFolder);
-            this.cwlWorkflowManager.initialize();
-            await this.processSteps(this.workflow.steps);
-            resolve();
+            try {
+                await IoHelper.createFolder(this.workflowFolder);
+                await IoHelper.createFolder(this.infoFolder);
+                await IoHelper.createFolder(this.logFolder);
+                this.cwlWorkflowManager.initialize();
+                await this.processSteps(this.workflow.steps);
+                resolve();
+            } catch (error) {
+                reject(error);
+            }
         });
     }
 
+    /**
+     * Process all steps of a workflow
+     *
+     * @param {*} steps the workflow steps
+     * @returns {Promise<void>} resolves onces all steps are processed
+     * @memberof WorkflowManager
+     */
     public processSteps(steps: any): Promise<void> {
         return new Promise<void>(async (resolve, reject) => {
-            for (const step of steps) {
-                await this.processStep(step);
-                this.cwlWorkflowManager.addStep(step.name);
+            try {
+                for (const step of steps) {
+                    await this.processStep(step);
+                }
+                this.cwlWorkflowManager.finalize();
+                resolve();
+            } catch (error) {
+                reject(error);
             }
-            this.cwlWorkflowManager.finalize();
-            resolve();
         });
     }
 
+    /**
+     * Process a single step
+     *
+     * @param {*} step the step to process
+     * @returns {Promise<void>} resolves onces the step is processed
+     * @memberof WorkflowManager
+     */
     public processStep(step: any): Promise<void> {
         return new Promise<void>(async (resolve, reject) => {
-            switch (step.type) {
-                case 'regular':
-                    await this.processRegular(step);
-                    resolve();
-                    break;
-                default:
-                    break;
+            try {
+                let wfStep: WorkflowStep = new WorkflowStep(step);
+                this.cwlWorkflowManager.addStep(wfStep);
+                switch (step.type) {
+                    case 'regular':
+                        await this.processRegular(wfStep);
+                        resolve();
+                        break;
+                    default:
+                        break;
+                }
+            } catch (error) {
+                reject(error);
             }
         });
     }
@@ -193,103 +361,121 @@ export class WorkflowManager {
      * Process a regular step 
      *
      * @static
-     * @param {*} step the step information
-     * @param {string} workflowFolder the current workflow folder
+     * @param {WorkflowStep} step the step information
      * @returns {Promise<void>}
      * @memberof WorkflowManager
      */
-    public processRegular(step: any): Promise<void> {
+    public processRegular(step: WorkflowStep): Promise<void> {
         return new Promise<void>(async (resolve, reject) => {
-            let uri = new url.URL(step.method);
-            //TODO fix the replace part
-            let service = await ServicesInfoHelper.getInfoByPath(uri.pathname.replace(nconf.get('server:rootUrl'), ""));
-            this.outputs = IoHelper.readFile(nconf.get('paths:jsonPath') + service.path + path.sep + 'info.json').output;
-            this.inputs = IoHelper.readFile(nconf.get('paths:jsonPath') + service.path + path.sep + 'info.json').input;
-            //process inputs
-            this.inputs.forEach(input => {
-                switch (Object.keys(input)[0]) {
-                    case 'resultFile':
-                        var name: string = step.name + '_resultFile';
-                        var serviceSpec = _.find(service.parameters, function (o: any) { return Object.keys(o)[0] === input[Object.keys(input)[0]].name; });
-                        this.addValue(step, name, input, serviceSpec, 'string');
-                        break;
-                    case 'file':
-                        var name: string = step.name + '_' + input[Object.keys(input)[0]].name;
-                        var serviceSpec = _.find(service.data, function (o: any) { return Object.keys(o)[0] === input[Object.keys(input)[0]].name; });
-                        this.addValue(step, name, input, serviceSpec, 'File');
-                        break;
-                    case 'folder':
-                        var name: string = step.name + '_' + input[Object.keys(input)[0]].name;
-                        var serviceSpec = _.find(service.data, function (o: any) { return Object.keys(o)[0] === input[Object.keys(input)[0]].name; });
-                        this.addValue(step, name, input, serviceSpec, 'Directory');
-                        break;
-                    case 'text':
-                        var name: string = step.name + '_' + input[Object.keys(input)[0]].name;
-                        var serviceSpec = _.find(service.parameters, function (o: any) { return Object.keys(o)[0] === input[Object.keys(input)[0]].name; });
-                        this.addValue(step, name, input, serviceSpec, 'string');
-                        break;
-                    case 'number':
-                        var name: string = step.name + '_' + input[Object.keys(input)[0]].name;
-                        var serviceSpec = _.find(service.parameters, function (o: any) { return Object.keys(o)[0] === input[Object.keys(input)[0]].name; });
-                        this.addValue(step, name, input, serviceSpec, 'float');
-                        break;
-                    case 'select':
-                        var name: string = step.name + '_' + input[Object.keys(input)[0]].name;
-                        var serviceSpec = _.find(service.parameters, function (o: any) { return Object.keys(o)[0] === input[Object.keys(input)[0]].name; });
-                        this.addValue(step, name, input, serviceSpec, 'string');
-                        break;
-                    case 'mcr2014b':
-                        var name: string = step.name + "_mcr2014b";
-                        var serviceSpec = _.find(service.parameters, function (o: any) { return Object.keys(o)[0] === input[Object.keys(input)[0]].name; });
-                        this.addValue(step, name, input, serviceSpec, 'string');
-                        break;
-                    case 'outputFolder':
-                        var name: string = step.name + "_outputFolder";
-                        var serviceSpec = _.find(service.parameters, function (o: any) { return Object.keys(o)[0] === Object.keys(input)[0]; });
-                        this.addValue(step, name, input, serviceSpec, 'string');
-                        break;
-                    case 'highlighter':
-                        var name: string = "highlighter";
-                        switch (input.highlighter.type) {
-                            case 'rectangle':
-                                for (var recIndex = 0; recIndex < 8; recIndex++) {
-                                    var name = step.name + "_highlighter" + String(recIndex);
-                                    this.addValue(step, name, input, {}, 'float');
-                                }
-                                break;
-                        }
+            try {
+                let uri = new url.URL(step.method);
+                //TODO fix the replace part
+                let service = await ServicesInfoHelper.getInfoByPath(uri.pathname.replace(nconf.get('server:rootUrl'), ""));
+                this.outputs = IoHelper.readFile(nconf.get('paths:jsonPath') + service.path + path.sep + 'info.json').output;
+                this.inputs = IoHelper.readFile(nconf.get('paths:jsonPath') + service.path + path.sep + 'info.json').input;
+                //process inputs
+                this.inputs.forEach(input => {
+                    switch (Object.keys(input)[0]) {
+                        case 'resultFile':
+                            var name: string = step.name + '_resultFile';
+                            var serviceSpec = _.find(service.parameters, function (o: any) { return Object.keys(o)[0] === input[Object.keys(input)[0]].name; });
+                            this.addValue(step, name, input, serviceSpec, 'string');
+                            break;
+                        case 'file':
+                            var name: string = step.name + '_' + input[Object.keys(input)[0]].name;
+                            var serviceSpec = _.find(service.data, function (o: any) { return Object.keys(o)[0] === input[Object.keys(input)[0]].name; });
+                            this.addValue(step, name, input, serviceSpec, 'File');
+                            break;
+                        case 'folder':
+                            var name: string = step.name + '_' + input[Object.keys(input)[0]].name;
+                            var serviceSpec = _.find(service.data, function (o: any) { return Object.keys(o)[0] === input[Object.keys(input)[0]].name; });
+                            this.addValue(step, name, input, serviceSpec, 'Directory');
+                            break;
+                        case 'text':
+                            var name: string = step.name + '_' + input[Object.keys(input)[0]].name;
+                            var serviceSpec = _.find(service.parameters, function (o: any) { return Object.keys(o)[0] === input[Object.keys(input)[0]].name; });
+                            this.addValue(step, name, input, serviceSpec, 'string');
+                            break;
+                        case 'number':
+                            var name: string = step.name + '_' + input[Object.keys(input)[0]].name;
+                            var serviceSpec = _.find(service.parameters, function (o: any) { return Object.keys(o)[0] === input[Object.keys(input)[0]].name; });
+                            this.addValue(step, name, input, serviceSpec, 'float');
+                            break;
+                        case 'select':
+                            var name: string = step.name + '_' + input[Object.keys(input)[0]].name;
+                            var serviceSpec = _.find(service.parameters, function (o: any) { return Object.keys(o)[0] === input[Object.keys(input)[0]].name; });
+                            this.addValue(step, name, input, serviceSpec, 'string');
+                            break;
+                        case 'mcr2014b':
+                            var name: string = step.name + "_mcr2014b";
+                            var serviceSpec = _.find(service.parameters, function (o: any) { return Object.keys(o)[0] === input[Object.keys(input)[0]].name; });
+                            this.addValue(step, name, input, serviceSpec, 'string');
+                            break;
+                        case 'outputFolder':
+                            var name: string = step.name + "_outputFolder";
+                            var serviceSpec = _.find(service.parameters, function (o: any) { return Object.keys(o)[0] === Object.keys(input)[0]; });
+                            this.addValue(step, name, input, serviceSpec, 'string');
+                            break;
+                        case 'highlighter':
+                            var name: string = "highlighter";
+                            switch (input.highlighter.type) {
+                                case 'rectangle':
+                                    for (var recIndex = 0; recIndex < 8; recIndex++) {
+                                        var name = step.name + "_highlighter" + String(recIndex);
+                                        this.addValue(step, name, input, {}, 'float');
+                                    }
+                                    break;
+                            }
+                            break;
+                    }
+                });
+
+                //process outputs
+                this.outputs.forEach(output => {
+                    let outputType = Object.keys(output)[0];
+                    switch (outputType) {
+                        case 'file':
+                            this.cwlWorkflowManager.addOutput(step, 'File', output[outputType].name, output);
+                            break;
+                    }
+                });
+
+                //copy-the workflow file
+                IoHelper.copyFile(service.cwl, this.workflowFolder + path.sep + step.name + '.cwl');
+                resolve();
+            } catch (error) {
+                switch (error.errorType) {
+                    case 'MethodNotFound':
+                        reject(new DivaError("Could not create workflow, because method: " + step.method + " does not exist.", 500, "WorkflowCreationError"));
                         break;
                 }
-            });
-
-            //process outputs
-            this.outputs.forEach(output => {
-                let outputType = Object.keys(output)[0];
-                switch (outputType) {
-                    case 'file':
-                        this.cwlWorkflowManager.addOutput(step.name, 'File', output[outputType].name, output);
-                        break;
-                }
-            });
-
-            //copy-the workflow file
-            IoHelper.copyFile(service.cwl, this.workflowFolder + path.sep + step.name + '.cwl');
-            resolve();
+            }
         });
     }
 
-    private addValue(step: any, name: string, infoSpec: any, serviceSpec: any, type: string) {
-        let dataValue = _.find(step.inputs.data, function (o: any) { return Object.keys(o)[0] === infoSpec[Object.keys(infoSpec)[0]].name; });
-        let paramValue = step.inputs.parameters[infoSpec[Object.keys(infoSpec)[0]].name];
+    /**
+     * add an input to the workflow cwl file
+     *
+     * @private
+     * @param {WorkflowStep} step the step to attach this input to
+     * @param {string} name the name of the input
+     * @param {*} infoSpec the public JSON specification
+     * @param {*} serviceSpec the internal JSON specification
+     * @param {string} type the type of the input
+     * @memberof WorkflowManager
+     */
+    private addValue(step: WorkflowStep, name: string, infoSpec: any, serviceSpec: any, type: string) {
+        let dataValue = _.find(step.stepDefinition.inputs.data, function (o: any) { return Object.keys(o)[0] === infoSpec[Object.keys(infoSpec)[0]].name; });
+        let paramValue = step.stepDefinition.inputs.parameters[infoSpec[Object.keys(infoSpec)[0]].name];
 
         if (!isNullOrUndefined(dataValue)) {
             let reference = dataValue[infoSpec[Object.keys(infoSpec)[0]].name];
-            this.cwlWorkflowManager.addInput(step.name, type, name, infoSpec, serviceSpec, reference);
+            this.cwlWorkflowManager.addInput(step, type, name, infoSpec, serviceSpec, reference);
         } else if (!isNullOrUndefined(paramValue)) {
-            this.cwlWorkflowManager.addInput(step.name, type, name, infoSpec, serviceSpec, paramValue);
+            this.cwlWorkflowManager.addInput(step, type, name, infoSpec, serviceSpec, paramValue);
 
         } else {
-            this.cwlWorkflowManager.addInput(step.name, type, name, infoSpec, serviceSpec);
+            this.cwlWorkflowManager.addInput(step, type, name, infoSpec, serviceSpec);
         }
     }
 }

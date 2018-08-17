@@ -4,6 +4,7 @@
 "use strict";
 
 import * as nconf from "nconf";
+import { DivaError } from "../models/divaError";
 import { IoHelper } from "./ioHelper";
 
 /**
@@ -38,8 +39,11 @@ export class ServicesInfoHelper {
             let serviceInfo = this.fileContent.services.filter(function (item: any) {
                 return item.path === path;
             });
-
-            resolve(serviceInfo[0]);
+            if (serviceInfo.length === 0) {
+                reject(new DivaError("Could not find method: " + path, 500, "MethodNotFound"));
+            } else {
+                resolve(serviceInfo[0]);
+            }
         });
     }
 
