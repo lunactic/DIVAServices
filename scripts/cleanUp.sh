@@ -19,6 +19,10 @@ executableFolder=($(cat conf/server.dev.json | jq -r '.paths.executablePath'))
 rm -rf ${executableFolder}/
 resultsFolder=($(cat conf/server.dev.json | jq -r '.paths.resultsPath'))
 rm -rf ${resultsFolder}/
+outputFolder=($(cat conf/server.dev.json | jq -r '.docker.paths.outputFolder'))
+rm -rf ${outputFolder}/
+tmpFolder=($(cat conf/server.dev.json | jq -r '.docker.paths.tmpFolder'))
+rm -rf ${tmpFolder}/
 
 header "Creating Folders"
 imageFolder=($(cat conf/server.dev.json | jq -r '.paths.filesPath'))
@@ -30,7 +34,9 @@ mkdir -p ${executableFolder}
 mkdir -p ${resultsFolder}
 mkdir -p ${logFolder}
 #mkdir -p ${imageFolder}/test/original
-mkdir -p ${resultsFolder}/
+mkdir -p ${resultsFolder}
+mkdir -p ${outputFolder}
+mkdir -p ${tmpFolder}
 
 header "Creating Files"
 imageInfoFile=($(cat conf/server.dev.json | jq -r '.paths.imageInfoFile'))

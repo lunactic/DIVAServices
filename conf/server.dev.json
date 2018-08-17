@@ -39,6 +39,7 @@
     "paths": {
       "inputFolder": "/data",
       "outputFolder": "/data/output",
+      "tmpFolder": "/data/tmp",
       "resultFile": "/data/result.json",
       "outputImage": "/data/outputImage.png"
     }

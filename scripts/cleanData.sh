@@ -15,10 +15,17 @@ imageFolder=($(cat conf/server.dev.json | jq -r '.paths.filesPath'))
 rm -r ${imageFolder}/
 resultsFolder=($(cat conf/server.dev.json | jq -r '.paths.resultsPath'))
 rm -r ${resultsFolder}/
+outputFolder=($(cat conf/server.dev.json | jq -r '.docker.paths.outputFolder'))
+rm -rf ${outputFolder}/
+tmpFolder=($(cat conf/server.dev.json | jq -r '.docker.paths.tmpFolder'))
+rm -rf ${tmpFolder}/
 
 header "Creating Folders"
 mkdir -p ${imageFolder}
 mkdir -p ${resultsFolder}
+mkdir -p ${outputFolder}
+mkdir -p ${tmpFolder}
+
 #mkdir -p ${imageFolder}/test/original
 #mkdir -p ${logFolder}
 
