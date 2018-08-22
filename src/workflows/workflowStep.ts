@@ -1,5 +1,6 @@
 import { WorkflowInput } from "./workflowInput";
 import { WorkflowOutput } from "./workflowOutput";
+import _ = require("lodash");
 
 export class WorkflowStep {
     /**
@@ -65,6 +66,9 @@ export class WorkflowStep {
     }
 
     public addOutput(output: WorkflowOutput) {
+        //rename infoSpecification name
+        output.infoSpecification = _.cloneDeep(output.infoSpecification);
+        output.infoSpecification[Object.keys(output.infoSpecification)[0]].name = this.name + '_' + output.infoSpecification[Object.keys(output.infoSpecification)[0]].name;
         this._outputs.push(output);
     }
 

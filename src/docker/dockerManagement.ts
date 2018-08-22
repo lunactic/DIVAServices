@@ -30,7 +30,7 @@ export class DockerManagement {
     /**
      * The Docker communication object
      */
-    static docker = null;
+    static docker: DOCKER = null;
 
     /**
      * Create a new image

@@ -62,7 +62,7 @@ export class CwlWorkflowManager {
         fs.appendFileSync(this.filePath, os.EOL + 'outputs:' + os.EOL);
         this.steps.forEach((step) => {
             step.outputs.forEach((output) => {
-                fs.appendFileSync(this.filePath, '  ' + output.name + ': ' + os.EOL);
+                fs.appendFileSync(this.filePath, '  ' + step.name + '_' + output.name + ': ' + os.EOL);
                 fs.appendFileSync(this.filePath, '    type: ' + output.wfType + os.EOL);
                 fs.appendFileSync(this.filePath, '    outputSource: ' + step.name + '/' + output.name + os.EOL);
             });
@@ -72,8 +72,8 @@ export class CwlWorkflowManager {
         //add steps
         fs.appendFileSync(this.filePath, os.EOL + 'steps:' + os.EOL);
         this.steps.forEach(step => {
-            fs.appendFileSync(this.filePath, '  ' + step + ':' + os.EOL);
-            fs.appendFileSync(this.filePath, '    run: ' + step + '.cwl' + os.EOL);
+            fs.appendFileSync(this.filePath, '  ' + step.name + ':' + os.EOL);
+            fs.appendFileSync(this.filePath, '    run: ' + step.name + '.cwl' + os.EOL);
             fs.appendFileSync(this.filePath, '    in:' + os.EOL);
             step.inputs.forEach((input: WorkflowInput) => {
                 if (input.hasReference()) {
