@@ -208,7 +208,7 @@ export class AlgorithmManagement {
             var cwlManager: CwlManager = new CwlManager(file, info.imageName);
             await cwlManager.initialize(executable);
             var counter: number = 0;
-            algorithm.input.forEach((item, index) => {
+            for (let item of algorithm.input) {
                 switch (Object.keys(item)[0]) {
                     case 'resultFile':
                         var name: string = 'resultFile';
@@ -253,18 +253,19 @@ export class AlgorithmManagement {
                         }
                         break;
                 }
-            });
+            }
             cwlManager.startOutputs();
-            algorithm.output.forEach((item, index) => {
+            for (let item of algorithm.output) {
+                let name = '';
                 switch (Object.keys(item)[0]) {
                     case 'file':
-                        var name = item.file.name;
+                        name = item.file.name;
 
                         if (!(isNullOrUndefined(item.file.options.filename))) {
                             cwlManager.addOutput('File', name, item.file.options.filename);
                         } else {
                             var extensions = [];
-                            item.file.options.mimeTypes.allowed.forEach(element => {
+                            for (let element of item.file.options.mimeTypes.allowed) {
                                 var extension = mime.getExtension(element);
                                 if (!(extensions.indexOf("*." + extension) >= 0)) {
                                     extensions.push("*." + extension);
@@ -272,16 +273,16 @@ export class AlgorithmManagement {
                                         extensions.push("*.jpg");
                                     }
                                 }
-                            });
+                            }
                             cwlManager.addOutput('File', name, JSON.stringify(extensions));
                         }
                         break;
                     case 'folder':
-                        var name = item.folder.name;
+                        name = item.folder.name;
                         cwlManager.addOutput('Directory', name, '.');
                         break;
                 }
-            });
+            }
             cwlManager.addOutput("stdout", '', '');
             resolve();
         });

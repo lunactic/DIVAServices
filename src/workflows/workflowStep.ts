@@ -72,6 +72,11 @@ export class WorkflowStep {
         this._outputs.push(output);
     }
 
+
+    public getOutput(value: string) {
+        return _.find(this.outputs, { 'name': value });
+    }
+
     /**
      * Getter name
      * @return {string}
@@ -167,5 +172,6 @@ export class WorkflowStep {
     public set outputs(value: WorkflowOutput[]) {
         this._outputs = value;
     }
+
 
 }

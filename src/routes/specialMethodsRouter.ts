@@ -35,9 +35,9 @@ router.get("/mgmt/clearData", function (req: express.Request, res: express.Respo
         }
         req.logIn(user, () => {
             let collections = FileHelper.getAllCollections();
-            collections.forEach(collection => {
+            for (let collection of collections) {
                 FileHelper.deleteCollection(collection.toString());
-            });
+            }
             res.status(200).send();
         });
     })(req, res, next);

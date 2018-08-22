@@ -182,8 +182,8 @@ export class WorkflowManager {
             let data = [];
             let paramOrder = [];
 
-            this.cwlWorkflowManager.steps.forEach((step) => {
-                step.inputs.forEach((input) => {
+            for (let step of this.cwlWorkflowManager.steps) {
+                for (let input of step.inputs) {
                     if (!input.hasDefaultValue() && !input.hasReference()) {
                         if (input.isData) {
                             data.push(input.serviceSpecification);
@@ -197,8 +197,8 @@ export class WorkflowManager {
                             paramOrder.push(obj);
                         }
                     }
-                });
-            });
+                }
+            }
 
 
             let newServiceEntry = {
@@ -252,20 +252,16 @@ export class WorkflowManager {
                 output: [],
                 steps: this.workflow.steps
             };
-            this.cwlWorkflowManager.steps.forEach((step) => {
-                step.inputs.forEach(input => {
+            for (let step of this.cwlWorkflowManager.steps) {
+                for (let input of step.inputs) {
                     if (!input.hasDefaultValue() && !input.hasReference()) {
                         info.input.push(input.infoSpecification);
                     }
-                });
-            });
-
-            this.cwlWorkflowManager.steps.forEach((step) => {
-                step.outputs.forEach(output => {
+                }
+                for (let output of step.outputs) {
                     info.output.push(output.infoSpecification);
-                });
-            });
-
+                }
+            }
 
             await IoHelper.saveFile(this.infoFolder + path.sep + 'info.json', info, 'utf-8');
 
@@ -374,71 +370,75 @@ export class WorkflowManager {
                 this.outputs = IoHelper.readFile(nconf.get('paths:jsonPath') + service.path + path.sep + 'info.json').output;
                 this.inputs = IoHelper.readFile(nconf.get('paths:jsonPath') + service.path + path.sep + 'info.json').input;
                 //process inputs
-                this.inputs.forEach(input => {
-                    switch (Object.keys(input)[0]) {
-                        case 'resultFile':
-                            var name: string = step.name + '_resultFile';
-                            var serviceSpec = _.find(service.parameters, function (o: any) { return Object.keys(o)[0] === input[Object.keys(input)[0]].name; });
-                            this.addValue(step, name, input, serviceSpec, 'string');
-                            break;
-                        case 'file':
-                            var name: string = step.name + '_' + input[Object.keys(input)[0]].name;
-                            var serviceSpec = _.find(service.data, function (o: any) { return Object.keys(o)[0] === input[Object.keys(input)[0]].name; });
-                            this.addValue(step, name, input, serviceSpec, 'File');
-                            break;
-                        case 'folder':
-                            var name: string = step.name + '_' + input[Object.keys(input)[0]].name;
-                            var serviceSpec = _.find(service.data, function (o: any) { return Object.keys(o)[0] === input[Object.keys(input)[0]].name; });
-                            this.addValue(step, name, input, serviceSpec, 'Directory');
-                            break;
-                        case 'text':
-                            var name: string = step.name + '_' + input[Object.keys(input)[0]].name;
-                            var serviceSpec = _.find(service.parameters, function (o: any) { return Object.keys(o)[0] === input[Object.keys(input)[0]].name; });
-                            this.addValue(step, name, input, serviceSpec, 'string');
-                            break;
-                        case 'number':
-                            var name: string = step.name + '_' + input[Object.keys(input)[0]].name;
-                            var serviceSpec = _.find(service.parameters, function (o: any) { return Object.keys(o)[0] === input[Object.keys(input)[0]].name; });
-                            this.addValue(step, name, input, serviceSpec, 'float');
-                            break;
-                        case 'select':
-                            var name: string = step.name + '_' + input[Object.keys(input)[0]].name;
-                            var serviceSpec = _.find(service.parameters, function (o: any) { return Object.keys(o)[0] === input[Object.keys(input)[0]].name; });
-                            this.addValue(step, name, input, serviceSpec, 'string');
-                            break;
-                        case 'mcr2014b':
-                            var name: string = step.name + "_mcr2014b";
-                            var serviceSpec = _.find(service.parameters, function (o: any) { return Object.keys(o)[0] === input[Object.keys(input)[0]].name; });
-                            this.addValue(step, name, input, serviceSpec, 'string');
-                            break;
-                        case 'outputFolder':
-                            var name: string = step.name + "_outputFolder";
-                            var serviceSpec = _.find(service.parameters, function (o: any) { return Object.keys(o)[0] === Object.keys(input)[0]; });
-                            this.addValue(step, name, input, serviceSpec, 'string');
-                            break;
-                        case 'highlighter':
-                            var name: string = "highlighter";
-                            switch (input.highlighter.type) {
-                                case 'rectangle':
-                                    for (var recIndex = 0; recIndex < 8; recIndex++) {
-                                        var name = step.name + "_highlighter" + String(recIndex);
-                                        this.addValue(step, name, input, {}, 'float');
-                                    }
-                                    break;
-                            }
-                            break;
+                for (let input of this.inputs) {
+                    try {
+                        switch (Object.keys(input)[0]) {
+                            case 'resultFile':
+                                var name: string = step.name + '_resultFile';
+                                var serviceSpec = _.find(service.parameters, function (o: any) { return Object.keys(o)[0] === input[Object.keys(input)[0]].name; });
+                                await this.addValue(step, name, input, serviceSpec, 'string');
+                                break;
+                            case 'file':
+                                var name: string = step.name + '_' + input[Object.keys(input)[0]].name;
+                                var serviceSpec = _.find(service.data, function (o: any) { return Object.keys(o)[0] === input[Object.keys(input)[0]].name; });
+                                await this.addValue(step, name, input, serviceSpec, 'File');
+                                break;
+                            case 'folder':
+                                var name: string = step.name + '_' + input[Object.keys(input)[0]].name;
+                                var serviceSpec = _.find(service.data, function (o: any) { return Object.keys(o)[0] === input[Object.keys(input)[0]].name; });
+                                await this.addValue(step, name, input, serviceSpec, 'Directory');
+                                break;
+                            case 'text':
+                                var name: string = step.name + '_' + input[Object.keys(input)[0]].name;
+                                var serviceSpec = _.find(service.parameters, function (o: any) { return Object.keys(o)[0] === input[Object.keys(input)[0]].name; });
+                                await this.addValue(step, name, input, serviceSpec, 'string');
+                                break;
+                            case 'number':
+                                var name: string = step.name + '_' + input[Object.keys(input)[0]].name;
+                                var serviceSpec = _.find(service.parameters, function (o: any) { return Object.keys(o)[0] === input[Object.keys(input)[0]].name; });
+                                await this.addValue(step, name, input, serviceSpec, 'float');
+                                break;
+                            case 'select':
+                                var name: string = step.name + '_' + input[Object.keys(input)[0]].name;
+                                var serviceSpec = _.find(service.parameters, function (o: any) { return Object.keys(o)[0] === input[Object.keys(input)[0]].name; });
+                                await this.addValue(step, name, input, serviceSpec, 'string');
+                                break;
+                            case 'mcr2014b':
+                                var name: string = step.name + "_mcr2014b";
+                                var serviceSpec = _.find(service.parameters, function (o: any) { return Object.keys(o)[0] === input[Object.keys(input)[0]].name; });
+                                await this.addValue(step, name, input, serviceSpec, 'string');
+                                break;
+                            case 'outputFolder':
+                                var name: string = step.name + "_outputFolder";
+                                var serviceSpec = _.find(service.parameters, function (o: any) { return Object.keys(o)[0] === Object.keys(input)[0]; });
+                                await this.addValue(step, name, input, serviceSpec, 'string');
+                                break;
+                            case 'highlighter':
+                                var name: string = "highlighter";
+                                switch (input.highlighter.type) {
+                                    case 'rectangle':
+                                        for (var recIndex = 0; recIndex < 8; recIndex++) {
+                                            var name = step.name + "_highlighter" + String(recIndex);
+                                            await this.addValue(step, name, input, {}, 'float');
+                                        }
+                                        break;
+                                }
+                                break;
+                        }
+                    } catch (error) {
+                        reject(error);
                     }
-                });
+                }
 
                 //process outputs
-                this.outputs.forEach(output => {
+                for (let output of this.outputs) {
                     let outputType = Object.keys(output)[0];
                     switch (outputType) {
                         case 'file':
                             this.cwlWorkflowManager.addOutput(step, 'File', output[outputType].name, output);
                             break;
                     }
-                });
+                }
 
                 //copy-the workflow file
                 IoHelper.copyFile(service.cwl, this.workflowFolder + path.sep + step.name + '.cwl');
@@ -447,6 +447,9 @@ export class WorkflowManager {
                 switch (error.errorType) {
                     case 'MethodNotFound':
                         reject(new DivaError("Could not create workflow, because method: " + step.method + " does not exist.", 500, "WorkflowCreationError"));
+                        break;
+                    default:
+                        reject(error);
                         break;
                 }
             }
@@ -464,18 +467,25 @@ export class WorkflowManager {
      * @param {string} type the type of the input
      * @memberof WorkflowManager
      */
-    private addValue(step: WorkflowStep, name: string, infoSpec: any, serviceSpec: any, type: string) {
-        let dataValue = _.find(step.stepDefinition.inputs.data, function (o: any) { return Object.keys(o)[0] === infoSpec[Object.keys(infoSpec)[0]].name; });
-        let paramValue = step.stepDefinition.inputs.parameters[infoSpec[Object.keys(infoSpec)[0]].name];
+    private addValue(step: WorkflowStep, name: string, infoSpec: any, serviceSpec: any, type: string): Promise<void> {
+        return new Promise<void>(async (resolve, reject) => {
+            let dataValue = _.find(step.stepDefinition.inputs.data, function (o: any) { return Object.keys(o)[0] === infoSpec[Object.keys(infoSpec)[0]].name; });
+            let paramValue = step.stepDefinition.inputs.parameters[infoSpec[Object.keys(infoSpec)[0]].name];
+            try {
+                if (!isNullOrUndefined(dataValue)) {
+                    let reference = dataValue[infoSpec[Object.keys(infoSpec)[0]].name];
+                    await this.cwlWorkflowManager.addInput(step, type, name, infoSpec, serviceSpec, reference);
+                } else if (!isNullOrUndefined(paramValue)) {
+                    await this.cwlWorkflowManager.addInput(step, type, name, infoSpec, serviceSpec, paramValue);
 
-        if (!isNullOrUndefined(dataValue)) {
-            let reference = dataValue[infoSpec[Object.keys(infoSpec)[0]].name];
-            this.cwlWorkflowManager.addInput(step, type, name, infoSpec, serviceSpec, reference);
-        } else if (!isNullOrUndefined(paramValue)) {
-            this.cwlWorkflowManager.addInput(step, type, name, infoSpec, serviceSpec, paramValue);
+                } else {
+                    await this.cwlWorkflowManager.addInput(step, type, name, infoSpec, serviceSpec);
+                }
+                resolve();
+            } catch (error) {
+                reject(error);
+            }
+        });
 
-        } else {
-            this.cwlWorkflowManager.addInput(step, type, name, infoSpec, serviceSpec);
-        }
     }
 }
