@@ -2,9 +2,13 @@ import * as fs from "fs-extra";
 import * as os from "os";
 import { isNullOrUndefined } from "util";
 import { DivaError } from "../../models/divaError";
+import { FileTypeChecker } from "../../workflows/typecheckers/fileTypeChecker";
+import { ITypeChecker } from "../../workflows/typecheckers/iTypeChecker";
+import { NumberTypeChecker } from "../../workflows/typecheckers/numberTypeChecker";
 import { WorkflowInput } from "../../workflows/workflowInput";
 import { WorkflowOutput } from "../../workflows/workflowOutput";
 import { WorkflowStep } from "../../workflows/workflowStep";
+import { WorkflowWarning } from "../../workflows/workflowWarning";
 import _ = require("lodash");
 
 export class CwlWorkflowManager {
@@ -22,7 +26,7 @@ export class CwlWorkflowManager {
         fs.appendFileSync(this.filePath, 'class: Workflow' + os.EOL);
     }
 
-    public addInput(step: WorkflowStep, type: string, name: string, infoSpec: any, serviceSpec: any, value?: any): Promise<void> {
+    public addInput(step: WorkflowStep, type: string, name: string, infoSpec: any, serviceSpec: any, warnings: WorkflowWarning[], value?: any): Promise<void> {
         return new Promise<void>(async (resolve, reject) => {
             if (!isNullOrUndefined(value)) {
                 if (typeof value === "string" && value.startsWith('$')) {
@@ -39,7 +43,7 @@ export class CwlWorkflowManager {
                         return reject(new DivaError("Input: " + input.name + " references to output: " + outputStepOutput + " from step: " + outputStepName + " which does not exist", 500, "WorkflowCreationError"));
                     }
                     try {
-                        await this.checkReference(input, output);
+                        await this.checkReference(input, output, warnings);
                         step.addInput(input);
                         resolve();
                     } catch (error) {
@@ -128,12 +132,34 @@ export class CwlWorkflowManager {
         return _.find(this.steps, { 'name': name });
     }
 
-    private checkReference(input: WorkflowInput, output: WorkflowOutput): Promise<boolean> {
-        return new Promise<boolean>((resolve, reject) => {
-            if (input.wfType !== output.wfType) {
-                reject(new DivaError("Input: " + input.name + " and Output: " + output.name + " do not have the same type and can therefore not be matched", 500, "WorkflowCreationError"));
+    private checkReference(input: WorkflowInput, output: WorkflowOutput, warnings: WorkflowWarning[]): Promise<boolean> {
+        //TODO: Allow Reference Checking to return a list of "warnings". 
+        //These warnings can be used for things that might work but are not guaranteed
+        return new Promise<boolean>(async (resolve, reject) => {
+            try {
+                if (input.wfType !== output.wfType) {
+                    reject(new DivaError("Input: " + input.name + " and Output: " + output.name + " do not have the same type and can therefore not be matched", 500, "WorkflowCreationError"));
+                } else {
+                    let typeChecker: ITypeChecker;
+                    switch (input.wfType) {
+                        case 'File':
+                            typeChecker = new FileTypeChecker();
+                            await typeChecker.checkType(input, output, warnings);
+                            break;
+                        case 'float':
+                            typeChecker = new NumberTypeChecker();
+                            await typeChecker.checkType(input, output, warnings);
+                            break;
+                        case 'string':
+                            break;
+                        case 'Directory':
+                            break;
+                    }
+                }
+                resolve(true);
+            } catch (error) {
+                reject(error);
             }
-            resolve(true);
         });
     }
 }

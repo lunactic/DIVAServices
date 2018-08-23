@@ -9,6 +9,7 @@ import { ServicesInfoHelper } from '../helper/servicesInfoHelper';
 import { AlgorithmManagement } from '../management/algorithmManagement';
 import { DivaError } from '../models/divaError';
 import { WorkflowStep } from './workflowStep';
+import { WorkflowWarning } from './workflowWarning';
 
 /**
  * The WorkflowManager provides functionality for creating and managing workflows
@@ -143,6 +144,17 @@ export class WorkflowManager {
      */
     private identifier: string;
 
+
+
+    /**
+     * The warnings generated during the creation process of this workflow
+     * 
+     * @private
+     * @type {WorkflowWarning[]}
+     * @memberof WorkflowManager
+     */
+    private warnings: WorkflowWarning[];
+
     /**
      *Creates an instance of WorkflowManager.
      * @param {*} workflowInput the workflow information from the POST request
@@ -151,7 +163,7 @@ export class WorkflowManager {
     constructor(workflowInput: any) {
         this.workflow = workflowInput.workflow;
         this.workflowName = this.workflow.name;
-
+        this.warnings = [];
         this.baseRoute = 'workflows/' + this.workflowName.toLowerCase();
         this.version = '1';
         this.route = this.baseRoute + '/' + this.version;
@@ -288,18 +300,18 @@ export class WorkflowManager {
     /**
      * Parse a workflow Json and create the CWL file
      *
-     * @returns {Promise<void>}
+     * @returns {Promise<WorkflowWarning[]>}
      * @memberof WorkflowManager
      */
-    public parseWorkflow(): Promise<void> {
-        return new Promise<void>(async (resolve, reject) => {
+    public parseWorkflow(): Promise<WorkflowWarning[]> {
+        return new Promise<WorkflowWarning[]>(async (resolve, reject) => {
             try {
                 await IoHelper.createFolder(this.workflowFolder);
                 await IoHelper.createFolder(this.infoFolder);
                 await IoHelper.createFolder(this.logFolder);
                 this.cwlWorkflowManager.initialize();
                 await this.processSteps(this.workflow.steps);
-                resolve();
+                resolve(this.warnings);
             } catch (error) {
                 reject(error);
             }
@@ -474,12 +486,12 @@ export class WorkflowManager {
             try {
                 if (!isNullOrUndefined(dataValue)) {
                     let reference = dataValue[infoSpec[Object.keys(infoSpec)[0]].name];
-                    await this.cwlWorkflowManager.addInput(step, type, name, infoSpec, serviceSpec, reference);
+                    await this.cwlWorkflowManager.addInput(step, type, name, infoSpec, serviceSpec, this.warnings, reference);
                 } else if (!isNullOrUndefined(paramValue)) {
-                    await this.cwlWorkflowManager.addInput(step, type, name, infoSpec, serviceSpec, paramValue);
+                    await this.cwlWorkflowManager.addInput(step, type, name, infoSpec, serviceSpec, this.warnings, paramValue);
 
                 } else {
-                    await this.cwlWorkflowManager.addInput(step, type, name, infoSpec, serviceSpec);
+                    await this.cwlWorkflowManager.addInput(step, type, name, infoSpec, this.warnings, serviceSpec);
                 }
                 resolve();
             } catch (error) {
