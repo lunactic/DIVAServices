@@ -177,6 +177,26 @@ export class ParameterHelper {
                 } else {
                     let value = self.getParamValue(paramKey, collection.inputParameters);
                     if (!isNullOrUndefined(value)) {
+                        switch (Object.keys(paramValue)[0]) {
+                            case "number":
+                                if (paramValue.number.options !== null || paramValue.number.options !== undefined) {
+                                    if (paramValue.number.options.min !== null || paramValue.number.options.min !== undefined) {
+                                        if (value < paramValue.number.options.min) {
+                                            reject(new DivaError("incompatile input for -- " + paramKey + " -- provided value " + value + " which is smaller than the minimal allowed value of " + paramValue.number.options.min,
+                                                500, "ParameterError"));
+                                            return;
+                                        }
+                                    }
+                                    if (paramValue.number.options.max !== null || paramValue.number.options.max !== undefined) {
+                                        if (value > paramValue.number.options.max) {
+                                            reject(new DivaError("incompatile input for -- " + paramKey + " -- provided value " + value + " which is larger than the maximal allowed value of " + paramValue.number.options.max,
+                                                500, "ParameterError"));
+                                            return;
+                                        }
+                                    }
+                                }
+                                break;
+                        }
                         params[paramKey] = value;
                         outputParams[paramKey] = value;
                     } else {
@@ -184,6 +204,7 @@ export class ParameterHelper {
                             params[paramKey] = self.getDefaultParamValue(paramValue);
                         } else {
                             reject(new DivaError("Did not receive a parameter value for: " + paramKey + " that is required by the method", 500, "MissingParameter"));
+                            return;
                         }
                     }
                 }
@@ -219,6 +240,7 @@ export class ParameterHelper {
                                 if (!found[key].file.options.mimeTypes.allowed.includes(mime.getType(filename))) {
                                     reject(new DivaError("incompatile input for -- " + key + " -- expected file of type(s) " + JSON.stringify(found[key].file.options.mimeTypes.allowed, null, " ").replace(/\n/g, '').replace(/\"/g, '').replace(/\s/g, '') + " but found type " + mime.getType(filename),
                                         500, "ParameterError"));
+                                    return;
                                 }
                                 //perform lookup to get the correct file path, create the correct data item out of it
                                 if (!this.isPathAbsolute(value)) {
