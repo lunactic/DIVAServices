@@ -125,6 +125,7 @@ export class IoHelper {
             } catch (error) {
                 Logger.log("error", "Could not write file due to error " + error, "IoHelper");
                 reject(new DivaError("Error saving file", 500, "IoError"));
+                return;
             }
         });
     }
@@ -139,10 +140,7 @@ export class IoHelper {
      * @memberof IoHelper
      */
     static async moveFile(oldPath: string, newPath: string): Promise<void> {
-        return new Promise<void>(async (resolve, reject) => {
-            await fs.move(oldPath, newPath, { overwrite: true });
-            resolve();
-        });
+        return fs.move(oldPath, newPath, { overwrite: true });
     }
 
     /**
@@ -155,10 +153,7 @@ export class IoHelper {
      * @memberof IoHelper
      */
     static async copyFile(source: string, destination: string): Promise<void> {
-        return new Promise<void>(async (resolve, reject) => {
-            await fs.copy(source, destination);
-            resolve();
-        });
+        return fs.copy(source, destination);
     }
 
     /**
@@ -177,7 +172,8 @@ export class IoHelper {
                 }
                 resolve();
             } catch (error) {
-                return reject(new DivaError("Error deleting a file", 500, "IoError"));
+                reject(new DivaError("Error deleting a file", 500, "IoError"));
+                return;
             }
         });
     }
@@ -191,10 +187,7 @@ export class IoHelper {
      * @memberof IoHelper
      */
     static async createFolder(folder: string): Promise<void> {
-        return new Promise<void>(async (resolve, reject) => {
-            await fs.mkdirs(folder);
-            resolve();
-        });
+        return fs.mkdirs(folder);
     }
 
     /**
@@ -206,6 +199,7 @@ export class IoHelper {
      * @memberof IoHelper
      */
     static deleteFolder(folder: string): Promise<void> {
+        //TODO Check if fs.rmdir can be used as replacement
         return new Promise<void>((resolve, reject) => {
             rmdir(folder, function () {
                 Logger.log("info", "successfully deleted folder: " + folder, "IoHelper");
@@ -235,6 +229,7 @@ export class IoHelper {
                 .on("error", function (error: any) {
                     Logger.log("error", JSON.stringify(error), "IoHelper");
                     reject(new DivaError("Error downloading File", 500, "FileDownloadError"));
+                    return;
                 });
         });
     }
@@ -262,7 +257,8 @@ export class IoHelper {
                         resolve(localFolder + path.sep + filename);
                     });
             } catch (error) {
-                return reject(new DivaError("Error downloading file from: " + fileUrl, 500, "IoError"));
+                reject(new DivaError("Error downloading file from: " + fileUrl, 500, "IoError"));
+                return;
             }
         });
     }
@@ -291,6 +287,7 @@ export class IoHelper {
             archive.on("error", function (error: Object) {
                 Logger.log("error", JSON.stringify(error), "IoHelper");
                 reject(error);
+                return;
             });
             archive.pipe(output);
 
@@ -317,11 +314,13 @@ export class IoHelper {
                     resolve();
                 }).on("error", function (error: any) {
                     Logger.log("error", JSON.stringify(error), "IoHelper");
-                    return reject(new DivaError("Error unzipping file", 500, "IoError"));
+                    reject(new DivaError("Error unzipping file", 500, "IoError"));
+                    return;
                 });
             } catch (error) {
                 Logger.log("error", JSON.stringify(error), "IoHelper");
-                return reject(new DivaError("Error unzipping file", 500, "IoError"));
+                reject(new DivaError("Error unzipping file", 500, "IoError"));
+                return;
             }
 
         });
@@ -368,14 +367,8 @@ export class IoHelper {
      * @memberof IoHelper
      */
     static async createFilesCollectionFolders(collection: string): Promise<void> {
-        return new Promise<void>(async (resolve, reject) => {
-            let rootFolder = nconf.get("paths:filesPath") + path.sep + collection + path.sep + "original";
-            await fs.mkdirp(rootFolder);
-            resolve();
-        });
-
-
-
+        let rootFolder = nconf.get("paths:filesPath") + path.sep + collection + path.sep + "original";
+        return fs.mkdirp(rootFolder);
     }
 
     /**
@@ -606,14 +599,16 @@ export class IoHelper {
                 let response = await request.head(fileUrl);
                 if (response["content-type"] !== fileType) {
                     Logger.log("error", "non matching file type", "IoHelper");
-                    return reject(new DivaError("non matching file type", 500, "IoError"));
+                    reject(new DivaError("non matching file type", 500, "IoError"));
+                    return;
                 } else {
                     Logger.log("info", "downloaded file: " + fileUrl, "IoHelper");
                     resolve();
                 }
             } else {
                 Logger.log("error", "no filetype provided", "IoHelper");
-                return reject(new DivaError("no filetype provided", 500, "IoError"));
+                reject(new DivaError("no filetype provided", 500, "IoError"));
+                return;
             }
         });
     }

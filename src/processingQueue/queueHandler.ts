@@ -65,15 +65,13 @@ export class QueueHandler {
      * @returns {Promise<any>} A JSON object containing the response
      * @memberof QueueHandler
      */
-    static addDockerRequest(req: any): Promise<any> {
-        return new Promise<any>(async (resolve, reject) => {
-            try {
-                let response = await QueueHandler.executableHelper.preprocess(req, QueueHandler.dockerProcessingQueue, "regular");
-                resolve(response);
-            } catch (error) {
-                return reject(error);
-            }
-        });
+    static async addDockerRequest(req: any): Promise<any> {
+        try {
+            return await QueueHandler.executableHelper.preprocess(req, QueueHandler.dockerProcessingQueue, "regular");
+        } catch (error) {
+            Promise.reject(error);
+            return;
+        }
     }
 
     /**

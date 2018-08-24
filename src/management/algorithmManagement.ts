@@ -155,11 +155,13 @@ export class AlgorithmManagement {
                 } catch (error) {
                     AlgorithmManagement.updateStatus(identifier, "error", route, error.message);
                     Logger.log("error", error.message, "AlgorithmManagement");
-                    return reject(new DivaError(error.message, 500, "AlgorithmCreationError"));
+                    reject(new DivaError(error.message, 500, "AlgorithmCreationError"));
+                    return;
                 }
             } catch (error) {
                 AlgorithmManagement.updateStatus(identifier, "error", route, "algorithm file has the wrong format");
-                return reject(new DivaError("fileUrl does not point to a correct zip file", 500, "FileFormatError"));
+                reject(new DivaError("fileUrl does not point to a correct zip file", 500, "FileFormatError"));
+                return;
             }
         });
     }
@@ -177,18 +179,11 @@ export class AlgorithmManagement {
      * @memberof AlgorithmManagement
      */
     static async recreateAlgorithm(req: express.Request, route: string, imageName: string, version: number, baseroute: string): Promise<any> {
-        return new Promise(async (resolve, reject) => {
-            await IoHelper.deleteFolder(nconf.get("paths:executablePath") + path.sep + route);
-            let identifier = AlgorithmManagement.createIdentifier();
-            try {
-                AlgorithmManagement.removeFromRootInfoFile("/" + route);
-                AlgorithmManagement.removeFromServiceInfoFile("/" + baseroute);
-                let response = await AlgorithmManagement.createAlgorithm(req, route, identifier, imageName, version, baseroute);
-                resolve(response);
-            } catch (error) {
-                reject(error);
-            }
-        });
+        await IoHelper.deleteFolder(nconf.get("paths:executablePath") + path.sep + route);
+        let identifier = AlgorithmManagement.createIdentifier();
+        AlgorithmManagement.removeFromRootInfoFile("/" + route);
+        AlgorithmManagement.removeFromServiceInfoFile("/" + baseroute);
+        return AlgorithmManagement.createAlgorithm(req, route, identifier, imageName, version, baseroute);
     }
     /**
      * 
@@ -693,71 +688,67 @@ export class AlgorithmManagement {
      * @memberof AlgorithmManagement
      */
     static async updateServicesFile(algorithm: any, identifier: string, route: string, imageName: string, version: number, baseRoute: string): Promise<void> {
-        return new Promise<void>(async (resolve, reject) => {
-            ServicesInfoHelper.reload();
-            if (this.getStatusByIdentifier(identifier) != null || this.getStatusByRoute(baseRoute) != null) {
-                this.removeFromServiceInfoFile(baseRoute);
-            }
-            if ((this.getStatusByIdentifier(identifier) == null) && (this.getStatusByRoute(baseRoute) == null)) {
-                let newContent = _.cloneDeep(ServicesInfoHelper.fileContent);
-                let parameters: any = [];
-                let data: any = [];
-                let paramOrder: any = [];
-                _.forEach(algorithm.input, function (input: any, key: any) {
-                    let inputType = _.keys(input)[0];
-                    key = _.get(algorithm, "input[" + key + "]." + inputType + ".name", inputType);
-                    let info: any = {};
-                    if (inputType === 'file' || inputType === 'folder') {
-                        info[key] = input;
-                        var order = {};
-                        order[key] = inputType;
-                        data.push(info);
-                        paramOrder.push(order);
-                    } else {
-                        info[key] = input;
-                        var order = {};
-                        order[key] = inputType;
-                        parameters.push(info);
-                        paramOrder.push(order);
-                    }
-                });
-                let newServiceEntry = {
-                    name: algorithm.general.name.replace(/\s/g, '').toLowerCase(),
-                    service: route.replace(/\//g, "").toLowerCase(),
-                    baseRoute: "/" + baseRoute,
-                    identifier: identifier,
-                    path: "/" + route,
-                    cwl: nconf.get("paths:executablePath") + path.sep + route + path.sep + identifier + ".cwl",
-                    executablePath: algorithm.method.executable_path,
-                    output: "file",
-                    execute: "docker",
-                    noCache: false,
-                    rewriteRules: [],
-                    executableType: algorithm.method.executableType,
-                    imageName: imageName,
-                    parameters: parameters,
-                    data: data,
-                    paramOrder: paramOrder,
-                    remotePaths: [],
-                    version: version,
-                    status: {
-                        statusCode: -1,
-                        statusMessage: ""
-                    },
-                    statistics: {
-                        runtime: -1,
-                        executions: 0
-                    },
-                    exceptions: []
-                };
+        ServicesInfoHelper.reload();
+        if (this.getStatusByIdentifier(identifier) != null || this.getStatusByRoute(baseRoute) != null) {
+            this.removeFromServiceInfoFile(baseRoute);
+        }
+        if ((this.getStatusByIdentifier(identifier) == null) && (this.getStatusByRoute(baseRoute) == null)) {
+            let newContent = _.cloneDeep(ServicesInfoHelper.fileContent);
+            let parameters: any = [];
+            let data: any = [];
+            let paramOrder: any = [];
+            _.forEach(algorithm.input, function (input: any, key: any) {
+                let inputType = _.keys(input)[0];
+                key = _.get(algorithm, "input[" + key + "]." + inputType + ".name", inputType);
+                let info: any = {};
+                if (inputType === 'file' || inputType === 'folder') {
+                    info[key] = input;
+                    var order = {};
+                    order[key] = inputType;
+                    data.push(info);
+                    paramOrder.push(order);
+                } else {
+                    info[key] = input;
+                    var order = {};
+                    order[key] = inputType;
+                    parameters.push(info);
+                    paramOrder.push(order);
+                }
+            });
+            let newServiceEntry = {
+                name: algorithm.general.name.replace(/\s/g, '').toLowerCase(),
+                service: route.replace(/\//g, "").toLowerCase(),
+                baseRoute: "/" + baseRoute,
+                identifier: identifier,
+                path: "/" + route,
+                cwl: nconf.get("paths:executablePath") + path.sep + route + path.sep + identifier + ".cwl",
+                executablePath: algorithm.method.executable_path,
+                output: "file",
+                execute: "docker",
+                noCache: false,
+                rewriteRules: [],
+                executableType: algorithm.method.executableType,
+                imageName: imageName,
+                parameters: parameters,
+                data: data,
+                paramOrder: paramOrder,
+                remotePaths: [],
+                version: version,
+                status: {
+                    statusCode: -1,
+                    statusMessage: ""
+                },
+                statistics: {
+                    runtime: -1,
+                    executions: 0
+                },
+                exceptions: []
+            };
 
-                newContent.services.push(newServiceEntry);
-                ServicesInfoHelper.update(newContent);
-                await ServicesInfoHelper.reload();
-                resolve();
-            }
-        });
-    }
+            newContent.services.push(newServiceEntry);
+            ServicesInfoHelper.update(newContent);
+            return await ServicesInfoHelper.reload();
+        }
 
     /**
      * update the identifier of an algorithm
@@ -795,6 +786,7 @@ export class AlgorithmManagement {
                         });
                         if (result == null) {
                             reject(new DivaError("did not find a result for output parameter: " + element.number.name, 500, "ResultValidationError"));
+                            return;
                         } else {
                             let resultValue = result.number.value;
                             let min: number = element.number.options.min;
@@ -802,6 +794,7 @@ export class AlgorithmManagement {
                             let name: string = element.number.name;
                             if (result < min || result > max) {
                                 reject("error processing " + result.number.name + ": computed value is " + resultValue + " but the range is " + min + " - " + max);
+                                return;
                             }
                         }
                         break;
@@ -811,9 +804,11 @@ export class AlgorithmManagement {
                         });
                         if (result == null) {
                             reject(new DivaError("did not find a result for output parameter: " + element.file.name, 500, "ResultValidationError"));
+                            return;
                         } else {
                             if (result.file["mime-type"] !== element.file.options.mimeTypes.default) {
                                 reject(new DivaError("wrong mimeType for parameter: " + element.file.name + " expected " + element.file.options.mimeTypes.default + " got " + result.file["mime-type"], 500, "ResultValidationError"));
+                                return;
                             }
                         }
                         break;

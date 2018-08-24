@@ -29,10 +29,12 @@ export class PostHandler {
             let serviceInfo = await ServicesInfoHelper.getInfoByPath(req.originalUrl);
             if (serviceInfo == null) {
                 //if no matching method for the route, return a 404
-                return reject(new DivaError("This method is not available", 404, "MethodNotAvailable"));
+                reject(new DivaError("This method is not available", 404, "MethodNotAvailable"));
+                return;
             } else if (serviceInfo.status.statusCode === 410) {
                 //if method was removed, return a 410    
-                return reject(new DivaError("This algorithm is no longer available", 410, "MethodNoLongerAvailable"));
+                reject(new DivaError("This algorithm is no longer available", 410, "MethodNoLongerAvailable"));
+                return;
             } else {
                 //method found, prepare and execute process
                 let response: any = null;
@@ -44,10 +46,12 @@ export class PostHandler {
                             break;
                         default:
                             Logger.log("error", "Error in definition for method " + req.originalUrl, "PostHandler");
-                            return reject(new DivaError("Error in method definition", 500, "MethodError"));
+                            reject(new DivaError("Error in method definition", 500, "MethodError"));
+                            return;
                     }
                 } catch (error) {
                     reject(error);
+                    return;
                 }
             }
         });

@@ -41,6 +41,7 @@ export class ServicesInfoHelper {
             });
             if (serviceInfo.length === 0) {
                 reject(new DivaError("Could not find method: " + path, 500, "MethodNotFound"));
+                return;
             } else {
                 resolve(serviceInfo[0]);
             }

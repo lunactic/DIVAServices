@@ -1,4 +1,3 @@
-import { Logger } from '../logging/logger';
 import { Collection } from '../processingQueue/collection';
 import { IProcess } from '../processingQueue/iProcess';
 import { Process } from '../processingQueue/process';
@@ -57,15 +56,7 @@ export class ResultHelper {
      * @memberof ResultHelper
      */
     static async removeResult(process: Process): Promise<void> {
-        return new Promise<void>(async (resolve, reject) => {
-            try {
-                await ParameterHelper.removeParamInfo(process);
-                await IoHelper.deleteFolder(process.outputFolder);
-                resolve();
-            } catch (error) {
-                Logger.log("error", error, "ResultHelper");
-                reject(error);
-            }
-        });
+        await ParameterHelper.removeParamInfo(process);
+        return IoHelper.deleteFolder(process.outputFolder);
     }
 }

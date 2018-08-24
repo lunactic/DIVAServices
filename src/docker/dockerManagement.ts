@@ -68,7 +68,8 @@ export class DockerManagement {
                     } else {
                         response.on("data", function (data: any) {
                             if (hasError) {
-                                return reject(new DivaError(errorMessage, 500, "DockerError"));
+                                reject(new DivaError(errorMessage, 500, "DockerError"));
+                                return;
                             }
                         });
                         response.on("end", function () {
@@ -128,19 +129,8 @@ export class DockerManagement {
      * @returns {Promise<void>} 
      * @memberof DockerManagement
      */
-    static removeImage(imageName: string): Promise<void> {
-        return new Promise<void>((resolve, reject) => {
-            if (this.docker == null) {
-                this.initDocker();
-            }
-            this.docker.getImage(imageName).remove(function (err: any, data: any) {
-                if (err != null) {
-                    Logger.log("error", err, "DockerManagement");
-                    return reject(new DivaError(err.message, 500, "DockerError"));
-                }
-                resolve();
-            });
-        });
+    static removeImage(imageName: string): Promise<any> {
+        return this.docker.getImage(imageName).remove();
     }
 
     /**
@@ -428,7 +418,8 @@ export class DockerManagement {
                 if (container != null) {
                     await container.remove({ "volumes": true });
                 }
-                return reject(new DivaError(error.message, 500, "DockerError"));
+                reject(new DivaError(error.message, 500, "DockerError"));
+                return;
             }
         });
     }
@@ -493,7 +484,7 @@ export class DockerManagement {
                 var command: string = "cwltool --outdir " + process.outputFolder
                     + " --debug "
                     + "--tmp-outdir-prefix " + nconf.get("docker:paths:outputFolder") + path.sep + " "
-                    + "--tmpdir-prefix " +  nconf.get("docker:paths:tmpFolder") + path.sep + " "
+                    + "--tmpdir-prefix " + nconf.get("docker:paths:tmpFolder") + path.sep + " "
                     + "--no-read-only "
                     + "--basedir /input ";
                 if (nconf.get("docker:noMatchUser")) {
@@ -513,6 +504,7 @@ export class DockerManagement {
                 conn.exec(command, (err: Error, stream: ssh.ClientChannel) => {
                     if (err) {
                         reject(new DivaError("Error executing the Workflow", 500, "ExecutionError"));
+                        return;
                     }
                     stream.on('close', async (code, signal) => {
                         if (code !== 0) {
@@ -520,6 +512,7 @@ export class DockerManagement {
                             Logger.log("error", "Error executing the workflow", "DockerManagement::runDockerImageSSH");
                             await process.resultHandler.handleCwlError(process);
                             reject(new DivaError("Error executing the Workflow", 500, "ExecutionError"));
+                            return;
                         } else {
                             await process.resultHandler.handleCwlResult(process);
                             resolve();

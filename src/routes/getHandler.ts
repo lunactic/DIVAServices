@@ -3,13 +3,13 @@
  * Created by Marcel Würsch on 07.11.16.
  */
 
-import { AlgorithmManagement } from "../management/algorithmManagement";
+import * as express from "express";
 import * as fs from "fs-extra";
 import * as nconf from "nconf";
-import * as express from "express";
 import * as path from "path";
-import { Statistics } from "../statistics/statistics";
+import { AlgorithmManagement } from "../management/algorithmManagement";
 import { DivaError } from '../models/divaError';
+import { Statistics } from "../statistics/statistics";
 
 /**
  * handler for all get requests that are not handled by a specific route
@@ -48,7 +48,8 @@ export class GetHandler {
                 } else {
                     error = GetHandler.createError(404, "This algorithm is not available");
                 }
-                return reject(error);
+                reject(error);
+                return;
             }
         });
 

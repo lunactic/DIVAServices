@@ -161,7 +161,8 @@ export class FileResultHandler implements IResultHandler {
                 resolve({ data: data, procId: process.id });
             } catch (error) {
                 Logger.log("error", error, "FileResultHandler");
-                return reject(new DivaError("Error parsing the result", 500, "ResultError"));
+                reject(new DivaError("Error parsing the result", 500, "ResultError"));
+                return;
             }
         });
     }
@@ -238,6 +239,7 @@ export class FileResultHandler implements IResultHandler {
                             delete resFile.file.options['mimeTypes'];
                         } else {
                             reject(new DivaError("Output for " + file.name + " expected to be of type(s): " + JSON.stringify(file.file.options.mimeTypes.allowed) + " but was of type: " + mimeType, 500, "ResultError"));
+                            return;
                         }
                     }
 
@@ -286,6 +288,7 @@ export class FileResultHandler implements IResultHandler {
             } catch (error) {
                 Logger.log("error", error, "FileResultHandler::handleCwlResult");
                 reject(new DivaError("Error handling the cwl result", 500, "ResultError"));
+                return;
             }
         });
 
@@ -301,14 +304,11 @@ export class FileResultHandler implements IResultHandler {
      * @memberof FileResultHandler
      */
     async addFileToOutputCollection(process: Process, file: any): Promise<void> {
-        return new Promise<void>(async (resolve, reject) => {
             let numOfFiles = FileHelper.loadCollection(process.resultCollection).length;
             await FileHelper.addFilesCollectionInformation(process.resultCollection, numOfFiles + 1);
             var newFile: DivaFile = await FileHelper.saveFileUrl(file.file.url, process.resultCollection, file.name);
             await FileHelper.addFileInfo(newFile.path, process.resultCollection);
-            await FileHelper.updateCollectionInformation(process.resultCollection, numOfFiles + 1, numOfFiles + 1);
-            resolve();
-        });
+            return FileHelper.updateCollectionInformation(process.resultCollection, numOfFiles + 1, numOfFiles + 1);
     }
 
     async handleCwlError(process: Process): Promise<any> {

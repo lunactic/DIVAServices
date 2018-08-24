@@ -181,43 +181,39 @@ export class Statistics {
      * @returns {Promise<void>} 
      * @memberof Statistics
      */
-    static recordUser(proc: Process): Promise<void> {
-        return new Promise<void>(async (resolve, reject) => {
-            let usageLogFile: string = proc.logFolder + path.sep + "usage.log";
-            let content = null;
-            if (!await IoHelper.fileExists(usageLogFile)) {
-                content = {
-                    users: [
-                        {
-                            name: proc.identification.name,
-                            email: proc.identification.email,
-                            country: proc.identification.country,
-                            uses: 1
-                        }
-                    ]
-                };
-            } else {
-                content = IoHelper.readFile(usageLogFile);
-
-                let filtered = _.filter(content.users, function (o: any) {
-                    return o.name === proc.identification.name && o.email === proc.identification.email && o.country === proc.identification.country;
-                });
-
-                if (filtered.length > 0) {
-                    filtered[0].uses = filtered[0].uses + 1;
-                } else {
-                    content.users.push({
+    static async recordUser(proc: Process): Promise<void> {
+        let usageLogFile: string = proc.logFolder + path.sep + "usage.log";
+        let content = null;
+        if (!await IoHelper.fileExists(usageLogFile)) {
+            content = {
+                users: [
+                    {
                         name: proc.identification.name,
                         email: proc.identification.email,
                         country: proc.identification.country,
                         uses: 1
-                    });
-                }
-            }
-            await IoHelper.saveFile(usageLogFile, content, "utf-8");
-            resolve();
-        });
+                    }
+                ]
+            };
+        } else {
+            content = IoHelper.readFile(usageLogFile);
 
+            let filtered = _.filter(content.users, function (o: any) {
+                return o.name === proc.identification.name && o.email === proc.identification.email && o.country === proc.identification.country;
+            });
+
+            if (filtered.length > 0) {
+                filtered[0].uses = filtered[0].uses + 1;
+            } else {
+                content.users.push({
+                    name: proc.identification.name,
+                    email: proc.identification.email,
+                    country: proc.identification.country,
+                    uses: 1
+                });
+            }
+        }
+        return await IoHelper.saveFile(usageLogFile, content, "utf-8");
     }
 
     /**

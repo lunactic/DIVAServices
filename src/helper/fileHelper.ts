@@ -79,6 +79,7 @@ export class FileHelper {
                 fileName = file.name;
             } else {
                 reject(new DivaError("filename not provided", 500, "FileNameError"));
+                return;
             }
             try {
                 if (await IoHelper.fileExists(fileFolder + fileName)) {
@@ -93,7 +94,8 @@ export class FileHelper {
                 }
             } catch (error) {
                 Logger.log("error", "error saving the image", "ImageHelper");
-                return reject(new DivaError("Error while saving the image", 500, "FileError"));
+                reject(new DivaError("Error while saving the image", 500, "FileError"));
+                return;
             }
         });
     }
@@ -109,11 +111,8 @@ export class FileHelper {
      * @memberof FileHelper
      */
     static async saveJson(file: any, process: Process, filename: string): Promise<void> {
-        return new Promise<void>(async (resolve, reject) => {
-            let base64Data = file.replace(/^data:image\/png;base64,/, "");
-            await fs.writeFile(process.outputFolder + path.sep + filename, base64Data, { encoding: "base64" });
-            resolve();
-        });
+        let base64Data = file.replace(/^data:image\/png;base64,/, "");
+        return await fs.writeFile(process.outputFolder + path.sep + filename, base64Data, { encoding: "base64" });
     }
 
 
@@ -144,34 +143,34 @@ export class FileHelper {
      * @memberof FileHelper
      */
     static async saveZipUrl(url: string, folder: string): Promise<DivaFile[]> {
-        return new Promise<DivaFile[]>(async (resolve, reject) => {
-            try {
-                let divaFiles: DivaFile[] = [];
-                let filePath = nconf.get("paths:filesPath");
-                let tmpFilePath: string = filePath + path.sep + folder + path.sep + "data.zip";
-                let rootPath = filePath + path.sep + folder + path.sep + "original";
-                await this.downloadFile(url, tmpFilePath);
-                await IoHelper.unzipFile(tmpFilePath, rootPath);
-                let files: string[] = await IoHelper.readFolderRecursive(rootPath);
-                let imageCounter: number = 0;
-                for (var file of files) {
-                    if (!(await IoHelper.isDirectory(file))) {
-                        let divaFile = new DivaFile();
-                        let filename = path.basename(file);
-                        let base64 = fs.readFileSync(file, "base64");
-                        divaFile.filename = filename;
-                        divaFile.folder = rootPath + path.sep;
-                        divaFile.extension = mime.getExtension(mime.getType(file));
-                        divaFile.path = file;
-                        await FileHelper.addFileInfo(divaFile.path, folder);
-                        await FileHelper.updateCollectionInformation(folder, files.length, ++imageCounter);
-                        divaFiles.push(divaFile);
-                    }
+        try {
+            let divaFiles: DivaFile[] = [];
+            let filePath = nconf.get("paths:filesPath");
+            let tmpFilePath: string = filePath + path.sep + folder + path.sep + "data.zip";
+            let rootPath = filePath + path.sep + folder + path.sep + "original";
+            await this.downloadFile(url, tmpFilePath);
+            await IoHelper.unzipFile(tmpFilePath, rootPath);
+            let files: string[] = await IoHelper.readFolderRecursive(rootPath);
+            let imageCounter: number = 0;
+            for (var file of files) {
+                if (!(await IoHelper.isDirectory(file))) {
+                    let divaFile = new DivaFile();
+                    let filename = path.basename(file);
+                    let base64 = fs.readFileSync(file, "base64");
+                    divaFile.filename = filename;
+                    divaFile.folder = rootPath + path.sep;
+                    divaFile.extension = mime.getExtension(mime.getType(file));
+                    divaFile.path = file;
+                    await FileHelper.addFileInfo(divaFile.path, folder);
+                    await FileHelper.updateCollectionInformation(folder, files.length, ++imageCounter);
+                    divaFiles.push(divaFile);
                 }
-            } catch (error) {
-                reject(error);
             }
-        });
+        } catch (error) {
+            Promise.reject(error);
+            return;
+        }
+
     }
 
     /**
@@ -227,6 +226,7 @@ export class FileHelper {
                 }
             } catch (error) {
                 reject(error);
+                return;
             }
         });
 
@@ -254,6 +254,7 @@ export class FileHelper {
                 fileName = filename;
             } else {
                 reject(new DivaError("Required filename not provided", 500, "FileNameError"));
+                return;
             }
 
             await IoHelper.saveFile(filePath, data, "utf-8");
@@ -328,21 +329,13 @@ export class FileHelper {
      * @memberof FileHelper
      */
     static async addFileInfo(path: string, collection: string): Promise<void> {
-        return new Promise<void>(async (resolve, reject) => {
-            let mimeType = mime.getType(path);
-            let options = {};
-            if (!isNullOrUndefined(mimeType) && mimeType.startsWith('image')) {
-                options = await FileHelper.getImageInformation(path);
-            }
-            this.filesInfo.push({ file: path, collection: collection, options: options });
-            await this.saveFileInfo();
-            resolve();
-
-            /**
-            this.filesInfo.push({ file: path, collection: collection });
-            await this.saveFileInfo();
-            resolve(); */
-        });
+        let mimeType = mime.getType(path);
+        let options = {};
+        if (!isNullOrUndefined(mimeType) && mimeType.startsWith('image')) {
+            options = await FileHelper.getImageInformation(path);
+        }
+        this.filesInfo.push({ file: path, collection: collection, options: options });
+        return await this.saveFileInfo();
     }
 
     /**
@@ -352,8 +345,8 @@ export class FileHelper {
      * 
      * @memberof FileHelper
      */
-    static async saveFileInfo() {
-        await IoHelper.saveFile(nconf.get("paths:imageInfoFile"), this.filesInfo, "utf-8");
+    static async saveFileInfo(): Promise<void> {
+        return await IoHelper.saveFile(nconf.get("paths:imageInfoFile"), this.filesInfo, "utf-8");
     }
 
 
@@ -407,18 +400,15 @@ export class FileHelper {
      * @memberof FileHelper
      */
     static async deleteCollection(collection: string): Promise<void> {
-        return new Promise<void>(async (resolve, reject) => {
-            let files: DivaFile[] = this.loadCollection(collection);
-            for (var file of files) {
-                _.remove(this.filesInfo, function (item: any) {
-                    return item.collection === collection;
-                });
-                Logger.log("info", "delete file" + file.path);
-            }
-            await this.saveFileInfo();
-            await IoHelper.deleteFolder(nconf.get("paths:filesPath") + path.sep + collection);
-            resolve();
-        });
+        let files: DivaFile[] = this.loadCollection(collection);
+        for (var file of files) {
+            _.remove(this.filesInfo, function (item: any) {
+                return item.collection === collection;
+            });
+            Logger.log("info", "delete file" + file.path);
+        }
+        await this.saveFileInfo();
+        return IoHelper.deleteFolder(nconf.get("paths:filesPath") + path.sep + collection);
     }
 
     /**
@@ -430,14 +420,11 @@ export class FileHelper {
      * @memberof FileHelper
      */
     static async deleteFile(file: DivaFile): Promise<void> {
-        return new Promise<void>(async (resolve, reject) => {
-            _.remove(this.filesInfo, function (item: any) {
-                return item.collection === file.collection;
-            });
-            await this.saveFileInfo();
-            await IoHelper.deleteFile(file.path);
-            resolve();
+        _.remove(this.filesInfo, function (item: any) {
+            return item.collection === file.collection;
         });
+        await this.saveFileInfo();
+        return IoHelper.deleteFile(file.path);
     }
 
 
@@ -451,7 +438,6 @@ export class FileHelper {
      * @memberof FileHelper
      */
     static async deleteFileInCollection(collection: string, target: string): Promise<void> {
-        return new Promise<void>(async (resolve, reject) => {
             let files: DivaFile[] = this.loadCollection(collection);
             for (var file of files) {
                 if (file.filename === target) {
@@ -470,9 +456,7 @@ export class FileHelper {
                 currentStatus.totalFiles = (currentStatus.totalFiles - 1);
             currentStatus.statusMessage = "Collection is available";
             currentStatus.percentage = 100;
-            await IoHelper.saveFile(nconf.get("paths:filesPath") + path.sep + collection + path.sep + "status.json", currentStatus, "utf-8");
-            resolve();
-        });
+            return IoHelper.saveFile(nconf.get("paths:filesPath") + path.sep + collection + path.sep + "status.json", currentStatus, "utf-8");
     }
 
     /**
@@ -504,7 +488,6 @@ export class FileHelper {
      * @memberof ImageHelper
      */
     static async updateCollectionInformation(collection: string, files: number, downloaded: number): Promise<void> {
-        return new Promise<void>(async (resolve, reject) => {
             let status = {};
             if (downloaded !== files) {
                 status = {
@@ -522,9 +505,7 @@ export class FileHelper {
                 };
             }
             let statusFile = nconf.get("paths:filesPath") + path.sep + collection + path.sep + "status.json";
-            await IoHelper.saveFile(statusFile, status, "utf-8");
-            resolve();
-        });
+            return IoHelper.saveFile(statusFile, status, "utf-8");
     }
 
     /**

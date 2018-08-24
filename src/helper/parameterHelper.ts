@@ -306,7 +306,8 @@ export class ParameterHelper {
                     replaceObj[searchKey] = dataParams[searchKey];
                     if (replaceObj[searchKey] instanceof DivaFile) {
                         if (!(await IoHelper.fileExists((replaceObj[searchKey] as DivaFile).path))) {
-                            return reject(new DivaError("non existing file: " + ((replaceObj[searchKey] as DivaFile).collection) + "/" + ((replaceObj[searchKey] as DivaFile).filename) + " for data parameter: " + searchKey, 500, "ParameterError"));
+                            reject(new DivaError("non existing file: " + ((replaceObj[searchKey] as DivaFile).collection) + "/" + ((replaceObj[searchKey] as DivaFile).filename) + " for data parameter: " + searchKey, 500, "ParameterError"));
+                            return;
                         }
                     }
                 }
@@ -315,9 +316,11 @@ export class ParameterHelper {
                         return Object.keys(item)[0] === searchKey;
                     });
                     if (isNullOrUndefined(needed)) {
-                        return reject(new DivaError("Provided parameter: " + searchKey + " that is not needed by the method", 500, "ParameterError"));
+                        reject(new DivaError("Provided parameter: " + searchKey + " that is not needed by the method", 500, "ParameterError"));
+                        return;
                     } else {
-                        return reject(new DivaError("Did not receive data for parameter: " + searchKey + " that is needed by the method", 500, "ParameterError"));
+                        reject(new DivaError("Did not receive data for parameter: " + searchKey + " that is needed by the method", 500, "ParameterError"));
+                        return;
                     }
                 }//if not found ==> throw error
             }
@@ -398,47 +401,43 @@ export class ParameterHelper {
      * @memberOf ParameterHelper
      */
     static async saveParamInfo(process: Process): Promise<any> {
-        return new Promise<any>(async (resolve, reject) => {
-            let methodPath = nconf.get("paths:resultsPath") + path.sep + process.method + ".json";
-            let content = [];
-            let data: any = {};
-            //TODO: incorporate the highlighter into the hash and store one single value (or add the hash as additional info to enable better computation of statistics)
-            let parameters = _.clone(process.parameters.outputParams);
-            data = {
-                highlighters: _.clone(process.inputHighlighters),
-                highlighterHash: hash.MD5(process.inputHighlighters),
-                parameters: _.clone(parameters),
-                paramHash: hash.MD5(process.parameters.outputParams),
-                resultFile: process.resultFile,
-                dataHash: hash.MD5(process.data)
-            };
+        let methodPath = nconf.get("paths:resultsPath") + path.sep + process.method + ".json";
+        let content = [];
+        let data: any = {};
+        //TODO: incorporate the highlighter into the hash and store one single value (or add the hash as additional info to enable better computation of statistics)
+        let parameters = _.clone(process.parameters.outputParams);
+        data = {
+            highlighters: _.clone(process.inputHighlighters),
+            highlighterHash: hash.MD5(process.inputHighlighters),
+            parameters: _.clone(parameters),
+            paramHash: hash.MD5(process.parameters.outputParams),
+            resultFile: process.resultFile,
+            dataHash: hash.MD5(process.data)
+        };
 
-            //turn everything into strings
-            _.forIn(data.highlighters, function (value: string, key: string) {
-                data.highlighters[key] = String(value);
-            });
-
-            Logger.log("info", "saveParamInfo", "ParameterHelper");
-            //Logger.log("info", JSON.stringify(process.parameters), "ParameterHelper");
-            //Logger.log("info", "hash: " + data.hash, "ParameterHelper");
-            if (await IoHelper.fileExists(methodPath)) {
-                let content = IoHelper.readFile(methodPath);
-                //only save the information if it is not already present
-                if (_.filter(content, _.filter(content, {
-                    "highlighterHash": data.highlighterHash,
-                    "dataHash": data.dataHash,
-                    "paramHash": data.paramHash
-                })).length === 0) {
-                    content.push(data);
-                    await IoHelper.saveFile(methodPath, content, "utf8");
-                }
-                resolve();
-            } else {
-                content.push(data);
-                await IoHelper.saveFile(methodPath, content, "utf8");
-                resolve();
-            }
+        //turn everything into strings
+        _.forIn(data.highlighters, function (value: string, key: string) {
+            data.highlighters[key] = String(value);
         });
+
+        Logger.log("info", "saveParamInfo", "ParameterHelper");
+        //Logger.log("info", JSON.stringify(process.parameters), "ParameterHelper");
+        //Logger.log("info", "hash: " + data.hash, "ParameterHelper");
+        if (await IoHelper.fileExists(methodPath)) {
+            let content = IoHelper.readFile(methodPath);
+            //only save the information if it is not already present
+            if (_.filter(content, _.filter(content, {
+                "highlighterHash": data.highlighterHash,
+                "dataHash": data.dataHash,
+                "paramHash": data.paramHash
+            })).length === 0) {
+                content.push(data);
+                return IoHelper.saveFile(methodPath, content, "utf8");
+            }
+        } else {
+            content.push(data);
+            return IoHelper.saveFile(methodPath, content, "utf8");
+        }
     }
 
     /**
@@ -527,7 +526,8 @@ export class ParameterHelper {
                     resolve();
                 }
             } catch (error) {
-                return reject(new DivaError(error.message, 500, "ParameterHelper"));
+                reject(new DivaError(error.message, 500, "ParameterHelper"));
+                return;
             }
         });
     }

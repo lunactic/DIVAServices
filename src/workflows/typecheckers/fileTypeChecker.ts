@@ -32,6 +32,7 @@ export class FileTypeChecker implements ITypeChecker {
                     let union = [...new Set(input.infoSpecification.file.options.mimeTypes.allowed.concat(output.infoSpecification.file.options.mimeTypes.allowed))];
                     if (union.length === 0) {
                         reject(new DivaError("Incompatible mimeTypes between Output: " + output.name + " and Input: " + input.name, 500, "WorkflowCreationError"));
+                        return;
                     }
                 }
                 //check image properties
@@ -44,6 +45,7 @@ export class FileTypeChecker implements ITypeChecker {
                 resolve();
             } catch (error) {
                 reject(error);
+                return;
             }
         });
     }
@@ -62,6 +64,7 @@ export class FileTypeChecker implements ITypeChecker {
                 (output.infoSpecification.file.options.colorspace !== undefined || output.infoSpecification.file.options.colorspace !== null)) {
                 if (input.infoSpecification.file.options.colorspace === 'binary' && output.infoSpecification.file.options.colorspace !== 'binary') {
                     reject(new DivaError("Trying to feed a non binary output image from output: " + output.name + " to input: " + input.name + " which requires a binary image", 500, "WorkflowCreationError"));
+                    return;
                 }
             }
             resolve();

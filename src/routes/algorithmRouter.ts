@@ -153,12 +153,13 @@ router.delete("/algorithms/:identifier", async function (req: express.Request, r
     //remove /route/info.json file
     AlgorithmManagement.deleteInfoFile(nconf.get("paths:jsonPath") + serviceInfo.path);
     AlgorithmManagement.removeFromRootInfoFile(serviceInfo.path);
-    try {
-        await DockerManagement.removeImage(serviceInfo.imageName);
-    } catch (error) {
+    await DockerManagement.removeImage(serviceInfo.imageName).then(data => {
         res.status(200).send();
         Logger.log("info", "deleted algorithm " + req.params.identifier, "AlgorithmRouter");
-    }
+    }).catch(error => {
+        sendError(res, new DivaError("Could not delete image " + req.params.identifier, 500, "ImageDeletionError"));
+    });
+}
 });
 
 /**

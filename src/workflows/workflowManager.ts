@@ -185,68 +185,65 @@ export class WorkflowManager {
      * @returns {Promise<void>}
      * @memberof WorkflowManager
      */
-    public createServicesEntry(): Promise<void> {
-        return new Promise<void>(async (resolve, reject) => {
-            await ServicesInfoHelper.reload();
-            let newContent = _.cloneDeep(ServicesInfoHelper.fileContent);
+    public async createServicesEntry(): Promise<void> {
+        await ServicesInfoHelper.reload();
+        let newContent = _.cloneDeep(ServicesInfoHelper.fileContent);
 
-            let parameters = [];
-            let data = [];
-            let paramOrder = [];
+        let parameters = [];
+        let data = [];
+        let paramOrder = [];
 
-            for (let step of this.cwlWorkflowManager.steps) {
-                for (let input of step.inputs) {
-                    if (!input.hasDefaultValue() && !input.hasReference()) {
-                        if (input.isData) {
-                            data.push(input.serviceSpecification);
-                            var obj = {};
-                            obj[input.name] = Object.keys(input.infoSpecification)[0];
-                            paramOrder.push(obj);
-                        } else {
-                            parameters.push(input.serviceSpecification);
-                            var obj = {};
-                            obj[input.name] = Object.keys(input.infoSpecification)[0];
-                            paramOrder.push(obj);
-                        }
+        for (let step of this.cwlWorkflowManager.steps) {
+            for (let input of step.inputs) {
+                if (!input.hasDefaultValue() && !input.hasReference()) {
+                    if (input.isData) {
+                        data.push(input.serviceSpecification);
+                        var obj = {};
+                        obj[input.name] = Object.keys(input.infoSpecification)[0];
+                        paramOrder.push(obj);
+                    } else {
+                        parameters.push(input.serviceSpecification);
+                        var obj = {};
+                        obj[input.name] = Object.keys(input.infoSpecification)[0];
+                        paramOrder.push(obj);
                     }
                 }
             }
+        }
 
 
-            let newServiceEntry = {
-                name: this.workflowName,
-                service: this.route.replace(/\//g, '').toLowerCase(),
-                baseRoute: '/' + this.baseRoute,
-                identifier: this.identifier,
-                path: '/' + this.route,
-                cwl: nconf.get('paths:rootPath') + path.sep + this.route + path.sep + this.workflowName + '.cwl',
-                executablePath: '',
-                output: 'file',
-                execute: 'docker',
-                noCache: false,
-                rewriteRules: [],
-                executableType: 'workflow',
-                imageName: '',
-                parameters: parameters,
-                data: data,
-                paramOrder: paramOrder,
-                remotePaths: [],
-                version: this.version,
-                status: {
-                    statusCode: 200,
-                    statusMessage: "This workflow is available"
-                },
-                statistics: {
-                    runtime: -1,
-                    executions: 0
-                },
-                exceptions: []
-            };
-            newContent.services.push(newServiceEntry);
-            ServicesInfoHelper.update(newContent);
-            await ServicesInfoHelper.reload();
-            resolve();
-        });
+        let newServiceEntry = {
+            name: this.workflowName,
+            service: this.route.replace(/\//g, '').toLowerCase(),
+            baseRoute: '/' + this.baseRoute,
+            identifier: this.identifier,
+            path: '/' + this.route,
+            cwl: nconf.get('paths:rootPath') + path.sep + this.route + path.sep + this.workflowName + '.cwl',
+            executablePath: '',
+            output: 'file',
+            execute: 'docker',
+            noCache: false,
+            rewriteRules: [],
+            executableType: 'workflow',
+            imageName: '',
+            parameters: parameters,
+            data: data,
+            paramOrder: paramOrder,
+            remotePaths: [],
+            version: this.version,
+            status: {
+                statusCode: 200,
+                statusMessage: "This workflow is available"
+            },
+            statistics: {
+                runtime: -1,
+                executions: 0
+            },
+            exceptions: []
+        };
+        newContent.services.push(newServiceEntry);
+        ServicesInfoHelper.update(newContent);
+        return await ServicesInfoHelper.reload();
     }
 
 
@@ -256,29 +253,26 @@ export class WorkflowManager {
      * @returns {Promise<void>} resolves once the information file is created
      * @memberof WorkflowManager
      */
-    public createInfoFile(): Promise<void> {
-        return new Promise<void>(async (resolve, reject) => {
-            let info = {
-                general: this.generalInfo,
-                input: [],
-                output: [],
-                steps: this.workflow.steps
-            };
-            for (let step of this.cwlWorkflowManager.steps) {
-                for (let input of step.inputs) {
-                    if (!input.hasDefaultValue() && !input.hasReference()) {
-                        info.input.push(input.infoSpecification);
-                    }
-                }
-                for (let output of step.outputs) {
-                    info.output.push(output.infoSpecification);
+    public async createInfoFile(): Promise<void> {
+        let info = {
+            general: this.generalInfo,
+            input: [],
+            output: [],
+            steps: this.workflow.steps
+        };
+        for (let step of this.cwlWorkflowManager.steps) {
+            for (let input of step.inputs) {
+                if (!input.hasDefaultValue() && !input.hasReference()) {
+                    info.input.push(input.infoSpecification);
                 }
             }
+            for (let output of step.outputs) {
+                info.output.push(output.infoSpecification);
+            }
+        }
 
-            await IoHelper.saveFile(this.infoFolder + path.sep + 'info.json', info, 'utf-8');
+        return await IoHelper.saveFile(this.infoFolder + path.sep + 'info.json', info, 'utf-8');
 
-            resolve();
-        });
     }
 
     /**
@@ -287,14 +281,11 @@ export class WorkflowManager {
      * @returns {Promise<void>} Resolves once the file is updated
      * @memberof WorkflowManager
      */
-    public updateRootFile(): Promise<void> {
-        return new Promise<void>(async (resolve, reject) => {
-            let info = {
-                general: this.generalInfo
-            };
-            await AlgorithmManagement.updateRootInfoFile(info, this.route);
-            resolve();
-        });
+    public async updateRootFile(): Promise<void> {
+        let info = {
+            general: this.generalInfo
+        };
+        return await AlgorithmManagement.updateRootInfoFile(info, this.route);
     }
 
     /**
@@ -314,6 +305,7 @@ export class WorkflowManager {
                 resolve(this.warnings);
             } catch (error) {
                 reject(error);
+                return;
             }
         });
     }
@@ -322,47 +314,38 @@ export class WorkflowManager {
      * Process all steps of a workflow
      *
      * @param {*} steps the workflow steps
-     * @returns {Promise<void>} resolves onces all steps are processed
      * @memberof WorkflowManager
      */
-    public processSteps(steps: any): Promise<void> {
-        return new Promise<void>(async (resolve, reject) => {
-            try {
-                for (const step of steps) {
-                    await this.processStep(step);
-                }
-                this.cwlWorkflowManager.finalize();
-                resolve();
-            } catch (error) {
-                reject(error);
+    public async processSteps(steps: any) {
+        try {
+            for (const step of steps) {
+                await this.processStep(step);
             }
-        });
+            this.cwlWorkflowManager.finalize();
+        } catch (error) {
+            throw error;
+        }
     }
 
     /**
      * Process a single step
      *
      * @param {*} step the step to process
-     * @returns {Promise<void>} resolves onces the step is processed
      * @memberof WorkflowManager
      */
-    public processStep(step: any): Promise<void> {
-        return new Promise<void>(async (resolve, reject) => {
-            try {
-                let wfStep: WorkflowStep = new WorkflowStep(step);
-                this.cwlWorkflowManager.addStep(wfStep);
-                switch (step.type) {
-                    case 'regular':
-                        await this.processRegular(wfStep);
-                        resolve();
-                        break;
-                    default:
-                        break;
-                }
-            } catch (error) {
-                reject(error);
+    public async processStep(step: any) {
+        try {
+            let wfStep: WorkflowStep = new WorkflowStep(step);
+            this.cwlWorkflowManager.addStep(wfStep);
+            switch (step.type) {
+                case 'regular':
+                    return await this.processRegular(wfStep);
+                default:
+                    break;
             }
-        });
+        } catch (error) {
+            throw error;
+        }
     }
 
     /**
@@ -382,56 +365,80 @@ export class WorkflowManager {
                 this.outputs = IoHelper.readFile(nconf.get('paths:jsonPath') + service.path + path.sep + 'info.json').output;
                 this.inputs = IoHelper.readFile(nconf.get('paths:jsonPath') + service.path + path.sep + 'info.json').input;
                 //process inputs
-                for (let input of this.inputs) {
+                for (let infoSpec of this.inputs) {
+                    let dataValue = _.find(step.stepDefinition.inputs.data, function (o: any) { return Object.keys(o)[0] === infoSpec[Object.keys(infoSpec)[0]].name; });
+                    let paramValue = step.stepDefinition.inputs.parameters[infoSpec[Object.keys(infoSpec)[0]].name];
                     try {
-                        switch (Object.keys(input)[0]) {
+                        switch (Object.keys(infoSpec)[0]) {
                             case 'resultFile':
                                 var name: string = step.name + '_resultFile';
-                                var serviceSpec = _.find(service.parameters, function (o: any) { return Object.keys(o)[0] === input[Object.keys(input)[0]].name; });
-                                await this.addValue(step, name, input, serviceSpec, 'string');
+                                var serviceSpec = _.find(service.parameters, function (o: any) { return Object.keys(o)[0] === infoSpec[Object.keys(infoSpec)[0]].name; });
+                                await this.addValue(step, name, infoSpec, serviceSpec, 'string', dataValue, paramValue);
                                 break;
                             case 'file':
-                                var name: string = step.name + '_' + input[Object.keys(input)[0]].name;
-                                var serviceSpec = _.find(service.data, function (o: any) { return Object.keys(o)[0] === input[Object.keys(input)[0]].name; });
-                                await this.addValue(step, name, input, serviceSpec, 'File');
+                                var name: string = step.name + '_' + infoSpec[Object.keys(infoSpec)[0]].name;
+                                var serviceSpec = _.find(service.data, function (o: any) { return Object.keys(o)[0] === infoSpec[Object.keys(infoSpec)[0]].name; });
+                                await this.addValue(step, name, infoSpec, serviceSpec, 'File', dataValue, paramValue);
                                 break;
                             case 'folder':
-                                var name: string = step.name + '_' + input[Object.keys(input)[0]].name;
-                                var serviceSpec = _.find(service.data, function (o: any) { return Object.keys(o)[0] === input[Object.keys(input)[0]].name; });
-                                await this.addValue(step, name, input, serviceSpec, 'Directory');
+                                var name: string = step.name + '_' + infoSpec[Object.keys(infoSpec)[0]].name;
+                                var serviceSpec = _.find(service.data, function (o: any) { return Object.keys(o)[0] === infoSpec[Object.keys(infoSpec)[0]].name; });
+                                await this.addValue(step, name, infoSpec, serviceSpec, 'Directory', dataValue, paramValue);
                                 break;
                             case 'text':
-                                var name: string = step.name + '_' + input[Object.keys(input)[0]].name;
-                                var serviceSpec = _.find(service.parameters, function (o: any) { return Object.keys(o)[0] === input[Object.keys(input)[0]].name; });
-                                await this.addValue(step, name, input, serviceSpec, 'string');
+                                var name: string = step.name + '_' + infoSpec[Object.keys(infoSpec)[0]].name;
+                                var serviceSpec = _.find(service.parameters, function (o: any) { return Object.keys(o)[0] === infoSpec[Object.keys(infoSpec)[0]].name; });
+                                await this.addValue(step, name, infoSpec, serviceSpec, 'string', dataValue, paramValue);
                                 break;
                             case 'number':
-                                var name: string = step.name + '_' + input[Object.keys(input)[0]].name;
-                                var serviceSpec = _.find(service.parameters, function (o: any) { return Object.keys(o)[0] === input[Object.keys(input)[0]].name; });
-                                await this.addValue(step, name, input, serviceSpec, 'float');
+                                var name: string = step.name + '_' + infoSpec[Object.keys(infoSpec)[0]].name;
+                                var serviceSpec = _.find(service.parameters, function (o: any) { return Object.keys(o)[0] === infoSpec[Object.keys(infoSpec)[0]].name; });
+                                //check if provided default value is valid
+                                if (paramValue !== null && paramValue !== undefined) {
+                                    if (infoSpec.number.options.min !== null || infoSpec.number.options.min !== undefined) {
+                                        if (paramValue < infoSpec.number.options.min) {
+                                            reject(new DivaError("Trying to set default value for input: " + name + " to:  " + paramValue + " which is smaller than the allowed minimum", 500, "WorkflowCreationError"));
+                                            return;
+                                        }
+                                    }
+                                    if (infoSpec.number.options.max !== null || infoSpec.number.options.max !== undefined) {
+                                        if (paramValue > infoSpec.number.options.max) {
+                                            reject(new DivaError("Trying to set default value for input: " + name + " to:  " + paramValue + " which is larger than the allowed minimum", 500, "WorkflowCreationError"));
+                                            return;
+                                        }
+                                    }
+                                }
+                                await this.addValue(step, name, infoSpec, serviceSpec, 'float', dataValue, paramValue);
                                 break;
                             case 'select':
-                                var name: string = step.name + '_' + input[Object.keys(input)[0]].name;
-                                var serviceSpec = _.find(service.parameters, function (o: any) { return Object.keys(o)[0] === input[Object.keys(input)[0]].name; });
-                                await this.addValue(step, name, input, serviceSpec, 'string');
+                                var name: string = step.name + '_' + infoSpec[Object.keys(infoSpec)[0]].name;
+                                var serviceSpec = _.find(service.parameters, function (o: any) { return Object.keys(o)[0] === infoSpec[Object.keys(infoSpec)[0]].name; });
+                                //check if provided default value is valid
+                                if (paramValue !== null && paramValue !== undefined) {
+                                    if (!infoSpec.select.options.values.includes(paramValue)) {
+                                        reject(new DivaError("Trying to set default value for input: " + name + " to: " + paramValue + " which is not in the list of possible values", 500, "WorkflowCreationError"));
+                                        return;
+                                    }
+                                }
+                                await this.addValue(step, name, infoSpec, serviceSpec, 'string', dataValue, paramValue);
                                 break;
                             case 'mcr2014b':
                                 var name: string = step.name + "_mcr2014b";
-                                var serviceSpec = _.find(service.parameters, function (o: any) { return Object.keys(o)[0] === input[Object.keys(input)[0]].name; });
-                                await this.addValue(step, name, input, serviceSpec, 'string');
+                                var serviceSpec = _.find(service.parameters, function (o: any) { return Object.keys(o)[0] === infoSpec[Object.keys(infoSpec)[0]].name; });
+                                await this.addValue(step, name, infoSpec, serviceSpec, 'string', dataValue, paramValue);
                                 break;
                             case 'outputFolder':
                                 var name: string = step.name + "_outputFolder";
-                                var serviceSpec = _.find(service.parameters, function (o: any) { return Object.keys(o)[0] === Object.keys(input)[0]; });
-                                await this.addValue(step, name, input, serviceSpec, 'string');
+                                var serviceSpec = _.find(service.parameters, function (o: any) { return Object.keys(o)[0] === Object.keys(infoSpec)[0]; });
+                                await this.addValue(step, name, infoSpec, serviceSpec, 'string', dataValue, paramValue);
                                 break;
                             case 'highlighter':
                                 var name: string = "highlighter";
-                                switch (input.highlighter.type) {
+                                switch (infoSpec.highlighter.type) {
                                     case 'rectangle':
                                         for (var recIndex = 0; recIndex < 8; recIndex++) {
                                             var name = step.name + "_highlighter" + String(recIndex);
-                                            await this.addValue(step, name, input, {}, 'float');
+                                            await this.addValue(step, name, infoSpec, {}, 'float', dataValue, paramValue);
                                         }
                                         break;
                                 }
@@ -439,6 +446,7 @@ export class WorkflowManager {
                         }
                     } catch (error) {
                         reject(error);
+                        return;
                     }
                 }
 
@@ -459,9 +467,11 @@ export class WorkflowManager {
                 switch (error.errorType) {
                     case 'MethodNotFound':
                         reject(new DivaError("Could not create workflow, because method: " + step.method + " does not exist.", 500, "WorkflowCreationError"));
+                        return;
                         break;
                     default:
                         reject(error);
+                        return;
                         break;
                 }
             }
@@ -477,27 +487,22 @@ export class WorkflowManager {
      * @param {*} infoSpec the public JSON specification
      * @param {*} serviceSpec the internal JSON specification
      * @param {string} type the type of the input
+     * @param {*} dataValue the provided default value (if existing)
+     * @param {*} paramValue the provided parameter value (if existing)
      * @memberof WorkflowManager
      */
-    private addValue(step: WorkflowStep, name: string, infoSpec: any, serviceSpec: any, type: string): Promise<void> {
-        return new Promise<void>(async (resolve, reject) => {
-            let dataValue = _.find(step.stepDefinition.inputs.data, function (o: any) { return Object.keys(o)[0] === infoSpec[Object.keys(infoSpec)[0]].name; });
-            let paramValue = step.stepDefinition.inputs.parameters[infoSpec[Object.keys(infoSpec)[0]].name];
-            try {
-                if (!isNullOrUndefined(dataValue)) {
-                    let reference = dataValue[infoSpec[Object.keys(infoSpec)[0]].name];
-                    await this.cwlWorkflowManager.addInput(step, type, name, infoSpec, serviceSpec, this.warnings, reference);
-                } else if (!isNullOrUndefined(paramValue)) {
-                    await this.cwlWorkflowManager.addInput(step, type, name, infoSpec, serviceSpec, this.warnings, paramValue);
-
-                } else {
-                    await this.cwlWorkflowManager.addInput(step, type, name, infoSpec, this.warnings, serviceSpec);
-                }
-                resolve();
-            } catch (error) {
-                reject(error);
+    private async addValue(step: WorkflowStep, name: string, infoSpec: any, serviceSpec: any, type: string, dataValue: any, paramValue: any) {
+        try {
+            if (!isNullOrUndefined(dataValue)) {
+                let reference = dataValue[infoSpec[Object.keys(infoSpec)[0]].name];
+                await this.cwlWorkflowManager.addInput(step, type, name, infoSpec, serviceSpec, this.warnings, reference);
+            } else if (!isNullOrUndefined(paramValue)) {
+                await this.cwlWorkflowManager.addInput(step, type, name, infoSpec, serviceSpec, this.warnings, paramValue);
+            } else {
+                await this.cwlWorkflowManager.addInput(step, type, name, infoSpec, serviceSpec, this.warnings);
             }
-        });
-
+        } catch (error) {
+            throw error;
+        }
     }
 }

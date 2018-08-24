@@ -3,8 +3,8 @@
  */
 "use strict";
 
-import * as nconf from "nconf";
 import * as jsonschema from "jsonschema";
+import * as nconf from "nconf";
 import { Logger } from "../logging/logger";
 import { DivaError } from '../models/divaError';
 
@@ -18,12 +18,14 @@ export class SchemaValidator {
                 if (errors.length > 0) {
                     Logger.log("error", JSON.stringify(errors), "ValidationError");
                     reject(new DivaError(JSON.stringify(errors[0].instance) + ":" + errors[0].message, 500, "ValidationError"));
+                    return;
                 } else {
                     resolve();
                 }
             } catch (error) {
                 Logger.log("error", error, "SchemaValidator");
                 reject(error);
+                return;
             }
         });
 

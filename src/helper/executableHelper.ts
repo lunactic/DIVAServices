@@ -74,6 +74,7 @@ export class ExecutableHelper extends EventEmitter {
                     Statistics.removeActiveExecution(process.id);
                 } else {
                     reject(error);
+                    return;
                 }
             }
         });
@@ -87,8 +88,7 @@ export class ExecutableHelper extends EventEmitter {
      * @returns {Promise<void>} 
      * @memberof ExecutableHelper
      */
-    public static endProcess(process: Process): Promise<void> {
-        return new Promise(async (resolve, reject) => {
+    public static async endProcess(process: Process): Promise<void> {
             let startTime = Statistics.removeActiveExecution(process.id);
             await Statistics.endRecording(process.id, process.req.originalUrl, startTime);
             //check if we are running a test request here and need to update information
@@ -98,17 +98,16 @@ export class ExecutableHelper extends EventEmitter {
                     await SchemaValidator.validate(results, "responseSchema");
                     await AlgorithmManagement.testResults(results.output, process.outputs);
                     AlgorithmManagement.updateStatus(null, "ok", process.req.originalUrl, "");
-                    await ResultHelper.removeResult(process);
-                    resolve();
+                    return await ResultHelper.removeResult(process);
                 } catch (error) {
                     AlgorithmManagement.updateStatus(null, "error", process.req.originalUrl, error.message);
                     await ResultHelper.removeResult(process);
-                    reject(error);
+                    Promise.reject(error);
+                    return;
                 }
             } else {
                 QueueHandler.executeDockerRequest();
             }
-        });
     }
 
     /**
@@ -239,6 +238,7 @@ export class ExecutableHelper extends EventEmitter {
                 resolve(collection.result);
             } catch (error) {
                 reject(error);
+                return;
             }
         });
 
