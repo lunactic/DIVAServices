@@ -159,7 +159,6 @@ router.delete("/algorithms/:identifier", async function (req: express.Request, r
     }).catch(error => {
         sendError(res, new DivaError("Could not delete image " + req.params.identifier, 500, "ImageDeletionError"));
     });
-}
 });
 
 /**

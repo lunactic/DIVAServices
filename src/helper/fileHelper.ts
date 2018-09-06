@@ -438,25 +438,25 @@ export class FileHelper {
      * @memberof FileHelper
      */
     static async deleteFileInCollection(collection: string, target: string): Promise<void> {
-            let files: DivaFile[] = this.loadCollection(collection);
-            for (var file of files) {
-                if (file.filename === target) {
-                    _.remove(this.filesInfo, function (item: any) {
-                        return item.file === file.path;
-                    });
-                    Logger.log("info", "delete file" + file.path);
-                }
+        let files: DivaFile[] = this.loadCollection(collection);
+        for (var file of files) {
+            if (file.filename === target) {
+                _.remove(this.filesInfo, function (item: any) {
+                    return item.file === file.path;
+                });
+                Logger.log("info", "delete file" + file.path);
             }
-            await this.saveFileInfo();
-            IoHelper.deleteFile(nconf.get("paths:filesPath") + path.sep + collection + path.sep + "original" + path.sep + target);
-            let statusFile = nconf.get("paths:filesPath") + path.sep + collection + path.sep + "status.json";
-            let currentStatus = await IoHelper.readFile(statusFile);
+        }
+        await this.saveFileInfo();
+        IoHelper.deleteFile(nconf.get("paths:filesPath") + path.sep + collection + path.sep + "original" + path.sep + target);
+        let statusFile = nconf.get("paths:filesPath") + path.sep + collection + path.sep + "status.json";
+        let currentStatus = await IoHelper.readFile(statusFile);
 
-            currentStatus.statusCode = 200,
-                currentStatus.totalFiles = (currentStatus.totalFiles - 1);
-            currentStatus.statusMessage = "Collection is available";
-            currentStatus.percentage = 100;
-            return IoHelper.saveFile(nconf.get("paths:filesPath") + path.sep + collection + path.sep + "status.json", currentStatus, "utf-8");
+        currentStatus.statusCode = 200,
+            currentStatus.totalFiles = (currentStatus.totalFiles - 1);
+        currentStatus.statusMessage = "Collection is available";
+        currentStatus.percentage = 100;
+        return IoHelper.saveFile(nconf.get("paths:filesPath") + path.sep + collection + path.sep + "status.json", currentStatus, "utf-8");
     }
 
     /**
@@ -488,24 +488,24 @@ export class FileHelper {
      * @memberof ImageHelper
      */
     static async updateCollectionInformation(collection: string, files: number, downloaded: number): Promise<void> {
-            let status = {};
-            if (downloaded !== files) {
-                status = {
-                    statusCode: 110,
-                    statusMessage: "Downloaded " + downloaded + " of " + files + " files",
-                    percentage: (downloaded / files) * 100,
-                    totalFiles: files
-                };
-            } else {
-                status = {
-                    statusCode: 200,
-                    statusMessage: "Collection is available",
-                    percentage: 100,
-                    totalFiles: files
-                };
-            }
-            let statusFile = nconf.get("paths:filesPath") + path.sep + collection + path.sep + "status.json";
-            return IoHelper.saveFile(statusFile, status, "utf-8");
+        let status = {};
+        if (downloaded !== files) {
+            status = {
+                statusCode: 110,
+                statusMessage: "Downloaded " + downloaded + " of " + files + " files",
+                percentage: (downloaded / files) * 100,
+                totalFiles: files
+            };
+        } else {
+            status = {
+                statusCode: 200,
+                statusMessage: "Collection is available",
+                percentage: 100,
+                totalFiles: files
+            };
+        }
+        let statusFile = nconf.get("paths:filesPath") + path.sep + collection + path.sep + "status.json";
+        return IoHelper.saveFile(statusFile, status, "utf-8");
     }
 
     /**
@@ -529,7 +529,7 @@ export class FileHelper {
      * 
      * @static
      * @param {string} path the path to an input image
-     * @returns {Promise<any>} json object with `width` and `height`
+     * @returns {Promise<any>} json object with additional image information
      * @memberof FileHelper
      */
     static async getImageInformation(path: string): Promise<any> {
@@ -561,6 +561,7 @@ export class FileHelper {
                         break;
                 }
             }
+            options['mime-type'] = mime.getType(path);
             //TODO Write a parser for the identify result
             resolve(options);
         });

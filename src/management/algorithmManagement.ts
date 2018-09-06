@@ -749,6 +749,7 @@ export class AlgorithmManagement {
             ServicesInfoHelper.update(newContent);
             return await ServicesInfoHelper.reload();
         }
+    }
 
     /**
      * update the identifier of an algorithm
