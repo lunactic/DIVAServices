@@ -481,7 +481,11 @@ export class DockerManagement {
                     }
                 }
 
-                var command: string = "cwltool --outdir " + process.outputFolder
+                var command: string = "if [ -e ~/.zshrc ]"
+                + "then"
+                + "    source ~/.zshrc"
+                + "fi" 
+                + "cwltool --outdir " + process.outputFolder
                     + " --debug "
                     + "--tmp-outdir-prefix " + nconf.get("docker:paths:outputFolder") + path.sep + " "
                     + "--tmpdir-prefix " + nconf.get("docker:paths:tmpFolder") + path.sep + " "
@@ -500,7 +504,6 @@ export class DockerManagement {
                 var errStream = fs.createWriteStream(process.errLogFile);
                 var outStream = fs.createWriteStream(process.stdLogFile);
                 var cwlStream = fs.createWriteStream(process.cwlLogFile);
-
                 conn.exec(command, (err: Error, stream: ssh.ClientChannel) => {
                     if (err) {
                         reject(new DivaError("Error executing the Workflow", 500, "ExecutionError"));

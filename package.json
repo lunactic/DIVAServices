@@ -7,7 +7,7 @@
     "watch": "tsc -w -p .",
     "build": "tsc",
     "grunt": "grunt",
-    "start": "NODE_ENV=dev && node --max-old-space-size=4096 bin/www --dockerIp=134.21.72.225 --dockerPort=2375 --rootIp=134.21.72.48:8080 --sshUser=docker --sshPass=docker",
+    "start": "NODE_ENV=dev && node --max-old-space-size=4096 bin/www --dockerIp=134.21.72.225 --dockerPort=2375 --rootIp=134.21.141.160:8080 --sshUser=docker --sshPass=docker",
     "debug": "NODE_ENV=dev nodemon --max-old-space-size=4096 --inspect=0.0.0.0:9929 bin/www",
     "test": "NODE_ENV=dev mocha tests/*Tests.js",
     "doc": "jsdoc src/ -r -d doc/ -c jsdoc.json",
@@ -17,6 +17,7 @@
     "docker-dev-install": "docker-compose -f docker-compose-dev.yaml run --rm dev_web /code/scripts/setup.sh",
     "docker-dev-build": "docker-compose -f docker-compose-dev.yaml build",
     "docker-dev-up": "docker-compose -f docker-compose-dev.yaml up",
+    "docker-dev-cleanup-up": "docker-compose -f docker-compose-dev.yaml run --rm dev_web /code/scripts/cleanUp.sh && docker-compose -f docker-compose-dev.yaml up",
     "docker-dev-down": "docker-compose -f docker-compose-dev.yaml down"
   },
   "repository": {
