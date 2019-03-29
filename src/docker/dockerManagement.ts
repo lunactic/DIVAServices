@@ -481,10 +481,10 @@ export class DockerManagement {
                     }
                 }
 
-                var command: string = "if [ -e ~/.zshrc ]"
-                + "then"
-                + "    source ~/.zshrc"
-                + "fi" 
+                var command: string = "if [ -e ~/.zshrc ] \n"
+                + "then \n"
+                + "    source ~/.zshrc \n"
+                + "fi \n " 
                 + "cwltool --outdir " + process.outputFolder
                     + " --debug "
                     + "--tmp-outdir-prefix " + nconf.get("docker:paths:outputFolder") + path.sep + " "
