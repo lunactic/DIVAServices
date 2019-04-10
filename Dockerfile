@@ -1,4 +1,4 @@
-FROM node:8.10.0
+FROM node:10.13.0
 
 # Force git to use HTTPS transport
 RUN git config --global url.https://github.com/.insteadOf git://github.com/
@@ -8,7 +8,7 @@ RUN apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 2930ADAE8CAF505
 RUN echo "deb http://repo.mongodb.org/apt/debian jessie/mongodb-org/3.6 main" | tee /etc/apt/sources.list.d/mongodb-org-3.6.list
 RUN curl -s http://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add -
 RUN echo "deb http://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list
-RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install --fix-missing --force-yes -y jq redis-server mongodb-org yarn imagemagick
+RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install --fix-missing --force-yes -y jq yarn imagemagick
 
 RUN mkdir -p /code/conf
 RUN mkdir /data
