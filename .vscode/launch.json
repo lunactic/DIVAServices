@@ -21,11 +21,11 @@
             "request": "attach",
             "protocol": "inspector",
             "port": 9929,
-            "address": "localhost",
+            "address": "134.21.57.191",
             "sourceMaps": true,
             "restart": false,
             "localRoot": "${workspaceRoot}",
-            "remoteRoot": "/mnt/d/DEV/DIVAServices",
+            "remoteRoot": "/code",
             "outFiles": [
                 "${workspaceRoot}/**/*.js"
             ]

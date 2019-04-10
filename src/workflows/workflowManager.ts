@@ -457,6 +457,9 @@ export class WorkflowManager {
                         case 'file':
                             this.cwlWorkflowManager.addOutput(step, 'File', output[outputType].name, output);
                             break;
+                        case 'folder':
+                            this.cwlWorkflowManager.addOutput(step, 'Directory', output[outputType].name, output)
+                            break;
                     }
                 }
 
