@@ -23,7 +23,7 @@ export class WorkflowInput {
         }
         this.infoSpecification = infoSpecification;
         this.infoSpecification[Object.keys(this.infoSpecification)[0]].name = this.name;
-        this.serviceSpecification = _.clone(serviceSpecification;
+        this.serviceSpecification = _.clone(serviceSpecification);
         this.serviceSpecification[this.name] = this.serviceSpecification[name.split('_')[name.split('_').length -1 ]];
         delete this.serviceSpecification[name.split('_')[name.split('_').length -1 ]];
         this.defaultValue = defaultValue;
