@@ -201,7 +201,7 @@ export class FileResultHandler implements IResultHandler {
                                                     'visualization': false
 
                                                 },
-                                                url: IoHelper.getStaticResultUrlFull(process.outputFolder + key + path.sep + listing.basename)
+                                                url: IoHelper.getStaticResultUrlFull(process.outputFolder + key.split('_')[key.split('_').length - 1] + path.sep + listing.basename)
                                             }
                                         };
                                         tmpOutput.push(file);
