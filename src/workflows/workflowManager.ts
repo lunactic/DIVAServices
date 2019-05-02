@@ -361,24 +361,22 @@ export class WorkflowManager {
 
     public processPicker(step: WorkflowStep): Promise<void>{
         return new Promise<void>(async (resolve, reject) => {
-            for (let infoSpec of this.inputs) {
-                // dataValue should be '$lineSegmentation/$textLines'
-                let dataValue = step.stepDefinition.inputs.data[0].input;
-                //paramValue should be the regexp
-                let paramValue = step.stepDefinition.inputs.parameters.regex;
+            // dataValue should be '$lineSegmentation/$textLines'
+            let dataValue = step.stepDefinition.inputs.data[0].input;
+            //paramValue should be the regexp
+            let paramValue = step.stepDefinition.inputs.parameters.regex;
 
-                // add the two input values (collection and regex)
-                await this.addValue(step, step.name + '_inputCollection', {}, {}, 'Directory', dataValue, null);
-                await this.addValue(step, step.name + '_regex', {}, {}, 'string', null, paramValue);
-                
-                // create the output
-                let output = this.outputs[0];
-                this.cwlWorkflowManager.addOutput(step, 'File', output['file'].name, output);
+            // add the two input values (collection and regex)
+            await this.addValue(step, step.name + '_inputCollection', null, null, 'Directory', dataValue, null);
+            await this.addValue(step, step.name + '_regex', null, null, 'string', null, paramValue);
+            
+            // create the output
+            let output = this.outputs[0];
+            this.cwlWorkflowManager.addOutput(step, 'File', 'outputFile', output);
 
-                // copy-the workflow file
-                IoHelper.copyFile('../builtInFunctions/cwl/picker.cwl', this.workflowFolder + path.sep + step.name + '.cwl');            
-                resolve();
-            }
+            // copy-the workflow file
+            await IoHelper.copyFile(path.resolve('/code/src/workflows/builtInFunctions/cwl/picker.cwl'), this.workflowFolder + path.sep + step.name + '.cwl');            
+            resolve();
         });
     }
 
@@ -530,7 +528,12 @@ export class WorkflowManager {
     try {
         if (!isNullOrUndefined(dataValue)) {
             //if picker don't create a new reference, just pass on the dataValue
-            let reference = dataValue[infoSpec[Object.keys(infoSpec)[0]].name];
+            let reference = '';
+            if(!dataValue.startsWith('$')){
+                reference = dataValue[infoSpec[Object.keys(infoSpec)[0]].name];
+            } else {
+                reference = dataValue;
+            }
             await this.cwlWorkflowManager.addInput(step, type, name, infoSpec, serviceSpec, this.warnings, reference);
         } else if (!isNullOrUndefined(paramValue)) {
             await this.cwlWorkflowManager.addInput(step, type, name, infoSpec, serviceSpec, this.warnings, paramValue);
