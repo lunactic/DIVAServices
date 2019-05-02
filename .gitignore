@@ -48,3 +48,5 @@ docs/
 .env
 .env_dev
 *.code-workspace
+
+.DS_Store

@@ -1,0 +1,5 @@
+inputFolder: 
+  class: Directory
+  path: /Users/voegtlil/Documents/01_Research/DivaServices/Code/build_in_functions/input
+regex: .png
+outputFolder: /Users/voegtlil/Documents/01_Research/DivaServices/Code/build_in_functions/output
