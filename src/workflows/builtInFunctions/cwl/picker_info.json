@@ -1,0 +1,55 @@
+{
+    "general": {
+        "name": "picker",
+        "description": "File picker using regex",
+        "developer": "Lars Vögtlin",
+        "affiliation": "University of Fribourg",
+        "email": "lars.voegtlin@unifr.ch",
+        "author": "Lars Vögtlin",
+        "license": "Apache License 2.0",
+        "ownsCopyright": "1"
+    },
+    "input": [
+        {
+            "folder": {
+                "name": "inputFolder",
+                "description": "The folder to search for an ",
+                "options": {
+                    "required": true
+                },
+                "userdefined": true
+            }
+        },
+        {
+            "text": {
+                "name": "regex",
+                "description": "the search regex to apply",
+                "options": {
+                    "required": true
+                },
+                "userdefined": true
+            }
+        },
+        {
+            "outputFolder": {
+                "userdefined": false
+            }
+        }
+    ],
+    "output": [
+        {
+            "file": {
+                "name": "outputFile",
+                "options": {
+                    "visualization": false,
+                    "mimeTypes": {
+                        "allowed": [
+                            "*/*"
+                        ],
+                        "default": "*/*"
+                    }
+                }
+            }
+        }
+    ]
+}

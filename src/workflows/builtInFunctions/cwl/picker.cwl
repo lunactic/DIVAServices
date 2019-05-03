@@ -1,6 +1,6 @@
 cwlVersion: v1.0
 class: CommandLineTool
-baseCommand: [python, /home/superuser/DIVAServices/src/workflows/builtInFunctions/scripts]
+baseCommand: [python, /home/lunactic/DEV/DIVAServices/src/workflows/builtInFunctions/scripts/file_picker.py]
 arguments: ["--output_folder", $(runtime.outdir)]
 
 inputs:
@@ -20,6 +20,6 @@ outputs:
     outputFile:
         type: File
         outputBinding:
-            glob: outputFile.png
+            glob: outputFile.*
     output:
         type: stdout

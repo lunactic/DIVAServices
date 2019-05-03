@@ -233,7 +233,7 @@ export class FileResultHandler implements IResultHandler {
                         delete resFile.file['mimetype'];
                     } else {
                         var mimeType = mime.getType(cwlFile.path);
-                        if (resFile.file.options.mimeTypes.allowed.includes(mimeType)) {
+                        if (resFile.file.options.mimeTypes.allowed.includes(mimeType) || resFile.file.options.mimeTypes.allowed.includes('*/*')) {
                             resFile.file['mime-type'] = mimeType;
                             delete resFile.file.options['mimeType'];
                             delete resFile.file.options['mimeTypes'];

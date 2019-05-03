@@ -1,0 +1,70 @@
+{
+    "name": "picker",
+    "service": "picker",
+    "baseRoute": "/picker/picker",
+    "identifier": "6323C6744dae04850d7a614b62f633b768c33355",
+    "path": "/wordextraction/wordsegmentationwithprojectionprofile/1",
+    "cwl": "/data/executables/wordextraction/wordsegmentationwithprojectionprofile/1/78216de096b187d5ad3ac729b246f83e00b2bac3.cwl",
+    "executablePath": "/input/script.sh",
+    "output": "file",
+    "execute": "docker",
+    "noCache": false,
+    "rewriteRules": [],
+    "executableType": "bash",
+    "imageName": "ecrop/picker",
+    "parameters": [
+        {
+            "regex": {
+                "text": {
+                    "name": "regex",
+                    "description": "the search regex to apply",
+                    "options": {
+                        "required": true
+                    },
+                    "userdefined": true
+                }
+            }
+        },
+        {
+            "outputFolder": {
+                "outputFolder": {}
+            }
+        }
+    ],
+    "data": [
+        {
+            "inputFolder": {
+                "folder": {
+                    "name": "inputFolder",
+                    "description": "The folder to search for an ",
+                    "options": {
+                        "required": true
+                    },
+                    "userdefined": true
+                }
+            }
+        }
+    ],
+    "paramOrder": [
+        {
+            "inputFolder": "folder"
+        },
+        {
+            "regex": "string"
+        },
+        {
+            "outputFolder": "outputFolder"
+        }
+    ],
+    "remotePaths": [],
+    "version": 1,
+    "status": {
+        "statusCode": 200,
+        "statusMessage": "Algorithm is Available"
+    },
+    "statistics": {
+        "runtime": 4,
+        "executions": 1
+    },
+    "exceptions": []
+}
