@@ -23,6 +23,8 @@ outputFolder=($(cat conf/server.dev.json | jq -r '.docker.paths.outputFolder'))
 rm -rf ${outputFolder}/
 tmpFolder=($(cat conf/server.dev.json | jq -r '.docker.paths.tmpFolder'))
 rm -rf ${tmpFolder}/
+workflowFolder=($(cat conf/server.dev.json | jq -r '.paths.workflowsPath'))
+rm -rf ${workflowFolder}/
 
 header "Creating Folders"
 imageFolder=($(cat conf/server.dev.json | jq -r '.paths.filesPath'))
@@ -37,6 +39,7 @@ mkdir -p ${logFolder}
 mkdir -p ${resultsFolder}
 mkdir -p ${outputFolder}
 mkdir -p ${tmpFolder}
+mkdir -p ${workflowFolder}
 
 header "Creating Files"
 imageInfoFile=($(cat conf/server.dev.json | jq -r '.paths.imageInfoFile'))
